@@ -1,0 +1,13 @@
+{
+  "id": "wp.heartbeat.aggressive",
+  "category": "wordpress",
+  "severity": "low",
+  "risk": "low",
+  "confidence": 0.91,
+  "title": "Heartbeat frequency may be unnecessarily aggressive",
+  "summary": "Heartbeat polls every 15 s.",
+  "why": "Heartbeat fires admin-ajax requests on a timer.",
+  "evidence": [],
+  "decision": "recommend",
+  "undo": true
+}

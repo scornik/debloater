@@ -1,0 +1,24 @@
+{
+  "id": "core.heartbeat_interval",
+  "schema_version": 1,
+  "title": "Set Heartbeat interval",
+  "category": "wordpress",
+  "kind": "config",
+  "risk": "low",
+  "base_confidence": 0.95,
+  "reversible": true,
+  "destructive": false,
+  "handler": "runtime-handlers/core-heartbeat-interval.php",
+  "params": {
+    "interval": { "type": "integer", "minimum": 15, "maximum": 120, "default": 60 }
+  },
+  "description": "Changes the interval WordPress uses for Heartbeat polling in admin and frontend.",
+  "breaks": ["Post-lock notifications become slower with many concurrent editors"],
+  "requires": [],
+  "conflicts": ["core.heartbeat_disable"],
+  "conditions": [],
+  "measurements": ["admin_ajax_requests_per_hour"],
+  "probes": ["home", "admin", "rest"],
+  "since_wp": "3.6",
+  "docs_url": null
+}

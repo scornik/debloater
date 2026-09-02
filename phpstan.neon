@@ -1,0 +1,11 @@
+parameters:
+	level: 6
+	paths:
+		- src
+		- runtime-handlers
+		- mu-loader
+	excludePaths:
+		analyse:
+			- vendor (?)
+			- node_modules (?)
+	treatPhpDocTypesAsCertain: false

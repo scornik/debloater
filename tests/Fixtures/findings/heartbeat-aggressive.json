@@ -1,0 +1,31 @@
+{
+  "id": "wp.heartbeat.aggressive",
+  "category": "wordpress",
+  "severity": "low",
+  "risk": "low",
+  "confidence": 0.91,
+  "title": "Heartbeat frequency may be unnecessarily aggressive",
+  "summary": "Heartbeat polls every 15 s. With 4 admins and no collaborative editing, 60 s is sufficient.",
+  "why": "Heartbeat fires admin-ajax requests on a timer for autosave and post locking.",
+  "evidence": [
+    { "label": "Current interval", "value": "15 s", "fact": "wp.heartbeat_interval" },
+    { "label": "Admin users", "value": 4, "fact": "users.admin_count" },
+    { "label": "WooCommerce active", "value": true, "fact": "plugins.detected.woocommerce" }
+  ],
+  "impact": {
+    "kind": "admin_ajax_requests_per_hour",
+    "estimate": 960,
+    "unit": "requests",
+    "measurable": true
+  },
+  "decision": "recommend",
+  "decision_reason": null,
+  "recommendation": {
+    "tweak_id": "core.heartbeat_interval",
+    "params": { "interval": 60 }
+  },
+  "undo": true,
+  "requires": [],
+  "conflicts": [],
+  "dependencies_detected": 0
+}

@@ -1,0 +1,13 @@
+/vendor/
+/node_modules/
+/build/
+/.phpunit.cache/
+/.phpunit.result.cache
+/coverage/
+/dist/
+*.log
+.DS_Store
+Thumbs.db
+/wp-debloat.zip
+/tests/E2E/test-results/
+/tests/E2E/playwright-report/

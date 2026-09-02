@@ -1,0 +1,97 @@
+<?xml version="1.0"?>
+<ruleset name="WP Debloat">
+	<description>Coding standards for WP Debloat.</description>
+
+	<file>src</file>
+	<file>runtime-handlers</file>
+	<file>mu-loader</file>
+	<file>tests</file>
+
+	<exclude-pattern>*/vendor/*</exclude-pattern>
+	<exclude-pattern>*/node_modules/*</exclude-pattern>
+	<exclude-pattern>*/build/*</exclude-pattern>
+
+	<arg name="basepath" value="."/>
+	<arg name="colors"/>
+	<arg name="extensions" value="php"/>
+	<arg value="sp"/>
+
+	<config name="minimum_supported_wp_version" value="6.5"/>
+	<config name="testVersion" value="8.1-"/>
+
+	<rule ref="WordPress-Extra">
+		<!-- PSR-4 autoloading is required by composer.json; WordPress file naming
+		     does not apply to src/. -->
+		<exclude name="WordPress.Files.FileName"/>
+
+		<!-- BUILD-SPEC §17 Phase 0 mandates the contract API fromArray()/toArray().
+		     The WordPress method-naming rule would forbid the specified names, and
+		     the specification outranks the convention (BUILD-SPEC §21.1). Local
+		     variables and properties stay snake_case, which this rule still covers. -->
+		<exclude name="WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid"/>
+
+		<!-- Tweak ids, fact keys and finding categories are lowercase identifiers by
+		     design; "wordpress" as a category value is not a misspelling of the
+		     product name. -->
+		<exclude name="WordPress.WP.CapitalPDangit.MisspelledInText"/>
+
+		<!-- BUILD-SPEC §10 requires tweak parameters to be emitted with var_export
+		     into the generated runtime, so var_export is a code-generation tool here,
+		     not leftover debugging. -->
+		<exclude name="WordPress.PHP.DevelopmentFunctions.error_log_var_export"/>
+
+		<!-- Class-comment file headers are present; the sniff misreads the
+		     declare(strict_types) statement that has to precede them. -->
+		<exclude name="Squiz.Commenting.FileComment.Missing"/>
+	</rule>
+
+	<rule ref="WordPress-VIP-Go">
+		<!-- The only file_get_contents calls read registry JSON shipped inside the
+		     plugin directory. BUILD-SPEC §13 rule 9 forbids outbound HTTP outright,
+		     and a dedicated test asserts no request is made, so the VIP remote-fetch
+		     caching advice does not apply. -->
+		<exclude name="WordPressVIPMinimum.Performance.FetchingRemoteData.FileGetContentsUnknown"/>
+	</rule>
+
+	<rule ref="PHPCompatibilityWP">
+		<!-- PHPCompatibility 9.x predates PHP 8.1 enums and reads every enum method
+		     body as being outside object context, so $this and self in an enum are
+		     reported as errors. Both are valid PHP 8.1. Remove these exclusions when
+		     PHPCompatibility ships enum support. -->
+		<exclude name="PHPCompatibility.Variables.ForbiddenThisUseContexts.OutsideObjectContext"/>
+		<exclude name="PHPCompatibility.FunctionDeclarations.NewParamTypeDeclarations.SelfOutsideClassScopeFound"/>
+	</rule>
+
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+		<properties>
+			<property name="prefixes" type="array">
+				<element value="wpdebloat"/>
+				<element value="WPDEBLOAT"/>
+				<element value="WPDebloat"/>
+			</property>
+		</properties>
+	</rule>
+
+	<rule ref="WordPress.WP.I18n">
+		<properties>
+			<property name="text_domain" type="array">
+				<element value="wp-debloat"/>
+			</property>
+		</properties>
+	</rule>
+
+	<!-- Unit tests run without WordPress loaded (tests/bootstrap-unit.php), so the
+	     WordPress wrappers they are told to prefer do not exist there. -->
+	<rule ref="WordPress.WP.AlternativeFunctions">
+		<exclude-pattern>tests/*</exclude-pattern>
+	</rule>
+	<rule ref="WordPress.DB.DirectDatabaseQuery">
+		<exclude-pattern>tests/*</exclude-pattern>
+	</rule>
+	<rule ref="WordPressVIPMinimum.Functions.RestrictedFunctions">
+		<exclude-pattern>tests/*</exclude-pattern>
+	</rule>
+	<rule ref="WordPressVIPMinimum.Performance.FetchingRemoteData">
+		<exclude-pattern>tests/*</exclude-pattern>
+	</rule>
+</ruleset>

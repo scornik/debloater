@@ -1,0 +1,5 @@
+{
+  "id": "woocommerce",
+  "match": {},
+  "sets": { "plugins.detected.woocommerce": true }
+}

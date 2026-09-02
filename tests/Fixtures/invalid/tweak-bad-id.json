@@ -1,0 +1,13 @@
+{
+  "id": "Core Heartbeat",
+  "schema_version": 1,
+  "title": "Set Heartbeat interval",
+  "category": "wordpress",
+  "kind": "config",
+  "risk": "low",
+  "base_confidence": 0.95,
+  "reversible": true,
+  "destructive": false,
+  "handler": "runtime-handlers/core-heartbeat-interval.php",
+  "description": "Changes the Heartbeat polling interval."
+}

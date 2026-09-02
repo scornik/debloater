@@ -1,0 +1,146 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://wp-debloat.hakeemify.com/schemas/fact.schema.json",
+  "title": "FactSet",
+  "description": "One JSON document per scan run. Keys are dot-namespaced; each scanner owns a namespace and may only write into it. Values are scalars, lists, or flat maps. Facts carry no opinions. Unknown keys are rejected: a scanner that wants a new key adds it to this schema in the same change.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "env.wp_version": {
+      "description": "WordPress version string.",
+      "type": "string",
+      "minLength": 1
+    },
+    "env.php_version": {
+      "description": "PHP version string.",
+      "type": "string",
+      "minLength": 1
+    },
+    "env.host_vendor": {
+      "description": "Recognised hosting vendor, or unknown when no signature matched.",
+      "type": "string",
+      "enum": ["litespeed", "siteground", "kinsta", "wpengine", "unknown"]
+    },
+    "env.cache_plugin": {
+      "description": "Active page-cache plugin, or none.",
+      "type": "string",
+      "enum": ["litespeed-cache", "wp-rocket", "wp-super-cache", "w3-total-cache", "none"]
+    },
+    "env.is_multisite": {
+      "description": "Whether this is a multisite install.",
+      "type": "boolean"
+    },
+
+    "wp.heartbeat_interval": {
+      "description": "Heartbeat polling interval in seconds.",
+      "type": "integer",
+      "minimum": 1
+    },
+    "wp.xmlrpc_enabled": { "type": "boolean" },
+    "wp.emojis_enabled": { "type": "boolean" },
+    "wp.embeds_enabled": { "type": "boolean" },
+    "wp.rss_enabled": { "type": "boolean" },
+    "wp.generator_tag": { "type": "boolean" },
+    "wp.rsd_link": { "type": "boolean" },
+    "wp.shortlink": { "type": "boolean" },
+    "wp.self_pingbacks": { "type": "boolean" },
+    "wp.dashicons_frontend": { "type": "boolean" },
+    "wp.jquery_migrate": { "type": "boolean" },
+    "wp.revisions_limit": {
+      "description": "WP_POST_REVISIONS: -1 for unlimited, 0 to disable, otherwise the cap.",
+      "type": "integer",
+      "minimum": -1
+    },
+    "wp.file_editor_enabled": { "type": "boolean" },
+    "wp.debug": { "type": "boolean" },
+
+    "users.admin_count": {
+      "description": "Number of users with the administrator role.",
+      "type": "integer",
+      "minimum": 0
+    },
+    "users.recent_editors_7d": {
+      "description": "Users who edited content in the last seven days.",
+      "type": "integer",
+      "minimum": 0
+    },
+
+    "plugins.active": {
+      "description": "Active plugin files, e.g. woocommerce/woocommerce.php.",
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "plugins.inactive": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "plugins.meta": {
+      "description": "Per-plugin metadata keyed by plugin file.",
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "version": { "type": "string" },
+          "last_updated": { "type": ["string", "null"] },
+          "name": { "type": "string" }
+        }
+      }
+    },
+    "plugins.detected": {
+      "description": "Detector results keyed by detector id.",
+      "type": "object",
+      "propertyNames": { "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+      "additionalProperties": { "type": "boolean" }
+    },
+
+    "theme.active": { "type": "string", "minLength": 1 },
+    "theme.parent": { "type": ["string", "null"] },
+
+    "db.size_bytes": { "type": "integer", "minimum": 0 },
+    "db.revisions.count": { "type": "integer", "minimum": 0 },
+    "db.autodrafts.count": { "type": "integer", "minimum": 0 },
+    "db.trash.count": { "type": "integer", "minimum": 0 },
+    "db.spam_comments.count": { "type": "integer", "minimum": 0 },
+    "db.transients.count": { "type": "integer", "minimum": 0 },
+    "db.transients.expired": { "type": "integer", "minimum": 0 },
+    "db.orphan_postmeta.count": { "type": "integer", "minimum": 0 },
+    "db.orphan_termmeta.count": { "type": "integer", "minimum": 0 },
+    "db.orphan_usermeta.count": { "type": "integer", "minimum": 0 },
+    "db.autoload.bytes": { "type": "integer", "minimum": 0 },
+    "db.autoload.top": {
+      "description": "Largest autoloaded options, largest first.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "bytes"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "bytes": { "type": "integer", "minimum": 0 }
+        }
+      }
+    },
+
+    "cron.events.count": { "type": "integer", "minimum": 0 },
+    "cron.events.subminute": {
+      "description": "Scheduled events recurring more often than once a minute.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["hook", "interval"],
+        "properties": {
+          "hook": { "type": "string", "minLength": 1 },
+          "interval": { "type": "integer", "minimum": 0 }
+        }
+      }
+    },
+    "cron.orphans.count": { "type": "integer", "minimum": 0 },
+    "cron.disable_wp_cron": { "type": "boolean" },
+
+    "admin.notices.count": { "type": "integer", "minimum": 0 },
+    "admin.dashboard_widgets.count": { "type": "integer", "minimum": 0 },
+    "admin.menu_items.count": { "type": "integer", "minimum": 0 }
+  }
+}
