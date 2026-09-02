@@ -973,3 +973,75 @@ the runtime bytes and the stored selection against what was there before.
 | PHPStan level 6 | ✅ no errors |
 | PHPCS | ✅ after seven alignment fixes in `Meter` |
 | ESLint | ✅ after Prettier formatting |
+
+---
+
+## Phase 10 — Database intelligence
+
+### Run 1 — unit suite after the registry grew
+
+```
+vendor/bin/phpunit
+```
+
+**Result:** 1 015 tests, **4 errors and 7 failures**, all from assertions
+written when the MVP registry was the whole registry.
+
+| Failure | Root cause | Fix | Retest |
+|---|---|---|---|
+| `AutoloadRule` fatals: `size_format()` undefined (×4) | The unit suite runs without WordPress. | Added `size_format` to the i18n polyfill, beside `number_format_i18n`. | ✅ |
+| `RulesTest::test_one_rule_per_finding_id` — expected 14 | A hard-coded count. The invariant is that no two rules share an id; the number only recorded when somebody last updated it. | Derive the count from `Rules::all()` and assert a floor. | ✅ |
+| `AnalyzerTest::test_rules_that_cannot_evaluate_are_reported` — expected 14 | Same. | Assert *every* rule reports it could not evaluate, which is the real claim and needs no maintenance. | ✅ |
+| `LoaderTest` — MVP tweak set, risks, "nothing is destructive", "exactly one data tweak" | Correct for the MVP; Phase 10 is when they change. | Re-scoped and made stricter: the destructive set is now an explicit list, so a new tweak cannot join it silently, and every data tweak must name a class under `Apply\DataOperations`. | ✅ |
+
+The tempting fix throughout was to raise the numbers. Deriving them instead
+means the next phase does not have to.
+
+### Run 2 — the round-trip tests
+
+```
+npm run test:integration:main
+```
+
+**Result:** 188 tests, **2 errors and 2 failures**.
+
+| Failure | Root cause | Fix | Retest |
+|---|---|---|---|
+| `SnapshotItem::object_type` rejected `meta:post` and `option_autoload` | **The contract was right and the code was wrong.** `object_type` is a closed set fixed in Phase 0, and it already had names for exactly these rows: `postmeta`, `termmeta`, `usermeta`, `commentmeta`, `option`. | Use the contract's vocabulary. `RevisionsCleanup` also now records `revision` rather than `post`, which the contract distinguishes and should: restoring "a post" and restoring "an earlier version of a post" are different promises. | ✅ |
+| The revisions round-trip expected every collected row to be deleted | The operation keeps the newest by design, so "everything captured is gone" was the wrong expectation for it. | Compare the rows that should actually go. | ✅ |
+| The autoload test expected `'yes'` | WordPress 6.6 renamed these values: `yes`/`no` became `on`/`off`. | The operation now calls `wp_set_option_autoload()` when it exists, so WordPress decides the spelling; the test compares against what was there rather than a literal, and the restore puts back the exact original string. | ✅ |
+
+### Run 3 — the refusal tests, and a bug worth the phase
+
+```
+npm run test:integration:main
+```
+
+**Result:** 193 tests, **1 failure** — and the failure was the product, not the
+test.
+
+`test_an_incomplete_recovery_point_refuses_the_deletion` expected a rollback
+from a corrupt Level B snapshot to be refused. It succeeded instead.
+
+`RollbackManager::restoreRun()` skipped any snapshot that was not restorable.
+For a corrupt Level B that meant: the configuration went back, the run was
+marked `ROLLED_BACK`, the user was shown "previous configuration restored" — and
+the rows the change had deleted were still gone. A success message over a data
+loss, which is worse than an error.
+
+It now stops with the reason. `ApplyManager::rollbackRun()` catches that and
+returns it as a result rather than an exception, because the caller is a person
+who asked to undo something and what they need is the reason.
+
+### Run 4 — full regression
+
+| Gate | Result |
+|---|---|
+| Unit | ✅ 1 016 tests, 7 443 assertions |
+| Integration | ✅ 193 tests, 1 279 assertions |
+| Forced-failure suite | ✅ 9 tests, 102 assertions |
+| Jest | ✅ 12 tests |
+| Bundle | ✅ 10.6 KB of 250 KB |
+| PHPCS | ✅ 0 errors, 0 warnings, 227 files |
+| PHPStan level 6 | ✅ no errors |
+| ESLint | ✅ clean |

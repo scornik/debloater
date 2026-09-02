@@ -10,6 +10,7 @@
 
 import {
 	Button,
+	CheckboxControl,
 	Modal,
 	Notice,
 	SelectControl,
@@ -56,6 +57,7 @@ export const ApplyDialog = ( { onClose, onStarted } ) => {
 	const [ profile, setProfile ] = useState( 'safe' );
 	const [ applying, setApplying ] = useState( false );
 	const [ failure, setFailure ] = useState( null );
+	const [ attested, setAttested ] = useState( false );
 
 	const preview = useResource(
 		() => get( '/preview', { profile } ),
@@ -70,6 +72,7 @@ export const ApplyDialog = ( { onClose, onStarted } ) => {
 			const result = await post( '/apply', {
 				profile,
 				confirm: preview.data.confirm,
+				attestation: attested,
 			} );
 
 			onStarted( result.run_id );
@@ -173,17 +176,38 @@ export const ApplyDialog = ( { onClose, onStarted } ) => {
 						) ) }
 					</ul>
 
-					<p className="wpdebloat-dialog__reassurance">
-						{ preview.data.destructive
-							? __(
-									'This plan deletes data. Every row it removes is stored first, and can be put back exactly.',
+					{ preview.data.destructive ? (
+						<div className="wpdebloat-dialog__destructive">
+							<p className="wpdebloat-dialog__warning">
+								{ __(
+									'This plan deletes data. Every row it removes is copied first, with its id and its dates, and can be put back exactly as it was.',
 									'wp-debloat'
-							  )
-							: __(
-									'Nothing will be deleted. A recovery point is taken first, and the site is checked afterwards.',
+								) }
+							</p>
+
+							<CheckboxControl
+								label={ __(
+									'I have my own backup of this site',
 									'wp-debloat'
-							  ) }
-					</p>
+								) }
+								help={ __(
+									'Recorded with the change. It does not skip anything: WP Debloat takes its own copy either way, and refuses to delete without one.',
+									'wp-debloat'
+								) }
+								checked={ attested }
+								onChange={ setAttested }
+								disabled={ applying }
+								__nextHasNoMarginBottom
+							/>
+						</div>
+					) : (
+						<p className="wpdebloat-dialog__reassurance">
+							{ __(
+								'Nothing will be deleted. A recovery point is taken first, and the site is checked afterwards.',
+								'wp-debloat'
+							) }
+						</p>
+					) }
 
 					<div className="wpdebloat-actions">
 						<Button
@@ -192,7 +216,15 @@ export const ApplyDialog = ( { onClose, onStarted } ) => {
 							disabled={ applying || count === 0 }
 							onClick={ apply }
 						>
-							{ __( 'Create snapshot & apply', 'wp-debloat' ) }
+							{ preview.data.destructive
+								? __(
+										'Create recovery backup & delete',
+										'wp-debloat'
+								  )
+								: __(
+										'Create snapshot & apply',
+										'wp-debloat'
+								  ) }
 						</Button>
 						<Button
 							variant="tertiary"

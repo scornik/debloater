@@ -224,6 +224,29 @@ All notable changes to WP Debloat are recorded here. The format follows
     point, applying, checking the site. If the checks fail, it says which one,
     and that the rollback is complete and the previous configuration restored.
 
+
+### Added since 0.1.0
+
+- **Phase 10 — the database.**
+  - Five things WP Debloat can now remove: old post revisions, abandoned
+    auto-drafts, content already in the trash, comments marked as spam, and
+    metadata whose owner no longer exists.
+  - Every one of them copies each row before deleting it — with its id, its
+    dates and its metadata — so putting it back is indistinguishable from never
+    having run. There is a test for each that compares whole rows, not counts.
+  - None of them can reach "Fix Safe Issues". Deleting data is never something a
+    single click decides on your behalf.
+  - What counts as "metadata whose owner no longer exists" is written down
+    before the code that acts on it, and is deliberately narrow: a row counts
+    only when the table WordPress itself looks in has no matching owner.
+  - The confirmation says "Create recovery backup & delete", and offers a box
+    for "I have my own backup of this site". Ticking it records what you said
+    and skips nothing — the backup is taken either way, and a deletion with no
+    complete backup is refused with the box ticked exactly as without it.
+  - Autoloaded options are reported in full and changed narrowly: the report
+    names the largest whatever they are, and the change touches only names on a
+    list WP Debloat maintains.
+
 ## [0.1.0] — 2026-09-03
 
 The MVP: scan, findings with their evidence, a plan you can read, a recovery

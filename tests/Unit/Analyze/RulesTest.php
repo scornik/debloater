@@ -57,7 +57,12 @@ final class RulesTest extends TestCase {
 			$ids[] = $rule->findingId();
 		}
 
-		$this->assertCount( 14, $ids, 'the MVP rule set has fourteen rules' );
+		// Derived rather than hard-coded: the invariant is that no two rules
+		// claim the same id, and a literal count only says when somebody last
+		// updated the number. The floor stops the list being emptied by
+		// accident.
+		$this->assertCount( count( Rules::all() ), $ids );
+		$this->assertGreaterThanOrEqual( 20, count( $ids ), 'rules have gone missing from the set' );
 	}
 
 	/**

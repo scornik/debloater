@@ -247,7 +247,11 @@ final class AnalyzerTest extends TestCase {
 		$result = $this->analyzer()->analyze( new FactSet() );
 
 		$this->assertSame( array(), $result->findings );
-		$this->assertCount( 14, $result->not_evaluated, 'with no facts, no rule can evaluate' );
+		$this->assertCount(
+			count( \WPDebloat\Analyze\Rules::all() ),
+			$result->not_evaluated,
+			'with no facts, every rule must report that it could not evaluate'
+		);
 		$this->assertFalse( $result->isComplete() );
 	}
 

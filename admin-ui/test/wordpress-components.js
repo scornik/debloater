@@ -54,4 +54,24 @@ const SelectControl = ( { label, value, options = [], onChange } ) =>
 		)
 	);
 
-module.exports = { Button, Notice, Spinner, Modal, SelectControl };
+const CheckboxControl = ( { label, checked, onChange, disabled } ) =>
+	createElement(
+		'label',
+		null,
+		createElement( 'input', {
+			type: 'checkbox',
+			checked: Boolean( checked ),
+			disabled,
+			onChange: ( event ) => onChange( event.target.checked ),
+		} ),
+		label
+	);
+
+module.exports = {
+	Button,
+	CheckboxControl,
+	Modal,
+	Notice,
+	SelectControl,
+	Spinner,
+};

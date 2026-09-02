@@ -154,8 +154,27 @@ final class RollbackManager {
 		$results = array();
 
 		foreach ( $snapshots as $snapshot ) {
-			if ( ! $snapshot->status->isRestorable() ) {
+			if ( SnapshotStatus::RESTORED === $snapshot->status ) {
+				// Already put back, by an earlier attempt at this same rollback.
 				continue;
+			}
+
+			// Anything else that cannot be restored stops the rollback. Skipping
+			// it would be worse than failing: the configuration would go back,
+			// the run would report "previous configuration restored", and the
+			// rows the change deleted would still be gone — a success message
+			// over a data loss.
+			$refusal = $this->refusalReason( $snapshot );
+
+			if ( null !== $refusal ) {
+				throw new RuntimeException(
+					sprintf(
+						/* translators: 1: snapshot id, 2: why it cannot be restored. */
+						__( 'Recovery point %1$d could not be restored, so the rollback stopped: %2$s', 'wp-debloat' ),
+						(int) $snapshot->id,
+						$refusal
+					)
+				);
 			}
 
 			$results[] = $this->restore( $snapshot );

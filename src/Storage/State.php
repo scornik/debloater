@@ -45,6 +45,7 @@ final class State {
 		'loader_mode'       => '',
 		'installed_at'      => '',
 		'uninstall_cleanup' => false,
+		'attestation'       => array(),
 	);
 
 	/**

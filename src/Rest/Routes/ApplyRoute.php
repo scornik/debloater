@@ -72,24 +72,33 @@ final class ApplyRoute implements RouteInterface {
 	 */
 	public function args(): array {
 		return array(
-			'profile' => array(
+			'profile'     => array(
 				'description' => __( 'Which profile to apply.', 'wp-debloat' ),
 				'type'        => 'string',
 				'enum'        => array_keys( $this->plugin->registry()->profiles() ),
 				'required'    => false,
 			),
-			'tweaks'  => array(
+			'tweaks'      => array(
 				'description' => __( 'Specific changes to apply, instead of a profile.', 'wp-debloat' ),
 				'type'        => 'array',
 				'items'       => array( 'type' => 'string' ),
 				'required'    => false,
 			),
-			'confirm' => array(
+			'confirm'     => array(
 				'description' => __( 'The confirmation token from the preview of this exact plan.', 'wp-debloat' ),
 				'type'        => 'string',
 				'required'    => true,
 				'minLength'   => 64,
 				'maxLength'   => 64,
+			),
+			'attestation' => array(
+				'description' => __(
+					'The user states they have their own external backup. Recorded, and never a substitute for the recovery point WP Debloat takes itself.',
+					'wp-debloat'
+				),
+				'type'        => 'boolean',
+				'required'    => false,
+				'default'     => false,
 			),
 		);
 	}
@@ -134,6 +143,13 @@ final class ApplyRoute implements RouteInterface {
 				array( 'status' => 409 )
 			);
 		}
+
+		// Recorded before the apply, so the statement is part of the history of
+		// the change whatever the change then does. It buys nothing: the Level B
+		// recovery point is taken either way, and a destructive operation with
+		// no complete one is refused with this ticked exactly as without it
+		// (docs/DECISIONS.md D-0027).
+		$this->plugin->recordAttestation( (bool) $request->get_param( 'attestation' ) );
 
 		$applied = $this->plugin->apply( $result->plan );
 

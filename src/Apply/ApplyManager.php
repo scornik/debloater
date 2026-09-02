@@ -331,7 +331,26 @@ final class ApplyManager {
 			$states = $this->lifecycle->statesOf( $this->tweakIdsOf( $run ) );
 
 			$restored = $this->rollback->restoreRun( $run_id );
-			$ids      = array();
+		} catch ( Throwable $error ) {
+			$this->lock->release();
+
+			// A rollback that cannot complete is reported, not thrown. The
+			// caller is a person who asked to undo something, and what they need
+			// is the reason — including the case that matters most here, a
+			// recovery point that no longer verifies.
+			return new ApplyResult(
+				$run_id,
+				RunState::ABORTED,
+				array(),
+				array(),
+				array(),
+				null,
+				$this->describe( $error )
+			);
+		}
+
+		try {
+			$ids = array();
 
 			foreach ( $restored as $result ) {
 				$ids[] = (int) $result->snapshot->id;

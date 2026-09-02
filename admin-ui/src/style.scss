@@ -674,3 +674,19 @@
 	font-size: 15px;
 	font-weight: 600;
 }
+
+/* The destructive confirmation ------------------------------------------- */
+
+.wpdebloat-dialog__destructive {
+	margin: 16px 0;
+	padding: 14px 16px;
+	border: 1px solid #eabec0;
+	border-left: 4px solid var(--wpdebloat-poor);
+	border-radius: 8px;
+	background: #fdeff0;
+}
+
+.wpdebloat-dialog__warning {
+	margin: 0 0 12px;
+	font-weight: 600;
+}

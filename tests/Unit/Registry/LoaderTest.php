@@ -66,7 +66,13 @@ final class LoaderTest extends TestCase {
 				'core.remove_jquery_migrate',
 				'core.remove_rsd',
 				'core.remove_shortlink',
+				'db.autoload_off',
+				'db.clean_auto_drafts',
 				'db.clean_expired_transients',
+				'db.clean_orphan_meta',
+				'db.clean_revisions',
+				'db.delete_spam_comments',
+				'db.empty_trash',
 			),
 			$this->shippedRegistry()->ids()
 		);
@@ -95,6 +101,16 @@ final class LoaderTest extends TestCase {
 			'db.clean_expired_transients'   => Risk::LOW,
 			'core.disable_dashicons_guests' => Risk::MEDIUM,
 			'core.remove_jquery_migrate'    => Risk::MEDIUM,
+
+			// Phase 10. The three that delete content a person might miss are
+			// medium; the two that delete things already judged disposable —
+			// an abandoned auto-draft, a comment marked as spam — are low.
+			'db.clean_revisions'            => Risk::MEDIUM,
+			'db.empty_trash'                => Risk::MEDIUM,
+			'db.clean_orphan_meta'          => Risk::MEDIUM,
+			'db.clean_auto_drafts'          => Risk::LOW,
+			'db.delete_spam_comments'       => Risk::LOW,
+			'db.autoload_off'               => Risk::LOW,
 		);
 
 		foreach ( $this->shippedRegistry()->all() as $id => $definition ) {
@@ -104,40 +120,94 @@ final class LoaderTest extends TestCase {
 	}
 
 	/**
-	 * Nothing in the MVP set is destructive.
+	 * Only the operations that delete rows are destructive, and every one of
+	 * them is reversible.
 	 *
-	 * BUILD-SPEC §15 is explicit: "Nothing destructive." Destructive operations
-	 * arrive in Phase 10 with the Level B machinery that makes them recoverable,
-	 * and this test is what stops one arriving before it.
+	 * BUILD-SPEC §15 said "nothing destructive" for the MVP set; Phase 10 adds
+	 * five that are, with the Level B machinery that makes them recoverable. The
+	 * test that once stopped one arriving early now states exactly which ones
+	 * are allowed to be destructive — a list, not a blanket, so a new tweak
+	 * cannot join it silently.
 	 *
 	 * @return void
 	 */
-	public function test_nothing_in_the_mvp_set_is_destructive(): void {
+	public function test_only_the_deleting_operations_are_destructive(): void {
+		$allowed = array(
+			'db.clean_revisions',
+			'db.clean_auto_drafts',
+			'db.empty_trash',
+			'db.delete_spam_comments',
+			'db.clean_orphan_meta',
+		);
+
+		$destructive = array();
+
 		foreach ( $this->shippedRegistry()->all() as $id => $definition ) {
-			$this->assertFalse( $definition->destructive, $id . ' must not be destructive before Phase 10' );
 			$this->assertTrue( $definition->reversible, $id . ' must be reversible' );
+
+			if ( $definition->destructive ) {
+				$destructive[] = $id;
+			}
+		}
+
+		sort( $destructive, SORT_STRING );
+		sort( $allowed, SORT_STRING );
+
+		$this->assertSame( $allowed, $destructive, 'the set of destructive tweaks has changed' );
+	}
+
+	/**
+	 * A config tweak is never destructive: it registers hooks and deletes
+	 * nothing.
+	 *
+	 * @return void
+	 */
+	public function test_no_config_tweak_is_destructive(): void {
+		foreach ( $this->configTweaks() as $id => $definition ) {
+			$this->assertFalse( $definition->destructive, $id . ' is a config tweak and cannot delete anything' );
 		}
 	}
 
 	/**
-	 * Exactly one data tweak exists, deliberately.
+	 * Every data tweak is one of the seven that exist, and names an operation
+	 * class rather than a handler file.
 	 *
-	 * BUILD-SPEC §15: db.clean_expired_transients is the single data operation
-	 * in the MVP, chosen to prove the Level B recovery path end to end on rows
-	 * where a mistake costs nothing.
+	 * The MVP had one, chosen to prove the Level B recovery path where a mistake
+	 * cost nothing. Phase 10 adds six more, and this is the list.
 	 *
 	 * @return void
 	 */
-	public function test_there_is_exactly_one_data_tweak(): void {
+	public function test_the_data_tweaks_are_the_expected_seven(): void {
 		$data = array();
 
 		foreach ( $this->shippedRegistry()->all() as $id => $definition ) {
-			if ( TweakKind::DATA === $definition->kind ) {
-				$data[] = $id;
+			if ( TweakKind::DATA !== $definition->kind ) {
+				continue;
 			}
+
+			$data[] = $id;
+
+			$this->assertStringStartsWith(
+				'WPDebloat\\Apply\\DataOperations\\',
+				$definition->handler,
+				$id . ' must name a data operation class'
+			);
 		}
 
-		$this->assertSame( array( 'db.clean_expired_transients' ), $data );
+		sort( $data, SORT_STRING );
+
+		$this->assertSame(
+			array(
+				'db.autoload_off',
+				'db.clean_auto_drafts',
+				'db.clean_expired_transients',
+				'db.clean_orphan_meta',
+				'db.clean_revisions',
+				'db.delete_spam_comments',
+				'db.empty_trash',
+			),
+			$data
+		);
 	}
 
 	/**

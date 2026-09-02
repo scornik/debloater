@@ -764,3 +764,96 @@ confirm, apply, verify, report — and undo, unprompted, if the site says no.
 ### Next
 
 Phase 10 — Database intelligence, and the first destructive operations.
+
+---
+
+## Phase 10 — Database intelligence
+
+**Status:** complete · 2026-09-03
+
+The first phase where the plugin deletes things a person would miss. Everything
+in it exists to make that safe rather than fast.
+
+### What exists now
+
+- Five destructive operations, each with an exact round-trip test:
+  `RevisionsCleanup` (keep N per post), `AutoDraftsCleanup`, `TrashCleanup`,
+  `SpamCommentsCleanup`, `OrphanMetaCleanup` (post, term, user and comment
+  meta).
+- `AutoloadReview`: not destructive. It changes the flag that decides whether an
+  option is read on every request, for option names on an allowlist the plugin
+  maintains — and the `prefixes` parameter can only **narrow** that list, never
+  widen it.
+- Six analyzer rules, one per operation, each reading facts the scanners already
+  produced in Phase 2.
+- What counts as an orphan, per meta type, written down before the code existed
+  (D-0026). What the Level C attestation is for, and what it deliberately does
+  not buy (D-0027).
+- The destructive confirmation: *Create recovery backup & delete*, with an
+  optional "I have my own backup of this site" checkbox that is recorded and
+  changes nothing else.
+
+### Two safety holes found and closed while building it
+
+**Rows could be deleted without ever being backed up.** `collect()` writes the
+recovery point and `execute()` then asks the database again for what matches — so
+anything that came to match *in between* would be deleted with no backup. On a
+busy site that is not hypothetical: a post is trashed, a comment is marked as
+spam, a plugin writes metadata a moment before creating its parent. Every
+operation now records a **collection ceiling** and will not delete above it; a
+ceiling of zero means nothing was collected, so nothing may be deleted.
+
+**A rollback could report success over a data loss.** `restoreRun()` skipped any
+snapshot it could not restore. A corrupt Level B therefore meant: configuration
+restored, run marked rolled back, "previous configuration restored" shown to the
+user — and the deleted rows still gone. It now stops with the reason, and a
+failed rollback is reported as a result rather than thrown.
+
+Neither was reachable before this phase, because until now the only data
+operation deleted expired transients.
+
+### Exit checklist (§17 Phase 10)
+
+| Criterion | Result |
+|---|---|
+| `RevisionsCleanup` with `keep_per_post`, default 5 | ✅ per post, not per site |
+| `AutoDraftsCleanup` | ✅ |
+| `TrashCleanup` | ✅ |
+| `SpamCommentsCleanup` | ✅ spam only; the moderation queue is never touched |
+| `OrphanMetaCleanup` for post, term, user, comment meta | ✅ |
+| "Orphan" defined per type in DECISIONS.md **before coding** | ✅ D-0026, committed on its own first |
+| Native deletion functions | ✅ `wp_delete_post`, `wp_delete_post_revision`, `wp_delete_comment`, `delete_metadata_by_mid` |
+| All flagged `destructive: true` | ✅ and a test asserts the set has not changed |
+| §7.4 invariant extended to the shipped tweaks | ✅ no profile admits any of them, including the widest |
+| `AutoloadReview` as info + allowlisted config change | ✅ report is wide, action is narrow |
+| Allowlist in the registry | ✅ and a parameter can only narrow it — asserted |
+| Destructive confirmation UI with Level C checkbox | ✅ |
+| Level C never substitutes for Level B | ✅ D-0027, and a test that ticks the box and still expects the refusal |
+| Batched execution | ✅ every operation works in bounded batches |
+| **Exact round-trip per operation** | ✅ whole rows compared — ids, dates, meta, term relationships |
+| **A destructive apply without a complete Level B is refused** | ✅ |
+| Unit suite | ✅ 1 016 tests, 7 443 assertions |
+| Integration suite | ✅ 193 tests, 1 279 assertions |
+| Forced-failure suite | ✅ 9 tests, 102 assertions |
+| Jest | ✅ 12 tests |
+| Bundle | ✅ 10.6 KB of 250 KB |
+| PHPCS | ✅ 0 errors, 0 warnings across 227 files |
+| PHPStan level 6 | ✅ no errors |
+| ESLint | ✅ clean |
+
+### Known warnings
+
+- Orphan cleanup refuses to run on multisite. User meta is shared across a
+  network there, and "no row in this site's tables" is a different question
+  (D-0026). The finding still reports what it sees.
+- `ExpiredTransientsCleanup` from Phase 5 does not use the collection ceiling.
+  Its rows are expired cache entries and the race costs nothing, but it is the
+  one operation whose `execute()` can still touch a row that arrived after the
+  recovery point. Worth aligning when it is next touched.
+- The progress the Run screen shows is per state, not per batch. Batches are
+  bounded so a long deletion cannot hold a request open indefinitely, but a
+  count of rows processed would be better and needs a place to put it.
+
+### Next
+
+Phase 11 — Plugin intelligence.

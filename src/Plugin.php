@@ -14,7 +14,13 @@ use WPDebloat\Analyze\Analyzer;
 use WPDebloat\Analyze\Rules;
 use WPDebloat\Apply\ApplyManager;
 use WPDebloat\Apply\Compiler;
+use WPDebloat\Apply\DataOperations\AutoDraftsCleanup;
+use WPDebloat\Apply\DataOperations\AutoloadReview;
 use WPDebloat\Apply\DataOperations\ExpiredTransientsCleanup;
+use WPDebloat\Apply\DataOperations\OrphanMetaCleanup;
+use WPDebloat\Apply\DataOperations\RevisionsCleanup;
+use WPDebloat\Apply\DataOperations\SpamCommentsCleanup;
+use WPDebloat\Apply\DataOperations\TrashCleanup;
 use WPDebloat\Apply\Lock;
 use WPDebloat\Apply\RuntimeLoader;
 use WPDebloat\Apply\RuntimeWriter;
@@ -607,7 +613,17 @@ final class Plugin {
 			static function (): array {
 				$operations = array();
 
-				foreach ( array( new ExpiredTransientsCleanup() ) as $operation ) {
+				$available = array(
+					new ExpiredTransientsCleanup(),
+					new RevisionsCleanup(),
+					new AutoDraftsCleanup(),
+					new TrashCleanup(),
+					new SpamCommentsCleanup(),
+					new OrphanMetaCleanup(),
+					new AutoloadReview(),
+				);
+
+				foreach ( $available as $operation ) {
 					$operations[ $operation->tweakId() ] = $operation;
 				}
 
@@ -738,6 +754,30 @@ final class Plugin {
 		$run = $this->latestScan();
 
 		return $this->verifier()->verify( null === $run ? null : $run->facts() );
+	}
+
+	/**
+	 * Record that the user says they have their own external backup.
+	 *
+	 * This is BUILD-SPEC §8's Level C, and §12 rule 8 is explicit that it never
+	 * substitutes for Level B. It is stored rather than acted on: a later
+	 * conversation about a deletion is better for having a record of what the
+	 * person believed at the time, and no better for having skipped a backup on
+	 * the strength of it.
+	 *
+	 * @param bool $attested Whether the user stated they have an external backup.
+	 * @return void
+	 */
+	public function recordAttestation( bool $attested ): void {
+		$this->state()->set(
+			array(
+				'attestation' => array(
+					'external_backup' => $attested,
+					'stated_at'       => gmdate( 'Y-m-d\TH:i:s\Z' ),
+					'actor'           => $this->context()->actor,
+				),
+			)
+		);
 	}
 
 	/**

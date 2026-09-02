@@ -114,3 +114,32 @@ if ( ! function_exists( 'number_format_i18n' ) ) {
 		return number_format( (float) $number, (int) $decimals );
 	}
 }
+
+if ( ! function_exists( 'size_format' ) ) {
+
+	/**
+	 * Format a byte count for people.
+	 *
+	 * Used by the rule that reports how much data is loaded on every request.
+	 * The unit suite runs without WordPress, and a rule that could only be
+	 * tested with WordPress loaded would be a rule outside the pipeline's own
+	 * boundaries.
+	 *
+	 * @param float|int $bytes    Number of bytes.
+	 * @param int       $decimals Decimal places.
+	 * @return string
+	 */
+	function size_format( $bytes, $decimals = 0 ) { // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedFunctionFound -- As above.
+		$bytes = (float) $bytes;
+		$units = array( 'B', 'KB', 'MB', 'GB' );
+		$last  = count( $units ) - 1;
+		$index = 0;
+
+		while ( $bytes >= 1024 && $index < $last ) {
+			$bytes /= 1024;
+			++$index;
+		}
+
+		return number_format( $bytes, (int) $decimals ) . ' ' . $units[ $index ];
+	}
+}
