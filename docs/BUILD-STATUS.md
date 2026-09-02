@@ -352,3 +352,97 @@ Phase 4 — Recommendation engine.
 ### Next
 
 Phase 5 — Snapshot, apply, rollback.
+
+---
+
+## Phase 5 — Snapshot, apply, rollback
+
+**Status:** complete · 2026-09-03
+
+`BUILD-SPEC.md` §17 calls this "the most important engineering phase; correctness
+over speed", and it is the first phase in which the plugin changes anything on a
+site by itself.
+
+### What exists now
+
+- `Storage\Schema` version 2: `wpdebloat_snapshots`, `wpdebloat_snapshot_items`
+  and `wpdebloat_journal`, matching §8 field for field.
+- `Journal\Journal`: append-only, one row per transition, with the actor and the
+  parameters in force. A failed journal write never fails the work it describes —
+  the journal is the record of the work, not the work.
+- `Snapshot\SnapshotManager`:
+  - **Level A** — the previous selection, the tweak states, the runtime hash, the
+    loader mode and the current value of every option a selected tweak declares
+    (through the `wpdebloat_tweak_options` filter), including the distinction
+    between "the option held null" and "the option did not exist".
+  - **Level B** — the exact rows a `DataOperationInterface` yields from
+    `collect()`, taken **before** `execute()` touches anything, read back and
+    checksummed before the operation is allowed to run.
+  - Spill to gzipped newline-delimited JSON above 8 MB (D-0015).
+  - `verify()`, which marks a snapshot corrupt on any mismatch and throws.
+  - `forget()`, which removes a snapshot, its rows and its file (D-0016).
+- `Snapshot\SpillFile`: streaming gzip read and write under
+  `wp-content/wpdebloat/backups`, mode 0600, behind an `index.php` and an
+  `.htaccess`, with every path resolved and checked against that directory.
+- `Snapshot\RollbackManager`: restores both levels. Level A restores the options
+  (deleting those that did not exist), the selection and the tweak states, then
+  rewrites the runtime and **verifies the rewritten file hashes to what the
+  recovery point recorded**, throwing if it does not. Level B verifies the
+  snapshot, then puts the rows back through the operation that removed them.
+  Three refusals before anything is written: wrong site, not complete, unreadable
+  rows.
+- `Apply\Lock`: a 60-second transient claimed atomically with `add_option`, which
+  refuses to release a lock it does not hold.
+- `Apply\ApplyManager`: drives `RunStateMachine` through the §9.2 sequence —
+  lock, snapshot **everything** and verify it, apply configuration, then data,
+  verify, commit — and rolls back on any failure after applying began. No data
+  operation runs without a complete Level B recovery point, checked immediately
+  before the deletion rather than only when the snapshot was taken.
+- `Apply\TweakLifecycle` and `TweakStateMachine::pathTo()`: every journalled
+  tweak transition is an edge from the §9.1 table, found rather than assumed
+  (D-0018).
+- `Apply\DataOperations\ExpiredTransientsCleanup`: the first data operation.
+  Deletes through `delete_transient()` so a persistent object cache sees the
+  removal, restores through `$wpdb->replace` so a restored transient keeps its
+  original expiry instead of being resurrected as live.
+- Crash recovery on `admin_init`: a run left in `APPLYING` or `VERIFYING` with no
+  live lock is marked `INTERRUPTED` and rolled back (D-0017).
+
+### Exit checklist (§17 Phase 5)
+
+| Criterion | Result |
+|---|---|
+| Three tables created via `Storage\Schema` | ✅ schema version 2 |
+| Level A: selection, runtime hash, affected option values | ✅ plus tweak states and loader mode |
+| Level B: exact rows from `collect()` before `execute()` | ✅ verified before the operation may run |
+| Checksum, and spill to gz file above a recorded threshold | ✅ 8 MB, D-0015 |
+| `ApplyManager` drives `RunStateMachine` | ✅ every transition recorded on the run |
+| `wpdebloat_lock` transient | ✅ atomic claim, 60 s TTL |
+| Journal rows on every transition | ✅ and every row is a legal edge, D-0018 |
+| Crash recovery for `APPLYING` / `VERIFYING` | ✅ lock-guarded, D-0017 |
+| `RollbackManager` for both levels, original ids and timestamps | ✅ transient timeouts restored exactly |
+| `ExpiredTransientsCleanup` with batches of 500 | ✅ default batch size 500 |
+| **Apply five config tweaks, roll back, byte-identical runtime** | ✅ integration test compares bytes and option values |
+| **Transient round-trip restores rows and timeouts exactly** | ✅ raw rows compared, expiry preserved |
+| **A corrupt checksum refuses restore** | ✅ tampered config and truncated spill file |
+| **A second apply while locked is rejected** | ✅ and does not steal the lock |
+| **A simulated crash in APPLYING is rolled back on next boot** | ✅ and a live apply is left alone |
+| Unit suite | ✅ 967 tests, 7 054 assertions |
+| Integration suite | ✅ 102 tests, 746 assertions |
+| PHPCS | ✅ 0 errors, 0 warnings across 170 files |
+| PHPStan level 6 | ✅ no errors |
+
+### Known warnings
+
+- `MEASURING_BEFORE` and `MEASURING_AFTER` are traversed but do nothing: the
+  Meter arrives in Phase 9. The transitions exist now so the shape of a run does
+  not change when it does, and the run records honestly that no measurement was
+  taken rather than reporting a delta of zero.
+- `VERIFYING` likewise passes straight to `VERIFIED`. Phase 6 puts the probes
+  there. Nothing in the plugin currently claims a verification ran.
+- Level C — the user's attestation that they have their own external backup — is
+  not implemented and is never a substitute for Level B (§12 rule 8).
+
+### Next
+
+Phase 6 — Verification engine.

@@ -183,10 +183,30 @@ final class RuntimeGenerationTest extends IntegrationTestCase {
 
 		$this->assertIsArray( $entries );
 
-		$files = array_values( array_diff( $entries, array( '.', '..' ) ) );
+		$files       = array();
+		$directories = array();
+
+		foreach ( array_diff( $entries, array( '.', '..' ) ) as $entry ) {
+			if ( is_dir( $directory . '/' . $entry ) ) {
+				$directories[] = $entry;
+			} else {
+				$files[] = $entry;
+			}
+		}
+
 		sort( $files, SORT_STRING );
+		sort( $directories, SORT_STRING );
 
 		$this->assertSame( array( 'index.php', 'runtime.lock', 'runtime.php' ), $files );
+
+		// BUILD-SPEC §4 puts oversized Level B recovery points in a backups
+		// subdirectory. It is the only thing allowed to appear beside the
+		// runtime, and it only exists once one has been written.
+		$this->assertSame(
+			array(),
+			array_values( array_diff( $directories, array( 'backups' ) ) ),
+			'Nothing but the backups directory belongs under wp-content/wpdebloat.'
+		);
 	}
 
 	/**
