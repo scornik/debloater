@@ -46,67 +46,166 @@ final class LoaderTest extends TestCase {
 	}
 
 	/**
-	 * The shipped registry loads, and holds the five tweaks Phase 1 specifies.
+	 * The registry holds exactly the MVP tweak set from BUILD-SPEC §15.
+	 *
+	 * Pinned as a list rather than a count, so an accidental addition is a
+	 * failure with a name rather than an off-by-one.
 	 *
 	 * @return void
 	 */
-	public function test_the_shipped_registry_loads(): void {
-		$registry = $this->shippedRegistry();
-
+	public function test_the_shipped_registry_holds_the_mvp_tweak_set(): void {
 		$this->assertSame(
 			array(
+				'core.disable_dashicons_guests',
+				'core.disable_embeds',
 				'core.disable_emojis',
 				'core.disable_self_pingbacks',
+				'core.heartbeat_interval',
+				'core.limit_revisions',
 				'core.remove_generator',
+				'core.remove_jquery_migrate',
 				'core.remove_rsd',
 				'core.remove_shortlink',
+				'db.clean_expired_transients',
 			),
-			$registry->ids()
+			$this->shippedRegistry()->ids()
 		);
 	}
 
 	/**
-	 * Every shipped tweak is a safe, reversible config tweak in this phase.
+	 * Every tweak carries the risk BUILD-SPEC §15 assigns it.
 	 *
-	 * BUILD-SPEC §15 lists them under "safe"; nothing destructive exists until
-	 * Phase 10, and this test is what stops one arriving early by accident.
+	 * Asserted per tweak rather than as a blanket rule, because the risk level
+	 * is what decides whether a tweak can reach "Fix Safe Issues" (§7.4). A
+	 * tweak quietly promoted from medium to safe would change what a single
+	 * click does.
 	 *
 	 * @return void
 	 */
-	public function test_every_shipped_tweak_is_safe_and_reversible(): void {
+	public function test_every_tweak_carries_its_specified_risk(): void {
+		$expected = array(
+			'core.remove_generator'         => Risk::SAFE,
+			'core.remove_rsd'               => Risk::SAFE,
+			'core.remove_shortlink'         => Risk::SAFE,
+			'core.disable_emojis'           => Risk::SAFE,
+			'core.disable_self_pingbacks'   => Risk::SAFE,
+			'core.disable_embeds'           => Risk::SAFE,
+			'core.heartbeat_interval'       => Risk::LOW,
+			'core.limit_revisions'          => Risk::LOW,
+			'db.clean_expired_transients'   => Risk::LOW,
+			'core.disable_dashicons_guests' => Risk::MEDIUM,
+			'core.remove_jquery_migrate'    => Risk::MEDIUM,
+		);
+
 		foreach ( $this->shippedRegistry()->all() as $id => $definition ) {
-			$this->assertSame( TweakKind::CONFIG, $definition->kind, $id );
-			$this->assertSame( Risk::SAFE, $definition->risk, $id );
-			$this->assertTrue( $definition->reversible, $id );
-			$this->assertFalse( $definition->destructive, $id );
+			$this->assertArrayHasKey( $id, $expected, $id . ' is not in the MVP set' );
+			$this->assertSame( $expected[ $id ], $definition->risk, $id );
 		}
 	}
 
 	/**
-	 * Every shipped tweak names a handler file that exists.
+	 * Nothing in the MVP set is destructive.
+	 *
+	 * BUILD-SPEC §15 is explicit: "Nothing destructive." Destructive operations
+	 * arrive in Phase 10 with the Level B machinery that makes them recoverable,
+	 * and this test is what stops one arriving before it.
 	 *
 	 * @return void
 	 */
-	public function test_every_handler_file_exists(): void {
+	public function test_nothing_in_the_mvp_set_is_destructive(): void {
 		foreach ( $this->shippedRegistry()->all() as $id => $definition ) {
+			$this->assertFalse( $definition->destructive, $id . ' must not be destructive before Phase 10' );
+			$this->assertTrue( $definition->reversible, $id . ' must be reversible' );
+		}
+	}
+
+	/**
+	 * Exactly one data tweak exists, deliberately.
+	 *
+	 * BUILD-SPEC §15: db.clean_expired_transients is the single data operation
+	 * in the MVP, chosen to prove the Level B recovery path end to end on rows
+	 * where a mistake costs nothing.
+	 *
+	 * @return void
+	 */
+	public function test_there_is_exactly_one_data_tweak(): void {
+		$data = array();
+
+		foreach ( $this->shippedRegistry()->all() as $id => $definition ) {
+			if ( TweakKind::DATA === $definition->kind ) {
+				$data[] = $id;
+			}
+		}
+
+		$this->assertSame( array( 'db.clean_expired_transients' ), $data );
+	}
+
+	/**
+	 * Every config tweak names a handler file that exists.
+	 *
+	 * @return void
+	 */
+	public function test_every_config_handler_file_exists(): void {
+		foreach ( $this->configTweaks() as $id => $definition ) {
 			$this->assertFileExists( WPDEBLOAT_TESTS_ROOT . '/' . $definition->handler, $id );
 		}
 	}
 
 	/**
-	 * Every handler declares the two methods the contract requires
+	 * Every config handler declares the two methods the contract requires
 	 * (BUILD-SPEC §10, Contracts\HandlerInterface).
 	 *
 	 * @return void
 	 */
-	public function test_every_handler_declares_register_and_unregister(): void {
-		foreach ( $this->shippedRegistry()->all() as $id => $definition ) {
+	public function test_every_config_handler_declares_register_and_unregister(): void {
+		foreach ( $this->configTweaks() as $id => $definition ) {
 			$source = file_get_contents( WPDEBLOAT_TESTS_ROOT . '/' . $definition->handler );
 
 			$this->assertIsString( $source );
 			$this->assertStringContainsString( 'public static function register(', $source, $id );
 			$this->assertStringContainsString( 'public static function unregister(', $source, $id );
 		}
+	}
+
+	/**
+	 * Every data tweak names a class in the DataOperations namespace.
+	 *
+	 * The classes themselves arrive in Phase 5 along with ApplyManager; until
+	 * then this asserts the shape, so a typo in the registry is caught now
+	 * rather than at apply time.
+	 *
+	 * @return void
+	 */
+	public function test_every_data_handler_names_a_data_operation_class(): void {
+		foreach ( $this->shippedRegistry()->all() as $id => $definition ) {
+			if ( TweakKind::DATA !== $definition->kind ) {
+				continue;
+			}
+
+			$this->assertStringStartsWith( 'WPDebloat\\Apply\\DataOperations\\', $definition->handler, $id );
+			$this->assertMatchesRegularExpression(
+				'/^[A-Za-z_\\\\][A-Za-z0-9_\\\\]*$/',
+				$definition->handler,
+				$id . ' must name a class, not a path'
+			);
+		}
+	}
+
+	/**
+	 * The config tweaks in the shipped registry.
+	 *
+	 * @return array<string,TweakDefinition>
+	 */
+	private function configTweaks(): array {
+		$config = array();
+
+		foreach ( $this->shippedRegistry()->all() as $id => $definition ) {
+			if ( TweakKind::CONFIG === $definition->kind ) {
+				$config[ $id ] = $definition;
+			}
+		}
+
+		return $config;
 	}
 
 	/**

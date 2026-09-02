@@ -329,3 +329,89 @@ exactly what it measures and asserts with no tolerance:
   configured in the `development` environment for manual work. The test
   environment stays vanilla and uses stub plugin files for detection, which is
   exactly what a detector reads.
+
+---
+
+## Phase 3 — Analyzer, findings, Don't Touch, Score
+
+### Run 1 — unit suite after adding the analyzer
+
+**Result:** 817 tests, **4 failures**, all in `LoaderTest`.
+
+All four were Phase 1 assertions written when the registry held exactly five
+safe config tweaks. Phase 3 completes the §15 MVP set, so risk levels now vary
+and one tweak is a data operation with a class handler rather than a file.
+
+The assertions were **re-scoped, not relaxed** — and ended up stronger:
+
+| Was | Now |
+|---|---|
+| "the five Phase 1 tweak ids" | the eleven MVP ids, pinned as a list |
+| "every tweak is SAFE" | the exact risk **per tweak id**, because risk is what decides whether a tweak can reach "Fix Safe Issues" |
+| "every tweak is a config tweak" | nothing is destructive, everything is reversible, and there is **exactly one** data tweak |
+| "every handler file exists" | every *config* handler file exists and declares register/unregister; every *data* handler names a class in the DataOperations namespace |
+
+### Run 2 — i18n in a suite with no WordPress
+
+**Result:** 928 tests, **many errors** — `Call to undefined function __()`.
+
+The analyzer writes user-visible text, which must be translatable
+(CONVENTIONS.md), while the unit suite runs with no WordPress by design.
+
+Fixed with `tests/wp-i18n-polyfill.php`: guarded stand-ins for `__`, `_n`, `_x`,
+`esc_html__` and `number_format_i18n` that return the untranslated string —
+exactly what WordPress does when no translation is loaded. Deliberately minimal:
+a missing function should fail loudly, because it means code that should not
+depend on WordPress has started to.
+
+### Run 3 — a real modelling error, caught by a test
+
+**Result:** 928 tests, **2 failures**.
+
+| Failure | Root cause | Fix | Retest |
+|---|---|---|---|
+| `test_heartbeat_is_not_refused_without_collaboration` and `test_refused_findings_do_not_lower_the_score` — Heartbeat was `dont_touch` on a store with one recent editor | **Real bug.** WooCommerce declares a dependency on the `heartbeat` capability — correctly, its checkout keep-alive needs it. The refusal logic treated any declared dependency as a reason to refuse, so `core.heartbeat_interval` was refused on **every WooCommerce site**. But that tweak does not remove Heartbeat; it slows it from 15 s to 60 s. The dependency is still satisfied afterwards. | Split the capability map in two (D-0011): `REMOVES_CAPABILITY` refuses, `AFFECTS_CAPABILITY` only lowers confidence. Heartbeat is in the second. Refusing a change of *degree* is left to situational rules, which can weigh how the site is actually used — which is what §17 Phase 3 specifies. | ✅ |
+
+This is the failure the phase was worth writing tests for. Without it, every
+WooCommerce user would have seen "No action recommended" against a change that
+is perfectly reasonable on most of their sites.
+
+### Run 4 — PHPStan level 6
+
+**Result:** **9 errors.**
+
+| Failure | Fix |
+|---|---|
+| `AnalyzerRuleInterface::baseConfidence()` undefined (1) | Base confidence *is* part of the rule contract (§6, "rule-declared base confidence"), so it was added to the interface rather than left on the abstract class. |
+| `impact()` never returns null (8) | The concrete core-feature rules always state an impact; the return type was narrowed from `?Impact` to `Impact`, which is valid covariance. |
+
+### Run 5 — integration suite
+
+**Result:** 70 tests, **3 failures**, all weak assertions of my own:
+
+| Failure | Root cause | Fix |
+|---|---|---|
+| `test_findings_survive_storage` | JSON has one number type, so an impact of `1.0` comes back as `1`. The contracts already handle this — `Assert::float` widens an int, because JSON cannot spell `1.0` — but the test compared raw arrays. | Compare the rebuilt `Finding` contracts, which is the meaningful assertion. |
+| `test_findings_can_be_filtered` | The final assertion was tautological (`13 < 13`). | Replaced with a real one: a filter narrows the list, and the three decision buckets account for the whole list exactly. |
+| `test_findings_exposes_nothing_sensitive` | `DB_PASSWORD` on a test install is the literal string "password", which appears legitimately in the XML-RPC finding ("try many passwords in one request"). | Check the high-entropy secrets — `AUTH_KEY`, `AUTH_SALT`, `SECURE_AUTH_KEY`, `NONCE_SALT` — rather than words that occur in prose. The same weak check in `StatusRouteTest` was fixed with it. |
+
+### Run 6 — full gate
+
+| Check | Result |
+|---|---|
+| Unit | ✅ **928 tests, 3 840 assertions, 0 failures** |
+| Integration | ✅ **70 tests, 260 assertions, 0 failures** |
+| PHPCS | ✅ **0 errors, 0 warnings** across 144 files |
+| PHPStan level 6 | ✅ **no errors** |
+
+### The phase exit criterion, measured
+
+BUILD-SPEC §17 Phase 3 requires "≥ 12 findings including ≥ 1 dont_touch" on a
+seeded full-stack site. On the `busyStore` fixture — WooCommerce, Contact Form
+7, LiteSpeed, three recent editors, 31 421 revisions, 4 832 expired transients —
+the analyzer produces **13 findings, one of them refused**: Heartbeat, because
+three people edited content last week on a store.
+
+On the bare wp-env test site the same analyzer produces 12 findings and no
+refusal, which is the correct answer for a site with nothing installed to
+depend on anything.

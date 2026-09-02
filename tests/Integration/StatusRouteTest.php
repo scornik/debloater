@@ -196,7 +196,12 @@ final class StatusRouteTest extends IntegrationTestCase {
 
 		$this->assertIsString( $encoded );
 		$this->assertStringNotContainsString( ABSPATH, $encoded, 'absolute paths must not leak through the API' );
-		$this->assertStringNotContainsString( DB_PASSWORD, $encoded );
+
+		foreach ( array( 'AUTH_KEY', 'AUTH_SALT', 'SECURE_AUTH_KEY', 'NONCE_SALT' ) as $secret ) {
+			if ( defined( $secret ) && is_string( constant( $secret ) ) && strlen( (string) constant( $secret ) ) > 16 ) {
+				$this->assertStringNotContainsString( (string) constant( $secret ), $encoded, $secret );
+			}
+		}
 	}
 
 	/**

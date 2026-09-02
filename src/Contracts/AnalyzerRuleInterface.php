@@ -27,6 +27,17 @@ interface AnalyzerRuleInterface {
 	public function findingId(): string;
 
 	/**
+	 * The confidence this rule would have on a site it can see clearly.
+	 *
+	 * A rule declares the base; ConfidenceCalculator applies the site's
+	 * penalties on top (BUILD-SPEC §6). A rule cannot know it is looking at an
+	 * unrecognised host or through a page cache, so it does not try.
+	 *
+	 * @return float Between 0 and 1.
+	 */
+	public function baseConfidence(): float;
+
+	/**
 	 * Whether this rule can evaluate the given facts.
 	 *
 	 * Returning false means "the facts this rule needs are not present", not
