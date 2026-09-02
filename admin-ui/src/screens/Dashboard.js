@@ -3,7 +3,7 @@
  */
 
 import { Button, Notice, Spinner } from '@wordpress/components';
-import { useState } from '@wordpress/element';
+import { useEffect, useState } from '@wordpress/element';
 import { __, _n, sprintf } from '@wordpress/i18n';
 
 import { get, post } from '../api/client';
@@ -35,11 +35,22 @@ const CountList = ( { counts, label, modifier } ) => {
 	);
 };
 
-export const Dashboard = ( { onNavigate, onFixSafeIssues } ) => {
+export const Dashboard = ( { onNavigate, onFixSafeIssues, onScore } ) => {
 	const status = useResource( () => get( '/status' ), [] );
 	const findings = useResource( () => get( '/findings' ), [] );
 	const [ scanning, setScanning ] = useState( false );
 	const [ scanError, setScanError ] = useState( null );
+
+	// Handed up so the report after a change can show the score it started
+	// from. Recomputing it later would be measuring a site that had already
+	// changed.
+	const headline = findings.data?.score?.headline ?? null;
+
+	useEffect( () => {
+		if ( onScore ) {
+			onScore( headline );
+		}
+	}, [ headline, onScore ] );
 
 	const scan = async () => {
 		setScanning( true );

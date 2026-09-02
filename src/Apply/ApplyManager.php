@@ -24,6 +24,9 @@ use WPDebloat\Contracts\VerificationResult;
 use WPDebloat\Contracts\TweakKind;
 use WPDebloat\Contracts\TweakState;
 use WPDebloat\Journal\Journal;
+use WPDebloat\Meter\Comparison;
+use WPDebloat\Meter\MeasurementSet;
+use WPDebloat\Meter\Meter;
 use WPDebloat\Registry\Registry;
 use WPDebloat\Snapshot\RollbackManager;
 use WPDebloat\Snapshot\SnapshotManager;
@@ -137,6 +140,13 @@ final class ApplyManager {
 	private ?Verifier $verifier;
 
 	/**
+	 * Before-and-after measurement, when there is any.
+	 *
+	 * @var Meter|null
+	 */
+	private ?Meter $meter;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param Context                              $context     Site context.
@@ -150,6 +160,7 @@ final class ApplyManager {
 	 * @param array<string,DataOperationInterface> $operations  Data operations by tweak id.
 	 * @param Lock|null                            $lock        The apply lock.
 	 * @param Verifier|null                        $verifier    Post-apply verification.
+	 * @param Meter|null                           $meter       Before-and-after measurement.
 	 */
 	public function __construct(
 		Context $context,
@@ -162,7 +173,8 @@ final class ApplyManager {
 		Journal $journal,
 		array $operations = array(),
 		?Lock $lock = null,
-		?Verifier $verifier = null
+		?Verifier $verifier = null,
+		?Meter $meter = null
 	) {
 		$this->context     = $context;
 		$this->registry    = $registry;
@@ -174,6 +186,7 @@ final class ApplyManager {
 		$this->operations  = $operations;
 		$this->lock        = $lock ?? new Lock();
 		$this->verifier    = $verifier;
+		$this->meter       = $meter;
 		$this->lifecycle   = new TweakLifecycle( $state, $journal );
 	}
 
@@ -203,10 +216,14 @@ final class ApplyManager {
 			$machine->transitionTo( RunState::LOCKED );
 			$this->record( $run, $machine );
 
-			// The Meter arrives in Phase 9. The transition exists now so the run's
-			// shape does not change when it does, and a failure here is a warning
-			// rather than a stop (BUILD-SPEC §9.2).
 			$machine->transitionTo( RunState::MEASURING_BEFORE );
+			$this->record( $run, $machine );
+
+			// A failed measurement is a warning, never a stop (§9.2). Somebody
+			// whose site cannot be reached from itself still deserves to have
+			// their change applied; what they do not get is a before-and-after.
+			$before = $this->measure();
+
 			$machine->transitionTo( RunState::SNAPSHOTTING );
 			$this->record( $run, $machine );
 
@@ -258,6 +275,10 @@ final class ApplyManager {
 		$this->lifecycle->advanceAll( $run_id, $applied, TweakState::VERIFIED );
 
 		$machine->transitionTo( RunState::MEASURING_AFTER );
+		$this->record( $run, $machine );
+
+		$after = $this->measure();
+
 		$machine->transitionTo( RunState::COMMITTED );
 
 		$this->commit( $run_id, $applied );
@@ -274,7 +295,7 @@ final class ApplyManager {
 			$warnings
 		);
 
-		$this->finish( $run, $machine, $result );
+		$this->finish( $run, $machine, $result, new Comparison( $before, $after ) );
 
 		return $result;
 	}
@@ -819,27 +840,57 @@ final class ApplyManager {
 	/**
 	 * Record the final state and result.
 	 *
-	 * @param Run             $run     The run.
-	 * @param RunStateMachine $machine The state machine.
-	 * @param ApplyResult     $result  The outcome.
+	 * @param Run             $run        The run.
+	 * @param RunStateMachine $machine    The state machine.
+	 * @param ApplyResult     $result     The outcome.
+	 * @param Comparison|null $comparison Before-and-after, when both were taken.
 	 * @return void
 	 */
-	private function finish( Run $run, RunStateMachine $machine, ApplyResult $result ): void {
+	private function finish(
+		Run $run,
+		RunStateMachine $machine,
+		ApplyResult $result,
+		?Comparison $comparison = null
+	): void {
+		$payload = array(
+			'result'  => $result->toArray(),
+			'history' => array_map(
+				static fn ( RunState $state ): string => $state->value,
+				$machine->history()
+			),
+		);
+
+		if ( null !== $comparison ) {
+			$payload['measurements'] = $comparison->toArray();
+		}
+
 		$this->runs->update(
 			$run->withStatus( $machine->state()->value, gmdate( 'Y-m-d H:i:s' ), $result->error )
-				->withPayload(
-					array_merge(
-						$run->payload,
-						array(
-							'result'  => $result->toArray(),
-							'history' => array_map(
-								static fn ( RunState $state ): string => $state->value,
-								$machine->history()
-							),
-						)
-					)
-				)
+				->withPayload( array_merge( $run->payload, $payload ) )
 		);
+	}
+
+	/**
+	 * Take a reading, or record that one could not be taken.
+	 *
+	 * Never throws: §9.2 makes a metering failure a warning, and a run that
+	 * refused to apply a change because it could not count the scripts on the
+	 * home page would be putting its own reporting above the user's site.
+	 *
+	 * @return MeasurementSet
+	 */
+	private function measure(): MeasurementSet {
+		if ( null === $this->meter ) {
+			return new MeasurementSet( array() );
+		}
+
+		try {
+			return $this->meter->measure();
+		} catch ( Throwable $error ) {
+			unset( $error );
+
+			return new MeasurementSet( array() );
+		}
 	}
 
 	/**

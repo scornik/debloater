@@ -28,6 +28,7 @@ use WPDebloat\Contracts\Run;
 use WPDebloat\Contracts\RunType;
 use WPDebloat\Contracts\VerificationResult;
 use WPDebloat\Journal\Journal;
+use WPDebloat\Meter\Meter;
 use WPDebloat\Recommend\IntentProfile;
 use WPDebloat\Recommend\PlanResult;
 use WPDebloat\Recommend\PreviewPlanner;
@@ -41,6 +42,7 @@ use WPDebloat\Rest\Routes\ApplyRoute;
 use WPDebloat\Rest\Routes\FindingsRoute;
 use WPDebloat\Rest\Routes\PreviewRoute;
 use WPDebloat\Rest\Routes\RollbackRoute;
+use WPDebloat\Rest\Routes\RunRoute;
 use WPDebloat\Rest\Routes\ScanRoute;
 use WPDebloat\Rest\Routes\SnapshotsRoute;
 use WPDebloat\Rest\Routes\StatusRoute;
@@ -562,6 +564,7 @@ final class Plugin {
 					new FindingsRoute( $this ),
 					new PreviewRoute( $this ),
 					new SnapshotsRoute( $this ),
+					new RunRoute( $this ),
 					new ApplyRoute( $this ),
 					new RollbackRoute( $this ),
 				)
@@ -663,8 +666,26 @@ final class Plugin {
 				$this->journal(),
 				$this->dataOperations(),
 				new Lock(),
-				$this->verifier()
+				$this->verifier(),
+				$this->meter()
 			)
+		);
+	}
+
+	/**
+	 * The meter.
+	 *
+	 * Shares the verification HTTP client, so the pages it counts are fetched
+	 * exactly the way the probes fetch them — same timeout, same header, same
+	 * SSL setting. Two different clients would eventually disagree about what
+	 * the site returned.
+	 *
+	 * @return Meter
+	 */
+	public function meter(): Meter {
+		return $this->service(
+			'meter',
+			fn (): Meter => new Meter( $this->context(), $this->httpClient(), $this->state() )
 		);
 	}
 

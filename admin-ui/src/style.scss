@@ -550,3 +550,127 @@
 	border-radius: 8px;
 	background: var(--wpdebloat-raise);
 }
+
+/* The run, live and afterwards ------------------------------------------- */
+
+.wpdebloat-run-live {
+	padding: 20px 24px;
+	border: 1px solid var(--wpdebloat-line);
+	border-radius: 10px;
+	background: var(--wpdebloat-surface);
+}
+
+.wpdebloat-progress {
+	margin: 12px 0 0;
+	padding: 0 0 0 18px;
+	color: var(--wpdebloat-muted);
+	font-variant-numeric: tabular-nums;
+
+	li + li {
+		margin-top: 2px;
+	}
+}
+
+.wpdebloat-progress__step.is-current {
+	color: var(--wpdebloat-ink);
+	font-weight: 600;
+}
+
+.wpdebloat-report {
+	padding: 20px 24px;
+	border: 1px solid var(--wpdebloat-line);
+	border-left: 4px solid var(--wpdebloat-good);
+	border-radius: 10px;
+	background: var(--wpdebloat-surface);
+
+	h2 {
+		margin: 0 0 8px;
+		font-size: 22px;
+	}
+
+	h3 {
+		margin: 20px 0 8px;
+		font-size: 13px;
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		color: var(--wpdebloat-muted);
+	}
+
+	&.is-rolled-back {
+		border-left-color: var(--wpdebloat-fair);
+	}
+}
+
+.wpdebloat-report__score {
+	margin: 0 0 4px;
+	font-size: 16px;
+}
+
+.wpdebloat-report__note,
+.wpdebloat-report__reassurance {
+	margin: 16px 0;
+	padding: 10px 14px;
+	border-radius: 8px;
+	background: var(--wpdebloat-raise);
+	color: var(--wpdebloat-muted);
+}
+
+.wpdebloat-deltas {
+	width: 100%;
+	border-collapse: collapse;
+	font-variant-numeric: tabular-nums;
+
+	th,
+	td {
+		padding: 6px 10px;
+		text-align: left;
+		border-bottom: 1px solid var(--wpdebloat-line);
+	}
+
+	thead th {
+		font-size: 12px;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		color: var(--wpdebloat-muted);
+	}
+
+	tbody th {
+		font-weight: 400;
+	}
+
+	tr.is-down td:last-child {
+		color: var(--wpdebloat-good);
+	}
+
+	tr.is-up td:last-child {
+		color: var(--wpdebloat-fair);
+	}
+}
+
+.wpdebloat-deltas__percent {
+	color: var(--wpdebloat-muted);
+}
+
+.wpdebloat-deltas__unknown {
+	color: var(--wpdebloat-muted);
+	font-style: italic;
+}
+
+.wpdebloat-modal {
+	max-width: 44rem;
+
+	h3 {
+		margin: 18px 0 6px;
+		font-size: 12px;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		color: var(--wpdebloat-muted);
+	}
+}
+
+.wpdebloat-modal__count {
+	margin: 16px 0 0;
+	font-size: 15px;
+	font-weight: 600;
+}

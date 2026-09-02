@@ -688,3 +688,79 @@ through the same engine.
 ### Next
 
 Phase 9 — Preview and Fix Safe Issues, the MVP milestone.
+
+---
+
+## Phase 9 — Preview, Fix Safe Issues, before and after
+
+**Status:** complete · 2026-09-03 · **MVP v0.1.0**
+
+The phase where the whole thing becomes one motion: look, decide, preview,
+confirm, apply, verify, report — and undo, unprompted, if the site says no.
+
+### What exists now
+
+- `Meter\Meter` with all eleven v1 metrics from §12, measured on the home page,
+  the newest content page and the dashboard; `PageMetrics` reads them from the
+  markup the site actually served rather than from WordPress's own registries.
+- `Meter\Comparison`: deltas with units and percentages, and four refusals
+  (D-0025) that keep the report honest.
+- `MEASURING_BEFORE` and `MEASURING_AFTER` now do something. A metering failure
+  is a warning and never stops a run: somebody whose site cannot reach itself
+  still gets their change, they just do not get a before-and-after.
+- `GET wpdebloat/v1/runs/<id>`: the run with its state history, its verification
+  and its measurements, each state labelled in words a person can read while
+  waiting.
+- The preview modal: the profile, what will change, what will not, what was left
+  out and why, which recovery is taken first, and "Nothing will be deleted" when
+  the plan is not destructive. The button says *Create snapshot & apply*, because
+  that is the order things happen in.
+- The live run screen, polling and rendering each transition, then the report:
+  "N optimizations applied", the score before → after, and the measured deltas
+  with units. On failure: which check failed, "Rollback complete", "Previous
+  configuration restored".
+
+### Exit checklist (§17 Phase 9, §14)
+
+| Criterion | Result |
+|---|---|
+| Meter v1 metrics, measured on home + content page + admin | ✅ all eleven |
+| Comparison producing deltas with units | ✅ and percentages, where honest |
+| `MEASURING_BEFORE` / `MEASURING_AFTER` wired into the run | ✅ in the history, and in the payload |
+| Preview modal from the PreviewPlan | ✅ will change / will not / excluded / snapshot levels |
+| "Nothing will be deleted" when nothing is destructive | ✅ |
+| `Create snapshot & apply` confirmation | ✅ with the plan-bound token from Phase 8 |
+| Live run screen polling `runs/<id>` | ✅ each transition labelled |
+| Report: score before → after, deltas, "N optimizations applied" | ✅ |
+| Failure report: failing probe, rollback complete, previous configuration restored | ✅ |
+| Copy never claims time saved or says "faster" | ✅ asserted over the whole report JSON |
+| **§14: scan reports ≥ 12 findings including ≥ 1 dont_touch** | ✅ 
+| **§14: Fix Safe Issues snapshots, applies, verifies PASS, reports** | ✅ end to end through REST |
+| **§14: forced probe failure rolls back and restores exactly** | ✅ runtime compared byte for byte |
+| Unit suite | ✅ 979 tests, 7 200 assertions |
+| Integration suite | ✅ 174 tests, 1 203 assertions |
+| Forced-failure suite | ✅ 9 tests, 102 assertions |
+| Jest | ✅ 12 tests |
+| Bundle | ✅ 10.4 KB of 250 KB |
+| PHPCS | ✅ 0 errors, 0 warnings across 210 files |
+| PHPStan level 6 | ✅ no errors |
+| ESLint | ✅ clean |
+| Tag `v0.1.0` | ✅ |
+
+### Known warnings
+
+- The acceptance test seeds its own "full stack" — WooCommerce and Contact Form
+  7 in `active_plugins`, two authors who edited this week, revisions, expired
+  transients, autoloaded rows and scheduled events — rather than running against
+  the wp-env full-stack variant. The refusal it asserts is the real one from
+  §17 Phase 3: Heartbeat on a store with collaborators. The stack-matrix runs
+  against genuinely installed plugins belong to Phase 12.
+- `frontend.*` and `admin.notices` are measured over loopback, so on a site that
+  cannot reach itself they are reported as not measured. That is the correct
+  behaviour and the reason rule 1 above exists.
+- The score in the report comes from a fresh scan after the change. On a large
+  site that is a second scan; it is the only honest way to show an "after".
+
+### Next
+
+Phase 10 — Database intelligence, and the first destructive operations.

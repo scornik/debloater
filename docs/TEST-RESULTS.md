@@ -926,3 +926,50 @@ wp-scripts lint-js admin-ui
 | PHPCS | ✅ 0 errors, 0 warnings, 201 files |
 | PHPStan level 6 | ✅ no errors |
 | ESLint | ✅ clean |
+
+---
+
+## Phase 9 — Preview, Fix Safe Issues, before and after
+
+### Run 1 — the acceptance test, first attempt
+
+```
+npm run test:integration:main
+```
+
+**Result:** 174 tests, 1 179 assertions, **1 failure**.
+
+| Failure | Root cause | Fix | Retest |
+|---|---|---|---|
+| `AcceptanceTest::test_a_scan_reports_findings_including_something_to_leave_alone` — zero `dont_touch` findings | The seed produced plenty to find but nothing to refuse. Tracing it through `DontTouchRules`: a refusal needs either a detected component that requires a capability a finding would *remove*, or the situational rule. Of the shipped compatibility rules, none requires `embeds`, `xmlrpc`, `jquery-migrate` or `dashicons:frontend` — the four capabilities the current findings map to — so no compatibility refusal is reachable on any site with today's registry. | Seed the situation §17 Phase 3 describes and the situational rule exists for: WooCommerce active, and two authors who edited content this week. Slowing Heartbeat is then the wrong change *here*, and the plugin says so. | ✅ |
+
+Worth recording rather than fixing: the compatibility registry currently cannot
+produce a refusal, because the capabilities its six rules require and the
+capabilities the current findings remove do not overlap. That is not a bug in
+either half — it is what a six-rule registry against an eleven-tweak MVP looks
+like — but it is worth knowing before Phase 12 adds more of both.
+
+### Run 2 — integration suite after the seed was right
+
+**Result:** 174 tests, 1 203 assertions, **0 failures**.
+
+### Run 3 — the other half of §14
+
+```
+npm run test:integration:fail-probe
+```
+
+**Result:** 9 tests, 102 assertions, **0 failures**. The new one drives Fix Safe
+Issues through REST on a site whose `rest` probe is forced to fail, and compares
+the runtime bytes and the stored selection against what was there before.
+
+### Run 4 — the rest of the gates
+
+| Gate | Result |
+|---|---|
+| Unit | ✅ 979 tests, 7 200 assertions |
+| Jest | ✅ 12 tests |
+| Bundle | ✅ 10.4 KB of 250 KB |
+| PHPStan level 6 | ✅ no errors |
+| PHPCS | ✅ after seven alignment fixes in `Meter` |
+| ESLint | ✅ after Prettier formatting |
