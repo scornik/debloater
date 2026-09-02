@@ -31,12 +31,27 @@ final class Schema {
 	/**
 	 * Schema version. Bump when a table definition changes.
 	 */
-	public const VERSION = 1;
+	public const VERSION = 2;
 
 	/**
 	 * The runs table, without the site prefix.
 	 */
 	public const RUNS = 'runs';
+
+	/**
+	 * Recovery points.
+	 */
+	public const SNAPSHOTS = 'snapshots';
+
+	/**
+	 * The exact rows a data operation will delete.
+	 */
+	public const SNAPSHOT_ITEMS = 'snapshot_items';
+
+	/**
+	 * Every state change, per tweak.
+	 */
+	public const JOURNAL = 'journal';
 
 	/**
 	 * Plugin state, which records the migrated schema version.
@@ -126,7 +141,7 @@ final class Schema {
 	 * @return array<int,string>
 	 */
 	public static function tables(): array {
-		return array( self::RUNS );
+		return array( self::RUNS, self::SNAPSHOTS, self::SNAPSHOT_ITEMS, self::JOURNAL );
 	}
 
 	/**
@@ -161,10 +176,13 @@ final class Schema {
 	 * @return array<string,string>
 	 */
 	private function definitions( string $charset ): array {
-		$runs = self::table( self::RUNS );
+		$runs      = self::table( self::RUNS );
+		$snapshots = self::table( self::SNAPSHOTS );
+		$items     = self::table( self::SNAPSHOT_ITEMS );
+		$journal   = self::table( self::JOURNAL );
 
 		return array(
-			self::RUNS => "CREATE TABLE {$runs} (
+			self::RUNS           => "CREATE TABLE {$runs} (
 	id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 	type VARCHAR(16) NOT NULL,
 	status VARCHAR(32) NOT NULL,
@@ -178,6 +196,52 @@ final class Schema {
 	PRIMARY KEY  (id),
 	KEY type_status (type, status),
 	KEY started_at (started_at)
+) {$charset};",
+
+			self::SNAPSHOTS      => "CREATE TABLE {$snapshots} (
+	id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+	run_id BIGINT UNSIGNED NOT NULL,
+	level VARCHAR(1) NOT NULL,
+	created_at DATETIME NOT NULL,
+	site_hash CHAR(64) NOT NULL,
+	plugin_version VARCHAR(20) NOT NULL,
+	config LONGTEXT NULL,
+	items_count INT UNSIGNED NOT NULL DEFAULT 0,
+	bytes BIGINT UNSIGNED NOT NULL DEFAULT 0,
+	storage VARCHAR(8) NOT NULL DEFAULT 'db',
+	file_path VARCHAR(255) NULL,
+	checksum CHAR(64) NOT NULL,
+	status VARCHAR(16) NOT NULL,
+	PRIMARY KEY  (id),
+	KEY run_id (run_id),
+	KEY status_created (status, created_at)
+) {$charset};",
+
+			self::SNAPSHOT_ITEMS => "CREATE TABLE {$items} (
+	id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+	snapshot_id BIGINT UNSIGNED NOT NULL,
+	object_type VARCHAR(32) NOT NULL,
+	object_key VARCHAR(191) NOT NULL,
+	payload LONGTEXT NOT NULL,
+	restored TINYINT(1) NOT NULL DEFAULT 0,
+	PRIMARY KEY  (id),
+	KEY snapshot_id (snapshot_id),
+	KEY snapshot_type (snapshot_id, object_type)
+) {$charset};",
+
+			self::JOURNAL        => "CREATE TABLE {$journal} (
+	id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+	run_id BIGINT UNSIGNED NOT NULL,
+	tweak_id VARCHAR(100) NOT NULL,
+	action VARCHAR(8) NOT NULL,
+	from_state VARCHAR(32) NOT NULL,
+	to_state VARCHAR(32) NOT NULL,
+	params TEXT NULL,
+	at DATETIME NOT NULL,
+	actor VARCHAR(64) NOT NULL,
+	PRIMARY KEY  (id),
+	KEY run_id (run_id),
+	KEY tweak_id (tweak_id)
 ) {$charset};",
 		);
 	}

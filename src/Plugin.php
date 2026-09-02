@@ -11,13 +11,20 @@ namespace WPDebloat;
 
 use WPDebloat\Analyze\Analyzer;
 use WPDebloat\Analyze\Rules;
+use WPDebloat\Apply\ApplyManager;
 use WPDebloat\Apply\Compiler;
+use WPDebloat\Apply\DataOperations\ExpiredTransientsCleanup;
+use WPDebloat\Apply\Lock;
 use WPDebloat\Apply\RuntimeLoader;
 use WPDebloat\Apply\RuntimeWriter;
+use WPDebloat\Contracts\ApplyResult;
 use WPDebloat\Contracts\Context;
+use WPDebloat\Contracts\DataOperationInterface;
 use WPDebloat\Contracts\FactSet;
+use WPDebloat\Contracts\PreviewPlan;
 use WPDebloat\Contracts\Run;
 use WPDebloat\Contracts\RunType;
+use WPDebloat\Journal\Journal;
 use WPDebloat\Recommend\IntentProfile;
 use WPDebloat\Recommend\PlanResult;
 use WPDebloat\Recommend\PreviewPlanner;
@@ -42,7 +49,10 @@ use WPDebloat\Scan\Scanners\ThemeScanner;
 use WPDebloat\Scan\Scanners\UserScanner;
 use WPDebloat\Scan\Scanners\WordPressScanner;
 use WPDebloat\Security\Capabilities;
+use WPDebloat\Snapshot\RollbackManager;
+use WPDebloat\Snapshot\SnapshotManager;
 use WPDebloat\Storage\Repositories\RunRepository;
+use WPDebloat\Storage\Repositories\SnapshotRepository;
 use WPDebloat\Storage\Schema;
 use WPDebloat\Storage\State;
 
@@ -148,6 +158,10 @@ final class Plugin {
 		// never pay for a migration check, and nothing on the front end reads
 		// them anyway.
 		add_action( 'admin_init', array( $this, 'ensureSchema' ) );
+
+		// After ensureSchema, because recovery reads the snapshot tables, and
+		// because a site that has just upgraded may not have them yet.
+		add_action( 'admin_init', array( $this, 'recoverOnBoot' ), 11 );
 
 		$this->restController()->boot();
 	}
@@ -528,6 +542,149 @@ final class Plugin {
 				)
 			)
 		);
+	}
+
+	/**
+	 * The snapshot repository.
+	 *
+	 * @return SnapshotRepository
+	 */
+	public function snapshots(): SnapshotRepository {
+		return $this->service( 'snapshots', static fn (): SnapshotRepository => new SnapshotRepository() );
+	}
+
+	/**
+	 * The journal.
+	 *
+	 * @return Journal
+	 */
+	public function journal(): Journal {
+		return $this->service( 'journal', fn (): Journal => new Journal( $this->context()->actor ) );
+	}
+
+	/**
+	 * Every data operation this version knows how to perform, by tweak id.
+	 *
+	 * Keyed by tweak id because that is how both the apply path and the restore
+	 * path look one up: a snapshot records which tweak took it, and restoring it
+	 * later means finding the operation that knows how to put those rows back.
+	 * An operation removed from the plugin makes its old snapshots unrestorable,
+	 * which is why removing one is a breaking change and not a tidy-up.
+	 *
+	 * @return array<string,DataOperationInterface>
+	 */
+	public function dataOperations(): array {
+		return $this->service(
+			'data_operations',
+			static function (): array {
+				$operations = array();
+
+				foreach ( array( new ExpiredTransientsCleanup() ) as $operation ) {
+					$operations[ $operation->tweakId() ] = $operation;
+				}
+
+				return $operations;
+			}
+		);
+	}
+
+	/**
+	 * The snapshot manager.
+	 *
+	 * @return SnapshotManager
+	 */
+	public function snapshotManager(): SnapshotManager {
+		return $this->service(
+			'snapshot_manager',
+			fn (): SnapshotManager => new SnapshotManager( $this->context(), $this->snapshots(), $this->state() )
+		);
+	}
+
+	/**
+	 * The rollback manager.
+	 *
+	 * @return RollbackManager
+	 */
+	public function rollbackManager(): RollbackManager {
+		return $this->service(
+			'rollback_manager',
+			fn (): RollbackManager => new RollbackManager(
+				$this->context(),
+				$this->snapshots(),
+				$this->state(),
+				$this->registry(),
+				$this->snapshotManager(),
+				$this->dataOperations()
+			)
+		);
+	}
+
+	/**
+	 * The apply manager.
+	 *
+	 * @return ApplyManager
+	 */
+	public function applyManager(): ApplyManager {
+		return $this->service(
+			'apply_manager',
+			fn (): ApplyManager => new ApplyManager(
+				$this->context(),
+				$this->registry(),
+				$this->runs(),
+				$this->snapshots(),
+				$this->snapshotManager(),
+				$this->rollbackManager(),
+				$this->state(),
+				$this->journal(),
+				$this->dataOperations(),
+				new Lock()
+			)
+		);
+	}
+
+	/**
+	 * Apply a plan.
+	 *
+	 * @param PreviewPlan $plan Plan to apply.
+	 * @return ApplyResult
+	 */
+	public function apply( PreviewPlan $plan ): ApplyResult {
+		$this->schema()->ensure();
+
+		return $this->applyManager()->apply( $plan );
+	}
+
+	/**
+	 * Undo a run.
+	 *
+	 * @param int $run_id Run to undo.
+	 * @return ApplyResult
+	 */
+	public function rollback( int $run_id ): ApplyResult {
+		$this->schema()->ensure();
+
+		return $this->applyManager()->rollbackRun( $run_id );
+	}
+
+	/**
+	 * Roll back any run whose process died partway through.
+	 *
+	 * @return array<int,int> Ids of the runs recovered.
+	 */
+	public function recoverInterruptedRuns(): array {
+		return $this->applyManager()->recoverInterruptedRuns();
+	}
+
+	/**
+	 * Crash recovery as an action callback.
+	 *
+	 * Separate from recoverInterruptedRuns() only because a hook callback must
+	 * return nothing, and the ids are worth having for the CLI and the tests.
+	 *
+	 * @return void
+	 */
+	public function recoverOnBoot(): void {
+		$this->recoverInterruptedRuns();
 	}
 
 	/**

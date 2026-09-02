@@ -486,3 +486,119 @@ seed:
 | Determinism | same plan twice, and the same plan from a reversed candidate list |
 | Monotonicity | a wider profile never drops what a narrower one allowed |
 | Snapshot levels | Level A always, Level B if and only if the plan contains a data tweak |
+
+---
+
+## Phase 5 — Snapshot, apply, rollback
+
+### Run 1 — unit suite after the new state-machine work
+
+```
+vendor/bin/phpunit
+```
+
+**Result:** 967 tests, 7 050 assertions, **0 failures**. Eight new tests cover
+`TweakStateMachine::pathTo()`, including a case that walks every route the §9.1
+table offers through a real machine — which throws on an illegal edge, so a route
+the machine would refuse cannot pass.
+
+### Run 2 — first integration run of the apply and rollback tests
+
+```
+npm run test:integration
+```
+
+**Result:** 95 tests, 393 assertions, **1 failure**.
+
+| Failure | Root cause | Fix | Retest |
+|---|---|---|---|
+| `ApplyRollbackTest::test_applying_five_config_tweaks_then_rolling_back_restores_the_runtime_byte_for_byte` — applied ids in a different order | Test error, not a product error. `ApplyResult` sorts `applied` in its constructor so the field is stable across runs; the test asserted the order the ids were listed in. | Sort the expectation. The contract's sorting is the behaviour worth keeping — an unstable list would make every report diff noisy. | ✅ |
+
+### Run 3 — integration suite after the fix
+
+```
+npm run test:integration
+```
+
+**Result:** 95 tests, 404 assertions, **0 failures**.
+
+### Run 4 — PHPCS
+
+```
+vendor/bin/phpcs --standard=phpcs.xml.dist
+```
+
+**Result:** 7 errors, 5 warnings in 6 files.
+
+| Violation | Fix |
+|---|---|
+| `Journal` interpolates the table name into three queries (`InterpolatedNotPrepared` ×3) | Same class-level `phpcs:disable` the two repositories already carry, with the same written justification: a table name cannot be a placeholder, and this one is built from `Schema`'s constants plus `$wpdb->prefix`. |
+| `SnapshotRepository::markRestored()` — `UnfinishedPrepare` on an `IN` list built from a count | The single-line `phpcs:ignore` sat above the `$wpdb->query(` line while the violation was reported on the `$wpdb->prepare(` line inside it. Folded into the class-level disable rather than chasing the line number. |
+| `SnapshotManager` — one non-Yoda comparison, two single-line associative arrays | Fixed; the arrays by `phpcbf`. |
+| Alignment warnings in `Schema`, `TweakStateMachine` | `phpcbf`. |
+
+### Run 5 — PHPStan level 6
+
+```
+vendor/bin/phpstan analyse
+```
+
+**Result:** 1 error.
+
+| Error | Fix |
+|---|---|
+| `src/Plugin.php:164` — action callback returns `array<int,int>` but should not return anything | Hooked a `recoverOnBoot(): void` wrapper instead. `recoverInterruptedRuns()` keeps returning the ids, which the tests and the forthcoming CLI want; a hook callback is a different job from an API method and now says so. |
+
+### Run 6 — spill-to-file implementation
+
+The first pass through the phase implemented the 8 MB threshold as a constant and
+never used it: `captureData()` always wrote to the items table. That is a
+requirement of §17 Phase 5, not an optimisation, so the phase could not be called
+complete. `Snapshot\SpillFile` and the streaming collection path were added, with
+seven integration tests that cross the real threshold — 160 transients of 64 KB —
+rather than lowering it for the test.
+
+```
+npm run test:integration
+```
+
+**Result:** 102 tests, 746 assertions, **0 failures**.
+
+One implementation detail worth recording: the truncated-file test found that a
+damaged gzip stream makes `gzgets()` return `false` **without** `gzeof()` ever
+becoming true, so the original read loop would have spun forever on a corrupt
+file. It now breaks on `false` and lets the item count and checksum report the
+damage, which is what marks the snapshot corrupt.
+
+### Run 7 — a Phase 1 invariant caught the new directory
+
+```
+npm run test:integration
+```
+
+**Result:** 102 tests, 745 assertions, **1 failure**.
+
+| Failure | Root cause | Fix | Retest |
+|---|---|---|---|
+| `RuntimeGenerationTest::test_generated_files_stay_in_one_directory` — found `backups` beside the runtime | The Phase 1 test asserted that `wp-content/wpdebloat` contains exactly `index.php`, `runtime.lock` and `runtime.php`. Writing the first spilled recovery point creates the `backups/` subdirectory that `BUILD-SPEC.md` §4 places there, so the assertion was now narrower than the specification. | Separate files from directories: the file list is still exactly those three, and `backups` is the only directory permitted beside them. The invariant that matters — nothing generated outside `wp-content/wpdebloat` — is unchanged and still asserted. | ✅ |
+
+The failure only appeared on a second run, because the directory survives on the
+container's filesystem while the runtime files are removed after each test. Worth
+recording: a test that passes once and fails on the rerun is the same class of
+bug as one that fails intermittently, and the rerun is what caught it.
+
+### Run 8 — full regression
+
+```
+vendor/bin/phpunit
+npm run test:integration
+vendor/bin/phpcs --standard=phpcs.xml.dist
+vendor/bin/phpstan analyse
+```
+
+| Gate | Result |
+|---|---|
+| Unit | ✅ 967 tests, 7 054 assertions |
+| Integration | ✅ 102 tests, 746 assertions |
+| PHPCS | ✅ 0 errors, 0 warnings, 170 files |
+| PHPStan level 6 | ✅ no errors |

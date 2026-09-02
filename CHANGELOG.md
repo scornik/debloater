@@ -124,3 +124,31 @@ All notable changes to WP Debloat are recorded here. The format follows
     something a preset decides on your behalf.
   - `GET wpdebloat/v1/preview`, which computes a plan from a recorded scan and
     changes nothing at all.
+
+- **Phase 5 — snapshots, apply and rollback.**
+  - Recovery points before anything changes: the previous configuration always,
+    and for a data operation the exact rows it is about to delete, collected
+    from the operation itself and read back and checksummed before it is allowed
+    to run. A recovery point taken afterwards protects nothing.
+  - Rollback that is exact rather than approximate. The runtime comes back
+    byte-for-byte, an option that did not exist before is removed again rather
+    than left holding a restored value, and a restored transient keeps its
+    original expiry instead of being resurrected as live.
+  - Three refusals before a restore writes anything: a recovery point from
+    another site, one that never completed, and one whose contents no longer
+    match its checksum.
+  - Applying is ordered so that the reversible half goes first: configuration,
+    which is a file swap, before data, which is rows put back one at a time.
+  - Large recovery points spill to a gzipped file under
+    `wp-content/wpdebloat/backups`, written and read as a stream so neither
+    taking nor restoring one needs the whole thing in memory.
+  - One change at a time per site, enforced by a lock that a second request
+    cannot steal, and a run whose process died is rolled back on the next admin
+    page load — without disturbing an apply that is merely still running.
+  - Every tweak transition written to the journal is an edge from the documented
+    lifecycle, found by asking the state machine rather than assumed by the
+    caller.
+  - The first data operation: deleting transients that have already expired.
+    Removed through WordPress's own API so a persistent object cache sees it,
+    and chosen first because it is the operation where proving the recovery path
+    costs least if it is wrong.

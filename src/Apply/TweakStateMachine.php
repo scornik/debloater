@@ -102,6 +102,53 @@ final class TweakStateMachine {
 	}
 
 	/**
+	 * The shortest legal sequence of transitions from here to the given state.
+	 *
+	 * Returned as the states to pass through, excluding the current one and
+	 * including the target. An empty array means the current state is already
+	 * the target; null means the table offers no way to get there.
+	 *
+	 * This exists so that callers never have to guess an edge. A tweak that
+	 * failed mid-apply has to reach ROLLED_BACK, and how it gets there depends
+	 * on where it had got to; asking the table is the only way to answer that
+	 * without inventing transitions that §9.1 does not contain.
+	 *
+	 * @param TweakState $target Target state.
+	 * @return array<int,TweakState>|null
+	 */
+	public function pathTo( TweakState $target ): ?array {
+		if ( $this->state === $target ) {
+			return array();
+		}
+
+		$queue   = array( array( $this->state, array() ) );
+		$visited = array( $this->state->value => true );
+
+		while ( array() !== $queue ) {
+			/** @var array{0:TweakState,1:array<int,TweakState>} $entry */
+			$entry = array_shift( $queue );
+
+			foreach ( $entry[0]->allowedNext() as $next ) {
+				if ( isset( $visited[ $next->value ] ) ) {
+					continue;
+				}
+
+				$path   = $entry[1];
+				$path[] = $next;
+
+				if ( $next === $target ) {
+					return $path;
+				}
+
+				$visited[ $next->value ] = true;
+				$queue[]                 = array( $next, $path );
+			}
+		}
+
+		return null;
+	}
+
+	/**
 	 * The full transition table, as a map of state value to successors.
 	 *
 	 * @return array<string,array<int,string>>

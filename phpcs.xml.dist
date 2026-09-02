@@ -104,15 +104,25 @@
 
 		Every path is checked against wp-content/wpdebloat after resolution
 		(BUILD-SPEC §13 rule 6), which is asserted by an integration test.
+
+		Snapshot\SpillFile is the third: BUILD-SPEC §4 puts Level B recovery points
+		above eight megabytes in wp-content/wpdebloat/backups as gzipped files, and
+		WP_Filesystem has no streaming or gzip interface at all — reading such a
+		snapshot through it would mean holding the whole thing in memory to restore
+		it, on a site that has just had something go wrong. Its paths are resolved
+		and checked against the backups directory before any read or delete, and its
+		one silenced call is a gzgets() over a file that may legitimately be damaged.
 	-->
 	<rule ref="WordPressVIPMinimum.Functions.RestrictedFunctions">
 		<exclude-pattern>src/Apply/RuntimeWriter\.php</exclude-pattern>
 		<exclude-pattern>src/Apply/RuntimeLoader\.php</exclude-pattern>
+		<exclude-pattern>src/Snapshot/SpillFile\.php</exclude-pattern>
 		<exclude-pattern>tests/*</exclude-pattern>
 	</rule>
 	<rule ref="WordPress.PHP.NoSilencedErrors">
 		<exclude-pattern>src/Apply/RuntimeWriter\.php</exclude-pattern>
 		<exclude-pattern>src/Apply/RuntimeLoader\.php</exclude-pattern>
+		<exclude-pattern>src/Snapshot/SpillFile\.php</exclude-pattern>
 	</rule>
 	<!-- proc_open runs `php -l` over the generated runtime before it is put in
 	     place. It is guarded by function_exists and a disable_functions check, and
