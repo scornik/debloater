@@ -21,6 +21,18 @@
         "WP_DEBUG": true,
         "WP_DEBUG_DISPLAY": false
       }
+    },
+    "development": {
+      "plugins": [
+        "https://downloads.wordpress.org/plugin/woocommerce.latest-stable.zip",
+        "https://downloads.wordpress.org/plugin/elementor.latest-stable.zip",
+        "https://downloads.wordpress.org/plugin/contact-form-7.latest-stable.zip",
+        "https://downloads.wordpress.org/plugin/seo-by-rank-math.latest-stable.zip",
+        "https://downloads.wordpress.org/plugin/litespeed-cache.latest-stable.zip"
+      ],
+      "themes": [
+        "https://downloads.wordpress.org/theme/storefront.latest-stable.zip"
+      ]
     }
   }
 }

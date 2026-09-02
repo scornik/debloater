@@ -32,6 +32,13 @@ final class Registry {
 	private readonly array $tweaks;
 
 	/**
+	 * Detectors keyed by id, in sorted id order.
+	 *
+	 * @var array<string,Detector>
+	 */
+	private readonly array $detectors;
+
+	/**
 	 * Cached registry hash.
 	 *
 	 * @var string
@@ -41,10 +48,11 @@ final class Registry {
 	/**
 	 * Constructor.
 	 *
-	 * @param array<int,TweakDefinition> $tweaks Tweak definitions.
+	 * @param array<int,TweakDefinition> $tweaks    Tweak definitions.
+	 * @param array<int,Detector>        $detectors Detectors.
 	 * @throws RuntimeException When an id is duplicated or a reference dangles.
 	 */
-	public function __construct( array $tweaks = array() ) {
+	public function __construct( array $tweaks = array(), array $detectors = array() ) {
 		$indexed = array();
 
 		foreach ( $tweaks as $definition ) {
@@ -63,8 +71,49 @@ final class Registry {
 
 		self::assertReferencesResolve( $indexed );
 
-		$this->tweaks = $indexed;
-		$this->hash   = self::computeHash( $indexed );
+		$by_id = array();
+
+		foreach ( $detectors as $detector ) {
+			if ( ! $detector instanceof Detector ) {
+				throw new RuntimeException( 'Registry accepts Detector instances only.' );
+			}
+
+			if ( array_key_exists( $detector->id, $by_id ) ) {
+				throw new RuntimeException( sprintf( 'Duplicate detector id "%s" in registry.', $detector->id ) );
+			}
+
+			$by_id[ $detector->id ] = $detector;
+		}
+
+		ksort( $by_id, SORT_STRING );
+
+		$this->tweaks    = $indexed;
+		$this->detectors = $by_id;
+		$this->hash      = self::computeHash( $indexed, $by_id );
+	}
+
+	/**
+	 * All detectors, in sorted id order.
+	 *
+	 * @return array<string,Detector>
+	 */
+	public function detectors(): array {
+		return $this->detectors;
+	}
+
+	/**
+	 * A detector by id.
+	 *
+	 * @param string $detector_id Detector id.
+	 * @return Detector
+	 * @throws RuntimeException When the id is unknown.
+	 */
+	public function detector( string $detector_id ): Detector {
+		if ( ! array_key_exists( $detector_id, $this->detectors ) ) {
+			throw new RuntimeException( sprintf( 'Unknown detector id "%s".', $detector_id ) );
+		}
+
+		return $this->detectors[ $detector_id ];
 	}
 
 	/**
@@ -164,14 +213,22 @@ final class Registry {
 	/**
 	 * Compute the registry hash from the definitions.
 	 *
-	 * @param array<string,TweakDefinition> $tweaks Definitions in sorted order.
+	 * @param array<string,TweakDefinition> $tweaks    Definitions in sorted order.
+	 * @param array<string,Detector>        $detectors Detectors in sorted order.
 	 * @return string
 	 */
-	private static function computeHash( array $tweaks ): string {
-		$canonical = array();
+	private static function computeHash( array $tweaks, array $detectors ): string {
+		$canonical = array(
+			'tweaks'    => array(),
+			'detectors' => array(),
+		);
 
 		foreach ( $tweaks as $id => $definition ) {
-			$canonical[ $id ] = $definition->toArray();
+			$canonical['tweaks'][ $id ] = $definition->toArray();
+		}
+
+		foreach ( $detectors as $id => $detector ) {
+			$canonical['detectors'][ $id ] = $detector->toArray();
 		}
 
 		return hash( 'sha256', Json::canonical( $canonical ) );

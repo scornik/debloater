@@ -56,10 +56,10 @@
       }
     },
     "sets": {
-      "description": "Facts to write when the detector matches. Keys are dotted paths into the fact document, e.g. plugins.detected.woocommerce writes the woocommerce key of the plugins.detected map.",
+      "description": "Facts to write when the detector matches. Every key is a path under plugins.detected., e.g. plugins.detected.woocommerce writes the woocommerce key of the plugins.detected map. Detectors may not write anywhere else: detection belongs to the plugins namespace, and a detector file must not be able to overwrite an unrelated observation.",
       "type": "object",
       "minProperties": 1,
-      "propertyNames": { "pattern": "^[a-z][a-z0-9_]*(\\.[a-z0-9][a-z0-9_-]*)+$" },
+      "propertyNames": { "pattern": "^plugins\\.detected\\.[a-z0-9]+(-[a-z0-9]+)*$" },
       "additionalProperties": {
         "type": ["boolean", "string", "integer", "number", "null"]
       }

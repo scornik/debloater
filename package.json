@@ -11,7 +11,8 @@
     "env:clean": "wp-env clean all",
     "test:integration": "wp-env run tests-cli --env-cwd=wp-content/plugins/wp-debloat php tools/phpunit-9.phar -c phpunit-wp.xml.dist",
     "lint:php": "wp-env run cli --env-cwd=wp-content/plugins/wp-debloat vendor/bin/phpcs --standard=phpcs.xml.dist",
-    "test:integration:setup": "node tools/download-phpunit.mjs"
+    "test:integration:setup": "node tools/download-phpunit.mjs",
+    "env:seed": "wp-env run cli --env-cwd=wp-content/plugins/wp-debloat wp eval-file tools/seed-fixture.php"
   },
   "devDependencies": {
     "@wordpress/env": "^10.10.0"

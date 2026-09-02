@@ -15,3 +15,7 @@ define( 'WPDEBLOAT_URL', 'https://example.test/wp-content/plugins/wp-debloat/' )
 define( 'WPDEBLOAT_DISABLE', false );
 define( 'WPDEBLOAT_LOADER_MODE', 'mu-plugin' );
 define( 'WP_CLI', false );
+
+// Defined by wp-config.php on every install.
+define( 'DB_NAME', 'wordpress' );
+define( 'DB_PASSWORD', 'password' );

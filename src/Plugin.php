@@ -13,11 +13,25 @@ use WPDebloat\Apply\Compiler;
 use WPDebloat\Apply\RuntimeLoader;
 use WPDebloat\Apply\RuntimeWriter;
 use WPDebloat\Contracts\Context;
+use WPDebloat\Contracts\Run;
 use WPDebloat\Registry\Loader;
 use WPDebloat\Registry\Registry;
 use WPDebloat\Rest\Controller;
 use WPDebloat\Rest\Routes\StatusRoute;
+use WPDebloat\Scan\ScanRunner;
+use WPDebloat\Scan\Scanners\AdminScanner;
+use WPDebloat\Scan\Scanners\AutoloadScanner;
+use WPDebloat\Scan\Scanners\CoreFeatureScanner;
+use WPDebloat\Scan\Scanners\CronScanner;
+use WPDebloat\Scan\Scanners\DatabaseScanner;
+use WPDebloat\Scan\Scanners\EnvironmentScanner;
+use WPDebloat\Scan\Scanners\PluginScanner;
+use WPDebloat\Scan\Scanners\ThemeScanner;
+use WPDebloat\Scan\Scanners\UserScanner;
+use WPDebloat\Scan\Scanners\WordPressScanner;
 use WPDebloat\Security\Capabilities;
+use WPDebloat\Storage\Repositories\RunRepository;
+use WPDebloat\Storage\Schema;
 use WPDebloat\Storage\State;
 
 /**
@@ -118,6 +132,11 @@ final class Plugin {
 
 		add_action( 'plugins_loaded', array( $this, 'resolveDeferredBypass' ), RuntimeLoader::FALLBACK_PRIORITY + 1 );
 
+		// Tables are checked on an admin request only. A front-end request must
+		// never pay for a migration check, and nothing on the front end reads
+		// them anyway.
+		add_action( 'admin_init', array( $this, 'ensureSchema' ) );
+
 		$this->restController()->boot();
 	}
 
@@ -130,6 +149,8 @@ final class Plugin {
 		$state = $this->state();
 
 		$state->markInstalled();
+
+		$this->schema()->ensure();
 
 		$mode = $this->runtimeLoader()->install();
 
@@ -151,6 +172,15 @@ final class Plugin {
 		$this->runtimeLoader()->uninstall();
 
 		$this->state()->setRuntime( '', RuntimeLoader::MODE_NONE );
+	}
+
+	/**
+	 * Create or migrate the tables if the site is not already up to date.
+	 *
+	 * @return void
+	 */
+	public function ensureSchema(): void {
+		$this->schema()->ensure();
 	}
 
 	/**
@@ -254,6 +284,71 @@ final class Plugin {
 	 */
 	public function runtimeLoader(): RuntimeLoader {
 		return $this->service( 'runtime_loader', fn (): RuntimeLoader => new RuntimeLoader( $this->context() ) );
+	}
+
+	/**
+	 * The database schema manager.
+	 *
+	 * @return Schema
+	 */
+	public function schema(): Schema {
+		return $this->service( 'schema', fn (): Schema => new Schema( $this->state() ) );
+	}
+
+	/**
+	 * The run repository.
+	 *
+	 * @return RunRepository
+	 */
+	public function runs(): RunRepository {
+		return $this->service( 'runs', static fn (): RunRepository => new RunRepository() );
+	}
+
+	/**
+	 * The scan runner, with every scanner in a deterministic order.
+	 *
+	 * Order matters only for the diagnostics and for reproducibility; no scanner
+	 * depends on another's output, which is what lets one fail without taking
+	 * the rest of the scan with it.
+	 *
+	 * @return ScanRunner
+	 */
+	public function scanRunner(): ScanRunner {
+		return $this->service(
+			'scan_runner',
+			fn (): ScanRunner => new ScanRunner(
+				array(
+					new EnvironmentScanner(),
+					new WordPressScanner(),
+					new CoreFeatureScanner(),
+					new UserScanner(),
+					new PluginScanner( $this->registry() ),
+					new ThemeScanner(),
+					new DatabaseScanner(),
+					new AutoloadScanner(),
+					new CronScanner(),
+					new AdminScanner(),
+				),
+				$this->runs()
+			)
+		);
+	}
+
+	/**
+	 * Run a scan and record it.
+	 *
+	 * @return Run
+	 */
+	public function scan(): Run {
+		$this->schema()->ensure();
+
+		$run = $this->scanRunner()->run( $this->context(), $this->registry()->hash() );
+
+		if ( null !== $run->id ) {
+			$this->state()->set( array( 'last_scan_run_id' => $run->id ) );
+		}
+
+		return $run;
 	}
 
 	/**

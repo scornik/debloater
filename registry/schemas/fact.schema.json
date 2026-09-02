@@ -82,8 +82,11 @@
         "additionalProperties": false,
         "properties": {
           "version": { "type": "string" },
-          "last_updated": { "type": ["string", "null"] },
-          "name": { "type": "string" }
+          "name": { "type": "string" },
+          "last_updated": {
+            "description": "Only present once the user has opted in to the wp.org update check (Phase 11). Absent means it was not looked up, never that the plugin was never updated.",
+            "type": ["string", "null"]
+          }
         }
       }
     },
@@ -141,6 +144,27 @@
 
     "admin.notices.count": { "type": "integer", "minimum": 0 },
     "admin.dashboard_widgets.count": { "type": "integer", "minimum": 0 },
-    "admin.menu_items.count": { "type": "integer", "minimum": 0 }
+    "admin.menu_items.count": { "type": "integer", "minimum": 0 },
+
+    "scan.elapsed_ms": {
+      "description": "Total milliseconds the scan took.",
+      "type": "integer",
+      "minimum": 0
+    },
+    "scan.scanner_ms": {
+      "description": "Milliseconds each scanner took, keyed by scanner name. Recorded whether or not the budget was exceeded, so a slow site can be diagnosed rather than guessed at.",
+      "type": "object",
+      "additionalProperties": { "type": "integer", "minimum": 0 }
+    },
+    "scan.over_budget": {
+      "description": "Scanners that exceeded the two-second soft budget. The budget is soft by design: PHP cannot be preempted safely, and a scanner killed halfway through would leave facts that look complete but are not.",
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "scan.failed": {
+      "description": "Scanners that threw. The rest of the scan still ran; the failure is reported rather than presented as an absence of facts.",
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    }
   }
 }

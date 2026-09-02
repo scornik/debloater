@@ -62,7 +62,58 @@ final class Loader {
 	 * @throws RuntimeException When any document is malformed or duplicated.
 	 */
 	public function load(): Registry {
-		return new Registry( $this->loadTweaks() );
+		return new Registry( $this->loadTweaks(), $this->loadDetectors() );
+	}
+
+	/**
+	 * Load and validate every detector.
+	 *
+	 * @return array<int,Detector>
+	 * @throws RuntimeException When a document is invalid or an id is duplicated.
+	 */
+	public function loadDetectors(): array {
+		$validator = $this->validator( 'detector.schema.json' );
+		$detectors = array();
+		$seen      = array();
+
+		foreach ( $this->jsonFiles( 'detectors' ) as $path ) {
+			$document = $this->decode( $path );
+
+			$validator->assertValid( $document, $this->relative( $path ) );
+
+			$detector = Detector::fromArray( $document );
+
+			if ( array_key_exists( $detector->id, $seen ) ) {
+				throw new RuntimeException(
+					sprintf(
+						'Duplicate detector id "%s" in %s and %s',
+						$detector->id,
+						$this->relative( $seen[ $detector->id ] ),
+						$this->relative( $path )
+					)
+				);
+			}
+
+			// The file name is part of the contract here too: it is how a
+			// reviewer finds the detector for a slug.
+			$expected = $detector->id . '.json';
+
+			if ( basename( $path ) !== $expected ) {
+				throw new RuntimeException(
+					sprintf(
+						'Detector "%s" must be defined in %s, found in %s',
+						$detector->id,
+						$expected,
+						$this->relative( $path )
+					)
+				);
+			}
+
+			$seen[ $detector->id ] = $path;
+			$detectors[]           = $detector;
+		}
+
+		return $detectors;
 	}
 
 	/**

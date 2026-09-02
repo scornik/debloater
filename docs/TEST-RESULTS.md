@@ -250,3 +250,82 @@ Nothing is skipped or marked incomplete in either suite; both configurations set
   PHP 8.1/8.3 and WP latest−1 legs of §14's matrix remain a CI concern.
 - The wp-env stack is vanilla WordPress. WooCommerce, Elementor, CF7, Rank Math
   and LiteSpeed join it in Phase 2, where the detectors first need them.
+
+---
+
+## Phase 2 — Scanner (facts only)
+
+### Run 1 — unit suite after adding the scanners
+
+**Result:** 817 tests, **1 failure**.
+
+| Failure | Root cause | Fix | Retest |
+|---|---|---|---|
+| `RepositoryInvariantsTest::test_contracts_and_registry_do_not_call_wordpress` — `src/Registry/Detector.php` contains `get_option(` | Real boundary violation, caught by an invariant written in Phase 0. `Detector::matches()` was evaluating its own signals, which means asking WordPress whether a plugin is active, a constant defined, an option present. A registry document class has no business doing that. | Made `Detector` pure data: it exposes `signals()`, and `PluginScanner` — which is allowed to know about WordPress — does the looking. The boundary is better for it, not merely compliant. | ✅ |
+
+### Run 2 — integration suite
+
+**Result:** 55 tests, **2 failures**.
+
+| Failure | Root cause | Fix | Retest |
+|---|---|---|---|
+| `ScannerTest::test_expired_transients_are_distinguished_from_live_ones` — expected 2 new transients, got 4 | **Real bug.** Every transient with an expiry has a companion `_transient_timeout_*` option, and that row also matches the `_transient_%` prefix, so `db.transients.count` was counting every transient twice. A user would have been shown double the number of transients their site actually has. | Excluded the timeout rows: `option_name LIKE '_transient_%' AND option_name NOT LIKE '_transient_timeout_%'`. | ✅ |
+| `ScannerTest::test_facts_contain_no_opinions` — a fact contained "bloat" | Test scoping, not a product problem: the plugin's own name ("WP Debloat") appears in `plugins.meta` and `plugins.inactive`, because a scan reports the plugins it finds. | Excluded the fact keys that are lists of other people's product names (`plugins.*`, `theme.*`) before searching. The invariant is about words *this plugin* writes, not names it observed. | ✅ |
+
+### Run 3 — PHPStan level 6
+
+**Result:** **1 error** — `Constant DB_NAME not found` in `DatabaseScanner`.
+
+Defined by `wp-config.php` on every install, so it was added to the analysis
+bootstrap alongside `DB_PASSWORD`.
+
+### Run 4 — PHPCS
+
+**Result:** 42 violations in 12 sources.
+
+| Group | Disposition |
+|---|---|
+| `PreparedSQL.NotPrepared` / `InterpolatedNotPrepared` across the scanners, repository and schema (18) | Every interpolated name is a table or column name from `$wpdb` or from a constant in the class; values are always parameterised, and a table name cannot be a placeholder. Scoped `phpcs:disable`/`enable` blocks with the reasoning inline. The first attempt used single-line `phpcs:ignore`, which does not cover a multi-line statement — the codes now wrap the whole statement. |
+| `PrefixAllGlobals` in `tools/seed-fixture.php` (11) | It is a top-level script, so every local reads as a global to the sniff. Excluded for `tools/`, which is a local-only fixture generator that refuses to run unless `WP_ENVIRONMENT_TYPE` is `local`. |
+| `NoReservedKeywordParameterNames` — `$match` (1) | **Fixed**: the constructor parameter is now `$signals`. |
+| `YodaConditions` (3) | **Fixed** by naming intermediate results. |
+| Non-prefixed hook names — `heartbeat_settings`, `xmlrpc_enabled` (2) | These are core's own filters, applied to read their result the way WordPress reads it. Ignored with that reason at each site. |
+| `RestrictedVariables` — `$wpdb->users` (1) | Counting orphaned user meta means joining against the users table; nothing else distinguishes an orphan from a live row. Ignored with that reason. |
+| Cron interval and `meta_value` in tests and the fixture script (4) | A sub-minute schedule and orphaned meta are the point of the fixture. Excluded for `tests/` and `tools/`. |
+
+### Run 5 — full gate
+
+| Check | Result |
+|---|---|
+| Unit | ✅ **817 tests, 3 338 assertions, 0 failures** |
+| Integration | ✅ **55 tests, 166 assertions, 0 failures** |
+| PHPCS | ✅ **0 errors, 0 warnings** across 108 files |
+| PHPStan level 6 | ✅ **no errors** |
+
+### What the integration tests actually assert
+
+Counting is only worth testing against data that exists, so each test seeds
+exactly what it measures and asserts with no tolerance:
+
+| Fact | Seeded | Asserted |
+|---|---|---|
+| `db.revisions.count` | three saves of one post | exact delta against `wp_get_post_revisions()` |
+| `db.trash.count`, `db.autodrafts.count` | one each | exact delta, and that they are counted separately |
+| `db.spam_comments.count` | three spam comments | exact delta |
+| `db.transients.count` / `.expired` | one live, one written directly with a past timeout | both counted, only one expired |
+| `db.orphan_postmeta.count` | one meta row pointing at post 9999999 | exact delta |
+| `db.autoload.bytes` | a 50 KB autoloaded option, then a 50 KB non-autoloaded one | grows by exactly the first, unchanged by the second |
+| `cron.events.count`, `.subminute`, `.orphans` | a 30-second event and an unlistened hook | exact delta, hook listed by name |
+| `users.admin_count` | three administrators and a subscriber | grows by three |
+| `wp.*` features | the real runtime, applied | flip from true to false, and an untouched feature stays true |
+| `wp.heartbeat_interval` | a `heartbeat_settings` filter | follows the filter, 15 → 60 |
+
+### Environment notes
+
+- The wp-env test environment resolved to WordPress 7.1 on PHP 8.3. The scanners
+  are written against the 6.5+ API surface and pass on it; the version matrix in
+  §14 remains a CI concern.
+- The full plugin stack (WooCommerce, Elementor, CF7, Rank Math, LiteSpeed) is
+  configured in the `development` environment for manual work. The test
+  environment stays vanilla and uses stub plugin files for detection, which is
+  exactly what a detector reads.

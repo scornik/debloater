@@ -7,8 +7,8 @@ are `NOT_STARTED`, `IN_PROGRESS`, `BLOCKED`, `COMPLETE`.
 
 | | |
 |---|---|
-| **Current phase** | 2 — Scanner (facts only) |
-| **Last completed** | 1 — Minimal runtime engine |
+| **Current phase** | 3 — Analyzer, findings, score |
+| **Last completed** | 2 — Scanner (facts only) |
 | **Blockers** | none |
 
 ## Phases
@@ -16,8 +16,8 @@ are `NOT_STARTED`, `IN_PROGRESS`, `BLOCKED`, `COMPLETE`.
 | Phase | Title | Status | Commit | Tests | Acceptance |
 |---|---|---|---|---|---|
 | 0 | Architecture and contracts | COMPLETE | `60160e5` | 747 pass / 0 fail | pass |
-| 1 | Minimal runtime engine | COMPLETE | `phase-1` | 797 unit + 33 integration / 0 fail | pass |
-| 2 | Scanner (facts only) | NOT_STARTED | — | — | — |
+| 1 | Minimal runtime engine | COMPLETE | `7f5eed7` | 797 unit + 33 integration / 0 fail | pass |
+| 2 | Scanner (facts only) | COMPLETE | `phase-2` | 817 unit + 55 integration / 0 fail | pass |
 | 3 | Analyzer, findings, score | NOT_STARTED | — | — | — |
 | 4 | Recommendation engine | NOT_STARTED | — | — | — |
 | 5 | Snapshot, apply, rollback | NOT_STARTED | — | — | — |
@@ -154,3 +154,73 @@ Phase 1 — Minimal runtime engine.
 ### Next
 
 Phase 2 — Scanner (facts only).
+
+---
+
+## Phase 2 — Scanner (facts only)
+
+**Status:** COMPLETE
+
+### Delivered
+
+- Eleven scanners under `src/Scan/Scanners`, each declaring the namespace it
+  owns: `EnvironmentScanner` (`env`), `WordPressScanner` and
+  `CoreFeatureScanner` (`wp`), `UserScanner` (`users`), `PluginScanner`
+  (`plugins`), `ThemeScanner` (`theme`), `DatabaseScanner` and
+  `AutoloadScanner` (`db`), `CronScanner` (`cron`), `AdminScanner` (`admin`).
+- `Scan\ScanRunner` and `Scan\ScanResult`: soft two-second budget per scanner,
+  timings recorded whether or not the budget was exceeded, and a failing
+  scanner recorded by name rather than allowed to end the scan.
+- `Registry\Detector` plus the ten detectors §17 Phase 2 names. Detectors are
+  pure data; PluginScanner evaluates their signals.
+- `Storage\Schema` (dbDelta, `wpdebloat_runs`) and
+  `Storage\Repositories\RunRepository`.
+- `Contracts\Run`, so a run is a validated value rather than a row shape.
+- `scan.*` diagnostics added to `registry/schemas/fact.schema.json`.
+- `tools/seed-fixture.php` for the development site, and `npm run env:seed`.
+
+### Two additions the specification's key list required
+
+- **`UserScanner`.** §4's directory listing does not name it, but §5 requires
+  `users.admin_count` and `users.recent_editors_7d`, and namespace ownership
+  means no other scanner may write them. One scanner, two counts, no personal
+  data.
+- **The `scan` namespace.** §17 Phase 2 requires an over-budget scanner to
+  "emit a warning/diagnostic fact". Those facts need somewhere to live and a
+  schema entry, so `ScanRunner` owns `scan.*`.
+
+### Exit checklist (§17 Phase 2)
+
+| Criterion | Result |
+|---|---|
+| Every fact key enumerated in the schema | ✅ a real scan validates with zero violations |
+| Unknown keys rejected | ✅ `additionalProperties: false`, asserted against a live scan |
+| Scanners produce no opinion strings | ✅ twelve judgement words searched across every fact a scan produces |
+| DatabaseScanner query count bounded | ✅ declared as `QUERY_BUDGET` and asserted |
+| Seeded counts match exactly | ✅ revisions, trash, auto-drafts, spam, transients, orphan meta, cron, autoload, users |
+| Detectors applied in PluginScanner | ✅ both outcomes recorded, ten detectors |
+| Soft budget, no forced interruption | ✅ an over-budget scanner still contributes its facts |
+| Scan persisted as a run with facts in the payload | ✅ round-trips through storage without loss |
+| Scan under 5 s | ✅ well under on the fixture environment |
+| Unit suite | ✅ 817 tests, 3 338 assertions |
+| Integration suite | ✅ 55 tests, 166 assertions |
+| PHPCS | ✅ 0 errors, 0 warnings across 108 files |
+| PHPStan level 6 | ✅ no errors |
+
+### Known warnings
+
+- Two facts in §5 cannot be observed from the request a scan runs in and are
+  **deliberately absent** rather than guessed: `wp.dashicons_frontend` outside a
+  front-end request, and the `admin.*` counts outside an admin request. An
+  analyzer rule reads an absent fact as "not observed", which is different from
+  a zero. Phase 13's asset scan resolves the first properly.
+- `plugins.meta[*].last_updated` needs the wp.org API, which §13 rule 9 makes
+  opt-in. Phase 11 adds it behind that opt-in with a low-confidence local
+  fallback; until then the key is absent.
+- The integration environment is vanilla WordPress. Detector behaviour is
+  exercised with stub plugin files, which is exactly what a detector reads;
+  the real stack matrix from §14 is a nightly CI concern.
+
+### Next
+
+Phase 3 — Analyzer, findings, Don't Touch, Score.
