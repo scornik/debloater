@@ -9,14 +9,19 @@ declare( strict_types = 1 );
 
 namespace WPDebloat;
 
+use WPDebloat\Analyze\Analyzer;
+use WPDebloat\Analyze\Rules;
 use WPDebloat\Apply\Compiler;
 use WPDebloat\Apply\RuntimeLoader;
 use WPDebloat\Apply\RuntimeWriter;
 use WPDebloat\Contracts\Context;
 use WPDebloat\Contracts\Run;
+use WPDebloat\Contracts\RunType;
 use WPDebloat\Registry\Loader;
 use WPDebloat\Registry\Registry;
 use WPDebloat\Rest\Controller;
+use WPDebloat\Rest\Routes\FindingsRoute;
+use WPDebloat\Rest\Routes\ScanRoute;
 use WPDebloat\Rest\Routes\StatusRoute;
 use WPDebloat\Scan\ScanRunner;
 use WPDebloat\Scan\Scanners\AdminScanner;
@@ -335,20 +340,85 @@ final class Plugin {
 	}
 
 	/**
-	 * Run a scan and record it.
+	 * The analyzer, with every rule in a deterministic order.
+	 *
+	 * @return Analyzer
+	 */
+	public function analyzer(): Analyzer {
+		return $this->service(
+			'analyzer',
+			fn (): Analyzer => new Analyzer( Rules::all(), $this->registry(), $this->hasCustomMuPlugins() )
+		);
+	}
+
+	/**
+	 * Run a scan, analyze it, and record both in one run.
+	 *
+	 * Facts and findings live in the same run payload deliberately: a finding is
+	 * only meaningful next to the facts it was drawn from, and storing them
+	 * apart would let one be read against the other's site.
 	 *
 	 * @return Run
 	 */
 	public function scan(): Run {
 		$this->schema()->ensure();
 
-		$run = $this->scanRunner()->run( $this->context(), $this->registry()->hash() );
+		$run      = $this->scanRunner()->run( $this->context(), $this->registry()->hash() );
+		$analysis = $this->analyzer()->analyze( $run->facts() );
+
+		$run = $this->runs()->update(
+			$run->withPayload( array_merge( $run->payload, array( 'analysis' => $analysis->toArray() ) ) )
+		);
 
 		if ( null !== $run->id ) {
 			$this->state()->set( array( 'last_scan_run_id' => $run->id ) );
 		}
 
 		return $run;
+	}
+
+	/**
+	 * The most recent scan run, or a specific one by id.
+	 *
+	 * @param int|null $run_id Run id, or null for the most recent scan.
+	 * @return Run|null
+	 */
+	public function latestScan( ?int $run_id = null ): ?Run {
+		if ( null !== $run_id ) {
+			$run = $this->runs()->find( $run_id );
+
+			return ( null !== $run && RunType::SCAN === $run->type ) ? $run : null;
+		}
+
+		return $this->runs()->latestOfType( RunType::SCAN );
+	}
+
+	/**
+	 * Whether the site has must-use plugins of its own.
+	 *
+	 * Our own loader does not count: it is ours, we know exactly what it does,
+	 * and penalising confidence for installing it would be absurd. Anything else
+	 * in mu-plugins is site-specific code we cannot inspect, which is one of the
+	 * confidence penalties in docs/SCORING.md.
+	 *
+	 * @return bool
+	 */
+	public function hasCustomMuPlugins(): bool {
+		$directory = $this->context()->muPluginsDir();
+
+		if ( ! is_dir( $directory ) ) {
+			return false;
+		}
+
+		$files = glob( $directory . '/*.php' );
+
+		foreach ( false === $files ? array() : $files as $file ) {
+			if ( RuntimeLoader::LOADER_FILE !== basename( $file ) ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**
@@ -359,7 +429,14 @@ final class Plugin {
 	public function restController(): Controller {
 		return $this->service(
 			'rest',
-			fn (): Controller => new Controller( $this, array( new StatusRoute( $this ) ) )
+			fn (): Controller => new Controller(
+				$this,
+				array(
+					new StatusRoute( $this ),
+					new ScanRoute( $this ),
+					new FindingsRoute( $this ),
+				)
+			)
 		);
 	}
 

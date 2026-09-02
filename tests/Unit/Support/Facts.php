@@ -1,0 +1,173 @@
+<?php
+/**
+ * Fact-set builders for analyzer tests.
+ *
+ * @package WPDebloat
+ */
+
+declare( strict_types = 1 );
+
+namespace WPDebloat\Tests\Unit\Support;
+
+use WPDebloat\Contracts\FactSet;
+
+/**
+ * Realistic fact sets, so a rule test reads like a description of a site.
+ *
+ * The fact sets here are complete enough that every rule's supports() passes,
+ * which matters: a rule that quietly cannot evaluate would otherwise look like a
+ * rule that decided not to fire, and the tests would prove nothing.
+ */
+final class Facts {
+
+	/**
+	 * Not instantiable.
+	 */
+	private function __construct() {
+	}
+
+	/**
+	 * A default WordPress install with nothing configured and nothing accumulated.
+	 *
+	 * Every core feature is on, because that is what a fresh install looks like.
+	 *
+	 * @param array<string,mixed> $overrides Facts to override.
+	 * @return FactSet
+	 */
+	public static function freshInstall( array $overrides = array() ): FactSet {
+		return FactSet::fromArray(
+			array_merge(
+				array(
+					'env.wp_version'           => '6.8.1',
+					'env.php_version'          => '8.2.19',
+					'env.host_vendor'          => 'kinsta',
+					'env.cache_plugin'         => 'none',
+					'env.is_multisite'         => false,
+
+					'wp.heartbeat_interval'    => 15,
+					'wp.xmlrpc_enabled'        => true,
+					'wp.emojis_enabled'        => true,
+					'wp.embeds_enabled'        => true,
+					'wp.rss_enabled'           => true,
+					'wp.generator_tag'         => true,
+					'wp.rsd_link'              => true,
+					'wp.shortlink'             => true,
+					'wp.self_pingbacks'        => true,
+					'wp.dashicons_frontend'    => false,
+					'wp.jquery_migrate'        => true,
+					'wp.revisions_limit'       => -1,
+					'wp.file_editor_enabled'   => true,
+					'wp.debug'                 => false,
+
+					'users.admin_count'        => 1,
+					'users.recent_editors_7d'  => 0,
+
+					'plugins.active'           => array(),
+					'plugins.inactive'         => array(),
+					'plugins.meta'             => array(),
+					'plugins.detected'         => self::noDetections(),
+
+					'theme.active'             => 'twentytwentyfour',
+					'theme.parent'             => null,
+
+					'db.size_bytes'            => 2048000,
+					'db.revisions.count'       => 4,
+					'db.autodrafts.count'      => 0,
+					'db.trash.count'           => 0,
+					'db.spam_comments.count'   => 0,
+					'db.transients.count'      => 3,
+					'db.transients.expired'    => 0,
+					'db.orphan_postmeta.count' => 0,
+					'db.orphan_termmeta.count' => 0,
+					'db.orphan_usermeta.count' => 0,
+					'db.autoload.bytes'        => 120000,
+					'db.autoload.top'          => array(),
+
+					'cron.events.count'        => 12,
+					'cron.events.subminute'    => array(),
+					'cron.orphans.count'       => 0,
+					'cron.disable_wp_cron'     => false,
+				),
+				$overrides
+			)
+		);
+	}
+
+	/**
+	 * A busy WooCommerce store: several editors, plenty accumulated, a cache
+	 * plugin in front, and a host we do not recognise.
+	 *
+	 * This is the site the Heartbeat refusal exists for.
+	 *
+	 * @param array<string,mixed> $overrides Facts to override.
+	 * @return FactSet
+	 */
+	public static function busyStore( array $overrides = array() ): FactSet {
+		return self::freshInstall(
+			array_merge(
+				array(
+					'env.host_vendor'         => 'unknown',
+					'env.cache_plugin'        => 'litespeed-cache',
+					'users.admin_count'       => 4,
+					'users.recent_editors_7d' => 3,
+					'plugins.active'          => array(
+						'woocommerce/woocommerce.php',
+						'contact-form-7/wp-contact-form-7.php',
+						'litespeed-cache/litespeed-cache.php',
+					),
+					'plugins.inactive'        => array( 'hello-dolly/hello.php', 'akismet/akismet.php' ),
+					'plugins.detected'        => self::detections(
+						array( 'woocommerce', 'contact-form-7', 'litespeed-cache' )
+					),
+					'theme.active'            => 'storefront',
+					'db.revisions.count'      => 31421,
+					'db.transients.count'     => 5210,
+					'db.transients.expired'   => 4832,
+					'db.autoload.bytes'       => 9646080,
+				),
+				$overrides
+			)
+		);
+	}
+
+	/**
+	 * Every detector reporting absent.
+	 *
+	 * @return array<string,bool>
+	 */
+	public static function noDetections(): array {
+		return self::detections( array() );
+	}
+
+	/**
+	 * Detector results with the named slugs present and the rest absent.
+	 *
+	 * Every slug is always reported, present or not: an absent key would be
+	 * indistinguishable from "we did not look".
+	 *
+	 * @param array<int,string> $present Slugs that are present.
+	 * @return array<string,bool>
+	 */
+	public static function detections( array $present ): array {
+		$all = array(
+			'contact-form-7',
+			'elementor',
+			'elementor-pro',
+			'litespeed-cache',
+			'rank-math',
+			'woocommerce',
+			'wordfence',
+			'wp-rocket',
+			'wp-super-cache',
+			'yoast',
+		);
+
+		$detected = array();
+
+		foreach ( $all as $slug ) {
+			$detected[ $slug ] = in_array( $slug, $present, true );
+		}
+
+		return $detected;
+	}
+}

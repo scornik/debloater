@@ -62,7 +62,61 @@ final class Loader {
 	 * @throws RuntimeException When any document is malformed or duplicated.
 	 */
 	public function load(): Registry {
-		return new Registry( $this->loadTweaks(), $this->loadDetectors() );
+		return new Registry( $this->loadTweaks(), $this->loadDetectors(), $this->loadCompatibility() );
+	}
+
+	/**
+	 * Load and validate every compatibility rule.
+	 *
+	 * Unlike tweaks and detectors, the file name is the subject *slug* rather
+	 * than the whole subject: a rule about "plugin:contact-form-7" lives in
+	 * contact-form-7.json, because the type prefix would be noise in a directory
+	 * that only ever holds one kind of thing per slug.
+	 *
+	 * @return array<int,CompatRule>
+	 * @throws RuntimeException When a document is invalid or a subject repeats.
+	 */
+	public function loadCompatibility(): array {
+		$validator = $this->validator( 'compat.schema.json' );
+		$rules     = array();
+		$seen      = array();
+
+		foreach ( $this->jsonFiles( 'compatibility' ) as $path ) {
+			$document = $this->decode( $path );
+
+			$validator->assertValid( $document, $this->relative( $path ) );
+
+			$rule = CompatRule::fromArray( $document );
+
+			if ( array_key_exists( $rule->subject, $seen ) ) {
+				throw new RuntimeException(
+					sprintf(
+						'Duplicate compatibility subject "%s" in %s and %s',
+						$rule->subject,
+						$this->relative( $seen[ $rule->subject ] ),
+						$this->relative( $path )
+					)
+				);
+			}
+
+			$expected = $rule->subjectSlug() . '.json';
+
+			if ( basename( $path ) !== $expected ) {
+				throw new RuntimeException(
+					sprintf(
+						'Compatibility rule for "%s" must be defined in %s, found in %s',
+						$rule->subject,
+						$expected,
+						$this->relative( $path )
+					)
+				);
+			}
+
+			$seen[ $rule->subject ] = $path;
+			$rules[]                = $rule;
+		}
+
+		return $rules;
 	}
 
 	/**

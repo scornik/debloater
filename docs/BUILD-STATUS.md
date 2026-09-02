@@ -7,8 +7,8 @@ are `NOT_STARTED`, `IN_PROGRESS`, `BLOCKED`, `COMPLETE`.
 
 | | |
 |---|---|
-| **Current phase** | 3 — Analyzer, findings, score |
-| **Last completed** | 2 — Scanner (facts only) |
+| **Current phase** | 4 — Recommendation engine |
+| **Last completed** | 3 — Analyzer, findings, score |
 | **Blockers** | none |
 
 ## Phases
@@ -17,8 +17,8 @@ are `NOT_STARTED`, `IN_PROGRESS`, `BLOCKED`, `COMPLETE`.
 |---|---|---|---|---|---|
 | 0 | Architecture and contracts | COMPLETE | `60160e5` | 747 pass / 0 fail | pass |
 | 1 | Minimal runtime engine | COMPLETE | `7f5eed7` | 797 unit + 33 integration / 0 fail | pass |
-| 2 | Scanner (facts only) | COMPLETE | `phase-2` | 817 unit + 55 integration / 0 fail | pass |
-| 3 | Analyzer, findings, score | NOT_STARTED | — | — | — |
+| 2 | Scanner (facts only) | COMPLETE | `9f47be9` | 817 unit + 55 integration / 0 fail | pass |
+| 3 | Analyzer, findings, score | COMPLETE | `phase-3` | 928 unit + 70 integration / 0 fail | pass |
 | 4 | Recommendation engine | NOT_STARTED | — | — | — |
 | 5 | Snapshot, apply, rollback | NOT_STARTED | — | — | — |
 | 6 | Verification engine | NOT_STARTED | — | — | — |
@@ -224,3 +224,70 @@ Phase 2 — Scanner (facts only).
 ### Next
 
 Phase 3 — Analyzer, findings, Don't Touch, Score.
+
+---
+
+## Phase 3 — Analyzer, findings, Don't Touch, Score
+
+**Status:** COMPLETE
+
+### Delivered
+
+- Fourteen analyzer rules: eleven for the MVP tweak set in §15, three
+  informational (`plugins.inactive_present`, `wp.file_editor.enabled`,
+  `wp.xmlrpc.enabled`). One rule, one finding id, asserted.
+- `Analyze\EvidenceBuilder`: evidence must cite a fact the scan actually
+  observed. Citing an unobserved key throws.
+- `Analyze\ConfidenceCalculator`: base × penalties, with the multipliers,
+  the compounding cap and the floor recorded in `docs/SCORING.md` and D-0010.
+- `Analyze\DontTouchRules`: capability dependencies from the compatibility
+  registry, plus the situational Heartbeat rule from §17 Phase 3.
+- `Analyze\Score`: five sub-scores, severity penalties 0/4/10/20, unweighted
+  mean, refusals costing nothing, unscored categories reported rather than
+  dropped.
+- `Analyze\Analyzer` and `AnalysisResult`, which report rules that could not
+  be evaluated instead of leaving them as silence.
+- `docs/SCORING.md` v1.0, versioned and shown next to the score.
+- Six new tweaks completing the §15 MVP set, with five handlers; the sixth is
+  the single data operation, whose DataOperation class arrives in Phase 5.
+- Six compatibility rules, `Registry\CompatRule`, and the registry loading and
+  hashing that goes with them.
+- `POST wpdebloat/v1/scan` and `GET wpdebloat/v1/findings`.
+
+### Exit checklist (§17 Phase 3)
+
+| Criterion | Result |
+|---|---|
+| One rule class per finding id | ✅ asserted, and duplicates refused |
+| Every finding carries fact-cited evidence | ✅ enforced by EvidenceBuilder, asserted per rule |
+| Severity and risk independent | ✅ info-severity findings at safe risk, low-severity at medium risk |
+| Confidence from base × penalties | ✅ four penalties, capped, floored, deterministic |
+| REST dont_touch when a dependent requires rest:public | ✅ capability mapping, exercised through the registry |
+| Heartbeat dont_touch when editors ≥ 2 and WooCommerce | ✅ and *not* refused without either condition |
+| Score exactly per §12 | ✅ 0/4/10/20, per-id cap, refusals excluded |
+| `docs/SCORING.md` v1 committed | ✅ with the numbers and the reasoning |
+| Numbers recorded in DECISIONS.md | ✅ D-0010 |
+| Seeded site ≥ 12 findings incl. ≥ 1 dont_touch | ✅ 13 findings, 1 refusal on the busy-store fixture |
+| Score deterministic and unchanged by a refusal | ✅ |
+| Findings persisted in the scan run payload | ✅ round-trips as contracts |
+| POST /scan, GET /findings with capability checks | ✅ 401 anonymous, 403 without capability |
+| Unit suite | ✅ 928 tests, 3 840 assertions |
+| Integration suite | ✅ 70 tests, 260 assertions |
+| PHPCS | ✅ 0 errors, 0 warnings across 144 files |
+| PHPStan level 6 | ✅ no errors |
+
+### Known warnings
+
+- `wp.dashicons.frontend` is usually **not evaluated**: the fact it needs can
+  only be observed on a front-end request. That is reported as "not evaluated"
+  rather than as "nothing to do", and Phase 13's asset scan resolves it.
+- `db.clean_expired_transients` is in the registry, and its `DataOperation`
+  class arrives in Phase 5. A test asserts the handler names a class in the
+  right namespace; Phase 5 strengthens that to "the class exists".
+- The unit suite gained WordPress i18n stand-ins (`tests/wp-i18n-polyfill.php`).
+  They return the untranslated string, exactly as WordPress does with no
+  translation loaded, and are only defined when WordPress is absent.
+
+### Next
+
+Phase 4 — Recommendation engine.

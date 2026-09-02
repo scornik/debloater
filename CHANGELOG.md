@@ -77,3 +77,28 @@ All notable changes to WP Debloat are recorded here. The format follows
     `wp.dashicons_frontend` outside a front-end request, and the `admin.*`
     counts outside an admin request. An absent fact reads as "not observed",
     which is not the same as zero.
+
+- **Phase 3 — analyzer, findings and score.**
+  - Fourteen rules turning facts into findings, each carrying evidence that
+    cites the fact it came from. Evidence that names a fact the scan did not
+    observe is refused rather than rendered.
+  - Severity, risk and confidence stay three separate figures. A finding can be
+    low-severity and medium-risk, or high-confidence and refused.
+  - Confidence is the rule's base multiplied by penalties for what stands
+    between us and a clear view of the site: an unrecognised host, a page
+    cache, detected dependents, custom must-use plugins. The numbers are in
+    `docs/SCORING.md`.
+  - "Don't touch" as a first-class outcome, with the reason always given. A
+    change is refused either because something present declares a dependency
+    the change would remove, or because of how the site is used — Heartbeat is
+    not slowed on a store where several people are editing.
+  - The Debloat Score: five sub-scores, penalties by severity, an unweighted
+    mean, and no Performance component. A refused finding costs nothing, and
+    findings in a category this version does not score are reported rather than
+    hidden.
+  - Six more tweaks completing the MVP set, and six compatibility rules
+    recording what WooCommerce, Elementor, Contact Form 7, LiteSpeed and
+    Wordfence actually depend on.
+  - `POST wpdebloat/v1/scan` and `GET wpdebloat/v1/findings`. Before any scan,
+    the findings endpoint says the site has not been scanned rather than
+    returning an empty list that reads like good news.

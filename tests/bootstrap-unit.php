@@ -22,6 +22,12 @@ if ( ! is_readable( $wpdebloat_autoload ) ) {
 
 require_once $wpdebloat_autoload;
 
+// The unit suite runs without WordPress. Anything user-visible is still
+// translatable, so the analyzer legitimately calls __() and friends; these
+// stand-ins return the untranslated string, exactly as WordPress does when no
+// translation is loaded. See tests/wp-i18n-polyfill.php.
+require_once __DIR__ . '/wp-i18n-polyfill.php';
+
 /**
  * Absolute path to the repository root, for tests that read registry files.
  */
