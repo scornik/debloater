@@ -1,0 +1,8 @@
+{
+  "id": "safe",
+  "title": "Safe",
+  "include_risk": ["safe", "low"],
+  "exclude_destructive": true,
+  "tweaks": [],
+  "params": {}
+}

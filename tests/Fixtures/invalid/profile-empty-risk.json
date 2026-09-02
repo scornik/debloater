@@ -1,0 +1,6 @@
+{
+  "id": "safe",
+  "title": "Safe",
+  "include_risk": [],
+  "exclude_destructive": true
+}

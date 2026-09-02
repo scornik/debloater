@@ -1,0 +1,4 @@
+{
+  "subject": "plugin:contact-form-7",
+  "requires": ["telepathy"]
+}

@@ -1,0 +1,6 @@
+{
+  "subject": "plugin:contact-form-7",
+  "requires": ["rest:public"],
+  "notes": "Contact Form 7 submits through the public REST API.",
+  "confidence": 0.99
+}

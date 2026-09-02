@@ -1,0 +1,53 @@
+{
+    "name": "hakeemify/wp-debloat",
+    "description": "WP Debloat — evidence-based WordPress configuration auditing and safe, reversible debloating.",
+    "type": "wordpress-plugin",
+    "license": "GPL-2.0-or-later",
+    "require": {
+        "php": ">=8.1"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.5",
+        "squizlabs/php_codesniffer": "^3.9",
+        "wp-coding-standards/wpcs": "^3.1",
+        "automattic/vipwpcs": "^3.0",
+        "phpcompatibility/phpcompatibility-wp": "^2.1",
+        "dealerdirect/phpcodesniffer-composer-installer": "^1.0",
+        "phpstan/phpstan": "^2.1",
+        "szepeviktor/phpstan-wordpress": "^2.0",
+        "php-stubs/wordpress-stubs": "^6.5",
+        "php-stubs/wp-cli-stubs": "^2.10"
+    },
+    "autoload": {
+        "psr-4": {
+            "WPDebloat\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "WPDebloat\\Tests\\Unit\\": "tests/Unit/",
+            "WPDebloat\\Tests\\Integration\\": "tests/Integration/"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        },
+        "sort-packages": true,
+        "platform": {
+            "php": "8.1.0"
+        }
+    },
+    "scripts": {
+        "test": "phpunit --configuration phpunit.xml.dist",
+        "test:unit": "phpunit --configuration phpunit.xml.dist --testsuite unit",
+        "lint": "phpcs --standard=phpcs.xml.dist",
+        "lint:fix": "phpcbf --standard=phpcs.xml.dist",
+        "analyze": "phpstan analyse --configuration=phpstan.neon --memory-limit=1G",
+        "check": [
+            "@lint",
+            "@analyze",
+            "@test"
+        ]
+    }
+}
