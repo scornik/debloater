@@ -602,3 +602,122 @@ vendor/bin/phpstan analyse
 | Integration | ✅ 102 tests, 746 assertions |
 | PHPCS | ✅ 0 errors, 0 warnings, 170 files |
 | PHPStan level 6 | ✅ no errors |
+
+---
+
+## Phase 6 — Verification engine
+
+### Run 1 — can the test environment reach itself at all
+
+Before writing the probe tests, the question had to be answered rather than
+assumed:
+
+```
+wp-env run tests-cli wp eval 'wp_remote_get( home_url() )'
+```
+
+**Result:** `cURL error 7: Failed to connect to localhost:8889`.
+
+The suite runs in the `tests-cli` container; the site is served by
+`tests-wordpress`. `home_url()` is `http://localhost:8889`, and inside the runner
+`localhost` is the runner. `curl http://tests-wordpress:80/` from the same
+container answers `301` — the site is reachable, but only at an address it does
+not consider its own, and it redirects to the canonical one that is not routable
+from there.
+
+Even with the routing solved, an HTTP request opens its own database connection
+and cannot see the uncommitted transaction each WordPress test runs inside, so a
+probe would observe a site without the state the test had just created.
+
+**Conclusion, recorded rather than worked around:** probe behaviour is tested
+against fixture responses through `pre_http_request`, which covers every branch
+deterministically; real-loopback verification against committed state is
+exercised on the fixture site in Phase 7. The blocked-loopback path is not a
+workaround here — it is the environment's genuine behaviour, and the same
+behaviour a host with outbound requests disabled will show.
+
+### Run 2 — first integration run of the verification tests
+
+```
+npm run test:integration:main
+```
+
+**Result:** 123 tests, 799 assertions, **1 failure**.
+
+| Failure | Root cause | Fix | Retest |
+|---|---|---|---|
+| `VerificationTest::test_blocked_loopback_reports_unknown_and_warns` — `content_page` was `NOT_TESTED`, not `UNKNOWN` | Correct behaviour, incorrect test. A probe that does not apply reports `NOT_TESTED` before reachability is considered, and the test install had no published post for it to fetch. | Create a published post in the test, so every probe applies and the assertion is about the loopback and nothing else. The stronger assertion is the point: all six probes UNKNOWN. | ✅ |
+
+### Run 3 — first run of the forced-failure suite
+
+```
+npm run test:integration:fail-probe
+```
+
+**Result:** 5 tests, 85 assertions, **1 failure**.
+
+| Failure | Root cause | Fix | Retest |
+|---|---|---|---|
+| `VerificationRollbackTest::test_the_tweaks_are_journalled_as_rolled_back` — the journal recorded `SELECTED → PREVIEWED → SNAPSHOTTED → APPLY_FAILED → ROLLED_BACK` instead of `APPLIED → VERIFICATION_FAILED → ROLLED_BACK` | **A real ordering bug.** `rollBack()` restored the Level A snapshot first, which puts the *recorded* tweak states back, and only then asked the lifecycle where each tweak was. By that point the answer was "nowhere" — the states had been erased — so the journal described a route the run never took. | Capture the tweak states **before** the restore and advance from those explicitly (`TweakLifecycle::statesOf()` and `advanceAllFrom()`). The journal now describes the route each tweak actually travelled. The same fix applies to the manual rollback and to crash recovery, which had the same ordering. | ✅ |
+
+Worth noting what caught this: not an assertion about rollback, which passed
+throughout, but an assertion that the *journal* was truthful. The rollback was
+always correct; its record of itself was not.
+
+### Run 4 — unit suite with the marker tests
+
+```
+vendor/bin/phpunit
+```
+
+**Result:** 977 tests, 7 129 assertions, **1 failure**.
+
+| Failure | Root cause | Fix | Retest |
+|---|---|---|---|
+| `MarkersTest::test_a_page_that_talks_about_errors_is_not_an_error_page` — the body `<p>WP_Errors are objects; this post explains them.</p>` was reported as a fatal page | **A real bug, found by a test written to be hostile to the implementation.** §11 lists `WP_Error` as a fatal marker; matched as a bare class name it fires on any page that mentions the class, and the consequence is rolling back a change on a site whose only offence is writing about WordPress. | Match the *printed* forms instead — `WP_Error Object` and `object(WP_Error)` — which is what a page that actually dumped an error contains. Recorded as a deliberate deviation in D-0019, with a test for both directions. | ✅ |
+
+### Run 5 — PHPStan level 6
+
+```
+vendor/bin/phpstan analyse
+```
+
+**Result:** 4 errors, all `Constant LOGGED_IN_COOKIE not found`.
+
+WordPress defines the cookie constants during `wp-settings.php`, so static
+analysis cannot see them. Added to `tests/phpstan-bootstrap.php` and listed in
+`dynamicConstantNames`, alongside the other constants whose values must not be
+reasoned about from their placeholders.
+
+### Run 6 — PHPCS
+
+```
+vendor/bin/phpcs --standard=phpcs.xml.dist
+```
+
+**Result:** 22 errors, 2 warnings; 15 fixed automatically.
+
+| Violation | Fix |
+|---|---|
+| `wp_remote_get()` discouraged in favour of `vip_safe_wp_remote_get()` | Excluded for `Verify\HttpClient` with the reasoning written into `phpcs.xml.dist`: the VIP wrapper exists to give up early on a flaky third-party API, and these requests are the site asking itself whether it still works. It also does not exist outside VIP. |
+| `$_COOKIE` flagged by VIP's cache-constraints sniff (×5) | Excluded for `Verify\ActorSession`, likewise documented: the sniff is about page output varying by cookie behind a cache, and nothing here renders anything. The value is validated by `wp_validate_auth_cookie()` before use and never echoed. |
+| `https_local_ssl_verify` reported as an unprefixed hook name | Scoped ignore: it is core's own filter, read rather than introduced. |
+| `numberposts => -1` in a test | Bounded to 100. |
+| Alignment and array formatting | `phpcbf`. |
+
+### Run 7 — full regression
+
+```
+vendor/bin/phpunit
+npm run test:integration
+vendor/bin/phpcs --standard=phpcs.xml.dist
+vendor/bin/phpstan analyse
+```
+
+| Gate | Result |
+|---|---|
+| Unit | ✅ 978 tests, 7 133 assertions |
+| Integration | ✅ 123 tests, 809 assertions |
+| Forced-failure suite | ✅ 5 tests, 74 assertions |
+| PHPCS | ✅ 0 errors, 0 warnings, 187 files |
+| PHPStan level 6 | ✅ no errors |

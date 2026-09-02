@@ -117,6 +117,27 @@
 		<exclude-pattern>src/Apply/RuntimeWriter\.php</exclude-pattern>
 		<exclude-pattern>src/Apply/RuntimeLoader\.php</exclude-pattern>
 		<exclude-pattern>src/Snapshot/SpillFile\.php</exclude-pattern>
+		<exclude-pattern>src/Verify/HttpClient\.php</exclude-pattern>
+		<exclude-pattern>tests/*</exclude-pattern>
+	</rule>
+
+	<!--
+		Verify\HttpClient uses wp_remote_get() rather than VIP's
+		vip_safe_wp_remote_get(). The VIP wrapper exists to fail fast and cheaply
+		on a third-party API that is having a bad day; these requests are the site
+		asking itself whether it still works, which is neither third-party nor
+		optional, and a wrapper that gives up early would turn a slow site into an
+		unverified one. The function also does not exist outside VIP, and this
+		plugin has no VIP dependency.
+
+		Verify\ActorSession reads $_COOKIE to forward the acting user's existing
+		logged-in cookie to that request. VIP's sniff is about page output varying
+		by cookie behind a cache; nothing here renders anything. The value is
+		validated by wp_validate_auth_cookie() before it is used, and never
+		echoed.
+	-->
+	<rule ref="WordPressVIPMinimum.Variables.RestrictedVariables">
+		<exclude-pattern>src/Verify/ActorSession\.php</exclude-pattern>
 		<exclude-pattern>tests/*</exclude-pattern>
 	</rule>
 	<rule ref="WordPress.PHP.NoSilencedErrors">

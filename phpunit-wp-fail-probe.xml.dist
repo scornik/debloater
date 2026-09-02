@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+	Forced-verification-failure suite.
+
+	Separate from phpunit-wp.xml.dist because WPDEBLOAT_TEST_FAIL_PROBE is a
+	constant: once defined, every apply in the process fails verification and
+	rolls back. The tests that expect an apply to commit and the test that
+	expects one to roll back therefore cannot share a process.
+
+	Run by `npm run test:integration`, which runs both suites in turn.
+-->
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.6/phpunit.xsd"
+         bootstrap="tests/bootstrap-fail-probe.php"
+         colors="true"
+         cacheResult="false"
+         beStrictAboutOutputDuringTests="true"
+         beStrictAboutTestsThatDoNotTestAnything="true"
+         convertDeprecationsToExceptions="true"
+         convertErrorsToExceptions="true"
+         convertNoticesToExceptions="true"
+         convertWarningsToExceptions="true"
+         failOnRisky="true"
+         failOnWarning="true">
+    <testsuites>
+        <testsuite name="fail-probe">
+            <directory suffix="Test.php">tests/FailProbe</directory>
+        </testsuite>
+    </testsuites>
+</phpunit>

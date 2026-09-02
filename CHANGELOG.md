@@ -152,3 +152,20 @@ All notable changes to WP Debloat are recorded here. The format follows
     Removed through WordPress's own API so a persistent object cache sees it,
     and chosen first because it is the operation where proving the recovery path
     costs least if it is wrong.
+
+- **Phase 6 — verification.**
+  - After every change the site is asked, over real HTTP, whether it still
+    works: the home page as a guest, the newest post, the dashboard as the
+    person who made the change, the REST API, the login page, and whether the
+    generated runtime is the one actually loaded.
+  - A failure rolls the change back without being asked, and says which check
+    failed and what it saw.
+  - Three outcomes rather than two. "We could not check" is not "it passed": a
+    site that cannot make requests to itself keeps its change and is told
+    plainly that nothing was verified, and a check that does not apply is
+    listed as not tested rather than quietly counted as a pass.
+  - The dashboard probe is the one that protects the way back in. A change that
+    locks its owner out of their own site is undone automatically.
+  - Requests carry a header identifying them, which nothing in the plugin ever
+    reads — a site that passed only because it knew it was being checked would
+    not have been checked at all.

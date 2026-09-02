@@ -27,7 +27,8 @@
     "autoload-dev": {
         "psr-4": {
             "WPDebloat\\Tests\\Unit\\": "tests/Unit/",
-            "WPDebloat\\Tests\\Integration\\": "tests/Integration/"
+            "WPDebloat\\Tests\\Integration\\": "tests/Integration/",
+            "WPDebloat\\Tests\\FailProbe\\": "tests/FailProbe/"
         }
     },
     "config": {

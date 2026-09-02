@@ -21,4 +21,5 @@ parameters:
 		- WPDEBLOAT_DISABLE
 		- WPDEBLOAT_LOADER_MODE
 		- WP_CLI
+		- LOGGED_IN_COOKIE
 	treatPhpDocTypesAsCertain: false

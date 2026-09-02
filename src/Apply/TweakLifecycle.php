@@ -133,4 +133,45 @@ final class TweakLifecycle {
 			$this->advance( $run_id, $tweak_id, $target, $action );
 		}
 	}
+
+	/**
+	 * The states a set of tweaks are currently in.
+	 *
+	 * Taken before a rollback restores the recorded states, so that the journal
+	 * can describe the route each tweak actually travelled rather than the route
+	 * it would have travelled from where the restore put it back.
+	 *
+	 * @param array<int,string> $tweak_ids Tweak ids.
+	 * @return array<string,TweakState>
+	 */
+	public function statesOf( array $tweak_ids ): array {
+		$stored = $this->state->tweakStates();
+		$states = array();
+
+		foreach ( $tweak_ids as $tweak_id ) {
+			$states[ $tweak_id ] = $stored[ $tweak_id ] ?? TweakState::SELECTED;
+		}
+
+		return $states;
+	}
+
+	/**
+	 * Move several tweaks to the same state, from where each of them was.
+	 *
+	 * @param int                      $run_id Run this belongs to.
+	 * @param array<string,TweakState> $from   Tweak id to the state it was in.
+	 * @param TweakState               $target Where they should end up.
+	 * @param JournalAction            $action What was being attempted.
+	 * @return void
+	 */
+	public function advanceAllFrom(
+		int $run_id,
+		array $from,
+		TweakState $target,
+		JournalAction $action = JournalAction::APPLY
+	): void {
+		foreach ( $from as $tweak_id => $state ) {
+			$this->advance( $run_id, $tweak_id, $target, $action, null, $state );
+		}
+	}
 }
