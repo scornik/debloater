@@ -206,6 +206,21 @@ final class AnalyzerTest extends IntegrationTestCase {
 	}
 
 	/**
+	 * The capability alone does not open a write route: it needs the nonce too.
+	 *
+	 * @return void
+	 */
+	public function test_scanning_without_a_nonce_is_refused(): void {
+		$this->asAdministrator();
+
+		$response = $this->post( '/scan', false );
+
+		$this->assertSame( 403, $response->get_status() );
+		$this->assertSame( 'wpdebloat_bad_nonce', $response->get_data()['code'] );
+		$this->assertSame( 0, $this->plugin->runs()->count(), 'A refused scan must not write a run.' );
+	}
+
+	/**
 	 * GET /findings is closed too: a scan describes the site's configuration in
 	 * detail.
 	 *
@@ -380,7 +395,17 @@ final class AnalyzerTest extends IntegrationTestCase {
 	 * @param string $path Route path.
 	 * @return \WP_REST_Response
 	 */
-	private function post( string $path ): \WP_REST_Response {
-		return rest_get_server()->dispatch( new WP_REST_Request( 'POST', '/' . Brand::REST_NAMESPACE . $path ) );
+	private function post( string $path, bool $with_nonce = true ): \WP_REST_Response {
+		$request = new WP_REST_Request( 'POST', '/' . Brand::REST_NAMESPACE . $path );
+
+		if ( $with_nonce ) {
+			// Scanning writes a run, so it is a state-changing endpoint and
+			// carries a nonce like any other (BUILD-SPEC §13 rule 12). A real
+			// client sends one; a test that did not would be testing a route
+			// nobody can call.
+			$request->set_header( 'X-WP-Nonce', wp_create_nonce( 'wp_rest' ) );
+		}
+
+		return rest_get_server()->dispatch( $request );
 	}
 }

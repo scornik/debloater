@@ -86,6 +86,19 @@ composer check     # all three
 If the machine has no native PHP, the same commands run in Docker; see
 `docs/DECISIONS.md` D-0003.
 
+The admin dashboard is a React app in `admin-ui/`, built with
+`@wordpress/scripts`:
+
+```bash
+npm run build       # produces build/, which the admin screen enqueues
+npm run test:js     # Jest
+npm run lint:js     # ESLint
+npm run test:bundle # the bundle stays under 250 KB gzipped
+```
+
+`build/` is a build artifact and is not committed; the dashboard needs
+`npm run build` before it will render.
+
 Integration tests run inside `@wordpress/env`:
 
 ```bash

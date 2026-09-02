@@ -820,3 +820,109 @@ vendor/bin/phpstan analyse
 | CLI end to end on the fixture site | ✅ every command, every exit code |
 | PHPCS | ✅ 0 errors, 0 warnings, 194 files |
 | PHPStan level 6 | ✅ no errors |
+
+---
+
+## Phase 8 — React dashboard
+
+### Run 1 — first build
+
+```
+npm run build
+```
+
+**Result:** compiled. `index.js` 25 KB raw, `style-index.css` 7.5 KB, plus the
+`index.asset.php` manifest.
+
+Worth recording: `@wordpress/scripts` emits the stylesheet as `style-index.css`,
+not `index.css`. The enqueue had been written against the name that seemed
+obvious, which would have produced an unstyled screen and no error anywhere.
+
+### Run 2 — first Jest run
+
+```
+npm run test:js
+```
+
+**Result:** 6 tests, **all failing**, for three separate reasons.
+
+| Failure | Root cause | Fix | Retest |
+|---|---|---|---|
+| `toBeInTheDocument is not a function` | `@testing-library/jest-dom` was not installed or registered. | Installed it and added a setup file to `setupFilesAfterEnv`. | ✅ |
+| A third "suite" failed with "must contain at least one test" | `testMatch` was `admin-ui/**/test/*.js`, which matched the style stub as well as the tests. | Matched `*.test.js` only. | ✅ |
+| `Cannot find module '@wordpress/components'` | The package is an *external* in the build — it comes from WordPress at runtime — so it was not installed. | Mapped it to a small stub in `jest.config.js`. The stubs render the same roles and accessible names, so a test that looks for a button by its label still finds one; loading the real package would pull its TypeScript source and ESM dependencies into jsdom to prove things about WordPress's components rather than ours. | ✅ |
+
+### Run 3 — Jest, after the setup was right
+
+**Result:** 6 passed, 6 failed.
+
+| Failure | Root cause | Fix | Retest |
+|---|---|---|---|
+| Five `Finding` tests failed on `act(...)` warnings | The "what will change" field asks the server what a single change would do, so the component finishes rendering after a promise resolves. The tests asserted against a half-drawn screen. | Render inside `await act( async () => … )` through one helper. | ✅ |
+
+**Result after:** 12 tests, 12 passed.
+
+### Run 4 — integration suite with the admin and write-route tests
+
+```
+npm run test:integration:main
+```
+
+**Result:** 159 tests, 1 051 assertions, **1 failure**.
+
+| Failure | Root cause | Fix | Retest |
+|---|---|---|---|
+| `AnalyzerTest::test_an_administrator_can_scan` — 403 where 201 was expected | Correct, and caught by a Phase 3 test. `POST /scan` writes a run, so it is a state-changing endpoint, and this phase made every state-changing endpoint require a nonce (§13 rule 12). The test dispatched without one. | Send the nonce, as a real client does — and add a test asserting that scanning *without* one is refused and writes no run. The suite got stricter, not looser. | ✅ |
+
+### Run 5 — ESLint
+
+```
+wp-scripts lint-js admin-ui
+```
+
+**Result:** 112 errors — 91 formatting, the rest import resolution.
+
+Prettier fixed the formatting. The import errors were `@wordpress/*` packages
+being flagged as unresolved and undeclared: true of the *repository*, since the
+build treats them as externals, but not true of the *source*, which does import
+them. Declared them as devDependencies, which is the accurate statement, and kept
+the Jest mapping so the component stub is still what the tests load. Four
+remaining JSDoc errors were missing `@param` types on two documented functions.
+
+### Run 6 — bundle budget
+
+```
+node tools/bundle-budget.mjs
+```
+
+| Asset | Gzipped |
+|---|---|
+| `index.js` | 6 743 B |
+| `style-index.css` | 1 864 B |
+| **Total** | **8 607 B — 3% of the 250 KB budget** |
+
+The RTL stylesheet is measured but not counted: it is never loaded alongside the
+LTR one, and budgeting for a page that cannot exist would be inventing weight.
+
+### Run 7 — full regression
+
+```
+vendor/bin/phpunit
+npm run test:integration
+npm run test:js
+npm run build && node tools/bundle-budget.mjs
+vendor/bin/phpcs --standard=phpcs.xml.dist
+vendor/bin/phpstan analyse
+wp-scripts lint-js admin-ui
+```
+
+| Gate | Result |
+|---|---|
+| Unit | ✅ 979 tests, 7 176 assertions |
+| Integration | ✅ 160 tests, 1 057 assertions |
+| Forced-failure suite | ✅ 8 tests, 85 assertions |
+| Jest | ✅ 12 tests |
+| Bundle budget | ✅ 8.6 KB of 250 KB |
+| PHPCS | ✅ 0 errors, 0 warnings, 201 files |
+| PHPStan level 6 | ✅ no errors |
+| ESLint | ✅ clean |

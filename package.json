@@ -5,6 +5,11 @@
   "license": "GPL-2.0-or-later",
   "private": true,
   "scripts": {
+    "build": "node node_modules/@wordpress/scripts/bin/wp-scripts.js build --webpack-src-dir=admin-ui/src --output-path=build",
+    "start": "node node_modules/@wordpress/scripts/bin/wp-scripts.js start --webpack-src-dir=admin-ui/src --output-path=build",
+    "lint:js": "node node_modules/@wordpress/scripts/bin/wp-scripts.js lint-js admin-ui/src",
+    "test:js": "node node_modules/@wordpress/scripts/bin/wp-scripts.js test-unit-js --config admin-ui/jest.config.js",
+    "test:bundle": "node tools/bundle-budget.mjs",
     "env:start": "wp-env start",
     "env:stop": "wp-env stop",
     "env:destroy": "wp-env destroy",
@@ -18,6 +23,15 @@
     "env:seed": "wp-env run cli --env-cwd=wp-content/plugins/wp-debloat wp eval-file tools/seed-fixture.php"
   },
   "devDependencies": {
-    "@wordpress/env": "^10.10.0"
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@wordpress/api-fetch": "^7.54.0",
+    "@wordpress/components": "^40.0.0",
+    "@wordpress/dom-ready": "^4.54.0",
+    "@wordpress/element": "^8.6.0",
+    "@wordpress/env": "^10.10.0",
+    "@wordpress/i18n": "^6.27.0",
+    "@wordpress/scripts": "^34.2.0"
   }
 }

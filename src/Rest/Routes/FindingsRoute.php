@@ -12,6 +12,7 @@ namespace WPDebloat\Rest\Routes;
 use WP_Error;
 use WP_REST_Request;
 use WP_REST_Response;
+use WPDebloat\Contracts\Category;
 use WPDebloat\Contracts\Decision;
 use WPDebloat\Contracts\Risk;
 use WPDebloat\Plugin;
@@ -85,6 +86,12 @@ final class FindingsRoute implements RouteInterface {
 				'enum'        => array_map( static fn ( Decision $decision ): string => $decision->value, Decision::cases() ),
 				'required'    => false,
 			),
+			'category' => array(
+				'description' => __( 'Only findings in this category.', 'wp-debloat' ),
+				'type'        => 'string',
+				'enum'        => array_map( static fn ( Category $category ): string => $category->value, Category::cases() ),
+				'required'    => false,
+			),
 			'run_id'   => array(
 				'description' => __( 'Read a specific scan run instead of the most recent one.', 'wp-debloat' ),
 				'type'        => 'integer',
@@ -127,7 +134,8 @@ final class FindingsRoute implements RouteInterface {
 		$findings = $this->filter(
 			is_array( $analysis['findings'] ?? null ) ? $analysis['findings'] : array(),
 			is_string( $request->get_param( 'risk' ) ) ? $request->get_param( 'risk' ) : null,
-			is_string( $request->get_param( 'decision' ) ) ? $request->get_param( 'decision' ) : null
+			is_string( $request->get_param( 'decision' ) ) ? $request->get_param( 'decision' ) : null,
+			is_string( $request->get_param( 'category' ) ) ? $request->get_param( 'category' ) : null
 		);
 
 		return new WP_REST_Response(
@@ -153,7 +161,7 @@ final class FindingsRoute implements RouteInterface {
 	 * @param string|null      $decision Decision filter.
 	 * @return array<int,mixed>
 	 */
-	private function filter( array $findings, ?string $risk, ?string $decision ): array {
+	private function filter( array $findings, ?string $risk, ?string $decision, ?string $category = null ): array {
 		$filtered = array();
 
 		foreach ( $findings as $finding ) {
@@ -166,6 +174,10 @@ final class FindingsRoute implements RouteInterface {
 			}
 
 			if ( null !== $decision && ( $finding['decision'] ?? null ) !== $decision ) {
+				continue;
+			}
+
+			if ( null !== $category && ( $finding['category'] ?? null ) !== $category ) {
 				continue;
 			}
 
