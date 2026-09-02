@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+	Integration suite configuration.
+
+	This uses the PHPUnit 9.6 schema, not 10.5 like phpunit.xml.dist, because the
+	WordPress core test suite is not compatible with PHPUnit 10: WP_UnitTestCase
+	calls PHPUnit\Util\Test::parseTestMethodAnnotations(), which PHPUnit 10
+	removed. See docs/DECISIONS.md D-0008.
+-->
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.6/phpunit.xsd"
+         bootstrap="tests/bootstrap-integration.php"
+         colors="true"
+         cacheResult="false"
+         beStrictAboutOutputDuringTests="true"
+         beStrictAboutTestsThatDoNotTestAnything="true"
+         convertDeprecationsToExceptions="true"
+         convertErrorsToExceptions="true"
+         convertNoticesToExceptions="true"
+         convertWarningsToExceptions="true"
+         failOnRisky="true"
+         failOnWarning="true">
+    <testsuites>
+        <testsuite name="integration">
+            <directory suffix="Test.php">tests/Integration</directory>
+        </testsuite>
+    </testsuites>
+</phpunit>

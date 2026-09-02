@@ -1,0 +1,17 @@
+<?php
+/**
+ * Constants PHPStan needs to reason about the plugin.
+ *
+ * WordPress defines these at runtime, so static analysis has to be told about
+ * them. This file is never loaded by the plugin.
+ *
+ * @package WPDebloat
+ */
+
+declare( strict_types = 1 );
+
+define( 'WPDEBLOAT_DIR', __DIR__ . '/../' );
+define( 'WPDEBLOAT_URL', 'https://example.test/wp-content/plugins/wp-debloat/' );
+define( 'WPDEBLOAT_DISABLE', false );
+define( 'WPDEBLOAT_LOADER_MODE', 'mu-plugin' );
+define( 'WP_CLI', false );

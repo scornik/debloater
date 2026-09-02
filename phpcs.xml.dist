@@ -2,6 +2,7 @@
 <ruleset name="WP Debloat">
 	<description>Coding standards for WP Debloat.</description>
 
+	<file>wp-debloat.php</file>
 	<file>src</file>
 	<file>runtime-handlers</file>
 	<file>mu-loader</file>
@@ -10,6 +11,7 @@
 	<exclude-pattern>*/vendor/*</exclude-pattern>
 	<exclude-pattern>*/node_modules/*</exclude-pattern>
 	<exclude-pattern>*/build/*</exclude-pattern>
+	<exclude-pattern>*/tools/*</exclude-pattern>
 
 	<arg name="basepath" value="."/>
 	<arg name="colors"/>
@@ -70,6 +72,9 @@
 				<element value="WPDebloat"/>
 			</property>
 		</properties>
+		<!-- Tests fire core hooks and touch core globals in order to observe them.
+		     They are not defining a plugin API. -->
+		<exclude-pattern>tests/*</exclude-pattern>
 	</rule>
 
 	<rule ref="WordPress.WP.I18n">
@@ -80,18 +85,61 @@
 		</properties>
 	</rule>
 
-	<!-- Unit tests run without WordPress loaded (tests/bootstrap-unit.php), so the
-	     WordPress wrappers they are told to prefer do not exist there. -->
-	<rule ref="WordPress.WP.AlternativeFunctions">
+	<!--
+		Writing the generated runtime is the one place this plugin touches the
+		filesystem, and it is deliberately not done through WP_Filesystem.
+
+		BUILD-SPEC §10 requires an atomic write: a temporary file, a syntax check,
+		then rename() over the target. runtime.php is included on every request, so a
+		half-written file is a white screen for the whole site, and WP_Filesystem
+		offers no atomic rename — its put_contents() writes in place. The same
+		applies to the mu-plugin loader.
+
+		Error suppression in these two classes is likewise load-bearing rather than
+		lazy: RuntimeLoader::install() must be able to discover that mu-plugins is
+		not writable and fall back (docs/DECISIONS.md D-0007), and a warning printed
+		during activation would be both useless to the user and, on some hosts, fatal
+		to the redirect that follows.
+
+		Every path is checked against wp-content/wpdebloat after resolution
+		(BUILD-SPEC §13 rule 6), which is asserted by an integration test.
+	-->
+	<rule ref="WordPressVIPMinimum.Functions.RestrictedFunctions">
+		<exclude-pattern>src/Apply/RuntimeWriter\.php</exclude-pattern>
+		<exclude-pattern>src/Apply/RuntimeLoader\.php</exclude-pattern>
 		<exclude-pattern>tests/*</exclude-pattern>
 	</rule>
+	<rule ref="WordPress.PHP.NoSilencedErrors">
+		<exclude-pattern>src/Apply/RuntimeWriter\.php</exclude-pattern>
+		<exclude-pattern>src/Apply/RuntimeLoader\.php</exclude-pattern>
+	</rule>
+	<!-- proc_open runs `php -l` over the generated runtime before it is put in
+	     place. It is guarded by function_exists and a disable_functions check, and
+	     its absence downgrades the check rather than failing the write. -->
+	<rule ref="WordPress.PHP.DiscouragedPHPFunctions.system_calls_proc_open">
+		<exclude-pattern>src/Apply/RuntimeWriter\.php</exclude-pattern>
+	</rule>
+
+	<!-- Contracts must work with no WordPress loaded: the whole unit suite runs
+	     without it, and Contracts\Json is what hashes the registry and the runtime.
+	     wp_json_encode is not available in that context. -->
+	<rule ref="WordPress.WP.AlternativeFunctions">
+		<exclude-pattern>src/Contracts/Json\.php</exclude-pattern>
+		<exclude-pattern>tests/*</exclude-pattern>
+	</rule>
+
+	<!-- Unit tests run without WordPress loaded (tests/bootstrap-unit.php), so the
+	     WordPress wrappers these rules prefer do not exist there. -->
 	<rule ref="WordPress.DB.DirectDatabaseQuery">
 		<exclude-pattern>tests/*</exclude-pattern>
 	</rule>
-	<rule ref="WordPressVIPMinimum.Functions.RestrictedFunctions">
+	<rule ref="WordPressVIPMinimum.Performance.FetchingRemoteData">
 		<exclude-pattern>tests/*</exclude-pattern>
 	</rule>
-	<rule ref="WordPressVIPMinimum.Performance.FetchingRemoteData">
+	<rule ref="WordPress.DB.PreparedSQL">
+		<exclude-pattern>tests/*</exclude-pattern>
+	</rule>
+	<rule ref="WordPress.DB.PreparedSQLPlaceholders">
 		<exclude-pattern>tests/*</exclude-pattern>
 	</rule>
 </ruleset>
