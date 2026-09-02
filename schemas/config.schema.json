@@ -1,0 +1,82 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://wpdebloat.dev/schemas/cli-export.schema.json",
+  "title": "WP Debloat configuration document",
+  "description": "Configuration as code: what a site has chosen, in a form that can be committed to a repository and applied elsewhere. Produced by `wp debloat export` and consumed by `wp debloat import`. It carries choices only — never findings, scores, snapshots or run history, which describe one site at one moment and cannot be transplanted.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "plugin_version",
+    "intent_profile",
+    "selection"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "description": "Format version of this document. Bumped only when the shape changes incompatibly.",
+      "type": "integer",
+      "const": 1
+    },
+    "plugin_version": {
+      "description": "Version of WP Debloat that produced the document.",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 32
+    },
+    "registry_hash": {
+      "description": "Hash of the change registry the document was written against. Provenance, not a gate: a mismatch is worth a warning, since a change may mean something slightly different now, but it never refuses the import.",
+      "type": "string",
+      "pattern": "^([0-9a-f]{64})?$"
+    },
+    "site_hash": {
+      "description": "The site the document came from. Informational only — importing another site's configuration is the entire point of the format.",
+      "type": "string",
+      "pattern": "^([0-9a-f]{64})?$"
+    },
+    "exported_at": {
+      "description": "UTC timestamp, ISO 8601.",
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+    },
+    "intent_profile": {
+      "description": "What the site is for and how much change its owner wants. Travels with the selection because the two were decided together.",
+      "type": "object",
+      "required": [
+        "site_type",
+        "priority"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "site_type": {
+          "type": "string",
+          "enum": [
+            "blog",
+            "store",
+            "business",
+            "membership",
+            "other"
+          ]
+        },
+        "priority": {
+          "type": "string",
+          "enum": [
+            "conservative",
+            "balanced",
+            "aggressive"
+          ]
+        }
+      }
+    },
+    "selection": {
+      "description": "Selected changes, keyed by tweak id, each with the parameters it was selected with. An empty object is valid and means nothing is selected.",
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9]*(\\.[a-z][a-z0-9_]*)+$"
+      },
+      "additionalProperties": {
+        "type": "object"
+      }
+    }
+  }
+}

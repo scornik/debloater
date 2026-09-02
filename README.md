@@ -47,6 +47,29 @@ queries. That is asserted by a test, not assumed.
 - WordPress 6.5 or later
 - Single site (multisite is out of scope for v1)
 
+## Using it from the command line
+
+Everything the plugin does is available as `wp debloat`, driving the same engine
+as the dashboard.
+
+```bash
+wp debloat scan                                # look, and record what was found
+wp debloat findings --risk=low                 # what it concluded, and why
+wp debloat preview --profile=safe              # what would change; changes nothing
+wp debloat apply --profile=safe --yes          # take a recovery point, apply, verify
+wp debloat verify                              # check the site without changing it
+wp debloat rollback --yes                      # put it back
+wp debloat status                              # what is in place right now
+wp debloat snapshots list                      # the recovery points
+wp debloat export --file=wp-debloat.json       # configuration as code
+wp debloat import wp-debloat.json --apply --yes
+```
+
+Exit codes are meant for scripts: `0` worked, `1` refused, `2` the change was
+applied and then rolled back because the site failed its checks, `3` the change
+is in place but something could not be checked. Full reference in
+[`docs/CLI.md`](docs/CLI.md).
+
 ## Development
 
 The plugin has **zero runtime Composer dependencies**. Everything below is
@@ -63,7 +86,13 @@ composer check     # all three
 If the machine has no native PHP, the same commands run in Docker; see
 `docs/DECISIONS.md` D-0003.
 
-Integration tests use `@wordpress/env` and arrive with Phase 1.
+Integration tests run inside `@wordpress/env`:
+
+```bash
+npm run env:start
+npm run test:integration   # the WordPress suites
+npm run test:cli           # the whole loop through the real `wp` binary
+```
 
 ## Licence
 

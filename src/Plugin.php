@@ -17,14 +17,15 @@ use WPDebloat\Apply\DataOperations\ExpiredTransientsCleanup;
 use WPDebloat\Apply\Lock;
 use WPDebloat\Apply\RuntimeLoader;
 use WPDebloat\Apply\RuntimeWriter;
+use WPDebloat\Cli\Command;
 use WPDebloat\Contracts\ApplyResult;
 use WPDebloat\Contracts\Context;
 use WPDebloat\Contracts\DataOperationInterface;
 use WPDebloat\Contracts\FactSet;
 use WPDebloat\Contracts\PreviewPlan;
 use WPDebloat\Contracts\Run;
-use WPDebloat\Contracts\VerificationResult;
 use WPDebloat\Contracts\RunType;
+use WPDebloat\Contracts\VerificationResult;
 use WPDebloat\Journal\Journal;
 use WPDebloat\Recommend\IntentProfile;
 use WPDebloat\Recommend\PlanResult;
@@ -33,6 +34,7 @@ use WPDebloat\Recommend\RecommendationEngine;
 use WPDebloat\Registry\Loader;
 use WPDebloat\Registry\Profile;
 use WPDebloat\Registry\Registry;
+use WPDebloat\Registry\SchemaValidator;
 use WPDebloat\Rest\Controller;
 use WPDebloat\Rest\Routes\FindingsRoute;
 use WPDebloat\Rest\Routes\PreviewRoute;
@@ -173,6 +175,12 @@ final class Plugin {
 		add_action( 'admin_init', array( $this, 'recoverOnBoot' ), 11 );
 
 		$this->restController()->boot();
+
+		// WP-CLI dispatches after plugins load, so registering here is early
+		// enough, and a site that is not running WP-CLI never constructs it.
+		if ( defined( 'WP_CLI' ) && WP_CLI && class_exists( '\\WP_CLI' ) ) {
+			\WP_CLI::add_command( Brand::CLI_COMMAND, Command::class );
+		}
 	}
 
 	/**
@@ -746,6 +754,58 @@ final class Plugin {
 	 */
 	public function recoverOnBoot(): void {
 		$this->recoverInterruptedRuns();
+	}
+
+	/**
+	 * Build a plan from an explicit list of changes.
+	 *
+	 * The same planner, and therefore the same §7.4 invariants, as a profile
+	 * plan: naming a tweak asks for it to be considered, not for the rules to be
+	 * suspended. A tweak the site refuses is still excluded, with the reason.
+	 *
+	 * @param array<int,string> $tweak_ids Tweak ids to consider.
+	 * @param int|null          $run_id    Scan run to plan from, or null for the most recent.
+	 * @return PlanResult|null
+	 */
+	public function previewTweaks( array $tweak_ids, ?int $run_id = null ): ?PlanResult {
+		$run = $this->latestScan( $run_id );
+
+		if ( null === $run ) {
+			return null;
+		}
+
+		$registry   = $this->registry();
+		$candidates = array();
+
+		foreach ( $tweak_ids as $tweak_id ) {
+			if ( $registry->has( $tweak_id ) ) {
+				$candidates[] = $registry->tweak( $tweak_id )->resolve();
+			}
+		}
+
+		return ( new PreviewPlanner( $registry, $run->facts(), $this->findingsOf( $run ) ) )->plan( $candidates );
+	}
+
+	/**
+	 * The schema a configuration document must satisfy.
+	 *
+	 * Import validates against this before anything in the file is looked at,
+	 * because §13 rule 5 puts schema validation between user input and anything
+	 * that becomes generated code.
+	 *
+	 * It lives in `schemas/`, not `registry/schemas/`, because it does not
+	 * describe registry content. §4 names exactly six registry schemas, and a
+	 * repository invariant holds them to that.
+	 *
+	 * @return SchemaValidator
+	 */
+	public function configSchema(): SchemaValidator {
+		return $this->service(
+			'config_schema',
+			fn (): SchemaValidator => SchemaValidator::fromFile(
+				dirname( $this->plugin_file ) . '/schemas/config.schema.json'
+			)
+		);
 	}
 
 	/**

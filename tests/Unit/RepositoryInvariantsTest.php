@@ -139,6 +139,34 @@ final class RepositoryInvariantsTest extends TestCase {
 		$this->assertIsArray( $schemas );
 		$this->assertCount( 6, $schemas, 'BUILD-SPEC §4 lists six registry schemas' );
 
+		$this->assertSchemasAreWellFormed( $schemas );
+	}
+
+	/**
+	 * Schemas that describe documents rather than registry content live apart.
+	 *
+	 * `registry/schemas` holds exactly the six documents §4 names. The
+	 * configuration file `wp debloat export` writes is not registry content, so
+	 * it lives in `schemas/` — where the same rules about being valid draft-07
+	 * with a title and a description still apply.
+	 *
+	 * @return void
+	 */
+	public function test_document_schemas_are_valid_json(): void {
+		$schemas = glob( WPDEBLOAT_TESTS_ROOT . '/schemas/*.schema.json' );
+
+		$this->assertIsArray( $schemas );
+		$this->assertNotEmpty( $schemas );
+		$this->assertSchemasAreWellFormed( $schemas );
+	}
+
+	/**
+	 * Every given schema file is valid draft-07 with a title and a description.
+	 *
+	 * @param array<int,string> $schemas Absolute paths.
+	 * @return void
+	 */
+	private function assertSchemasAreWellFormed( array $schemas ): void {
 		foreach ( $schemas as $path ) {
 			$raw = file_get_contents( $path );
 

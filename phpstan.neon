@@ -14,6 +14,11 @@ parameters:
 			- node_modules (?)
 	bootstrapFiles:
 		- tests/phpstan-bootstrap.php
+	# WP-CLI is not loaded on a web request and is not a dependency of the
+	# plugin; the stubs let level 6 reason about Cli\WpCliIo all the same.
+	scanFiles:
+		- vendor/php-stubs/wp-cli-stubs/wp-cli-stubs.php
+		- vendor/php-stubs/wp-cli-stubs/wp-cli-commands-stubs.php
 	# These are defined by wp-config.php, by the mu-plugin loader, or not at all.
 	# Without this, analysis would reason from the placeholder values in the
 	# bootstrap file and report every guard against them as dead code.

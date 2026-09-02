@@ -118,6 +118,7 @@
 		<exclude-pattern>src/Apply/RuntimeLoader\.php</exclude-pattern>
 		<exclude-pattern>src/Snapshot/SpillFile\.php</exclude-pattern>
 		<exclude-pattern>src/Verify/HttpClient\.php</exclude-pattern>
+		<exclude-pattern>src/Cli/Command\.php</exclude-pattern>
 		<exclude-pattern>tests/*</exclude-pattern>
 	</rule>
 
@@ -129,6 +130,12 @@
 		optional, and a wrapper that gives up early would turn a slow site into an
 		unverified one. The function also does not exist outside VIP, and this
 		plugin has no VIP dependency.
+
+		Cli\Command writes and reads the configuration file named on the command
+		line by `export` and `import`. That is an operator at a shell asking for a
+		file at a path they chose, on a machine they are already logged in to;
+		routing it through WP_Filesystem would ask them for FTP credentials to
+		write a file they could have written with `cat`.
 
 		Verify\ActorSession reads $_COOKIE to forward the acting user's existing
 		logged-in cookie to that request. VIP's sniff is about page output varying
