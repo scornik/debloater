@@ -15,12 +15,19 @@ use WPDebloat\Apply\Compiler;
 use WPDebloat\Apply\RuntimeLoader;
 use WPDebloat\Apply\RuntimeWriter;
 use WPDebloat\Contracts\Context;
+use WPDebloat\Contracts\FactSet;
 use WPDebloat\Contracts\Run;
 use WPDebloat\Contracts\RunType;
+use WPDebloat\Recommend\IntentProfile;
+use WPDebloat\Recommend\PlanResult;
+use WPDebloat\Recommend\PreviewPlanner;
+use WPDebloat\Recommend\RecommendationEngine;
 use WPDebloat\Registry\Loader;
+use WPDebloat\Registry\Profile;
 use WPDebloat\Registry\Registry;
 use WPDebloat\Rest\Controller;
 use WPDebloat\Rest\Routes\FindingsRoute;
+use WPDebloat\Rest\Routes\PreviewRoute;
 use WPDebloat\Rest\Routes\ScanRoute;
 use WPDebloat\Rest\Routes\StatusRoute;
 use WPDebloat\Scan\ScanRunner;
@@ -378,6 +385,88 @@ final class Plugin {
 	}
 
 	/**
+	 * The stated intent for this site.
+	 *
+	 * @return IntentProfile
+	 */
+	public function intentProfile(): IntentProfile {
+		$stored = $this->state()->get( 'intent_profile', array() );
+
+		return IntentProfile::fromArray( is_array( $stored ) ? $stored : array() );
+	}
+
+	/**
+	 * Record the stated intent.
+	 *
+	 * @param IntentProfile $intent Intent to store.
+	 * @return void
+	 */
+	public function setIntentProfile( IntentProfile $intent ): void {
+		$this->state()->set( array( 'intent_profile' => $intent->toArray() ) );
+	}
+
+	/**
+	 * Build a plan from the most recent scan.
+	 *
+	 * Reads a recorded scan rather than running a new one, so the plan a user
+	 * confirms is built from the findings they were shown. Returns null when
+	 * there is nothing to plan from — a plan invented without a scan would be a
+	 * plan with no evidence behind it.
+	 *
+	 * @param string|null $profile_id Profile to filter by, or null for the default.
+	 * @param int|null    $run_id     Scan run to plan from, or null for the most recent.
+	 * @return PlanResult|null
+	 */
+	public function preview( ?string $profile_id = null, ?int $run_id = null ): ?PlanResult {
+		$run = $this->latestScan( $run_id );
+
+		if ( null === $run ) {
+			return null;
+		}
+
+		$findings = $this->findingsOf( $run );
+		$facts    = $run->facts();
+		$engine   = new RecommendationEngine( $this->registry(), $facts, $this->intentProfile() );
+		$planner  = new PreviewPlanner( $this->registry(), $facts, $findings );
+		$tweaks   = $engine->recommend( $findings )->tweaks;
+
+		if ( null === $profile_id || Profile::SAFE === $profile_id ) {
+			return $planner->safePlan( $tweaks );
+		}
+
+		return $planner->plan( $tweaks, $this->registry()->profile( $profile_id ) );
+	}
+
+	/**
+	 * The findings recorded on a run, rebuilt as contracts.
+	 *
+	 * A finding this version cannot read is skipped rather than crashing the
+	 * screen that lists it: an old run should degrade, not explode.
+	 *
+	 * @param Run $run Run to read.
+	 * @return array<int,\WPDebloat\Contracts\Finding>
+	 */
+	public function findingsOf( Run $run ): array {
+		$analysis = $run->payload['analysis'] ?? array();
+		$stored   = is_array( $analysis ) ? ( $analysis['findings'] ?? array() ) : array();
+		$findings = array();
+
+		foreach ( is_array( $stored ) ? $stored : array() as $data ) {
+			if ( ! is_array( $data ) ) {
+				continue;
+			}
+
+			try {
+				$findings[] = \WPDebloat\Contracts\Finding::fromArray( $data );
+			} catch ( \WPDebloat\Contracts\ContractViolation $exception ) {
+				unset( $exception );
+			}
+		}
+
+		return $findings;
+	}
+
+	/**
 	 * The most recent scan run, or a specific one by id.
 	 *
 	 * @param int|null $run_id Run id, or null for the most recent scan.
@@ -435,6 +524,7 @@ final class Plugin {
 					new StatusRoute( $this ),
 					new ScanRoute( $this ),
 					new FindingsRoute( $this ),
+					new PreviewRoute( $this ),
 				)
 			)
 		);
