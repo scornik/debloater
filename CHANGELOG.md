@@ -29,3 +29,29 @@ All notable changes to WP Debloat are recorded here. The format follows
   - `Brand`, the single source of product naming.
   - Project tooling: PHPUnit 10, PHPCS (WordPress-Extra + VIP-Go), PHPStan
     level 6.
+
+- **Phase 1 — minimal runtime engine.**
+  - Registry loading with schema validation, id indexing and a content-derived
+    registry hash. A conflict or requirement naming a tweak that does not exist
+    stops the load rather than silently becoming a no-op.
+  - The first five tweaks and their handlers: remove the generator tag, the RSD
+    link and the shortlink; stop self-pingbacks; stop loading the emoji script.
+  - `Apply\Compiler`, which turns a selection into deterministic,
+    timestamp-free PHP. Handler paths are resolved and checked into the plugin's
+    own directory; parameters are emitted through `var_export` after schema
+    validation, so nothing user-supplied reaches generated code as text.
+  - `Apply\RuntimeWriter`: syntax check, atomic temp-file-and-rename, and a
+    `runtime.lock` recording the runtime, selection and registry hashes. It
+    refuses to write anywhere but `wp-content/wpdebloat`.
+  - The mu-plugin loader, with a documented `plugins_loaded` fallback for hosts
+    where `mu-plugins` is not writable, and a runtime guard providing the
+    `WPDEBLOAT_DISABLE` kill switch and an authenticated `?wpdebloat=off` bypass.
+  - `Recommend\DependencyResolver` v1: conflicts resolve in both directions,
+    and anything with an unresolved requirement is excluded rather than assumed
+    satisfied.
+  - `Storage\State`: all plugin state in one option, never autoloaded.
+  - `GET wpdebloat/v1/status`, reporting what is actually on disk — including
+    when the runtime no longer matches the hash recorded for it.
+  - Integration harness on `@wordpress/env`, with the zero-overhead guarantee
+    measured rather than assumed: an empty selection registers no hooks and adds
+    no database queries to a front-end request.

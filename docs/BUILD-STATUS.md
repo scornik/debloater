@@ -7,16 +7,16 @@ are `NOT_STARTED`, `IN_PROGRESS`, `BLOCKED`, `COMPLETE`.
 
 | | |
 |---|---|
-| **Current phase** | 1 — Minimal runtime engine |
-| **Last completed** | 0 — Architecture and contracts |
+| **Current phase** | 2 — Scanner (facts only) |
+| **Last completed** | 1 — Minimal runtime engine |
 | **Blockers** | none |
 
 ## Phases
 
 | Phase | Title | Status | Commit | Tests | Acceptance |
 |---|---|---|---|---|---|
-| 0 | Architecture and contracts | COMPLETE | `phase-0` | 747 pass / 0 fail | pass |
-| 1 | Minimal runtime engine | NOT_STARTED | — | — | — |
+| 0 | Architecture and contracts | COMPLETE | `60160e5` | 747 pass / 0 fail | pass |
+| 1 | Minimal runtime engine | COMPLETE | `phase-1` | 797 unit + 33 integration / 0 fail | pass |
 | 2 | Scanner (facts only) | NOT_STARTED | — | — | — |
 | 3 | Analyzer, findings, score | NOT_STARTED | — | — | — |
 | 4 | Recommendation engine | NOT_STARTED | — | — | — |
@@ -90,3 +90,67 @@ are `NOT_STARTED`, `IN_PROGRESS`, `BLOCKED`, `COMPLETE`.
 ### Next
 
 Phase 1 — Minimal runtime engine.
+
+---
+
+## Phase 1 — Minimal runtime engine
+
+**Status:** COMPLETE
+
+### Delivered
+
+- `Registry\Loader`, `Registry\Registry`, `Registry\TweakDefinition`: every
+  document schema-validated at load, indexed by id, with a content-derived
+  registry hash. A dangling conflict or requirement stops the load rather than
+  silently turning a safety rule into a no-op.
+- Five tweaks and five handlers: `core.remove_generator`, `core.remove_rsd`,
+  `core.remove_shortlink`, `core.disable_self_pingbacks`, `core.disable_emojis`.
+- `Apply\Compiler`: deterministic, timestamp-free source; handler paths
+  realpath-checked into the plugin's own directory; parameters emitted through
+  `var_export` after schema validation.
+- `Apply\RuntimeWriter`: syntax check, atomic temp-file-and-rename, 0644,
+  `runtime.lock` holding the runtime, selection and registry hashes; refuses any
+  path outside `wp-content/wpdebloat`.
+- `Apply\RuntimeLoader` and `mu-loader/wp-debloat-loader.php`, with the
+  documented `plugins_loaded` fallback and the deferred bypass authorisation
+  (D-0007).
+- `runtime-handlers/runtime-guard.php`: the `WPDEBLOAT_DISABLE` kill switch and
+  the authenticated `?wpdebloat=off` bypass.
+- `Recommend\DependencyResolver` v1 and `Recommend\Resolution`.
+- `Storage\State`: one option, `autoload = no`.
+- `Rest\Controller`, `Rest\Routes\StatusRoute`, `Security\Capabilities`.
+- `wp-debloat.php` and `Plugin`: activation, deactivation, lazy services.
+- `.wp-env.json`, `phpunit-wp.xml.dist`, `tests/bootstrap-integration.php` and
+  the integration harness.
+
+### Exit checklist (§17 Phase 1)
+
+| Criterion | Result |
+|---|---|
+| Compiler snapshots for 0, 1 and 3 tweaks | ✅ `tests/Fixtures/runtime/*.php.txt` |
+| Byte-identical output on regeneration | ✅ unit and integration |
+| Determinism regardless of selection order | ✅ |
+| Parameter escaping into generated code | ✅ including a quote-injection attempt |
+| Empty selection registers zero hooks | ✅ asserted by hook-table diff |
+| Empty selection adds zero DB queries on a front-end request | ✅ every query captured through the `query` filter |
+| One tweak registers only its own hooks | ✅ exactly one hook added, none removed |
+| `GET wpdebloat/v1/status` | ✅ 401 anonymous, 403 subscriber, 200 admin |
+| Loader fallback documented | ✅ D-0007 |
+| Unit suite | ✅ 797 tests, 3 179 assertions |
+| Integration suite | ✅ 33 tests, 95 assertions |
+| PHPCS | ✅ 0 errors, 0 warnings across 87 files |
+| PHPStan level 6 | ✅ no errors |
+
+### Known warnings
+
+- Two PHPUnit versions are in play (D-0008): 10.5 for unit, 9.6 for integration,
+  because the WordPress core test suite is not PHPUnit 10 compatible.
+- The build machine needed DNS configuration for Docker and for wp-env (D-0009).
+  Neither change touches the plugin or CI.
+- The `.wp-env.json` stack is vanilla WordPress. The full matrix from §14
+  (WooCommerce, Elementor, CF7, Rank Math, LiteSpeed) is added in Phase 2, where
+  the scanners and detectors first need it.
+
+### Next
+
+Phase 2 — Scanner (facts only).

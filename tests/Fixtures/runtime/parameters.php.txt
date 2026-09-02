@@ -1,0 +1,30 @@
+<?php
+/**
+ * WP Debloat runtime. Generated file: DO NOT EDIT.
+ *
+ * Editing this file will not change anything for long; it is rewritten
+ * from the saved selection whenever the selection changes. Any change
+ * made here is also detected, because runtime.lock holds this file's
+ * hash and the status endpoint compares them.
+ *
+ * selection 30bae87531b5d4e2fb1c5db6cd264ac09484256579bb8c061606f8376d74807d
+ * registry  0000000000000000000000000000000000000000000000000000000000000000
+ *
+ * To switch the runtime off: define( 'WPDEBLOAT_DISABLE', true ) in wp-config.php.
+ *
+ * @package WPDebloat
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	return;
+}
+
+require_once '{PLUGIN_DIR}/runtime-handlers/runtime-guard.php';
+
+if ( WPDebloat_Runtime_Guard::disabled() || WPDebloat_Runtime_Guard::bypass_allowed() ) {
+	return;
+}
+
+// core.disable_emojis
+require_once '{PLUGIN_DIR}/runtime-handlers/core-disable-emojis.php';
+WPDebloat_Handler_Core_Disable_Emojis::register( array( 'interval' => 60 ) );
