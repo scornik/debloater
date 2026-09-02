@@ -446,3 +446,88 @@ site by itself.
 ### Next
 
 Phase 6 — Verification engine.
+
+---
+
+## Phase 6 — Verification engine
+
+**Status:** complete · 2026-09-03
+
+The half of the safety promise Phase 5 could not keep on its own. Phase 5 made
+every change undoable; this phase makes the plugin notice, by itself, when a
+change needs undoing.
+
+### What exists now
+
+- `Verify\HttpClient`: every loopback request in one place — fifteen-second
+  timeout, `sslverify` from the site's own `https_local_ssl_verify` setting, an
+  `X-WPDebloat-Verify: 1` header that nothing in the plugin ever reads, and at
+  most three redirects.
+- `Verify\ActorSession`: the credential for the two probes that need one. An
+  admin request's existing logged-in cookie is forwarded verbatim; from WP-CLI
+  or cron a short-lived session is minted for the acting user and destroyed as
+  soon as verification ends. A matching REST nonce is produced either way, since
+  without one the REST API treats a cookie request as anonymous by design.
+- `Verify\Markers`: the fatal, render, dashboard and login markers, in one place
+  (D-0019).
+- Six probes, exactly as §11 specifies: `home`, `content_page`, `admin`, `rest`,
+  `login`, `runtime_loaded`. Each returns a `ProbeResult` with evidence — status
+  code, elapsed time, bytes, and whatever marker decided the outcome.
+- `Verify\Verifier`: checks loopback once, runs the probes, and lets
+  `VerificationResult` do the aggregation. `WPDEBLOAT_TEST_FAIL_PROBE` forces a
+  named probe to fail so the rollback path can be exercised without breaking a
+  site to do it.
+- `ApplyManager` now really verifies: FAIL goes `VERIFICATION_FAILED →
+  ROLLING_BACK → ROLLED_BACK` without asking, WARN commits as
+  `VERIFIED_WITH_WARNINGS` with the warnings on the result, PASS commits quietly.
+- `Plugin::verify()` runs the same checks on demand, changing nothing.
+
+### Exit checklist (§17 Phase 6)
+
+| Criterion | Result |
+|---|---|
+| `HttpClient` over `wp_remote_get`, 15 s timeout | ✅ asserted against the constant and the request args |
+| `sslverify` honours the site setting | ✅ test flips `https_local_ssl_verify` and checks the arg |
+| `X-WPDebloat-Verify` header | ✅ and nothing reads it |
+| Auth cookie for the acting user | ✅ forwarded when present, minted and destroyed otherwise |
+| Six probes exactly as §11 describes | ✅ every branch of each covered |
+| PASS/WARN/FAIL/UNKNOWN/NOT_TESTED with evidence | ✅ |
+| Aggregation: FAIL wins, then WARN/UNKNOWN, NOT_TESTED not counted | ✅ contract test plus an integration test |
+| FAIL → `VERIFICATION_FAILED` → `ROLLING_BACK` → `ROLLED_BACK` | ✅ end to end, runtime compared byte for byte |
+| WARN → `VERIFIED_WITH_WARNINGS` | ✅ recorded in the run history |
+| `WPDEBLOAT_TEST_FAIL_PROBE` | ✅ own suite, own process |
+| Markers decision recorded | ✅ D-0019 |
+| Blocked-loopback policy recorded | ✅ D-0020 |
+| Fixture fatal markers produce FAIL | ✅ |
+| Missing markers produce WARN | ✅ |
+| Blocked loopback produces UNKNOWN and a warned run | ✅ |
+| Forced `rest` failure rolls back and restores selection and hash exactly | ✅ |
+| Unit suite | ✅ 978 tests, 7 133 assertions |
+| Integration suite | ✅ 123 tests, 809 assertions |
+| Forced-failure suite | ✅ 5 tests, 74 assertions |
+| PHPCS | ✅ 0 errors, 0 warnings across 187 files |
+| PHPStan level 6 | ✅ no errors |
+
+### Known warnings
+
+- **Probe behaviour is tested against fixture responses, not real loopback.**
+  wp-env runs the suite in a container separate from the one serving the site,
+  and the site's canonical address (`localhost:8889`) resolves inside the runner
+  to the runner itself, so the site genuinely cannot reach itself there. Even
+  with the routing fixed, an HTTP request opens its own database connection and
+  would not see the test's uncommitted transaction, so a probe could not observe
+  the state the test had set up. Fixtures through `pre_http_request` cover every
+  branch deterministically; a verification over real HTTP against committed state
+  is exercised on the fixture site in Phase 7 (`wp debloat verify`).
+- §11's `WP_Error` fatal marker is implemented as its printed forms rather than
+  the bare class name, deliberately and with reasons, in D-0019.
+- `MEASURING_BEFORE` and `MEASURING_AFTER` are still traversed without doing
+  anything; the Meter arrives in Phase 9.
+- The later probes §11 lists — `woo_cart`, `woo_checkout`, `woo_account`,
+  `cf7_form`, `elementor_editor` — are not implemented. They belong to the
+  compatibility work in Phase 12 and would report `NOT_TESTED` on this fixture
+  site in any case.
+
+### Next
+
+Phase 7 — WP-CLI.

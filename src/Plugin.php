@@ -23,6 +23,7 @@ use WPDebloat\Contracts\DataOperationInterface;
 use WPDebloat\Contracts\FactSet;
 use WPDebloat\Contracts\PreviewPlan;
 use WPDebloat\Contracts\Run;
+use WPDebloat\Contracts\VerificationResult;
 use WPDebloat\Contracts\RunType;
 use WPDebloat\Journal\Journal;
 use WPDebloat\Recommend\IntentProfile;
@@ -55,6 +56,14 @@ use WPDebloat\Storage\Repositories\RunRepository;
 use WPDebloat\Storage\Repositories\SnapshotRepository;
 use WPDebloat\Storage\Schema;
 use WPDebloat\Storage\State;
+use WPDebloat\Verify\HttpClient;
+use WPDebloat\Verify\Probes\AdminProbe;
+use WPDebloat\Verify\Probes\ContentPageProbe;
+use WPDebloat\Verify\Probes\HomeProbe;
+use WPDebloat\Verify\Probes\LoginProbe;
+use WPDebloat\Verify\Probes\RestProbe;
+use WPDebloat\Verify\Probes\RuntimeLoadedProbe;
+use WPDebloat\Verify\Verifier;
 
 /**
  * Wires the plugin together (BUILD-SPEC §4).
@@ -637,9 +646,61 @@ final class Plugin {
 				$this->state(),
 				$this->journal(),
 				$this->dataOperations(),
-				new Lock()
+				new Lock(),
+				$this->verifier()
 			)
 		);
+	}
+
+	/**
+	 * The HTTP client verification uses.
+	 *
+	 * @return HttpClient
+	 */
+	public function httpClient(): HttpClient {
+		return $this->service( 'http_client', fn (): HttpClient => new HttpClient( $this->context() ) );
+	}
+
+	/**
+	 * The verifier, with every probe in a deterministic order.
+	 *
+	 * The order is the order a person would check in: does the site work for a
+	 * visitor, does a real page work, can its owner still get in, does the API
+	 * answer, and only then, did the change we made actually take effect.
+	 *
+	 * @return Verifier
+	 */
+	public function verifier(): Verifier {
+		return $this->service(
+			'verifier',
+			function (): Verifier {
+				$http = $this->httpClient();
+
+				return new Verifier(
+					$this->context(),
+					array(
+						new HomeProbe( $http ),
+						new ContentPageProbe( $http ),
+						new AdminProbe( $http ),
+						new RestProbe( $http ),
+						new LoginProbe( $http ),
+						new RuntimeLoadedProbe( $http, $this->state() ),
+					),
+					$http
+				);
+			}
+		);
+	}
+
+	/**
+	 * Verify the site as it stands, without changing anything.
+	 *
+	 * @return VerificationResult
+	 */
+	public function verify(): VerificationResult {
+		$run = $this->latestScan();
+
+		return $this->verifier()->verify( null === $run ? null : $run->facts() );
 	}
 
 	/**

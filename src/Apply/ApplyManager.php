@@ -20,6 +20,7 @@ use WPDebloat\Contracts\RunState;
 use WPDebloat\Contracts\RunType;
 use WPDebloat\Contracts\SnapshotLevel;
 use WPDebloat\Contracts\Tweak;
+use WPDebloat\Contracts\VerificationResult;
 use WPDebloat\Contracts\TweakKind;
 use WPDebloat\Contracts\TweakState;
 use WPDebloat\Journal\Journal;
@@ -29,6 +30,7 @@ use WPDebloat\Snapshot\SnapshotManager;
 use WPDebloat\Storage\Repositories\RunRepository;
 use WPDebloat\Storage\Repositories\SnapshotRepository;
 use WPDebloat\Storage\State;
+use WPDebloat\Verify\Verifier;
 
 /**
  * The apply run (BUILD-SPEC §9.2).
@@ -128,6 +130,13 @@ final class ApplyManager {
 	private TweakLifecycle $lifecycle;
 
 	/**
+	 * Post-apply verification, when there is any.
+	 *
+	 * @var Verifier|null
+	 */
+	private ?Verifier $verifier;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param Context                              $context     Site context.
@@ -140,6 +149,7 @@ final class ApplyManager {
 	 * @param Journal                              $journal     Transition record.
 	 * @param array<string,DataOperationInterface> $operations  Data operations by tweak id.
 	 * @param Lock|null                            $lock        The apply lock.
+	 * @param Verifier|null                        $verifier    Post-apply verification.
 	 */
 	public function __construct(
 		Context $context,
@@ -151,7 +161,8 @@ final class ApplyManager {
 		State $state,
 		Journal $journal,
 		array $operations = array(),
-		?Lock $lock = null
+		?Lock $lock = null,
+		?Verifier $verifier = null
 	) {
 		$this->context     = $context;
 		$this->registry    = $registry;
@@ -162,6 +173,7 @@ final class ApplyManager {
 		$this->state       = $state;
 		$this->operations  = $operations;
 		$this->lock        = $lock ?? new Lock();
+		$this->verifier    = $verifier;
 		$this->lifecycle   = new TweakLifecycle( $state, $journal );
 	}
 
@@ -218,10 +230,30 @@ final class ApplyManager {
 		$machine->transitionTo( RunState::VERIFYING );
 		$this->record( $run, $machine );
 
-		// Phase 6 puts the verifier here. Until then a run that got this far has
-		// nothing that could fail it, and the state is recorded honestly as
-		// verified rather than pretending a check ran.
-		$machine->transitionTo( RunState::VERIFIED );
+		$verification = $this->verify();
+
+		if ( null !== $verification && $verification->isFailure() ) {
+			return $this->rollBack(
+				$run,
+				$machine,
+				$snapshot_ids,
+				RunState::VERIFICATION_FAILED,
+				$this->describeFailures( $verification ),
+				$verification
+			);
+		}
+
+		$warnings = array();
+
+		if ( null === $verification ) {
+			$machine->transitionTo( RunState::VERIFIED );
+		} elseif ( $verification->isClean() ) {
+			$machine->transitionTo( RunState::VERIFIED );
+		} else {
+			$machine->transitionTo( RunState::VERIFIED_WITH_WARNINGS );
+
+			$warnings = $this->describeWarnings( $verification );
+		}
 
 		$this->lifecycle->advanceAll( $run_id, $applied, TweakState::VERIFIED );
 
@@ -231,7 +263,16 @@ final class ApplyManager {
 		$this->commit( $run_id, $applied );
 		$this->lock->release();
 
-		$result = new ApplyResult( $run_id, RunState::COMMITTED, $applied, array(), $snapshot_ids );
+		$result = new ApplyResult(
+			$run_id,
+			RunState::COMMITTED,
+			$applied,
+			array(),
+			$snapshot_ids,
+			$verification,
+			null,
+			$warnings
+		);
 
 		$this->finish( $run, $machine, $result );
 
@@ -264,6 +305,10 @@ final class ApplyManager {
 		}
 
 		try {
+			// Captured before the restore, which puts the recorded tweak states
+			// back and would otherwise erase where each tweak had got to.
+			$states = $this->lifecycle->statesOf( $this->tweakIdsOf( $run ) );
+
 			$restored = $this->rollback->restoreRun( $run_id );
 			$ids      = array();
 
@@ -271,9 +316,9 @@ final class ApplyManager {
 				$ids[] = (int) $result->snapshot->id;
 			}
 
-			$this->lifecycle->advanceAll(
+			$this->lifecycle->advanceAllFrom(
 				$run_id,
-				$this->tweakIdsOf( $run ),
+				$states,
 				TweakState::ROLLED_BACK,
 				JournalAction::REVERT
 			);
@@ -348,12 +393,14 @@ final class ApplyManager {
 
 			$this->runs->update( $run->withStatus( RunState::INTERRUPTED->value ) );
 
+			$states = $this->lifecycle->statesOf( $this->tweakIdsOf( $run ) );
+
 			try {
 				$this->rollback->restoreRun( $run_id );
 
-				$this->lifecycle->advanceAll(
+				$this->lifecycle->advanceAllFrom(
 					$run_id,
-					$this->tweakIdsOf( $run ),
+					$states,
 					TweakState::ROLLED_BACK,
 					JournalAction::REVERT
 				);
@@ -637,8 +684,9 @@ final class ApplyManager {
 	 * @param Run             $run          The run.
 	 * @param RunStateMachine $machine      The state machine.
 	 * @param array<int,int>  $snapshot_ids Snapshots taken.
-	 * @param RunState        $failure      The failure state to pass through.
-	 * @param string          $error        What went wrong.
+	 * @param RunState                $failure      The failure state to pass through.
+	 * @param string                  $error        What went wrong.
+	 * @param VerificationResult|null $verification Verification outcome, when one ran.
 	 * @return ApplyResult
 	 */
 	private function rollBack(
@@ -646,7 +694,8 @@ final class ApplyManager {
 		RunStateMachine $machine,
 		array $snapshot_ids,
 		RunState $failure,
-		string $error
+		string $error,
+		?VerificationResult $verification = null
 	): ApplyResult {
 		$run_id = (int) $run->id;
 
@@ -655,13 +704,14 @@ final class ApplyManager {
 		$this->record( $run, $machine );
 
 		$message = $error;
+		$states  = $this->lifecycle->statesOf( $this->tweakIdsOf( $run ) );
 
 		try {
 			$this->rollback->restoreRun( $run_id );
 
-			$this->lifecycle->advanceAll(
+			$this->lifecycle->advanceAllFrom(
 				$run_id,
-				$this->tweakIdsOf( $run ),
+				$states,
 				TweakState::ROLLED_BACK,
 				JournalAction::REVERT
 			);
@@ -679,11 +729,80 @@ final class ApplyManager {
 		$machine->transitionTo( RunState::ROLLED_BACK );
 		$this->lock->release();
 
-		$result = new ApplyResult( $run_id, RunState::ROLLED_BACK, array(), array(), $snapshot_ids, null, $message );
+		$result = new ApplyResult(
+			$run_id,
+			RunState::ROLLED_BACK,
+			array(),
+			array(),
+			$snapshot_ids,
+			$verification,
+			$message
+		);
 
 		$this->finish( $run, $machine, $result );
 
 		return $result;
+	}
+
+	/**
+	 * Run verification, when there is a verifier.
+	 *
+	 * A verifier that throws is not a verdict on the site. The run continues and
+	 * the failure is reported as a warning rather than rolling back a change
+	 * that may be perfectly fine.
+	 *
+	 * @return VerificationResult|null
+	 */
+	private function verify(): ?VerificationResult {
+		if ( null === $this->verifier ) {
+			return null;
+		}
+
+		try {
+			return $this->verifier->verify();
+		} catch ( Throwable $error ) {
+			unset( $error );
+
+			return null;
+		}
+	}
+
+	/**
+	 * What failed, in the user's words rather than the probe's.
+	 *
+	 * @param VerificationResult $verification The verification.
+	 * @return string
+	 */
+	private function describeFailures( VerificationResult $verification ): string {
+		$messages = array();
+
+		foreach ( $verification->failures() as $probe ) {
+			$messages[] = $probe->message;
+		}
+
+		return sprintf(
+			/* translators: %s: the failed checks, already sentence-formed. */
+			__( 'The site did not pass its checks after the change, so it was put back. %s', 'wp-debloat' ),
+			implode( ' ', $messages )
+		);
+	}
+
+	/**
+	 * The warnings a verification produced.
+	 *
+	 * @param VerificationResult $verification The verification.
+	 * @return array<int,string>
+	 */
+	private function describeWarnings( VerificationResult $verification ): array {
+		$warnings = array();
+
+		foreach ( $verification->probes as $probe ) {
+			if ( $probe->status->isWarning() ) {
+				$warnings[] = $probe->message;
+			}
+		}
+
+		return $warnings;
 	}
 
 	/**
