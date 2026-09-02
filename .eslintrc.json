@@ -1,0 +1,19 @@
+{
+	"root": true,
+	"extends": [ "plugin:@wordpress/eslint-plugin/recommended" ],
+	"settings": {
+		"import/core-modules": [
+			"@wordpress/api-fetch",
+			"@wordpress/components",
+			"@wordpress/dom-ready",
+			"@wordpress/element",
+			"@wordpress/i18n"
+		]
+	},
+	"overrides": [
+		{
+			"files": [ "admin-ui/test/**/*.js" ],
+			"env": { "jest": true }
+		}
+	]
+}

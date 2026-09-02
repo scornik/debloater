@@ -606,3 +606,85 @@ the first time one of them changed.
 ### Next
 
 Phase 8 — React dashboard.
+
+---
+
+## Phase 8 — React dashboard
+
+**Status:** complete · 2026-09-03
+
+The first phase with a face. Everything the CLI can do, on one admin screen,
+through the same engine.
+
+### What exists now
+
+- `admin-ui/` built by `@wordpress/scripts` into a single bundle: **6.7 KB of
+  JavaScript gzipped**, plus 1.8 KB of CSS, against a 250 KB budget. React, the
+  components and the i18n runtime come from WordPress, so none of them are in it.
+- `Admin\Screen`: one top-level menu item, one screen, assets on that screen and
+  no other. No admin notices, no dashboard widget, no front-end output — each
+  asserted by a test that walks the other admin pages and the notice hooks.
+- Four views:
+  - **Overview** — the Debloat Score with its sub-scores, counts by risk and by
+    decision including "No action recommended", and the two actions: *Fix safe
+    issues* and *Review findings*.
+  - **Findings** — filterable by risk, category and decision.
+  - **Finding** — all ten fields from §17 Phase 8, always in the same order and
+    always all of them. A field with nothing in it says so; a section that
+    vanished would read as one that was never considered.
+  - **Changes & recovery** — the runs, the recovery points, and a restore behind
+    an explicit confirmation.
+- New REST routes: `POST /apply`, `POST /rollback`, `GET /snapshots`. Every
+  state-changing route now needs the capability **and** a valid nonce, checked in
+  one place so a new route cannot forget it.
+- `Rest\ConfirmationToken`: a token derived from the exact plan or recovery point
+  being acted on, so a preview that has gone stale is refused rather than applied
+  to something the user has not seen (D-0024).
+- `useResource`: one hook, three named states, no state library (D-0023).
+
+### Exit checklist (§17 Phase 8)
+
+| Criterion | Result |
+|---|---|
+| `admin-ui/` with `@wordpress/scripts`, one bundle | ✅ `npm run build` |
+| Enqueued only on our screen | ✅ asserted against sixteen other admin screens |
+| Dashboard: score, sub-scores, counts by risk including no-action | ✅ |
+| `Fix Safe Issues` and `Review findings` | ✅ and *Fix safe issues* is disabled when nothing is recommended |
+| Findings list filtered by risk, category and decision | ✅ `category` added to the findings route |
+| Finding detail with all ten fields | ✅ asserted by a Jest test that names each one |
+| Runs & snapshots with a restore behind a confirmation token | ✅ |
+| REST routes for preview, apply, rollback, status | ✅ plus snapshots |
+| `permission_callback` on `wpdebloat_manage` | ✅ every route, supplied centrally |
+| Nonce verification on state-changing routes | ✅ including `scan`, which writes a run |
+| No state change without confirmation | ✅ the token is required and is bound to the content |
+| State-management choice recorded | ✅ D-0023 |
+| No admin notices, dashboard widgets or front-end output | ✅ asserted |
+| `@wordpress/components` for accessibility | ✅ and colour is never the only signal |
+| REST permission tests (401/403) | ✅ anonymous, subscriber, and administrator-without-nonce |
+| Jest tests for score and finding rendering | ✅ 12 tests |
+| Bundle under 250 KB gzipped | ✅ 8.6 KB total — 3% of the budget |
+| Assets not enqueued outside our screen | ✅ |
+| Unit suite | ✅ 979 tests, 7 176 assertions |
+| Integration suite | ✅ 160 tests, 1 057 assertions |
+| Forced-failure suite | ✅ 8 tests, 85 assertions |
+| Jest | ✅ 12 tests |
+| PHPCS | ✅ 0 errors, 0 warnings across 201 files |
+| PHPStan level 6 | ✅ no errors |
+| ESLint | ✅ clean |
+
+### Known warnings
+
+- `build/` is not committed: it is a build artifact, and the repository holds
+  sources. `npm run build` produces it, and the enqueue test skips itself with a
+  message when it is absent rather than failing for a reason unrelated to the
+  code under test.
+- The apply flow in the dashboard applies the **safe** profile. The wider
+  profiles are reachable from the CLI today; Phase 9 builds the preview modal
+  properly, with the profile choice and the live run screen.
+- ESLint prints a deprecation warning about `.eslintrc.json`; the flat-config
+  migration belongs with a future `@wordpress/scripts` upgrade rather than in a
+  phase about the dashboard.
+
+### Next
+
+Phase 9 — Preview and Fix Safe Issues, the MVP milestone.

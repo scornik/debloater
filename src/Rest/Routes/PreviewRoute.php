@@ -14,6 +14,7 @@ use WP_REST_Request;
 use WP_REST_Response;
 use WPDebloat\Plugin;
 use WPDebloat\Registry\Profile;
+use WPDebloat\Rest\ConfirmationToken;
 
 /**
  * Shows what a plan would do, without doing any of it
@@ -82,6 +83,12 @@ final class PreviewRoute implements RouteInterface {
 				'minimum'     => 1,
 				'required'    => false,
 			),
+			'tweaks'  => array(
+				'description' => __( 'Plan these specific changes instead of a profile.', 'wp-debloat' ),
+				'type'        => 'array',
+				'items'       => array( 'type' => 'string' ),
+				'required'    => false,
+			),
 		);
 	}
 
@@ -94,8 +101,11 @@ final class PreviewRoute implements RouteInterface {
 	public function handle( WP_REST_Request $request ) {
 		$profile_id = is_string( $request->get_param( 'profile' ) ) ? $request->get_param( 'profile' ) : null;
 		$run_id     = is_numeric( $request->get_param( 'run_id' ) ) ? (int) $request->get_param( 'run_id' ) : null;
+		$tweaks     = $request->get_param( 'tweaks' );
 
-		$result = $this->plugin->preview( $profile_id, $run_id );
+		$result = is_array( $tweaks ) && array() !== $tweaks
+			? $this->plugin->previewTweaks( array_values( array_filter( $tweaks, 'is_string' ) ), $run_id )
+			: $this->plugin->preview( $profile_id, $run_id );
 
 		if ( null === $result ) {
 			return new WP_Error(
@@ -115,9 +125,13 @@ final class PreviewRoute implements RouteInterface {
 					'description' => $profile->description,
 				),
 				'plan'        => $result->plan->toArray(),
-				'excluded'    => $result->excluded,
+				'excluded'    => (object) $result->excluded,
 				'count'       => $result->count(),
 				'destructive' => $result->plan->destructive,
+				// The dashboard sends this back with the apply. It is what makes
+				// "the user confirmed this plan" true rather than merely likely:
+				// a plan that has changed since the preview will not match it.
+				'confirm'     => ConfirmationToken::forPlan( $result->plan ),
 			),
 			200
 		);

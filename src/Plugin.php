@@ -9,6 +9,7 @@ declare( strict_types = 1 );
 
 namespace WPDebloat;
 
+use WPDebloat\Admin\Screen;
 use WPDebloat\Analyze\Analyzer;
 use WPDebloat\Analyze\Rules;
 use WPDebloat\Apply\ApplyManager;
@@ -36,9 +37,12 @@ use WPDebloat\Registry\Profile;
 use WPDebloat\Registry\Registry;
 use WPDebloat\Registry\SchemaValidator;
 use WPDebloat\Rest\Controller;
+use WPDebloat\Rest\Routes\ApplyRoute;
 use WPDebloat\Rest\Routes\FindingsRoute;
 use WPDebloat\Rest\Routes\PreviewRoute;
+use WPDebloat\Rest\Routes\RollbackRoute;
 use WPDebloat\Rest\Routes\ScanRoute;
+use WPDebloat\Rest\Routes\SnapshotsRoute;
 use WPDebloat\Rest\Routes\StatusRoute;
 use WPDebloat\Scan\ScanRunner;
 use WPDebloat\Scan\Scanners\AdminScanner;
@@ -175,6 +179,7 @@ final class Plugin {
 		add_action( 'admin_init', array( $this, 'recoverOnBoot' ), 11 );
 
 		$this->restController()->boot();
+		$this->adminScreen()->boot();
 
 		// WP-CLI dispatches after plugins load, so registering here is early
 		// enough, and a site that is not running WP-CLI never constructs it.
@@ -556,6 +561,9 @@ final class Plugin {
 					new ScanRoute( $this ),
 					new FindingsRoute( $this ),
 					new PreviewRoute( $this ),
+					new SnapshotsRoute( $this ),
+					new ApplyRoute( $this ),
+					new RollbackRoute( $this ),
 				)
 			)
 		);
@@ -806,6 +814,15 @@ final class Plugin {
 				dirname( $this->plugin_file ) . '/schemas/config.schema.json'
 			)
 		);
+	}
+
+	/**
+	 * The admin screen.
+	 *
+	 * @return Screen
+	 */
+	public function adminScreen(): Screen {
+		return $this->service( 'admin_screen', fn (): Screen => new Screen( $this ) );
 	}
 
 	/**

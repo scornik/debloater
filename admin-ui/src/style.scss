@@ -1,0 +1,552 @@
+/**
+ * WP Debloat's admin screen.
+ *
+ * The look is deliberately not the default admin grey. This screen makes claims
+ * about a site and asks for permission to change it, and a page that looks like
+ * every settings form ever written reads as one — skimmed, agreed to, forgotten.
+ *
+ * What it borrows from WordPress: the components, the focus styles, the colour
+ * semantics for status. What it does not: the boxed table layout, which turns
+ * evidence into a spreadsheet.
+ */
+
+.wpdebloat-app {
+	--wpdebloat-ink: #14161a;
+	--wpdebloat-muted: #5c6470;
+	--wpdebloat-line: #e2e4e9;
+	--wpdebloat-surface: #fff;
+	--wpdebloat-raise: #f6f7f9;
+	--wpdebloat-accent: #2b3a67;
+	--wpdebloat-good: #1e7a4b;
+	--wpdebloat-fair: #9a6700;
+	--wpdebloat-poor: #a4262c;
+
+	max-width: 60rem;
+	margin: 0 20px 0 0;
+	color: var(--wpdebloat-ink);
+	font-size: 14px;
+	line-height: 1.55;
+
+	*:focus-visible {
+		outline: 2px solid var(--wpdebloat-accent);
+		outline-offset: 2px;
+	}
+}
+
+.wpdebloat-app__header {
+	padding: 24px 0 8px;
+	border-bottom: 1px solid var(--wpdebloat-line);
+}
+
+.wpdebloat-app__title {
+	margin: 0;
+	font-size: 28px;
+	font-weight: 600;
+	letter-spacing: -0.02em;
+}
+
+.wpdebloat-app__tagline {
+	margin: 4px 0 16px;
+	color: var(--wpdebloat-muted);
+	font-size: 15px;
+}
+
+.wpdebloat-tabs {
+	display: flex;
+	gap: 4px;
+}
+
+.wpdebloat-tabs__tab {
+	border-bottom: 2px solid transparent !important;
+	border-radius: 0 !important;
+	padding: 8px 12px !important;
+	color: var(--wpdebloat-muted) !important;
+
+	&.is-active {
+		border-bottom-color: var(--wpdebloat-accent) !important;
+		color: var(--wpdebloat-ink) !important;
+		font-weight: 600;
+	}
+}
+
+.wpdebloat-app__main {
+	padding-top: 24px;
+}
+
+.wpdebloat-loading {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	color: var(--wpdebloat-muted);
+}
+
+/* Score ------------------------------------------------------------------- */
+
+.wpdebloat-score {
+	display: grid;
+	grid-template-columns: minmax(200px, 260px) 1fr;
+	gap: 24px;
+	align-items: start;
+	margin-bottom: 24px;
+
+	@media (max-width: 782px) {
+		grid-template-columns: 1fr;
+	}
+}
+
+.wpdebloat-score__headline {
+	padding: 20px 24px;
+	border-radius: 10px;
+	background: var(--wpdebloat-accent);
+	color: #fff;
+
+	&.is-fair {
+		background: #6b4e12;
+	}
+
+	&.is-poor {
+		background: #6d1f23;
+	}
+}
+
+.wpdebloat-score__title {
+	margin: 0;
+	font-size: 13px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	opacity: 0.85;
+	color: inherit;
+}
+
+.wpdebloat-score__number {
+	margin: 4px 0 0;
+	font-size: 15px;
+
+	strong {
+		font-size: 52px;
+		font-weight: 700;
+		line-height: 1;
+		letter-spacing: -0.03em;
+	}
+}
+
+.wpdebloat-score__outof {
+	margin-left: 6px;
+	opacity: 0.75;
+}
+
+.wpdebloat-score__meta {
+	margin: 12px 0 0;
+	font-size: 13px;
+	opacity: 0.85;
+}
+
+.wpdebloat-score__breakdown {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	display: grid;
+	gap: 8px;
+}
+
+.wpdebloat-subscore {
+	display: grid;
+	grid-template-columns: 9rem 1fr 2.5rem;
+	gap: 12px;
+	align-items: center;
+	margin: 0;
+}
+
+.wpdebloat-subscore__label {
+	color: var(--wpdebloat-muted);
+}
+
+.wpdebloat-subscore__track {
+	height: 8px;
+	border-radius: 4px;
+	background: var(--wpdebloat-line);
+	overflow: hidden;
+}
+
+.wpdebloat-subscore__fill {
+	display: block;
+	height: 100%;
+	background: var(--wpdebloat-good);
+
+	&.is-fair {
+		background: var(--wpdebloat-fair);
+	}
+
+	&.is-poor {
+		background: var(--wpdebloat-poor);
+	}
+}
+
+.wpdebloat-subscore__value {
+	text-align: right;
+	font-variant-numeric: tabular-nums;
+}
+
+.wpdebloat-score__unscored {
+	grid-column: 1 / -1;
+	margin: 0;
+	color: var(--wpdebloat-muted);
+	font-size: 13px;
+}
+
+/* Panels and counts ------------------------------------------------------- */
+
+.wpdebloat-panel,
+.wpdebloat-empty {
+	padding: 20px 24px;
+	border: 1px solid var(--wpdebloat-line);
+	border-radius: 10px;
+	background: var(--wpdebloat-surface);
+
+	h2 {
+		margin: 0 0 4px;
+		font-size: 17px;
+	}
+}
+
+.wpdebloat-panel__lede,
+.wpdebloat-panel__note {
+	color: var(--wpdebloat-muted);
+	margin: 0 0 16px;
+}
+
+.wpdebloat-panel__note {
+	margin: 12px 0 0;
+	font-size: 13px;
+}
+
+.wpdebloat-counts {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 20px;
+	margin: 0 0 16px;
+	padding: 0;
+	list-style: none;
+}
+
+.wpdebloat-counts__item {
+	display: flex;
+	align-items: baseline;
+	gap: 6px;
+}
+
+.wpdebloat-counts__number {
+	font-size: 22px;
+	font-weight: 700;
+	font-variant-numeric: tabular-nums;
+}
+
+.wpdebloat-counts__label {
+	color: var(--wpdebloat-muted);
+}
+
+.wpdebloat-counts--decision .wpdebloat-counts__number {
+	font-size: 18px;
+}
+
+.wpdebloat-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-top: 16px;
+}
+
+/* Badges ------------------------------------------------------------------ */
+
+.wpdebloat-badge {
+	display: inline-block;
+	padding: 2px 8px;
+	border-radius: 999px;
+	border: 1px solid var(--wpdebloat-line);
+	background: var(--wpdebloat-raise);
+	font-size: 12px;
+	white-space: nowrap;
+
+	&--risk.is-low {
+		border-color: #b7dfc8;
+		background: #eefaf2;
+		color: var(--wpdebloat-good);
+	}
+
+	&--risk.is-medium {
+		border-color: #ecd9a8;
+		background: #fdf7e7;
+		color: var(--wpdebloat-fair);
+	}
+
+	&--risk.is-high {
+		border-color: #eabec0;
+		background: #fdeff0;
+		color: var(--wpdebloat-poor);
+	}
+
+	&--decision.is-dont_touch {
+		border-color: #eabec0;
+		color: var(--wpdebloat-poor);
+	}
+
+	&--decision.is-info {
+		color: var(--wpdebloat-muted);
+	}
+}
+
+.wpdebloat-confidence {
+	color: var(--wpdebloat-muted);
+	font-size: 12px;
+}
+
+/* Findings ---------------------------------------------------------------- */
+
+.wpdebloat-filters {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 16px;
+	margin-bottom: 16px;
+}
+
+.wpdebloat-findings__count {
+	margin: 0 0 8px;
+	color: var(--wpdebloat-muted);
+}
+
+.wpdebloat-findings__list {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	border: 1px solid var(--wpdebloat-line);
+	border-radius: 10px;
+	overflow: hidden;
+}
+
+.wpdebloat-finding-row {
+	display: flex;
+	gap: 16px;
+	justify-content: space-between;
+	align-items: flex-start;
+	margin: 0;
+	padding: 14px 18px;
+	background: var(--wpdebloat-surface);
+
+	+ .wpdebloat-finding-row {
+		border-top: 1px solid var(--wpdebloat-line);
+	}
+
+	&:hover {
+		background: var(--wpdebloat-raise);
+	}
+}
+
+.wpdebloat-finding-row__title {
+	font-size: 15px !important;
+	font-weight: 600;
+	text-align: left;
+	height: auto !important;
+	padding: 0 !important;
+}
+
+.wpdebloat-finding-row__summary {
+	margin: 2px 0 0;
+	color: var(--wpdebloat-muted);
+}
+
+.wpdebloat-finding-row__meta {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	justify-content: flex-end;
+}
+
+/* Finding detail ---------------------------------------------------------- */
+
+.wpdebloat-finding__header {
+	margin-bottom: 8px;
+
+	h2 {
+		margin: 8px 0;
+		font-size: 22px;
+	}
+}
+
+.wpdebloat-finding__badges {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	align-items: center;
+}
+
+.wpdebloat-field {
+	padding: 16px 0;
+	border-top: 1px solid var(--wpdebloat-line);
+}
+
+.wpdebloat-field__label {
+	margin: 0 0 6px;
+	font-size: 12px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	color: var(--wpdebloat-muted);
+}
+
+.wpdebloat-field__sublabel {
+	margin: 12px 0 4px;
+	font-weight: 600;
+}
+
+.wpdebloat-field__body p {
+	margin: 0 0 8px;
+}
+
+.wpdebloat-field__empty {
+	color: var(--wpdebloat-muted);
+	font-style: italic;
+}
+
+.wpdebloat-field__caveat {
+	color: var(--wpdebloat-muted);
+}
+
+.wpdebloat-evidence {
+	width: 100%;
+	border-collapse: collapse;
+
+	th,
+	td {
+		padding: 6px 10px;
+		text-align: left;
+		border-bottom: 1px solid var(--wpdebloat-line);
+		vertical-align: top;
+	}
+
+	th {
+		font-size: 12px;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		color: var(--wpdebloat-muted);
+	}
+}
+
+.wpdebloat-evidence__fact {
+	color: var(--wpdebloat-muted);
+}
+
+.wpdebloat-list {
+	margin: 0 0 8px;
+	padding-left: 18px;
+}
+
+.wpdebloat-list--change li::marker {
+	color: var(--wpdebloat-accent);
+}
+
+.wpdebloat-list--nochange {
+	color: var(--wpdebloat-muted);
+}
+
+/* Runs and snapshots ------------------------------------------------------ */
+
+.wpdebloat-runs section + section {
+	margin-top: 32px;
+}
+
+.wpdebloat-runs__list {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.wpdebloat-run {
+	margin: 0 0 8px;
+	padding: 12px 16px;
+	border: 1px solid var(--wpdebloat-line);
+	border-left-width: 4px;
+	border-radius: 8px;
+	background: var(--wpdebloat-surface);
+
+	&.is-committed {
+		border-left-color: var(--wpdebloat-good);
+	}
+
+	&.is-rolled_back {
+		border-left-color: var(--wpdebloat-fair);
+	}
+
+	&.is-aborted,
+	&.is-interrupted {
+		border-left-color: var(--wpdebloat-poor);
+	}
+}
+
+.wpdebloat-run__head {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	align-items: baseline;
+}
+
+.wpdebloat-run__id {
+	font-weight: 700;
+}
+
+.wpdebloat-run__status {
+	font-size: 12px;
+	letter-spacing: 0.06em;
+}
+
+.wpdebloat-run__when,
+.wpdebloat-run__actor,
+.wpdebloat-run__applied {
+	color: var(--wpdebloat-muted);
+}
+
+.wpdebloat-run__applied {
+	margin: 6px 0 0;
+	font-size: 13px;
+}
+
+.wpdebloat-run__warning {
+	margin: 6px 0 0;
+	color: var(--wpdebloat-fair);
+}
+
+.wpdebloat-run__error {
+	margin: 6px 0 0;
+	color: var(--wpdebloat-poor);
+}
+
+.wpdebloat-snapshots {
+	width: 100%;
+	border-collapse: collapse;
+
+	th,
+	td {
+		padding: 8px 10px;
+		text-align: left;
+		border-bottom: 1px solid var(--wpdebloat-line);
+		vertical-align: middle;
+	}
+
+	th {
+		font-size: 12px;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		color: var(--wpdebloat-muted);
+	}
+}
+
+.wpdebloat-snapshots__refusal {
+	color: var(--wpdebloat-muted);
+	font-size: 13px;
+}
+
+.wpdebloat-dialog__reassurance {
+	padding: 10px 14px;
+	border-radius: 8px;
+	background: var(--wpdebloat-raise);
+}

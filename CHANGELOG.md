@@ -187,3 +187,21 @@ All notable changes to WP Debloat are recorded here. The format follows
     way around the rules — a change this site would refuse is still refused.
   - The command line contains no product logic. It asks the same engine the
     dashboard does, so the two cannot come to different conclusions.
+
+- **Phase 8 — the dashboard.**
+  - One admin screen: the score with the category breakdown behind it, the
+    findings with filters, a finding in full, and the history of what has been
+    changed with a way back from each of it.
+  - A finding shows all ten fields every time, including the ones with nothing
+    in them. "Nothing on this site was detected as depending on this" and a
+    missing section look identical to a reader, and only one of them is a
+    statement.
+  - Nothing is applied without a confirmation that names what is being applied.
+    The token the preview issues is derived from that exact plan, so a site that
+    changed while the preview was on screen refuses the apply and says why,
+    instead of quietly applying something else.
+  - One bundle, on one screen, 6.7 KB of JavaScript. No admin notices, no
+    dashboard widget, nothing added to the front end. A plugin that puts its own
+    weight on every screen of the admin has lost the argument it is making.
+  - Colour is never the only signal: every risk, severity and decision says what
+    it is in words.
