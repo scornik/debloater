@@ -205,3 +205,27 @@ All notable changes to WP Debloat are recorded here. The format follows
     weight on every screen of the admin has lost the argument it is making.
   - Colour is never the only signal: every risk, severity and decision says what
     it is in words.
+
+- **Phase 9 — preview, apply, and what actually changed.**
+  - The whole motion in one place: see what would change, confirm it, watch it
+    happen, and read what it did.
+  - Before and after are measured, not estimated. Requests, scripts,
+    stylesheets, bytes in the head, external hosts, autoloaded data, revisions,
+    expired transients, scheduled events, admin notices and admin polling — all
+    counts, all with units.
+  - Nothing is reported as time saved, and the word "faster" appears nowhere. A
+    plugin cannot honestly attribute page-load time to its own changes on
+    somebody else's host.
+  - What could not be measured says so. A site that cannot reach itself is
+    reported as unmeasured, never as having fallen to zero, and a metric that
+    did not move is still listed — a report that shows only improvements is an
+    advertisement.
+  - The run screen says what is happening while it happens: taking a recovery
+    point, applying, checking the site. If the checks fail, it says which one,
+    and that the rollback is complete and the previous configuration restored.
+
+## [0.1.0] — 2026-09-03
+
+The MVP: scan, findings with their evidence, a plan you can read, a recovery
+point before anything changes, verification afterwards, and an undo that puts
+the site back exactly.
