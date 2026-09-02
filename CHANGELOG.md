@@ -55,3 +55,25 @@ All notable changes to WP Debloat are recorded here. The format follows
   - Integration harness on `@wordpress/env`, with the zero-overhead guarantee
     measured rather than assumed: an empty selection registers no hooks and adds
     no database queries to a front-end request.
+
+- **Phase 2 — scanner.**
+  - Eleven fact collectors covering the environment, WordPress configuration and
+    core features, users, plugins, theme, database, autoloaded options, cron and
+    the admin screens. Each owns a namespace and cannot write outside it.
+  - Ten detectors for WooCommerce, Elementor and Elementor Pro, Contact Form 7,
+    Rank Math, Yoast, LiteSpeed Cache, WP Rocket, WP Super Cache and Wordfence.
+    Each records both outcomes, so "not installed" is distinguishable from "not
+    looked for", and each recognises more than one signal so a rename does not
+    make it blind.
+  - Every database query is bounded and indexed, and the scanner's query count
+    is declared and asserted rather than hoped for.
+  - The scan budget is soft: an over-budget scanner is recorded and its facts
+    kept, because interrupting PHP mid-scan would leave a fact set that looks
+    complete and is not. A scanner that throws is named in the diagnostics and
+    the rest of the scan continues.
+  - Runs are recorded in `wpdebloat_runs` with the facts in the payload and the
+    registry hash they were produced against.
+  - Two facts §5 lists are deliberately absent rather than guessed:
+    `wp.dashicons_frontend` outside a front-end request, and the `admin.*`
+    counts outside an admin request. An absent fact reads as "not observed",
+    which is not the same as zero.

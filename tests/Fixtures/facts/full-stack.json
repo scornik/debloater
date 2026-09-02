@@ -4,7 +4,6 @@
   "env.host_vendor": "litespeed",
   "env.cache_plugin": "litespeed-cache",
   "env.is_multisite": false,
-
   "wp.heartbeat_interval": 15,
   "wp.xmlrpc_enabled": true,
   "wp.emojis_enabled": true,
@@ -19,33 +18,36 @@
   "wp.revisions_limit": -1,
   "wp.file_editor_enabled": true,
   "wp.debug": false,
-
   "users.admin_count": 4,
   "users.recent_editors_7d": 2,
-
   "plugins.active": [
     "woocommerce/woocommerce.php",
     "contact-form-7/wp-contact-form-7.php",
     "litespeed-cache/litespeed-cache.php"
   ],
-  "plugins.inactive": ["hello-dolly/hello.php"],
+  "plugins.inactive": [
+    "hello-dolly/hello.php"
+  ],
   "plugins.meta": {
     "woocommerce/woocommerce.php": {
       "name": "WooCommerce",
-      "version": "9.9",
-      "last_updated": "2026-08-01"
+      "version": "9.9"
     }
   },
   "plugins.detected": {
     "woocommerce": true,
     "elementor": false,
+    "elementor-pro": false,
     "contact-form-7": true,
-    "litespeed-cache": true
+    "rank-math": false,
+    "yoast": false,
+    "litespeed-cache": true,
+    "wp-rocket": false,
+    "wp-super-cache": false,
+    "wordfence": false
   },
-
   "theme.active": "storefront",
   "theme.parent": null,
-
   "db.size_bytes": 192937984,
   "db.revisions.count": 31421,
   "db.autodrafts.count": 12,
@@ -57,14 +59,37 @@
   "db.orphan_termmeta.count": 0,
   "db.orphan_usermeta.count": 0,
   "db.autoload.bytes": 9646080,
-  "db.autoload.top": [{ "name": "plugin_xyz_cache", "bytes": 3251200 }],
-
+  "db.autoload.top": [
+    {
+      "name": "plugin_xyz_cache",
+      "bytes": 3251200
+    }
+  ],
   "cron.events.count": 1823,
-  "cron.events.subminute": [{ "hook": "plugin_xyz_sync", "interval": 30 }],
+  "cron.events.subminute": [
+    {
+      "hook": "plugin_xyz_sync",
+      "interval": 30
+    }
+  ],
   "cron.orphans.count": 382,
   "cron.disable_wp_cron": false,
-
   "admin.notices.count": 17,
   "admin.dashboard_widgets.count": 13,
-  "admin.menu_items.count": 28
+  "admin.menu_items.count": 28,
+  "scan.elapsed_ms": 1840,
+  "scan.scanner_ms": {
+    "AdminScanner": 12,
+    "AutoloadScanner": 31,
+    "CoreFeatureScanner": 2,
+    "CronScanner": 8,
+    "DatabaseScanner": 1520,
+    "EnvironmentScanner": 1,
+    "PluginScanner": 44,
+    "ThemeScanner": 1,
+    "UserScanner": 19,
+    "WordPressScanner": 2
+  },
+  "scan.over_budget": [],
+  "scan.failed": []
 }

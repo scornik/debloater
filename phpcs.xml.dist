@@ -11,7 +11,8 @@
 	<exclude-pattern>*/vendor/*</exclude-pattern>
 	<exclude-pattern>*/node_modules/*</exclude-pattern>
 	<exclude-pattern>*/build/*</exclude-pattern>
-	<exclude-pattern>*/tools/*</exclude-pattern>
+	<file>tools/seed-fixture.php</file>
+	<exclude-pattern>*/tools/phpunit-9.phar</exclude-pattern>
 
 	<arg name="basepath" value="."/>
 	<arg name="colors"/>
@@ -140,6 +141,30 @@
 		<exclude-pattern>tests/*</exclude-pattern>
 	</rule>
 	<rule ref="WordPress.DB.PreparedSQLPlaceholders">
+		<exclude-pattern>tests/*</exclude-pattern>
+	</rule>
+<!--
+		tools/seed-fixture.php deliberately creates messy data — spam, orphaned
+		meta, sub-minute cron, a half-megabyte autoloaded option — so that the
+		development site has something for the dashboard to find. It is a
+		top-level script, so every local is a "global" to the prefix sniff, and it
+		refuses to run unless WP_ENVIRONMENT_TYPE is local.
+	-->
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+		<exclude-pattern>tools/*</exclude-pattern>
+	</rule>
+	<rule ref="WordPress.WP.GlobalVariablesOverride">
+		<exclude-pattern>tools/*</exclude-pattern>
+	</rule>
+	<rule ref="WordPress.DB.DirectDatabaseQuery">
+		<exclude-pattern>tools/*</exclude-pattern>
+	</rule>
+	<rule ref="WordPress.DB.SlowDBQuery">
+		<exclude-pattern>tools/*</exclude-pattern>
+		<exclude-pattern>tests/*</exclude-pattern>
+	</rule>
+	<rule ref="WordPress.WP.CronInterval">
+		<exclude-pattern>tools/*</exclude-pattern>
 		<exclude-pattern>tests/*</exclude-pattern>
 	</rule>
 </ruleset>
