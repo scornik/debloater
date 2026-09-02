@@ -531,3 +531,78 @@ change needs undoing.
 ### Next
 
 Phase 7 — WP-CLI.
+
+---
+
+## Phase 7 — WP-CLI
+
+**Status:** complete · 2026-09-03
+
+The whole MVP loop, runnable from a terminal and from a deployment script.
+
+### What exists now
+
+- `Cli\Command`: `scan`, `findings`, `preview`, `apply`, `verify`, `rollback`,
+  `snapshots`, `status`, `export`, `import`, registered as `wp debloat` when
+  WP-CLI is present and never constructed otherwise.
+- `Cli\Io` and `Cli\WpCliIo`: the boundary between the commands and WP-CLI.
+  Everything the CLI says goes through it, which is what lets the tests assert
+  exit codes without letting a test end the process.
+- `Config\ConfigDocument`: configuration as code. Choices travel, conclusions do
+  not (D-0022), validated against `schemas/config.schema.json` before a value is
+  read out of it.
+- `Plugin::previewTweaks()`: a plan from an explicit list of changes, through the
+  same planner and therefore the same §7.4 invariants as a profile plan.
+- `docs/CLI.md`: every command, every exit code, and the shape of every JSON
+  output.
+- `tools/cli-e2e.sh` (`npm run test:cli`): the loop through the real `wp` binary
+  on the fixture site.
+
+**No product logic lives in the CLI layer.** What to recommend, what may enter a
+plan, what to snapshot and whether the site still works are all answered by the
+engine, exactly as they are for the dashboard. A CLI that decided anything for
+itself would be a second implementation of the rules, and the two would disagree
+the first time one of them changed.
+
+### Exit checklist (§17 Phase 7)
+
+| Criterion | Result |
+|---|---|
+| `wp debloat` with all ten subcommands | ✅ |
+| No logic in the CLI layer | ✅ engine calls only; asserted by review and by the shared behaviour with the REST layer |
+| `apply` and `rollback` require `--yes` | ✅ tested; without it nothing is written |
+| `import --apply` requires `--yes` | ✅ |
+| Exit 0 success | ✅ |
+| Exit 1 error | ✅ no scan, unknown tweak, unknown risk, missing file, invalid document, missing confirmation |
+| Exit 2 verification failed and rolled back | ✅ forced-failure suite, end to end |
+| Exit 3 verified with warnings | ✅ blocked loopback |
+| `--json` outputs validate against schemas | ✅ facts and findings against the registry schemas; the configuration document against `schemas/config.schema.json`; the rest documented in `docs/CLI.md` and asserted |
+| Actor is `cli` | ✅ `Capabilities::currentActor()` returns `cli` under WP-CLI, and every run and journal row carries it |
+| Export produces selection + intent + params | ✅ |
+| Import validates before use | ✅ schema, then registry, then the planner |
+| Full loop through the CLI on the fixture site | ✅ `npm run test:cli` |
+| README updated | ✅ |
+| Unit suite | ✅ 979 tests, 7 156 assertions |
+| Integration suite | ✅ 141 tests, 914 assertions |
+| Forced-failure suite | ✅ 8 tests, 85 assertions |
+| PHPCS | ✅ 0 errors, 0 warnings across 194 files |
+| PHPStan level 6 | ✅ no errors |
+
+### Known warnings
+
+- `--json` is declared in each synopsis as `--format=<format>`, because WP-CLI
+  reserves `--json` as its own shorthand and rewrites it before a command sees
+  it. Both spellings work; the reasoning is D-0021.
+- The fixture site's canonical URL is not routable from inside the CLI
+  container, so `verify` there reports UNKNOWN and the loop exits 3 rather than
+  0 at the apply step. The e2e script accepts either, because both mean the
+  change is in place — 2 would mean it was undone. Real-loopback verification
+  against committed state needs a site whose own address resolves from where the
+  command runs.
+- `wp debloat rollback <snapshot-id>` undoes the whole run that recovery point
+  belongs to, not just that one snapshot. Restoring half a run would leave the
+  site in a state nothing has a name for.
+
+### Next
+
+Phase 8 — React dashboard.

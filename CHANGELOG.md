@@ -169,3 +169,21 @@ All notable changes to WP Debloat are recorded here. The format follows
   - Requests carry a header identifying them, which nothing in the plugin ever
     reads — a site that passed only because it knew it was being checked would
     not have been checked at all.
+
+- **Phase 7 — the command line.**
+  - The whole loop from a terminal: `wp debloat scan`, `findings`, `preview`,
+    `apply`, `verify`, `rollback`, `snapshots`, `status`, `export`, `import`.
+  - Exit codes a deployment script can act on: `0` worked, `1` refused, `2` the
+    change was applied and then rolled back because the site failed its checks,
+    `3` the change is in place but something could not be checked.
+  - Nothing that changes the site happens without `--yes`.
+  - Configuration as code. `export` writes what this site has chosen — the
+    changes, their parameters and the stated intent — and `import` validates it
+    before reading a value out of it. Findings and scores are deliberately not
+    included: they describe one site at one moment, and importing another site's
+    conclusions would be acting on facts that are not true here.
+  - A change named in an imported file that this version does not have is
+    reported and skipped; the rest of the file still applies. Importing is not a
+    way around the rules — a change this site would refuse is still refused.
+  - The command line contains no product logic. It asks the same engine the
+    dashboard does, so the two cannot come to different conclusions.

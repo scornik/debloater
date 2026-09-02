@@ -721,3 +721,102 @@ vendor/bin/phpstan analyse
 | Forced-failure suite | ✅ 5 tests, 74 assertions |
 | PHPCS | ✅ 0 errors, 0 warnings, 187 files |
 | PHPStan level 6 | ✅ no errors |
+
+---
+
+## Phase 7 — WP-CLI
+
+### Run 1 — integration suite with the command tests
+
+```
+npm run test:integration:main
+```
+
+**Result:** 141 tests, 914 assertions, **0 failures**. Eighteen new tests drive
+the command objects with a recording terminal, covering every exit code, the
+`--yes` gates, the schema validation on import, and the whole
+scan → apply → status → rollback loop.
+
+### Run 2 — the forced-failure suite
+
+```
+npm run test:integration:fail-probe
+```
+
+**Result:** 8 tests, 85 assertions, **0 failures**. Three of them are new: `apply`
+exits 2 when the change is rolled back, `verify` exits 2 on a failed check, and
+the JSON result names the check that failed so a script can report it.
+
+### Run 3 — unit suite
+
+```
+vendor/bin/phpunit
+```
+
+**Result:** 978 tests, 7 119 assertions, **1 failure**.
+
+| Failure | Root cause | Fix | Retest |
+|---|---|---|---|
+| `RepositoryInvariantsTest::test_registry_schemas_are_valid_json` — found seven schemas where §4 names six | **A Phase 0 invariant doing its job.** The configuration-document schema had been put in `registry/schemas/`, where it does not belong: it describes a CLI document, not registry content. | Moved to `schemas/config.schema.json`, and gave the new directory its own invariant — valid draft-07, with a title and a description — so it is held to the same standard without weakening the count that guards the registry. | ✅ |
+
+The tempting fix was to change `assertCount( 6, ... )` to `7`. That would have
+quietly turned an invariant about the registry into a running total of files.
+
+### Run 4 — PHPStan level 6
+
+```
+vendor/bin/phpstan analyse
+```
+
+**Result:** 7 errors, all `unknown class WP_CLI` in `Cli\WpCliIo`.
+
+WP-CLI is not a dependency of the plugin and is not loaded on a web request. The
+stubs were already a dev dependency; added `php-stubs/wp-cli-stubs` to
+`scanFiles` so level 6 can reason about the one class that talks to it.
+
+### Run 5 — the loop through a real `wp` binary
+
+```
+npm run test:cli
+```
+
+**Result:** every command using `--json` failed:
+
+```
+Error: Parameter errors:
+ unknown --format parameter
+```
+
+| Failure | Root cause | Fix | Retest |
+|---|---|---|---|
+| `scan --json`, `findings --json`, `preview --json`, `status --json` all exit 1 | **A real bug, invisible to every test written so far.** WP-CLI reserves `--json` as shorthand for `--format=json` and rewrites it during argument parsing. A command that declares `[--json]` in its own synopsis therefore never receives it, and is handed a `--format` it did not declare. | Declare `[--format=<format>]` with the options `table` and `json`. WP-CLI's rewriting then makes `--json` work exactly as §17 describes, and `--format=json` works too. Recorded as D-0021. | ✅ |
+
+Worth stating plainly: the integration suite drives the command objects
+directly, which covers every branch of their behaviour and *cannot* catch a
+mistake in the synopsis, because WP-CLI is not involved. This is the whole
+argument for `tools/cli-e2e.sh` — one slow test against the real binary found a
+bug that a hundred fast ones could not see.
+
+The first attempt at that script also failed for a reason of its own: the
+fixture site had never had the plugin activated, and the script's "clean slate"
+step recorded the resulting error as a failure. Both are fixed — the script
+activates the plugin and tolerates having nothing to undo.
+
+### Run 6 — full regression
+
+```
+vendor/bin/phpunit
+npm run test:integration
+npm run test:cli
+vendor/bin/phpcs --standard=phpcs.xml.dist
+vendor/bin/phpstan analyse
+```
+
+| Gate | Result |
+|---|---|
+| Unit | ✅ 979 tests, 7 156 assertions |
+| Integration | ✅ 141 tests, 914 assertions |
+| Forced-failure suite | ✅ 8 tests, 85 assertions |
+| CLI end to end on the fixture site | ✅ every command, every exit code |
+| PHPCS | ✅ 0 errors, 0 warnings, 194 files |
+| PHPStan level 6 | ✅ no errors |
