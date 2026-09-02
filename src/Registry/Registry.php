@@ -46,6 +46,13 @@ final class Registry {
 	private readonly array $compatibility;
 
 	/**
+	 * Profiles keyed by id, in sorted order.
+	 *
+	 * @var array<string,Profile>
+	 */
+	private readonly array $profiles;
+
+	/**
 	 * Cached registry hash.
 	 *
 	 * @var string
@@ -58,9 +65,15 @@ final class Registry {
 	 * @param array<int,TweakDefinition> $tweaks        Tweak definitions.
 	 * @param array<int,Detector>        $detectors     Detectors.
 	 * @param array<int,CompatRule>      $compatibility Compatibility rules.
+	 * @param array<int,Profile>         $profiles      Profiles.
 	 * @throws RuntimeException When an id is duplicated or a reference dangles.
 	 */
-	public function __construct( array $tweaks = array(), array $detectors = array(), array $compatibility = array() ) {
+	public function __construct(
+		array $tweaks = array(),
+		array $detectors = array(),
+		array $compatibility = array(),
+		array $profiles = array()
+	) {
 		$indexed = array();
 
 		foreach ( $tweaks as $definition ) {
@@ -113,10 +126,75 @@ final class Registry {
 
 		ksort( $by_subject, SORT_STRING );
 
+		$by_profile = array();
+
+		foreach ( $profiles as $profile ) {
+			if ( ! $profile instanceof Profile ) {
+				throw new RuntimeException( 'Registry accepts Profile instances only.' );
+			}
+
+			if ( array_key_exists( $profile->id, $by_profile ) ) {
+				throw new RuntimeException( sprintf( 'Duplicate profile id "%s" in registry.', $profile->id ) );
+			}
+
+			foreach ( $profile->tweaks as $tweak_id ) {
+				if ( ! array_key_exists( $tweak_id, $indexed ) ) {
+					throw new RuntimeException(
+						sprintf( 'Profile "%s" names unknown tweak "%s".', $profile->id, $tweak_id )
+					);
+				}
+			}
+
+			$by_profile[ $profile->id ] = $profile;
+		}
+
+		ksort( $by_profile, SORT_STRING );
+
 		$this->tweaks        = $indexed;
 		$this->detectors     = $by_id;
 		$this->compatibility = $by_subject;
-		$this->hash          = self::computeHash( $indexed, $by_id, $by_subject );
+		$this->profiles      = $by_profile;
+		$this->hash          = self::computeHash( $indexed, $by_id, $by_subject, $by_profile );
+	}
+
+	/**
+	 * All profiles, in sorted id order.
+	 *
+	 * @return array<string,Profile>
+	 */
+	public function profiles(): array {
+		return $this->profiles;
+	}
+
+	/**
+	 * A profile by id.
+	 *
+	 * @param string $profile_id Profile id.
+	 * @return Profile
+	 * @throws RuntimeException When the id is unknown.
+	 */
+	public function profile( string $profile_id ): Profile {
+		if ( ! array_key_exists( $profile_id, $this->profiles ) ) {
+			throw new RuntimeException(
+				sprintf(
+					'Unknown profile "%s". Available: %s',
+					$profile_id,
+					implode( ', ', array_keys( $this->profiles ) )
+				)
+			);
+		}
+
+		return $this->profiles[ $profile_id ];
+	}
+
+	/**
+	 * Whether a profile id is known.
+	 *
+	 * @param string $profile_id Profile id.
+	 * @return bool
+	 */
+	public function hasProfile( string $profile_id ): bool {
+		return array_key_exists( $profile_id, $this->profiles );
 	}
 
 	/**
@@ -305,13 +383,15 @@ final class Registry {
 	 * @param array<string,TweakDefinition> $tweaks        Definitions in sorted order.
 	 * @param array<string,Detector>        $detectors     Detectors in sorted order.
 	 * @param array<string,CompatRule>      $compatibility Rules in sorted order.
+	 * @param array<string,Profile>         $profiles      Profiles in sorted order.
 	 * @return string
 	 */
-	private static function computeHash( array $tweaks, array $detectors, array $compatibility ): string {
+	private static function computeHash( array $tweaks, array $detectors, array $compatibility, array $profiles ): string {
 		$canonical = array(
 			'tweaks'        => array(),
 			'detectors'     => array(),
 			'compatibility' => array(),
+			'profiles'      => array(),
 		);
 
 		foreach ( $tweaks as $id => $definition ) {
@@ -324,6 +404,10 @@ final class Registry {
 
 		foreach ( $compatibility as $subject => $rule ) {
 			$canonical['compatibility'][ $subject ] = $rule->toArray();
+		}
+
+		foreach ( $profiles as $id => $profile ) {
+			$canonical['profiles'][ $id ] = $profile->toArray();
 		}
 
 		return hash( 'sha256', Json::canonical( $canonical ) );

@@ -62,7 +62,61 @@ final class Loader {
 	 * @throws RuntimeException When any document is malformed or duplicated.
 	 */
 	public function load(): Registry {
-		return new Registry( $this->loadTweaks(), $this->loadDetectors(), $this->loadCompatibility() );
+		return new Registry(
+			$this->loadTweaks(),
+			$this->loadDetectors(),
+			$this->loadCompatibility(),
+			$this->loadProfiles()
+		);
+	}
+
+	/**
+	 * Load and validate every profile.
+	 *
+	 * @return array<int,Profile>
+	 * @throws RuntimeException When a document is invalid or an id repeats.
+	 */
+	public function loadProfiles(): array {
+		$validator = $this->validator( 'profile.schema.json' );
+		$profiles  = array();
+		$seen      = array();
+
+		foreach ( $this->jsonFiles( 'profiles' ) as $path ) {
+			$document = $this->decode( $path );
+
+			$validator->assertValid( $document, $this->relative( $path ) );
+
+			$profile = Profile::fromArray( $document );
+
+			if ( array_key_exists( $profile->id, $seen ) ) {
+				throw new RuntimeException(
+					sprintf(
+						'Duplicate profile id "%s" in %s and %s',
+						$profile->id,
+						$this->relative( $seen[ $profile->id ] ),
+						$this->relative( $path )
+					)
+				);
+			}
+
+			$expected = $profile->id . '.json';
+
+			if ( basename( $path ) !== $expected ) {
+				throw new RuntimeException(
+					sprintf(
+						'Profile "%s" must be defined in %s, found in %s',
+						$profile->id,
+						$expected,
+						$this->relative( $path )
+					)
+				);
+			}
+
+			$seen[ $profile->id ] = $path;
+			$profiles[]           = $profile;
+		}
+
+		return $profiles;
 	}
 
 	/**

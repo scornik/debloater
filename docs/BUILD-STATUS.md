@@ -7,8 +7,8 @@ are `NOT_STARTED`, `IN_PROGRESS`, `BLOCKED`, `COMPLETE`.
 
 | | |
 |---|---|
-| **Current phase** | 4 — Recommendation engine |
-| **Last completed** | 3 — Analyzer, findings, score |
+| **Current phase** | 5 — Snapshot, apply, rollback |
+| **Last completed** | 4 — Recommendation engine |
 | **Blockers** | none |
 
 ## Phases
@@ -18,8 +18,8 @@ are `NOT_STARTED`, `IN_PROGRESS`, `BLOCKED`, `COMPLETE`.
 | 0 | Architecture and contracts | COMPLETE | `60160e5` | 747 pass / 0 fail | pass |
 | 1 | Minimal runtime engine | COMPLETE | `7f5eed7` | 797 unit + 33 integration / 0 fail | pass |
 | 2 | Scanner (facts only) | COMPLETE | `9f47be9` | 817 unit + 55 integration / 0 fail | pass |
-| 3 | Analyzer, findings, score | COMPLETE | `phase-3` | 928 unit + 70 integration / 0 fail | pass |
-| 4 | Recommendation engine | NOT_STARTED | — | — | — |
+| 3 | Analyzer, findings, score | COMPLETE | `3d7944c` | 928 unit + 70 integration / 0 fail | pass |
+| 4 | Recommendation engine | COMPLETE | `phase-4` | 959 unit + 82 integration / 0 fail | pass |
 | 5 | Snapshot, apply, rollback | NOT_STARTED | — | — | — |
 | 6 | Verification engine | NOT_STARTED | — | — | — |
 | 7 | WP-CLI | NOT_STARTED | — | — | — |
@@ -291,3 +291,64 @@ Phase 3 — Analyzer, findings, Don't Touch, Score.
 ### Next
 
 Phase 4 — Recommendation engine.
+
+---
+
+## Phase 4 — Recommendation engine
+
+**Status:** COMPLETE
+
+### Delivered
+
+- `Recommend\IntentProfile`: site type and priority, persisted, with cautious
+  defaults that unlock nothing. Malformed *stored* values fall back; malformed
+  *user input* is rejected.
+- `Recommend\CompatibilityResolver`: the registry's rules resolved against one
+  site, counting only what is actually present, and reporting components with
+  no rule at all rather than assuming them harmless.
+- `Recommend\RiskEngine`: risk raised one level for detected dependents or an
+  unrecognised host, never lowered, never by more than one level, always with a
+  reason.
+- `Recommend\FactPredicate` and `DependencyResolver` v2: `fact:<key>=<value>`
+  requirements, where an unobserved fact is unresolved rather than satisfied.
+- `Recommend\RecommendationEngine` and `Recommendations`: findings to tweaks,
+  deterministic, keeping the link back to the finding that justified each one.
+- `Recommend\PreviewPlanner` and `PlanResult`: the only place a plan can be
+  built, enforcing the two §7.4 invariants that need findings and facts, with
+  every exclusion carrying a reason.
+- `Registry\Profile` and the three shipped profiles. No profile admits a
+  destructive tweak, whatever its own flag says.
+- `GET wpdebloat/v1/preview`.
+
+### Exit checklist (§17 Phase 4)
+
+| Criterion | Result |
+|---|---|
+| IntentProfile persisted, defaults `other`/`balanced` | ✅ |
+| CompatibilityResolver over `registry/compatibility/*.json` | ✅ six rules, presence-checked |
+| Heartbeat 120 s for a quiet blog, 60 s otherwise | ✅ both worked examples |
+| RiskEngine raises one level for dependents or unknown host | ✅ and never lowers |
+| DependencyResolver v2 with fact predicates | ✅ unobserved ≠ satisfied |
+| PreviewPlan with will_change / will_not / snapshot levels | ✅ |
+| **Property tests over generated registries** | ✅ 120 seeded cases per invariant, 2 708 assertions |
+| No destructive tweak in a safe plan | ✅ property test |
+| No two conflicting tweaks in one plan | ✅ property test, both directions, every profile |
+| No tweak named by an active dont_touch finding | ✅ property test, every profile |
+| No tweak with unresolved requires | ✅ property test, including fact predicates |
+| Unit suite | ✅ 959 tests, 6 683 assertions |
+| Integration suite | ✅ 82 tests, 317 assertions |
+| PHPCS | ✅ 0 errors, 0 warnings across 157 files |
+| PHPStan level 6 | ✅ no errors |
+
+### Known warnings
+
+- The preview text is assembled from the tweak descriptions in the registry.
+  Phase 9 builds the user-facing preview modal on top of it; a test already
+  asserts the text never claims speed, since that is the first place such a
+  claim could appear.
+- `admitted()` on the engine exists for the CLI and dashboard in Phases 7 and 8
+  and is not yet exercised by a caller; it is covered by unit tests.
+
+### Next
+
+Phase 5 — Snapshot, apply, rollback.

@@ -415,3 +415,74 @@ three people edited content last week on a store.
 On the bare wp-env test site the same analyzer produces 12 findings and no
 refusal, which is the correct answer for a site with nothing installed to
 depend on anything.
+
+---
+
+## Phase 4 — Recommendation engine
+
+### Run 1 — the property tests, first attempt
+
+**Result:** 10 tests, **2 failures** — and both were real.
+
+BUILD-SPEC §17 Phase 4 asks for the §7.4 invariants as property tests over
+generated registries. The generator builds deliberately awkward ones: conflicts,
+chained requirements, fact predicates that may or may not hold, destructive
+tweaks, and refusals. 120 seeded cases per invariant, so a failure is
+reproducible from the seed in the message.
+
+| Failure | Root cause | Fix | Retest |
+|---|---|---|---|
+| seed 4: `gen.tweak_2` is in the plan but its requirement `gen.tweak_1` is not | **Real bug.** Requirements were checked against the *candidate* list, not against the plan. A tweak whose requirement was later excluded — refused, filtered, or dropped itself — still passed, so the plan contained a change depending on something that was not going to happen. | A requirement counts only when the required tweak is in the plan, resolved to a fixed point because excluding one can leave another unmet (D-0014). Each dropped tweak's reason quotes why its requirement is missing, so a chain reads back to its cause. | ✅ |
+| seed 5: `gen.tweak_1` is in the safe plan but not the maximum one | **Real design gap.** Conflicts were resolved by lowest tweak id. Under `safe` a medium-risk tweak was filtered out so its partner won; under `maximum` the medium-risk one was admitted first and won instead. A *wider* profile produced a plan missing something the narrower one offered. | Candidates are ordered before anything is decided: non-destructive first, then lower risk, then id (D-0013). Widening a profile now only ever adds. | ✅ |
+
+Both are exactly what property tests are for. Neither would have been found by
+an example test, because neither arises from a registry anyone would think to
+write by hand.
+
+### Run 2 — PHPStan level 6
+
+**Result:** **3 errors**, all "property is never read, only written".
+
+All three were load-bearing in a first draft and became dead weight when the
+design improved:
+
+| Property | Why it died |
+|---|---|
+| `RiskEngine::$compatibility` | `hasDependents()` now reads the count from the finding, which is where the capability mapping already lives. Keeping the parameter implied a dependency the class does not have, so the constructor takes facts only. |
+| `RecommendationEngine::$facts` | Only ever needed to build the RiskEngine. |
+| `PreviewPlanner::$findings` | Superseded by the refusal map built from the same loop. Removing it also removes the temptation for a later change to start reading a finding's severity or confidence when deciding what goes in a plan — neither of which has any business doing that. |
+
+A dependency a class does not use is a lie about what it needs, so all three
+were removed rather than annotated.
+
+### Run 3 — PHPCS
+
+**Result:** 1 violation — a Yoda-condition complaint in `FactPredicate`. Fixed
+by naming the intermediate value.
+
+### Run 4 — full gate
+
+| Check | Result |
+|---|---|
+| Unit | ✅ **959 tests, 6 683 assertions, 0 failures** |
+| Integration | ✅ **82 tests, 317 assertions, 0 failures** |
+| PHPCS | ✅ **0 errors, 0 warnings** across 157 files |
+| PHPStan level 6 | ✅ **no errors** |
+
+### What the property tests actually check
+
+Per invariant, 120 generated registries of 3–10 tweaks each, with conflicts,
+requirements, fact predicates and refusals distributed pseudo-randomly from the
+seed:
+
+| Property | Assertion |
+|---|---|
+| Safe plan, destructive | no destructive tweak, ever |
+| Safe plan, risk | every tweak safe or low |
+| Any profile, conflicts | no conflicting pair, resolved in both directions |
+| Any profile, refusals | no tweak named by an active dont_touch finding |
+| Requirements | every planned tweak's requirements are themselves planned, and its fact predicates hold |
+| Exclusions | every candidate is either planned or explained, and no reason is blank |
+| Determinism | same plan twice, and the same plan from a reversed candidate list |
+| Monotonicity | a wider profile never drops what a narrower one allowed |
+| Snapshot levels | Level A always, Level B if and only if the plan contains a data tweak |

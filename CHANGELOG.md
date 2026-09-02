@@ -102,3 +102,25 @@ All notable changes to WP Debloat are recorded here. The format follows
   - `POST wpdebloat/v1/scan` and `GET wpdebloat/v1/findings`. Before any scan,
     the findings endpoint says the site has not been scanned rather than
     returning an empty list that reads like good news.
+
+- **Phase 4 — recommendation engine.**
+  - Intent: what the site is for and how much change its owner wants, kept
+    separate from what the scanners detected. A WooCommerce install is a fact;
+    "this is a store and downtime costs money" is a statement only the owner can
+    make.
+  - Compatibility resolved against the site rather than in the abstract: a
+    dependency declared by a plugin nobody has installed is not a reason to
+    refuse anything.
+  - Risk raised — never lowered — where this site makes a change more likely to
+    go wrong, by one level at most however many reasons apply, and always with
+    the reason given.
+  - Requirements expressed as conditions on the facts, where a fact the scan
+    never observed counts as unresolved rather than satisfied.
+  - Preview planning, with the §7.4 invariants enforced in the one place a plan
+    can be built, and every excluded change carrying an explanation. A plan that
+    silently contains less than expected is worse than one that says why.
+  - Three profiles that widen in order. None of them admits a destructive
+    change, whatever its own configuration says: deleting rows is never
+    something a preset decides on your behalf.
+  - `GET wpdebloat/v1/preview`, which computes a plan from a recorded scan and
+    changes nothing at all.

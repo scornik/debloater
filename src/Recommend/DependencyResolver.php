@@ -9,17 +9,27 @@ declare( strict_types = 1 );
 
 namespace WPDebloat\Recommend;
 
+use WPDebloat\Contracts\FactSet;
 use WPDebloat\Registry\Registry;
 
 /**
  * Decides which tweaks in a candidate set can actually be applied together
- * (BUILD-SPEC §7.4, §17 Phase 1).
+ * (BUILD-SPEC §7.4, §17 Phase 4).
  *
- * This is v1: it understands requirements expressed as tweak ids and conflicts
- * between tweak ids. Fact predicates ("fact:plugins.detected.woocommerce=true")
- * need a scan, so they arrive with v2 in Phase 4. Anything it cannot yet
- * evaluate is excluded rather than assumed satisfied — a resolver that guesses
- * "probably fine" is worse than one that says "not yet".
+ * Three kinds of requirement, and one rule shared between them: anything that
+ * cannot be shown to hold excludes the tweak.
+ *
+ * - **Tweak ids.** The required tweak must also be selected.
+ * - **Fact predicates** (`fact:plugins.detected.woocommerce=true`). The fact
+ *   must have been observed *and* match. A fact the scan never produced is
+ *   unresolved, not satisfied — "we did not look" is not evidence.
+ * - **Conflicts.** Two tweaks that conflict never survive together, and the
+ *   conflict applies in both directions whichever side declared it.
+ *
+ * Without facts, the resolver still works: it simply cannot evaluate a fact
+ * predicate, and says so. That is how it behaved through Phases 1 to 3, and the
+ * behaviour is unchanged — a resolver that guesses "probably fine" is worse
+ * than one that says "not without a scan".
  *
  * Resolution is deterministic: candidates are considered in sorted id order, so
  * the same input always yields the same accepted set, including which of two
@@ -35,12 +45,31 @@ final class DependencyResolver {
 	private Registry $registry;
 
 	/**
+	 * Facts a predicate can be evaluated against, or null when none are known.
+	 *
+	 * @var FactSet|null
+	 */
+	private ?FactSet $facts;
+
+	/**
 	 * Constructor.
 	 *
-	 * @param Registry $registry Registry to resolve against.
+	 * @param Registry     $registry Registry to resolve against.
+	 * @param FactSet|null $facts    Facts from a scan, when there has been one.
 	 */
-	public function __construct( Registry $registry ) {
+	public function __construct( Registry $registry, ?FactSet $facts = null ) {
 		$this->registry = $registry;
+		$this->facts    = $facts;
+	}
+
+	/**
+	 * A copy of this resolver that can evaluate fact predicates.
+	 *
+	 * @param FactSet $facts Facts from a scan.
+	 * @return self
+	 */
+	public function withFacts( FactSet $facts ): self {
+		return new self( $this->registry, $facts );
 	}
 
 	/**
@@ -96,16 +125,30 @@ final class DependencyResolver {
 			}
 		}
 
-		// A fact predicate cannot be evaluated without a scan, and this resolver
-		// has no facts. Excluding is the safe direction (BUILD-SPEC §7.4: no
-		// tweak with unresolved requires enters a plan).
 		$predicates = $definition->requiredFactPredicates();
 
-		if ( array() !== $predicates ) {
+		if ( array() !== $predicates && null === $this->facts ) {
+			// BUILD-SPEC §7.4: no tweak with unresolved requires enters a plan.
+			// Without a scan there are no facts, so these cannot be resolved.
 			return sprintf(
 				'Requires conditions that cannot be checked without a scan: %s.',
 				implode( ', ', $predicates )
 			);
+		}
+
+		foreach ( $predicates as $requirement ) {
+			$predicate = FactPredicate::parse( $requirement );
+
+			if ( null !== $this->facts && ! $predicate->isObservableIn( $this->facts ) ) {
+				return sprintf(
+					'Requires %s, which this scan did not observe.',
+					$predicate->fact
+				);
+			}
+
+			if ( null !== $this->facts && ! $predicate->isSatisfiedBy( $this->facts ) ) {
+				return sprintf( 'Requires %s, which is not true of this site.', $predicate->describe() );
+			}
 		}
 
 		foreach ( $this->registry->conflictsFor( $tweak_id ) as $conflict_id ) {
