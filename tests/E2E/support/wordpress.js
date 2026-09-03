@@ -25,10 +25,14 @@ const ADMIN_PASSWORD = process.env.WP_ADMIN_PASSWORD || 'password';
  * @param {import('@playwright/test').Page} page Page.
  */
 async function login( page ) {
-	await page.goto( '/wp-login.php', { waitUntil: 'domcontentloaded' } );
+	// Ask for an admin page, not the login form. WordPress renders wp-login.php
+	// perfectly happily for somebody who is *already* signed in, so looking for
+	// a form there answers "is there a login form" rather than "am I signed in"
+	// — and this helper spent every call logging in again over a session it
+	// already had. Where it redirects tells the truth.
+	await page.goto( '/wp-admin/', { waitUntil: 'domcontentloaded' } );
 
-	// Already signed in: WordPress redirects straight to the dashboard.
-	if ( ! ( await page.locator( '#loginform' ).count() ) ) {
+	if ( ! page.url().includes( 'wp-login.php' ) ) {
 		return;
 	}
 
