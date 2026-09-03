@@ -227,6 +227,25 @@ All notable changes to WP Debloat are recorded here. The format follows
 
 ### Added since 0.1.0
 
+- **Phase 12 — the admin screens.**
+  - WP Debloat can now tell you who is putting what on your admin screens: which
+    plugin registered each notice, each dashboard widget, each menu item.
+  - You can take dashboard widgets off, remove the welcome panel, and remove the
+    Events and News widget — the one that fetches something over the network
+    every time the dashboard loads. Nothing is uninstalled and nothing is
+    deleted; unselecting any of it puts everything back.
+  - The "WordPress x.y is available" notice can be hidden from people who cannot
+    update — authors, editors, shop managers — while whoever *can* update still
+    sees it every time. That part is not configurable and never will be.
+  - You can also hide the admin notices of specific plugins. Read this bit: it
+    hides all of them, not just the marketing. WooCommerce, Yoast and the others
+    send upgrade prompts and real warnings down the same channel, and nothing
+    tells them apart, so WP Debloat does not claim to. You choose which plugins,
+    one at a time, and it is never something a single click decides for you.
+  - Admin joins the score as a sixth sub-score. See docs/SCORING.md, now at
+    version 2.0.
+
+
 - **Phase 11 — the plugin list.**
   - WP Debloat now notices when two plugins are doing the same job — two page
     caches, two SEO plugins, two backup plugins — and tells you which ones, and

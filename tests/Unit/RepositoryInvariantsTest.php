@@ -136,9 +136,10 @@ final class RepositoryInvariantsTest extends TestCase {
 	 * and more honest than the number it replaced. Six of them are the object
 	 * types BUILD-SPEC §4 lists: one document per tweak, per detector, per
 	 * compatibility rule, per profile, plus the fact and finding shapes. The
-	 * other two describe registry *tables* — single files holding a lookup,
-	 * added in Phase 11, where a document per object would have been forty files
-	 * each holding one word.
+	 * others describe registry *tables* — single files holding a lookup, where a
+	 * document per object would have been forty files each holding one word.
+	 * Phase 11 added the plugin categories and the host optimizers; Phase 12
+	 * added the admin-notice vendor allowlist.
 	 *
 	 * The schema for the configuration document `wp debloat export` writes is
 	 * deliberately not here: that is not registry content, and it lives in
@@ -156,6 +157,7 @@ final class RepositoryInvariantsTest extends TestCase {
 
 		$this->assertSame(
 			array(
+				'admin-notices.schema.json',
 				'compat.schema.json',
 				'detector.schema.json',
 				'fact.schema.json',
@@ -166,7 +168,7 @@ final class RepositoryInvariantsTest extends TestCase {
 				'tweak.schema.json',
 			),
 			$names,
-			'registry/schemas holds the six object types BUILD-SPEC §4 names plus the two Phase 11 tables, and nothing else'
+			'registry/schemas holds the six object types BUILD-SPEC §4 names plus the registry tables, and nothing else'
 		);
 
 		$this->assertSchemasAreWellFormed( $schemas );

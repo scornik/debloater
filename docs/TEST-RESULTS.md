@@ -1128,3 +1128,71 @@ with that reason on the line.
 | PHPCS | ✅ 0 errors, 0 warnings, 238 files |
 | PHPStan level 6 | ✅ no errors |
 | ESLint | ✅ clean |
+
+---
+
+## Phase 12 — Admin intelligence
+
+### Run 1 — the compiler names the class, not the file
+
+```
+vendor/bin/phpunit
+```
+
+**Result:** 1 053 tests, **4 failures**.
+
+| Failure | Root cause | Fix | Retest |
+|---|---|---|---|
+| `CompilerTest::test_every_generated_class_exists_in_its_handler_file` ×3 | The generated runtime derives a handler's class name from the *tweak id*, so `admin.remove_wp_news_widget` must define `WPDebloat_Handler_Admin_Remove_Wp_News_Widget`. Three handlers had been named after what they do rather than after their tweak. | Renamed the classes and the files to follow the id, as every existing handler already did. | ✅ |
+| `RepositoryInvariantsTest` — the schema set | A new registry table, so a new schema. | Added `admin-notices.schema.json` to the named set. | ✅ |
+
+### Run 2 — the pinned tweak set
+
+**Result:** 2 failures, both the MVP-set invariants from Phase 1, which pin the
+shipped tweaks by name and by risk. Extended with the five admin tweaks and
+their risks — `medium` for notice suppression, which is what keeps it out of
+"Fix Safe Issues", and the reason is in the test.
+
+### Run 3 — the sub-score count
+
+`AnalyzerTest::test_the_v1_sub_scores_are_the_specified_five` failed on six.
+Rewritten rather than renumbered: it now asserts the set the rubric names, pins
+the rubric version, and keeps the two assertions that actually matter — that
+`performance` is not a sub-score and neither is `assets` yet.
+
+### Run 4 — integration, and a handler adding a notice
+
+```
+npm run test:integration:main
+```
+
+**Result:** 214 tests, **3 errors and 2 failures**.
+
+| Failure | Root cause | Fix | Retest |
+|---|---|---|---|
+| `admin.hide_update_nags_non_admins left hooks behind after unregister()` | `unregister()` put `update_nag` back on **both** notice hooks whether or not it had removed it from both. On an install where the notice was only on `admin_notices`, undoing the change *added* a notice — a handler whose whole job is to hide one. | Track which hooks it actually removed, and restore only those. | ✅ |
+| `test_a_source_outside_the_allowlist_is_refused` expected the wrong exception | The refusal comes from the tweak's own parameter schema, which throws `RuntimeException`. | Assert the refusal and the message. The point is that the allowlist is enforced by schema validation, so nothing further down has to be trusted. | ✅ |
+| Three errors: "headers already sent", and one wrong method name | The tests fired `admin_init` and `admin_head`, which send headers the test bootstrap has already printed past. | Drive the handler methods directly; the hook wiring has its own test. | ✅ |
+
+### Run 5 — static analysis
+
+| Finding | Fix |
+|---|---|
+| `$item->src ?? ''` — `src` is `string\|false`, never null | A registered handle's `src` is `false` when it is an alias with no file of its own. Checked for what it actually is. |
+| `array_values()` on something already a list | Removed. |
+| `add_action( $hook, 'update_nag', 3 )` returns `void\|false` | Core's own callback, put back exactly as WordPress registered it. Ignored on the line, with that reason. |
+| Short ternaries ×5, a reserved keyword as a parameter name, an assignment to `$wp_meta_boxes` | Rewritten. The global assignment is deliberate — clearing the registry so `wp_dashboard_setup()` rebuilds it is the measurement — and is ignored with that reason. |
+
+### Run 6 — full regression
+
+| Gate | Result |
+|---|---|
+| Unit | ✅ 1 087 tests, 7 837 assertions |
+| Integration | ✅ 214 tests, 1 438 assertions |
+| Forced-failure suite | ✅ 9 tests, 102 assertions |
+| CLI end-to-end (real `wp` binary) | ✅ |
+| Jest | ✅ 12 tests |
+| Bundle | ✅ 10.6 KB of 250 KB |
+| PHPCS | ✅ 0 errors, 0 warnings, 252 files |
+| PHPStan level 6 | ✅ no errors |
+| ESLint | ✅ clean |

@@ -38,58 +38,91 @@ final class Facts {
 		return FactSet::fromArray(
 			array_merge(
 				array(
-					'env.wp_version'           => '6.8.1',
-					'env.php_version'          => '8.2.19',
-					'env.host_vendor'          => 'kinsta',
-					'env.cache_plugin'         => 'none',
-					'env.is_multisite'         => false,
+					'env.wp_version'                => '6.8.1',
+					'env.php_version'               => '8.2.19',
+					'env.host_vendor'               => 'kinsta',
+					'env.cache_plugin'              => 'none',
+					'env.is_multisite'              => false,
 
-					'wp.heartbeat_interval'    => 15,
-					'wp.xmlrpc_enabled'        => true,
-					'wp.emojis_enabled'        => true,
-					'wp.embeds_enabled'        => true,
-					'wp.rss_enabled'           => true,
-					'wp.generator_tag'         => true,
-					'wp.rsd_link'              => true,
-					'wp.shortlink'             => true,
-					'wp.self_pingbacks'        => true,
-					'wp.dashicons_frontend'    => false,
-					'wp.jquery_migrate'        => true,
-					'wp.revisions_limit'       => -1,
-					'wp.file_editor_enabled'   => true,
-					'wp.debug'                 => false,
+					'wp.heartbeat_interval'         => 15,
+					'wp.xmlrpc_enabled'             => true,
+					'wp.emojis_enabled'             => true,
+					'wp.embeds_enabled'             => true,
+					'wp.rss_enabled'                => true,
+					'wp.generator_tag'              => true,
+					'wp.rsd_link'                   => true,
+					'wp.shortlink'                  => true,
+					'wp.self_pingbacks'             => true,
+					'wp.dashicons_frontend'         => false,
+					'wp.jquery_migrate'             => true,
+					'wp.revisions_limit'            => -1,
+					'wp.file_editor_enabled'        => true,
+					'wp.debug'                      => false,
 
-					'users.admin_count'        => 1,
-					'users.recent_editors_7d'  => 0,
+					'users.admin_count'             => 1,
+					'users.recent_editors_7d'       => 0,
 
-					'plugins.active'           => array(),
-					'plugins.inactive'         => array(),
-					'plugins.meta'             => array(),
-					'plugins.detected'         => self::noDetections(),
-					'plugins.categories'       => array(),
-					'plugins.update_source'    => 'file_mtime',
-					'plugins.host_optimizers'  => array(),
+					'plugins.active'                => array(),
+					'plugins.inactive'              => array(),
+					'plugins.meta'                  => array(),
+					'plugins.detected'              => self::noDetections(),
+					'plugins.categories'            => array(),
+					'plugins.update_source'         => 'file_mtime',
+					'plugins.host_optimizers'       => array(),
 
-					'theme.active'             => 'twentytwentyfour',
-					'theme.parent'             => null,
+					'theme.active'                  => 'twentytwentyfour',
+					'theme.parent'                  => null,
 
-					'db.size_bytes'            => 2048000,
-					'db.revisions.count'       => 4,
-					'db.autodrafts.count'      => 0,
-					'db.trash.count'           => 0,
-					'db.spam_comments.count'   => 0,
-					'db.transients.count'      => 3,
-					'db.transients.expired'    => 0,
-					'db.orphan_postmeta.count' => 0,
-					'db.orphan_termmeta.count' => 0,
-					'db.orphan_usermeta.count' => 0,
-					'db.autoload.bytes'        => 120000,
-					'db.autoload.top'          => array(),
+					'db.size_bytes'                 => 2048000,
+					'db.revisions.count'            => 4,
+					'db.autodrafts.count'           => 0,
+					'db.trash.count'                => 0,
+					'db.spam_comments.count'        => 0,
+					'db.transients.count'           => 3,
+					'db.transients.expired'         => 0,
+					'db.orphan_postmeta.count'      => 0,
+					'db.orphan_termmeta.count'      => 0,
+					'db.orphan_usermeta.count'      => 0,
+					'db.autoload.bytes'             => 120000,
+					'db.autoload.top'               => array(),
 
-					'cron.events.count'        => 12,
-					'cron.events.subminute'    => array(),
-					'cron.orphans.count'       => 0,
-					'cron.disable_wp_cron'     => false,
+					'admin.notices.count'           => 0,
+					'admin.notices'                 => array(),
+					'admin.notice_vendors'          => array(),
+					'admin.dashboard_widgets.count' => 4,
+					'admin.dashboard_widgets'       => self::coreDashboard(),
+					'admin.menu_items.count'        => 2,
+					'admin.menu_items'              => array(
+						array(
+							'slug'   => 'index.php',
+							'source' => 'wordpress',
+						),
+						array(
+							'slug'   => 'plugins.php',
+							'source' => 'wordpress',
+						),
+					),
+					'admin.scripts.count'           => 1,
+					'admin.scripts'                 => array(
+						array(
+							'handle' => 'common',
+							'source' => 'wordpress',
+						),
+					),
+					'admin.styles.count'            => 1,
+					'admin.styles'                  => array(
+						array(
+							'handle' => 'wp-admin',
+							'source' => 'wordpress',
+						),
+					),
+					'admin.welcome_panel'           => true,
+					'admin.update_nag'              => false,
+
+					'cron.events.count'             => 12,
+					'cron.events.subminute'         => array(),
+					'cron.orphans.count'            => 0,
+					'cron.disable_wp_cron'          => false,
 				),
 				$overrides
 			)
@@ -148,6 +181,42 @@ final class Facts {
 							'finding' => 'wp.emojis.loaded',
 						),
 					),
+					'admin.notices.count'     => 5,
+					'admin.notices'           => array(
+						array(
+							'hook'   => 'admin_notices',
+							'source' => 'woocommerce',
+						),
+						array(
+							'hook'   => 'admin_notices',
+							'source' => 'woocommerce',
+						),
+						array(
+							'hook'   => 'all_admin_notices',
+							'source' => 'woocommerce',
+						),
+						array(
+							'hook'   => 'admin_notices',
+							'source' => 'wordpress-seo',
+						),
+						array(
+							'hook'   => 'admin_notices',
+							'source' => 'unknown',
+						),
+					),
+					'admin.notice_vendors'    => array(
+						array(
+							'vendor' => 'woocommerce',
+							'name'   => 'WooCommerce',
+							'source' => 'woocommerce',
+						),
+						array(
+							'vendor' => 'yoast',
+							'name'   => 'Yoast SEO',
+							'source' => 'wordpress-seo',
+						),
+					),
+					'admin.update_nag'        => true,
 					'theme.active'            => 'storefront',
 					'db.revisions.count'      => 31421,
 					'db.transients.count'     => 5210,
@@ -157,6 +226,24 @@ final class Facts {
 				$overrides
 			)
 		);
+	}
+
+	/**
+	 * The four widgets a default WordPress dashboard registers.
+	 *
+	 * @return array<int,array<string,string>>
+	 */
+	public static function coreDashboard(): array {
+		$widgets = array();
+
+		foreach ( array( 'dashboard_activity', 'dashboard_primary', 'dashboard_quick_press', 'dashboard_right_now' ) as $id ) {
+			$widgets[] = array(
+				'id'     => $id,
+				'source' => 'wordpress',
+			);
+		}
+
+		return $widgets;
 	}
 
 	/**

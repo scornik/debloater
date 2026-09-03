@@ -33,16 +33,18 @@ use WPDebloat\Contracts\Finding;
  * - **Each finding id counts once.** A rule that fires twice cannot double its
  *   own weight.
  *
- * Assets is not a sub-score in v1 (BUILD-SPEC §12; Phase 13 adds it, Phase 12
- * adds Admin). Findings in an unscored category are reported separately rather
- * than dropped, so nothing is silently invisible.
+ * Assets is still not a sub-score (BUILD-SPEC §12; Phase 13 adds it). Admin
+ * became one in v2, once there were admin findings to put in it — a sub-score
+ * over an empty category is a perfect ten for nothing. Findings in an unscored
+ * category are reported separately rather than dropped, so nothing is silently
+ * invisible.
  */
 final class Score {
 
 	/**
 	 * The rubric version. Bump alongside docs/SCORING.md.
 	 */
-	public const RUBRIC_VERSION = '1.0';
+	public const RUBRIC_VERSION = '2.0';
 
 	/**
 	 * Categories that make up the headline score in this version.
@@ -56,6 +58,7 @@ final class Score {
 			Category::DATABASE,
 			Category::PLUGINS,
 			Category::MAINTENANCE,
+			Category::ADMIN,
 		);
 	}
 

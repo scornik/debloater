@@ -373,19 +373,31 @@ final class AnalyzerTest extends TestCase {
 	}
 
 	/**
-	 * BUILD-SPEC §12 names five sub-scores in v1, and Performance is not one of
-	 * them (locked decision #1).
+	 * The sub-scores are the ones the rubric names, and Performance is not among
+	 * them (BUILD-SPEC §12, locked decision #1).
+	 *
+	 * v1 had the five §12 lists. v2 adds Admin, which became scoreable in
+	 * Phase 12 once there were admin findings to put in it — a sub-score over an
+	 * empty category is a perfect ten awarded for nothing. Assets is still
+	 * absent and stays absent until Phase 13.
+	 *
+	 * Performance is the one that must never appear. The score is a
+	 * configuration score; a "performance" sub-score would be a speed claim
+	 * dressed as a measurement, which is exactly what the Meter exists to do
+	 * properly instead.
 	 *
 	 * @return void
 	 */
-	public function test_the_v1_sub_scores_are_the_specified_five(): void {
+	public function test_the_sub_scores_are_the_ones_the_rubric_names(): void {
 		$score = new Score( array() );
 
 		$this->assertSame(
-			array( 'wordpress', 'configuration', 'database', 'plugins', 'maintenance' ),
+			array( 'wordpress', 'configuration', 'database', 'plugins', 'maintenance', 'admin' ),
 			array_keys( $score->subScores() )
 		);
 		$this->assertArrayNotHasKey( 'performance', $score->subScores() );
+		$this->assertArrayNotHasKey( 'assets', $score->subScores() );
+		$this->assertSame( '2.0', Score::RUBRIC_VERSION );
 	}
 
 	/**

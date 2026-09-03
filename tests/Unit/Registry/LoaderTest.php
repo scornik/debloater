@@ -56,6 +56,11 @@ final class LoaderTest extends TestCase {
 	public function test_the_shipped_registry_holds_the_mvp_tweak_set(): void {
 		$this->assertSame(
 			array(
+				'admin.hide_update_nags_non_admins',
+				'admin.remove_dashboard_widgets',
+				'admin.remove_welcome_panel',
+				'admin.remove_wp_news_widget',
+				'admin.suppress_promo_notices',
 				'core.disable_dashicons_guests',
 				'core.disable_embeds',
 				'core.disable_emojis',
@@ -90,27 +95,36 @@ final class LoaderTest extends TestCase {
 	 */
 	public function test_every_tweak_carries_its_specified_risk(): void {
 		$expected = array(
-			'core.remove_generator'         => Risk::SAFE,
-			'core.remove_rsd'               => Risk::SAFE,
-			'core.remove_shortlink'         => Risk::SAFE,
-			'core.disable_emojis'           => Risk::SAFE,
-			'core.disable_self_pingbacks'   => Risk::SAFE,
-			'core.disable_embeds'           => Risk::SAFE,
-			'core.heartbeat_interval'       => Risk::LOW,
-			'core.limit_revisions'          => Risk::LOW,
-			'db.clean_expired_transients'   => Risk::LOW,
-			'core.disable_dashicons_guests' => Risk::MEDIUM,
-			'core.remove_jquery_migrate'    => Risk::MEDIUM,
+			'core.remove_generator'             => Risk::SAFE,
+			'core.remove_rsd'                   => Risk::SAFE,
+			'core.remove_shortlink'             => Risk::SAFE,
+			'core.disable_emojis'               => Risk::SAFE,
+			'core.disable_self_pingbacks'       => Risk::SAFE,
+			'core.disable_embeds'               => Risk::SAFE,
+			'core.heartbeat_interval'           => Risk::LOW,
+			'core.limit_revisions'              => Risk::LOW,
+			'db.clean_expired_transients'       => Risk::LOW,
+			'core.disable_dashicons_guests'     => Risk::MEDIUM,
+			'core.remove_jquery_migrate'        => Risk::MEDIUM,
 
 			// Phase 10. The three that delete content a person might miss are
 			// medium; the two that delete things already judged disposable —
 			// an abandoned auto-draft, a comment marked as spam — are low.
-			'db.clean_revisions'            => Risk::MEDIUM,
-			'db.empty_trash'                => Risk::MEDIUM,
-			'db.clean_orphan_meta'          => Risk::MEDIUM,
-			'db.clean_auto_drafts'          => Risk::LOW,
-			'db.delete_spam_comments'       => Risk::LOW,
-			'db.autoload_off'               => Risk::LOW,
+			'db.clean_revisions'                => Risk::MEDIUM,
+			'db.empty_trash'                    => Risk::MEDIUM,
+			'db.clean_orphan_meta'              => Risk::MEDIUM,
+			'db.clean_auto_drafts'              => Risk::LOW,
+			'db.delete_spam_comments'           => Risk::LOW,
+			'db.autoload_off'                   => Risk::LOW,
+
+			// Phase 12. Removing something from your own dashboard is about as
+			// safe as a change gets; hiding another plugin's notices is not,
+			// because the same hook carries its warnings.
+			'admin.remove_dashboard_widgets'    => Risk::SAFE,
+			'admin.remove_welcome_panel'        => Risk::SAFE,
+			'admin.remove_wp_news_widget'       => Risk::SAFE,
+			'admin.hide_update_nags_non_admins' => Risk::SAFE,
+			'admin.suppress_promo_notices'      => Risk::MEDIUM,
 		);
 
 		foreach ( $this->shippedRegistry()->all() as $id => $definition ) {

@@ -12,6 +12,7 @@ namespace WPDebloat\Analyze;
 use WPDebloat\Analyze\Rules\AbandonedPluginsRule;
 use WPDebloat\Analyze\Rules\AutoDraftsRule;
 use WPDebloat\Analyze\Rules\AutoloadRule;
+use WPDebloat\Analyze\Rules\DashboardWidgetsRule;
 use WPDebloat\Analyze\Rules\DashiconsFrontendRule;
 use WPDebloat\Analyze\Rules\DuplicateFunctionalityRule;
 use WPDebloat\Analyze\Rules\EmbedsRule;
@@ -23,7 +24,9 @@ use WPDebloat\Analyze\Rules\HeartbeatIntervalRule;
 use WPDebloat\Analyze\Rules\HostOptimizerRule;
 use WPDebloat\Analyze\Rules\InactivePluginsRule;
 use WPDebloat\Analyze\Rules\JqueryMigrateRule;
+use WPDebloat\Analyze\Rules\NewsWidgetRule;
 use WPDebloat\Analyze\Rules\OrphanMetaRule;
+use WPDebloat\Analyze\Rules\PluginNoticesRule;
 use WPDebloat\Analyze\Rules\RevisionsUnlimitedRule;
 use WPDebloat\Analyze\Rules\RsdLinkRule;
 use WPDebloat\Analyze\Rules\SelfPingbackRule;
@@ -31,6 +34,8 @@ use WPDebloat\Analyze\Rules\ShortlinkRule;
 use WPDebloat\Analyze\Rules\SpamCommentsRule;
 use WPDebloat\Analyze\Rules\StoredRevisionsRule;
 use WPDebloat\Analyze\Rules\TrashRule;
+use WPDebloat\Analyze\Rules\UpdateNagRule;
+use WPDebloat\Analyze\Rules\WelcomePanelRule;
 use WPDebloat\Analyze\Rules\XmlRpcRule;
 use WPDebloat\Contracts\AnalyzerRuleInterface;
 
@@ -76,6 +81,13 @@ final class Rules {
 			new SpamCommentsRule(),
 			new OrphanMetaRule(),
 			new AutoloadRule(),
+
+			// Admin: what the people who run the site have to look at.
+			new WelcomePanelRule(),
+			new NewsWidgetRule(),
+			new UpdateNagRule(),
+			new PluginNoticesRule(),
+			new DashboardWidgetsRule(),
 
 			// Assets: not part of the score until Phase 13, but reported.
 			new JqueryMigrateRule(),

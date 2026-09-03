@@ -68,8 +68,50 @@ final class Loader {
 			$this->loadCompatibility(),
 			$this->loadProfiles(),
 			$this->loadPluginCategories(),
-			$this->loadHostOptimizers()
+			$this->loadHostOptimizers(),
+			$this->loadNoticeVendors()
 		);
+	}
+
+	/**
+	 * Load the admin-notice vendor allowlist.
+	 *
+	 * @return array<int,NoticeVendor>
+	 * @throws RuntimeException When the document exists but is invalid.
+	 */
+	public function loadNoticeVendors(): array {
+		$path = $this->file( 'admin-notices.json' );
+
+		if ( ! is_file( $path ) ) {
+			return array();
+		}
+
+		$document   = $this->decode( $path );
+		$violations = $this->validator( 'admin-notices.schema.json' )->validate( $document );
+
+		if ( array() !== $violations ) {
+			throw new RuntimeException(
+				sprintf(
+					'registry/admin-notices.json is invalid: %s',
+					implode( '; ', array_map( 'strval', $violations ) )
+				)
+			);
+		}
+
+		$vendors = array();
+		$entries = $document['vendors'] ?? array();
+
+		if ( ! is_array( $entries ) ) {
+			return array();
+		}
+
+		foreach ( $entries as $entry ) {
+			if ( is_array( $entry ) ) {
+				$vendors[] = NoticeVendor::fromArray( $entry );
+			}
+		}
+
+		return $vendors;
 	}
 
 	/**

@@ -67,6 +67,13 @@ final class Registry {
 	private readonly array $host_optimizers;
 
 	/**
+	 * Admin-notice vendors keyed by slug, in sorted order.
+	 *
+	 * @var array<string,NoticeVendor>
+	 */
+	private readonly array $notice_vendors;
+
+	/**
 	 * Cached registry hash.
 	 *
 	 * @var string
@@ -82,6 +89,7 @@ final class Registry {
 	 * @param array<int,Profile>         $profiles      Profiles.
 	 * @param PluginCategories|null      $categories    Plugin category table.
 	 * @param array<int,HostOptimizer>   $optimizers    Host and stack optimizers.
+	 * @param array<int,NoticeVendor>    $vendors       Admin-notice vendors.
 	 * @throws RuntimeException When an id is duplicated or a reference dangles.
 	 */
 	public function __construct(
@@ -90,7 +98,8 @@ final class Registry {
 		array $compatibility = array(),
 		array $profiles = array(),
 		?PluginCategories $categories = null,
-		array $optimizers = array()
+		array $optimizers = array(),
+		array $vendors = array()
 	) {
 		$indexed = array();
 
@@ -184,20 +193,70 @@ final class Registry {
 
 		ksort( $by_optimizer, SORT_STRING );
 
+		$by_vendor = array();
+
+		foreach ( $vendors as $vendor ) {
+			if ( ! $vendor instanceof NoticeVendor ) {
+				throw new RuntimeException( 'Registry accepts NoticeVendor instances only.' );
+			}
+
+			if ( array_key_exists( $vendor->slug, $by_vendor ) ) {
+				throw new RuntimeException( sprintf( 'Duplicate notice vendor "%s" in registry.', $vendor->slug ) );
+			}
+
+			$by_vendor[ $vendor->slug ] = $vendor;
+		}
+
+		ksort( $by_vendor, SORT_STRING );
+
 		$this->tweaks            = $indexed;
 		$this->detectors         = $by_id;
 		$this->compatibility     = $by_subject;
 		$this->profiles          = $by_profile;
 		$this->plugin_categories = $categories ?? new PluginCategories();
 		$this->host_optimizers   = $by_optimizer;
+		$this->notice_vendors    = $by_vendor;
 		$this->hash              = self::computeHash(
 			$indexed,
 			$by_id,
 			$by_subject,
 			$by_profile,
 			$this->plugin_categories,
-			$by_optimizer
+			$by_optimizer,
+			$by_vendor
 		);
+	}
+
+	/**
+	 * Admin-notice vendors, in sorted slug order.
+	 *
+	 * @return array<string,NoticeVendor>
+	 */
+	public function noticeVendors(): array {
+		return $this->notice_vendors;
+	}
+
+	/**
+	 * Every plugin directory slug the notice allowlist covers, sorted.
+	 *
+	 * This is the closed set the tweak's parameter schema accepts. Anything
+	 * outside it is refused before it can reach generated code (§13 rule 5).
+	 *
+	 * @return array<int,string>
+	 */
+	public function noticeSources(): array {
+		$sources = array();
+
+		foreach ( $this->notice_vendors as $vendor ) {
+			foreach ( $vendor->sources as $source ) {
+				$sources[ $source ] = true;
+			}
+		}
+
+		$slugs = array_keys( $sources );
+		sort( $slugs, SORT_STRING );
+
+		return $slugs;
 	}
 
 	/**
@@ -447,6 +506,7 @@ final class Registry {
 	 * @param array<string,Profile>         $profiles      Profiles in sorted order.
 	 * @param PluginCategories              $categories    Plugin category table.
 	 * @param array<string,HostOptimizer>   $optimizers    Optimizers in sorted order.
+	 * @param array<string,NoticeVendor>    $vendors       Notice vendors in sorted order.
 	 * @return string
 	 */
 	private static function computeHash(
@@ -455,7 +515,8 @@ final class Registry {
 		array $compatibility,
 		array $profiles,
 		PluginCategories $categories,
-		array $optimizers
+		array $optimizers,
+		array $vendors
 	): string {
 		$canonical = array(
 			'tweaks'            => array(),
@@ -464,10 +525,15 @@ final class Registry {
 			'profiles'          => array(),
 			'plugin_categories' => $categories->toArray(),
 			'host_optimizers'   => array(),
+			'notice_vendors'    => array(),
 		);
 
 		foreach ( $optimizers as $id => $optimizer ) {
 			$canonical['host_optimizers'][ $id ] = $optimizer->toArray();
+		}
+
+		foreach ( $vendors as $slug => $vendor ) {
+			$canonical['notice_vendors'][ $slug ] = $vendor->toArray();
 		}
 
 		foreach ( $tweaks as $id => $definition ) {

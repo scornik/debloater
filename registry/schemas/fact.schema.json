@@ -181,8 +181,97 @@
     "cron.disable_wp_cron": { "type": "boolean" },
 
     "admin.notices.count": { "type": "integer", "minimum": 0 },
+    "admin.notices": {
+      "description": "One row per admin-notice callback: the hook it is on, and who registered it. A callback is not a visible notice — plenty check a condition and print nothing — so this counts the things that will run to decide. Source is \"unknown\" when the owner could not be established, which is a real answer and never a guess.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["hook", "source"],
+        "properties": {
+          "hook": { "type": "string", "minLength": 1 },
+          "source": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
     "admin.dashboard_widgets.count": { "type": "integer", "minimum": 0 },
+    "admin.dashboard_widgets": {
+      "description": "One row per registered dashboard widget, with who registered it.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "source"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "source": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
     "admin.menu_items.count": { "type": "integer", "minimum": 0 },
+    "admin.menu_items": {
+      "description": "One row per top-level admin menu item, with who registered it. Separators are excluded: they are entries in the data structure but not things anyone can click.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["slug", "source"],
+        "properties": {
+          "slug": { "type": "string" },
+          "source": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "admin.scripts.count": { "type": "integer", "minimum": 0 },
+    "admin.scripts": {
+      "description": "One row per script enqueued on the admin screen the scan ran from, with who it belongs to. One screen, not the whole admin.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["handle", "source"],
+        "properties": {
+          "handle": { "type": "string", "minLength": 1 },
+          "source": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "admin.styles.count": { "type": "integer", "minimum": 0 },
+    "admin.styles": {
+      "description": "One row per stylesheet enqueued on the admin screen the scan ran from, with who it belongs to.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["handle", "source"],
+        "properties": {
+          "handle": { "type": "string", "minLength": 1 },
+          "source": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "admin.notice_vendors": {
+      "description": "One row per allowlisted vendor that registered a notice on this screen: which vendor, what it is called, and the plugin directory the callback came from. The intersection of the registry allowlist and what was observed — a vendor with nothing registered does not appear, and a plugin printing notices that is not on the allowlist does not appear either, though it is still counted.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["vendor", "name", "source"],
+        "properties": {
+          "vendor": { "type": "string", "minLength": 1 },
+          "name": { "type": "string", "minLength": 1 },
+          "source": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "admin.welcome_panel": {
+      "description": "Whether the dashboard welcome panel is still being printed.",
+      "type": "boolean"
+    },
+    "admin.update_nag": {
+      "description": "Whether the core update notice is registered on this screen. It is shown to everyone who can see the admin, including people who cannot act on it.",
+      "type": "boolean"
+    },
 
     "scan.elapsed_ms": {
       "description": "Total milliseconds the scan took.",

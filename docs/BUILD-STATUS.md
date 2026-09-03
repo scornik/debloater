@@ -965,3 +965,98 @@ person who now knows there are two places to make it. Recorded as D-0028.
 ### Next
 
 Phase 12 — Admin intelligence.
+
+---
+
+## Phase 12 — Admin intelligence
+
+**Status:** complete · 2026-09-03
+
+The first phase about the people who run the site rather than the people who
+visit it.
+
+### What exists now
+
+- **AdminScanner v2.** Notices, dashboard widgets, admin menu items and the
+  scripts and styles on our own screen, each attributed to whoever registered
+  it. Attribution is by asking the callable where its code lives; what cannot be
+  established comes back as `unknown` rather than as a guess.
+- **Five config tweaks**, all admin-only, all reversible:
+  `admin.remove_dashboard_widgets` (per-widget), `admin.remove_welcome_panel`,
+  `admin.remove_wp_news_widget`, `admin.hide_update_nags_non_admins`,
+  `admin.suppress_promo_notices`.
+- **Five rules**, four recommending and one — the crowded dashboard — reporting
+  only, because which widgets are worth keeping is a question about the person.
+- `registry/admin-notices.json`, the vendor allowlist, and SCORING.md **v2**
+  with Admin as the sixth sub-score.
+
+### The tweak this phase argued with
+
+§17 asks for `admin.suppress_promo_notices` driven by an allowlist of
+promotional notice hooks. There are no such hooks. WooCommerce sends an upsell
+and "your database needs updating" down the same channel; Yoast routes nearly
+everything through one notification centre. A feature built as though marketing
+were separable would hide a database-update warning and call it an advert.
+
+So the mechanism is source-based — a callback is removed only when its code
+lives inside a plugin directory the user selected — and everything a person
+reads says what it actually does: the title is "Hide admin notices from plugins
+you choose", the `breaks` list names the warnings that go with it, and the risk
+is medium, which keeps it out of "Fix Safe Issues". Recorded as D-0031.
+
+### The dashboard finding that proposes nothing
+
+`admin.remove_dashboard_widgets` exists, works, and is never recommended. The
+tweak takes a list of widget ids and the entire question is which ones — an
+answer that depends on what a person reads every morning. The widget that looks
+most obviously removable from here is sometimes the first thing somebody checks.
+So the finding reports what is on the dashboard and who put it there, the
+selection screen offers the change with the list ready, and nothing is
+preselected.
+
+### Exit checklist (§17 Phase 12)
+
+| Criterion | Result |
+|---|---|
+| Per-source notices | ✅ |
+| Per-source dashboard widgets | ✅ |
+| Per-source admin menu items | ✅ via the page's own hook name; `unknown` where there is no callback to reflect |
+| Admin script/style counts on our screen load | ✅ with sources |
+| `admin.remove_dashboard_widgets` with a per-widget parameter | ✅ |
+| `admin.hide_update_nags_non_admins` | ✅ and whoever can update always sees it |
+| `admin.remove_welcome_panel` | ✅ |
+| `admin.remove_wp_news_widget` | ✅ |
+| `admin.suppress_promo_notices` from a registry allowlist | ✅ woocommerce, elementor, yoast, rank-math, jetpack — with D-0031 on what it can and cannot claim |
+| Admin sub-score, SCORING.md v2 with a changelog entry | ✅ rubric 2.0 |
+| Admin findings carry evidence | ✅ |
+| Tweaks reversible | ✅ every one asserted to add no hook it does not remove, and remove none it does not put back |
+| Verification passes with every admin tweak applied | ✅ |
+| **The plugin emits zero admin notices** | ✅ asserted against its own scanner output |
+| Unit suite | ✅ 1 087 tests, 7 837 assertions |
+| Integration suite | ✅ 214 tests, 1 438 assertions |
+| Forced-failure suite | ✅ 9 tests, 102 assertions |
+| CLI end-to-end | ✅ |
+| Jest | ✅ 12 tests |
+| Bundle | ✅ 10.6 KB of 250 KB |
+| PHPCS | ✅ 0 errors, 0 warnings across 252 files |
+| PHPStan level 6 | ✅ no errors |
+| ESLint | ✅ clean |
+
+### Known warnings
+
+- No admin tweak is in any profile, including the four that are `safe`. Changing
+  what somebody else sees when they log in should be chosen rather than swept up
+  by one click (D-0032).
+- Menu-item attribution goes through the page's registered callback. A menu
+  entry that links to an existing file rather than registering a page has no
+  callback to reflect on and reports `unknown`. That is correct and it is also
+  a real gap in coverage.
+- The scripts and styles recorded are the ones on the screen the scan ran from,
+  which is one screen, not the admin as a whole. The fact says so; a rule that
+  read it as a site-wide figure would be wrong.
+- `ExpiredTransientsCleanup` from Phase 5 still does not use the collection
+  ceiling (carried from Phase 10).
+
+### Next
+
+Phase 13 — Asset intelligence (detection only).

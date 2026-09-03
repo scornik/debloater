@@ -384,7 +384,7 @@ final class Plugin {
 					new DatabaseScanner(),
 					new AutoloadScanner(),
 					new CronScanner(),
-					new AdminScanner(),
+					new AdminScanner( $this->registry() ),
 				),
 				$this->runs()
 			)

@@ -1,6 +1,6 @@
 # SCORING.md
 
-**Rubric version 1.0** · Phase 3 · 2026-09-02
+**Rubric version 2.0** · Phase 12 · 2026-09-03
 
 This document is the public account of how the Debloat Score and the confidence
 figures are calculated. It is versioned, and the version is shown in the
@@ -27,19 +27,19 @@ decision 1).
 
 ## Sub-scores
 
-Version 1.0 scores five categories:
+Version 2.0 scores six categories:
 
 | Sub-score | What it covers |
 |---|---|
 | **WordPress** | Core output and behaviour: the generator tag, emoji script, embeds, Heartbeat |
 | **Configuration** | Settings that affect the whole site: the file editor, XML-RPC |
-| **Database** | What has accumulated: revisions, expired transients |
+| **Database** | What has accumulated: revisions, expired transients, trash, orphaned metadata |
 | **Plugins** | What is installed and what it implies |
 | **Maintenance** | Housekeeping that runs on its own: self-pingbacks, cron |
+| **Admin** | What the people who run the site have to look at: notices, dashboard widgets |
 
-Two further categories exist and are **not scored in this version**:
+One category exists and is **not scored in this version**:
 
-- **Admin** — arrives with the Admin sub-score in Phase 12.
 - **Assets** — arrives after the asset scan in Phase 13, which is the first
   point at which the findings can be based on real page fetches rather than
   inference.
@@ -47,6 +47,30 @@ Two further categories exist and are **not scored in this version**:
 Findings in an unscored category are still produced, still shown, and reported
 in `unscored_categories` so the interface can say "2 findings in Assets, not yet
 part of the score". They are not silently dropped.
+
+### Why Admin only became a sub-score now
+
+It was named in version 1.0 and left unscored, which was right at the time: a
+sub-score over a category with no findings in it is a perfect ten awarded for
+nothing, and it would have pulled the headline up on every site. Phase 12 gave
+the category rules and evidence, so it now scores like the others.
+
+### What Admin scoring does not do
+
+Admin findings are about interruption, not speed, and the score has to be as
+careful there as everywhere else.
+
+- The dashboard-widget finding is `info` and costs nothing. Which widgets are
+  worth having is a question about the person, not about the site, and a score
+  that dropped because somebody kept a widget they read every morning would be
+  measuring the wrong thing.
+- The plugin-notice finding is `low`, not high, even though the change it
+  proposes is `medium` risk. Severity is how much this costs the site; risk is
+  how much the fix could cost. They are separate axes and this is the case that
+  shows why.
+- Nothing in Admin penalises a site for a notice WP Debloat cannot offer to
+  hide. Penalising something the user has no way to improve from here would be
+  showing a number they cannot move.
 
 ### Calculation
 
@@ -158,6 +182,17 @@ strength of a dependency that is still satisfied afterwards.
 ---
 
 ## Changelog
+
+### 2.0 — Phase 12
+
+Admin becomes a sub-score, so the headline is now the mean of six rather than
+five. Nothing else changed: the severity penalties, the confidence penalties and
+the `dont_touch` rules are the same as in 1.0.
+
+The practical effect is that a site with admin findings scores slightly
+differently from the same site under 1.0. That is why this is a version bump
+rather than an edit — a score is only meaningful next to the rubric that
+produced it, and the version travels with it.
 
 ### 1.0 — Phase 3
 
