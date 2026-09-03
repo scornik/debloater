@@ -1733,3 +1733,29 @@ The conversion is the kind most likely to break something quietly: a wrong
 argument order produces a query that runs and returns the wrong rows. The
 integration suite exercises every one of those queries against real tables,
 which is why it was safe to do at all.
+
+### The browser suite, on the full stack
+
+Run after every change above, because the REST boundary altered how all nine
+routes are registered and the `%i` conversion rewrote twenty queries — the two
+kinds of change most likely to pass unit tests and break a real page.
+
+```
+13 passed (20.8m), 1 worker, 0 retries
+
+  dashboard          loads and runs a real scan · shows the score and never
+                     claims a speed · emits no admin notice of its own ·
+                     reports a runtime that matches what it wrote
+  fix safe issues    previews, applies and reports · runtime file and recorded
+                     hash agree · can be undone completely
+  forced failure     the change is undone and the previous runtime hash is
+                     restored · the screen says so
+  WooCommerce        add to cart and reach checkout with every Woo change
+                     applied · the shop keeps its cart script, the blog does not
+  Contact Form 7     a visitor can submit a form
+  Elementor          the editor opens for a page
+```
+
+That is the compatibility matrix as a local run: WooCommerce, Elementor,
+Contact Form 7, Rank Math and LiteSpeed Cache all active, on WordPress 7.1 and
+PHP 8.2. The PHP 8.1 and 8.3 legs run nightly in CI.
