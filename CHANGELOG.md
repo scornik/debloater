@@ -71,6 +71,30 @@ All notable changes to Debloater are recorded here. The format follows
 
 ### Added
 
+- **Debloater Pro**, a separate plugin for people who manage several sites.
+  Scans on a schedule, drift detection between them, a printable before/after
+  report an agency can put its own name on, applying a saved profile in one
+  step, and registry updates sooner.
+
+  It adds nothing to what Debloater does to a site. Recovery points,
+  verification, automatic rollback, risk rules and the refusal to delete without
+  a backup are all in the free plugin and stay there — a test asserts that
+  activating Pro leaves the generated runtime byte-identical.
+
+  Pro reaches the free plugin only through documented hooks
+  (`docs/HOOKS.md`), and needs neither a licensing platform nor a cloud service
+  to be installed, built or tested.
+
+- **Extension points**, documented in `docs/HOOKS.md` and each covered by a
+  test: `debloater_loaded`, `debloater_scan_complete`,
+  `debloater_apply_complete`, `debloater_dashboard_panels` and
+  `debloater_registry_origin`.
+
+  The dashboard filter accepts text rather than markup, and strips tags before
+  anything reaches the screen. The registry filter can move the update channel
+  and cannot relax a single check on it.
+
+
 - **Phase 0 — architecture and contracts.**
   - Contract value objects for facts, findings, tweaks, plans, probes,
     verification, snapshots, apply results and site context. Each validates in

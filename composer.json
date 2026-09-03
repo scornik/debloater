@@ -28,7 +28,9 @@
         "psr-4": {
             "Debloater\\Tests\\Unit\\": "tests/Unit/",
             "Debloater\\Tests\\Integration\\": "tests/Integration/",
-            "Debloater\\Tests\\FailProbe\\": "tests/FailProbe/"
+            "Debloater\\Tests\\FailProbe\\": "tests/FailProbe/",
+            "Debloater\\Pro\\": "pro/src/",
+            "Debloater\\Tests\\Pro\\": "tests/Pro/"
         }
     },
     "config": {

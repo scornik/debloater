@@ -137,9 +137,96 @@ final class Screen {
 
 		wp_add_inline_script(
 			self::HANDLE,
-			sprintf( 'window.debloater = %s;', wp_json_encode( $this->bootstrapData() ) ),
+			sprintf( 'window.debloater = %s;', wp_json_encode( $this->bootstrap() ) ),
 			'before'
 		);
+	}
+
+	/**
+	 * The bootstrap payload, after extensions have added to it.
+	 *
+	 * Split from bootstrapData() so the filter cannot be reached without the
+	 * sanitising step below it, and so what the free plugin puts there stays
+	 * readable next to what an extension may add.
+	 *
+	 * @return array<string,mixed>
+	 */
+	private function bootstrap(): array {
+		$data = $this->bootstrapData();
+
+		/**
+		 * Extra panels for the dashboard.
+		 *
+		 * An extension returns a list of panels, each with a title and rows of
+		 * label/value text. Deliberately not markup: the screen renders these
+		 * as text, so nothing an extension supplies can introduce an element,
+		 * a script or a style. An extension that needs its own interface should
+		 * have its own screen, where it is responsible for its own escaping.
+		 *
+		 * Panels are rendered in the order returned, after the plugin's own
+		 * content, and a malformed one is dropped rather than rendered badly.
+		 *
+		 * @since 0.1.0
+		 *
+		 * @param array<int,array{title:string,rows:array<int,array{label:string,value:string}>}> $panels Panels to add.
+		 */
+		$panels = apply_filters( 'debloater_dashboard_panels', array() );
+
+		$data['panels'] = $this->sanitisePanels( is_array( $panels ) ? $panels : array() );
+
+		return $data;
+	}
+
+	/**
+	 * Reduce whatever an extension returned to titles and text.
+	 *
+	 * Anything not matching the documented shape is discarded. An extension
+	 * that returns markup gets its markup escaped rather than rendered, and an
+	 * extension that returns nonsense gets nothing — neither can put an element
+	 * on this screen, which is the only property that matters here
+	 * (BUILD-SPEC §13 rule 4).
+	 *
+	 * @param array<int,mixed> $panels Whatever the filter produced.
+	 * @return array<int,array{title:string,rows:array<int,array{label:string,value:string}>}>
+	 */
+	private function sanitisePanels( array $panels ): array {
+		$clean = array();
+
+		foreach ( $panels as $panel ) {
+			if ( ! is_array( $panel ) || ! isset( $panel['title'] ) || ! is_string( $panel['title'] ) ) {
+				continue;
+			}
+
+			$rows = array();
+
+			foreach ( is_array( $panel['rows'] ?? null ) ? $panel['rows'] : array() as $row ) {
+				if ( ! is_array( $row ) || ! isset( $row['label'], $row['value'] ) ) {
+					continue;
+				}
+
+				if ( ! is_scalar( $row['label'] ) || ! is_scalar( $row['value'] ) ) {
+					continue;
+				}
+
+				$rows[] = array(
+					'label' => wp_strip_all_tags( (string) $row['label'] ),
+					'value' => wp_strip_all_tags( (string) $row['value'] ),
+				);
+			}
+
+			$clean[] = array(
+				'title' => wp_strip_all_tags( $panel['title'] ),
+				'rows'  => $rows,
+			);
+
+			// A dashboard is a place to look, not a place to scroll. An
+			// extension with more than this to say needs its own screen.
+			if ( count( $clean ) >= 5 ) {
+				break;
+			}
+		}
+
+		return $clean;
 	}
 
 	/**

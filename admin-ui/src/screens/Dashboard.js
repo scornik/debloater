@@ -8,6 +8,7 @@ import { __, _n, sprintf } from '@wordpress/i18n';
 
 import { get, post } from '../api/client';
 import { useResource } from '../api/useResource';
+import ExtensionPanels from '../components/ExtensionPanels';
 import Score from '../components/Score';
 import { decisionLabel, riskLabel } from '../components/Badges';
 
@@ -201,6 +202,8 @@ export const Dashboard = ( { onNavigate, onFixSafeIssues, onScore } ) => {
 					</Notice>
 				) }
 			</section>
+
+			<ExtensionPanels />
 		</div>
 	);
 };

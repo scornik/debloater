@@ -1759,3 +1759,53 @@ kinds of change most likely to pass unit tests and break a real page.
 That is the compatibility matrix as a local run: WooCommerce, Elementor,
 Contact Form 7, Rank Math and LiteSpeed Cache all active, on WordPress 7.1 and
 PHP 8.2. The PHP 8.1 and 8.3 legs run nightly in CI.
+
+---
+
+## Phase 19 — Pro
+
+```
+Unit (free)          OK  1 185 tests, 12 188 assertions
+Unit (pro)           OK     14 tests,    110 assertions
+Integration          OK    300 tests,  4 566 assertions
+Fail-probe rollback  OK      9 tests,    105 assertions
+PHPCS                clean, across src/, pro/ and tests/
+PHPStan level 6      no errors, across src/ and pro/
+plugin-zip           debloater-0.1.0.zip, 301 files, 522 KB, no Pro code
+```
+
+### The tests that matter here are all about absence
+
+Every exit criterion for this phase is a claim about what happens when something
+is missing, because that is the state a real install spends its life in: no
+licensing platform, no cloud, no second scan yet.
+
+The suite runs with **no licensing SDK present at all** — asserted, not assumed
+— which is simultaneously the CI configuration and what a free install looks
+like. That is why the fixture provider ships rather than hiding in the test
+tree: an interface whose value is that a second implementation is cheap is a
+claim best backed by having one.
+
+### Three findings from writing the tests
+
+**`Pro::$plugin` was never read.** PHPStan caught it. The constructor hands the
+plugin to each feature and never needs it again, so the property was removed
+rather than given an accessor to keep a linter quiet.
+
+**A `default` parameter name.** `RegistryChannel::origin( $default )` — a
+reserved word, and PHPCS was right to object.
+
+**The text-domain sniff was configured for one domain.** Pro is a separate
+plugin with its own slug, so it translates against `debloater-pro`; a shared
+domain would mean one plugin's strings arriving under the other's name on
+translate.wordpress.org.
+
+### One test worth describing
+
+`test_pro_changes_no_runtime_behaviour` generates the runtime with Pro absent,
+boots Pro, generates it again, and asserts the two files are **byte-identical**.
+
+A weaker version — "no new tweaks appear in the registry" — would pass while Pro
+quietly altered a parameter, a hook priority or the order of two handlers.
+Comparing the artefact rather than the inputs is what makes it an assertion
+about the site rather than about the plan.

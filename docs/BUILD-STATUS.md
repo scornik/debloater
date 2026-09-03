@@ -1772,3 +1772,70 @@ Dropping "WordPress" from `Brand::TAGLINE` clears it, and is a one-line change.
 expects. The PNGs themselves are release assets that live in the wordpress.org
 SVN `/assets` directory rather than in the plugin, and uploading them is part of
 a submission this build does not perform.
+
+---
+
+## Phase 19 — Pro
+
+**Status:** complete · 2026-09-04
+
+### Goal
+
+A separate `debloater-pro` plugin, extending the free plugin through documented
+hooks only, adding workflow and never safety.
+
+### Exit criteria
+
+| Criterion | Result |
+|---|---|
+| Free plugin fully functional without Pro | Done — 1 185 unit and 309 integration tests run with Pro inactive |
+| ...without a licensing platform | Done — the suite asserts `debloater_fs` does not exist, and the adapter treats that as an ordinary answer |
+| ...without cloud access | Done — the cloud is off unless a wp-config constant turns it on, and a test asserts a disabled client makes no request at all |
+| Pro adds no tweaks | Done — registry ids identical before and after `Pro::boot()`, and the generated runtime is byte-identical |
+| Pro adds no safety features | Done — no `RuntimeWriter`, `Compiler` or `SnapshotManager` reachable from `pro/`, asserted by grep |
+| No Freemius symbol outside its adapter | Done — the SDK's entry function, its class and `is_paying` appear in exactly one file |
+| No cloud host outside the endpoint resolver | Done — `hakeemify.com` appears in `EndpointResolver` and nowhere else |
+| A missing or invalid entitlement fails safe | Done — every failure path arrives at `Entitlement::none()`, and bulk apply returns null having changed nothing |
+| A cloud outage degrades Pro and changes nothing | Done — a site fingerprint is identical across an outage, and drift still works |
+| No remote PHP or JS executes | Done — the client returns decoded data; there is no `eval`, no variable include, no remote enqueue |
+| Drift reports added and resolved findings | Done — and reversing the comparison turns one into the other |
+
+### What Pro is
+
+Five things, and every one of them is workflow:
+
+- **Scheduled scans.** A scan reads; it writes a run row and changes nothing.
+  That is what makes it safe unattended, and it is the only unattended thing in
+  Pro. **Applying on a schedule is deliberately not offered** — an unattended
+  change with nobody watching the verification is the thing this whole plugin is
+  arranged to avoid.
+- **Drift detection.** What appeared, what resolved, and what moved between two
+  scans. The third is the interesting one: a `dont_touch` that is no longer
+  warranted, or a low-severity finding that has become a high one.
+- **A white-label before/after report.** Print-CSS HTML, no PDF library
+  (D-0049). Measured deltas only; where nothing was measured it says so.
+- **Bulk apply of a saved profile.** The same `preview()` and `apply()` the
+  dashboard calls, with the same confirmation token check — it removes clicking,
+  not safety.
+- **A priority registry channel.** A different HTTPS base, and the same
+  signature verification, the same traversal checks, the same ceilings.
+
+Plus multisite groundwork behind `DEBLOATER_PRO_MULTISITE`: network defaults for
+selection and intent profile that a site may override, and nothing that applies
+anything to any site.
+
+### What Pro is not
+
+It does not make a site safer, and it cannot make one less safe. Recovery
+points, verification, automatic rollback, risk rules and the refusal to delete
+without a backup are in the free plugin, and a test asserts Pro does not reach
+them.
+
+### Two things a person still has to do
+
+- **Freemius is not configured.** The adapter is written and tested against its
+  absence, which is also what a free install looks like. Wiring a real account
+  is an external act with real credentials, outside this build's boundary.
+- **`cloud.hakeemify.com` does not exist.** The client, resolver and response
+  types are written and tested; no infrastructure was created. The cloud is
+  optional by construction, so nothing waits on it.

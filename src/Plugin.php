@@ -41,6 +41,7 @@ use Debloater\Recommend\PreviewPlanner;
 use Debloater\Recommend\RecommendationEngine;
 use Debloater\Registry\Loader;
 use Debloater\Update\Manifest;
+use Debloater\Update\RegistryOrigin;
 use Debloater\Update\RegistryUpdater;
 use Debloater\Registry\Profile;
 use Debloater\Registry\Registry;
@@ -204,6 +205,28 @@ final class Plugin {
 		if ( defined( 'WP_CLI' ) && WP_CLI && class_exists( '\\WP_CLI' ) ) {
 			\WP_CLI::add_command( Brand::CLI_COMMAND, Command::class );
 		}
+
+		/**
+		 * Debloater has booted and its services can be reached.
+		 *
+		 * The one entry point an extension needs. It fires once, after routes
+		 * and the admin screen are registered and before anything has run, and
+		 * it hands over the plugin itself rather than a curated subset —
+		 * because guessing in advance which accessor an extension will want is
+		 * how a hook ends up with six more arguments a year later.
+		 *
+		 * An extension may read anything through it. It may not replace
+		 * services: there is no setter, and the resolver, the risk engine and
+		 * the snapshot manager are reachable but not swappable. That asymmetry
+		 * is the point. Pro adds workflow around the engine; it never gets to
+		 * be the engine, because the safety argument for this plugin rests on
+		 * there being exactly one of it (BUILD-SPEC §13 rule 15).
+		 *
+		 * @since 0.1.0
+		 *
+		 * @param Plugin $plugin The booted plugin.
+		 */
+		do_action( 'debloater_loaded', $this );
 	}
 
 	/**
@@ -452,7 +475,40 @@ final class Plugin {
 	public function registryUpdater(): RegistryUpdater {
 		return $this->service(
 			'registry_updater',
-			fn (): RegistryUpdater => new RegistryUpdater( $this->registryTag() )
+			function (): RegistryUpdater {
+				/**
+				 * Where registry updates are fetched from.
+				 *
+				 * Exists so a Pro priority channel can point at a different
+				 * repository without the free plugin knowing anything about
+				 * channels. What it cannot do is relax the rules: RegistryOrigin
+				 * refuses anything that is not HTTPS and rejects a path segment
+				 * it does not like, and a base this filter cannot construct is a
+				 * base nothing can fetch from. So the worst an extension can do
+				 * is point at a different HTTPS repository — whose manifest
+				 * still has to pass signature verification before a single file
+				 * is written (BUILD-SPEC §13 rule 9, §17 Phase 17).
+				 *
+				 * @since 0.1.0
+				 *
+				 * @param string $base The base URL, with no trailing slash.
+				 */
+				$base = apply_filters( 'debloater_registry_origin', RegistryOrigin::DEFAULT_BASE );
+
+				try {
+					$origin = new RegistryOrigin( is_string( $base ) ? $base : RegistryOrigin::DEFAULT_BASE );
+				} catch ( \Throwable $error ) {
+					// A filter that produced something unusable falls back to
+					// the shipped origin rather than switching updates off. An
+					// extension breaking its own channel must not take the
+					// plugin's own with it.
+					unset( $error );
+
+					$origin = new RegistryOrigin();
+				}
+
+				return new RegistryUpdater( $this->registryTag(), $origin );
+			}
 		);
 	}
 
@@ -516,6 +572,21 @@ final class Plugin {
 		if ( null !== $run->id ) {
 			$this->state()->set( array( 'last_scan_run_id' => $run->id ) );
 		}
+
+		/**
+		 * A scan finished and its findings are stored.
+		 *
+		 * Fires for every scan whatever started it — the dashboard, WP-CLI, or
+		 * a schedule — so an extension that watches for change does not have to
+		 * know which. The run is already saved, so this is a notification and
+		 * not a filter: nothing an extension does here changes what was found.
+		 *
+		 * @since 0.1.0
+		 *
+		 * @param Run    $run    The completed scan, with its analysis attached.
+		 * @param Plugin $plugin The plugin, for reading anything else.
+		 */
+		do_action( 'debloater_scan_complete', $run, $this );
 
 		return $run;
 	}
@@ -884,7 +955,25 @@ final class Plugin {
 	public function apply( PreviewPlan $plan ): ApplyResult {
 		$this->schema()->ensure();
 
-		return $this->applyManager()->apply( $plan );
+		$result = $this->applyManager()->apply( $plan );
+
+		/**
+		 * An apply finished, whatever its outcome.
+		 *
+		 * Fires for a successful apply, a verified-with-warnings apply and a
+		 * rolled-back one alike. An extension reporting on changes needs all
+		 * three, and a hook that only fired on success would quietly make
+		 * rollbacks invisible to exactly the report meant to explain them.
+		 *
+		 * @since 0.1.0
+		 *
+		 * @param ApplyResult $result What happened.
+		 * @param PreviewPlan $plan   The plan that was applied.
+		 * @param Plugin      $plugin The plugin, for reading anything else.
+		 */
+		do_action( 'debloater_apply_complete', $result, $plan, $this );
+
+		return $result;
 	}
 
 	/**

@@ -483,6 +483,41 @@ final class ReleaseReadinessTest extends TestCase {
 	}
 
 	/**
+	 * Pro never travels inside the free zip.
+	 *
+	 * The two are separate plugins, and the free one is the one that goes to
+	 * wordpress.org. A `pro/` directory riding along inside it would be
+	 * commercial code in a GPL upload nobody reviewed, and — worse — would make
+	 * the free plugin's behaviour depend on a file the free plugin does not
+	 * document.
+	 *
+	 * The zip builder works from an allow-list, so this cannot happen by
+	 * accident. Asserted anyway: an allow-list is only as good as the list, and
+	 * the cost of checking is nothing.
+	 *
+	 * @return void
+	 */
+	public function test_the_free_zip_carries_no_pro_code(): void {
+		$builder = $this->file( 'tools/build-zip.mjs' );
+
+		$this->assertSame(
+			0,
+			preg_match( "/from: 'pro/", $builder ),
+			'The ship list must not include Pro.'
+		);
+
+		// And the free plugin does not reference Pro anywhere: it exposes
+		// hooks, and hooks do not know who listens to them.
+		foreach ( $this->sourceFiles() as $relative => $source ) {
+			$this->assertStringNotContainsString(
+				'Debloater' . chr( 92 ) . 'Pro' . chr( 92 ),
+				$source,
+				$relative . ' names a Pro class. The free plugin must not know Pro exists.'
+			);
+		}
+	}
+
+	/**
 	 * The decision this phase was required to record.
 	 *
 	 * @return void

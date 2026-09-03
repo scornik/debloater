@@ -135,6 +135,21 @@ final class RegistryUpdater {
 	}
 
 	/**
+	 * The base this updater would fetch from.
+	 *
+	 * Exists so "where does the registry come from on this site" is a question
+	 * with an answer, rather than one inferable only by watching the network.
+	 * The extension-point test asserts the `debloater_registry_origin` filter
+	 * reaches here, and that an origin the plugin would refuse falls back to
+	 * the shipped one rather than switching updates off.
+	 *
+	 * @return string
+	 */
+	public function originBase(): string {
+		return $this->origin->base();
+	}
+
+	/**
 	 * Ask whether a newer registry release exists, and verify it if so.
 	 *
 	 * @param string $tag Tag to check for.
