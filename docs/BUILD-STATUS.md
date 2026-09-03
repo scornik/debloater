@@ -1355,3 +1355,109 @@ until the visitor reloads. That is a refusal rather than a warning — there is 
 ### Next
 
 Phase 16 — Headless verification (Playwright, CI only).
+
+---
+
+## Phase 16 — Headless verification (Playwright, CI only)
+
+**Status:** complete · 2026-09-03
+
+The phase that opened the plugin in a browser for the first time, and found that
+it did not work.
+
+### What it found
+
+`Screen::bootstrapData()` handed the admin bundle `rest_url( 'wpdebloat/v1' )`
+as its API root, and the client joined `/status` onto it. On a site with **plain
+permalinks — WordPress's default —** `rest_url()` returns
+`…/index.php?rest_route=/wpdebloat/v1`, and that join produces a URL matching no
+route. Every screen showed *"No route was found matching the URL and request
+method."*
+
+**The plugin had been unusable on a default WordPress install since Phase 8.**
+1 140 unit tests and 246 integration tests missed it, including a file of REST
+route tests, because every one of them builds a `WP_REST_Request` by hand and
+dispatches it. None had ever composed a URL. Fixed, and covered by `RestUrlTest`,
+which composes the URL exactly as the client does and dispatches it under both
+permalink structures — verified to fail on the pre-fix code before being kept
+(D-0041).
+
+That is the entire argument for this phase, made on its first run.
+
+### What exists now
+
+- `tests/E2E`, thirteen scenarios in four files, driving a real browser against
+  the wp-env development site — the one carrying WooCommerce 11, Elementor,
+  Contact Form 7, Rank Math and LiteSpeed Cache.
+- `tools/seed-e2e.php`: a purchasable product, a page with a Contact Form 7
+  form, a page with a saved Elementor design.
+- `.github/workflows/e2e.yml`: nightly, on a pull request labelled `e2e`, and on
+  demand, across PHP 8.1 and 8.3.
+- `wp debloat verify --e2e`, which prints how to run the suite rather than
+  pretending to run something the plugin package does not contain.
+
+### Two fixtures that were measuring nothing
+
+**A fresh WooCommerce is not open for business.** It ships with "coming soon"
+mode on, serving every visitor a launch page. The checkout scenario originally
+asserted the cart page did *not* say "your cart is currently empty" — which was
+also true of the launch placeholder. It passed while checking nothing. The
+assertion is now positive: the product must be named on the page.
+
+**A block theme has no `form.cart`.** The fixture site runs Twenty
+Twenty-Five, where add-to-cart is a block. The scenario now uses WooCommerce's
+own `?add-to-cart=` URL, so it tests the cart and the checkout rather than the
+theme's choice of element (D-0042).
+
+### Exit checklist (§17 Phase 16)
+
+| Criterion | Result |
+|---|---|
+| Playwright suite under `tests/E2E` | ✅ 13 scenarios |
+| Dashboard loads with a real scan | ✅ |
+| Fix Safe Issues completes with a report | ✅ preview, recovery, apply, report |
+| Forced probe failure shows the rollback report | ✅ and names the probe that failed |
+| …and the prior runtime hash is restored | ✅ asserted exactly, plus the lock released |
+| Woo: add to cart → reach checkout, all Woo tweaks applied | ✅ |
+| Contact Form 7 submit | ✅ the form reports what happened |
+| Elementor editor opens | ✅ |
+| Runs nightly and on an "e2e" PR label | ✅ workflow added |
+| Nothing ships; no infrastructure introduced | ✅ dev-only directory, git-ignored artefacts |
+| `wp debloat verify --e2e` stub | ✅ |
+| **Local E2E run** | ✅ 13 of 13 |
+| Unit suite | ✅ 1 140 tests, 11 399 assertions |
+| Integration suite | ✅ 246 tests, 1 561 assertions |
+| Forced-failure suite | ✅ 9 tests, 105 assertions |
+| CLI end-to-end | ✅ |
+| Jest | ✅ 12 tests |
+| Bundle | ✅ 10.6 KB of 250 KB |
+| PHPCS | ✅ 0 errors, 0 warnings across 284 files |
+| PHPStan level 6 | ✅ no errors |
+| ESLint | ✅ clean |
+| **Nightly workflow green on the full stack matrix** | ⚠️ **not verified** — see below |
+
+### Known warnings
+
+- **The nightly workflow has never run.** It cannot: running it means running
+  GitHub Actions on the account this repository belongs to, which is an external
+  action and not mine to take. The workflow is written, its syntax is valid, and
+  every step in it has been run by hand locally except `actions/*`. Whether it
+  is green on the matrix is unknown until somebody runs it, and this checklist
+  says so rather than assuming.
+- Applies in wp-env always return exit **3**, "applied but not verified",
+  because the site cannot reach itself over HTTP (D-0009, and the same
+  limitation Phase 6 records). The suite lists that code as acceptable for an
+  apply, explicitly, rather than ignoring failures. It also means the E2E run
+  never exercises a *verified* commit — only the CI matrix on a normal host will.
+- Each `wp-env run` costs about twenty seconds before WordPress boots, so the
+  CLI-driven scenarios carry raised timeouts. The suite takes roughly fifteen
+  minutes locally.
+- §14 also asks for unit, integration and static checks on every push. There is
+  still no push workflow — only this nightly one. That belongs to Phase 18,
+  release hardening, and is recorded here so it is not forgotten.
+- `ExpiredTransientsCleanup` from Phase 5 still does not use the collection
+  ceiling (carried from Phase 10).
+
+### Next
+
+Phase 17 — Registry ecosystem.

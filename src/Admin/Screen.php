@@ -179,7 +179,15 @@ final class Screen {
 	 */
 	private function bootstrapData(): array {
 		return array(
-			'root'          => esc_url_raw( rest_url( Controller::NAMESPACE ) ),
+			// The *bare* REST root, not our namespace appended to it. On a site
+			// with plain permalinks — WordPress's default — rest_url() returns
+			// a query-string URL like `/index.php?rest_route=/`, and a
+			// namespaced root cannot be concatenated with a path without
+			// producing a URL that matches no route. The namespace travels
+			// separately and the client composes the two properly
+			// (docs/DECISIONS.md D-0041).
+			'root'          => esc_url_raw( rest_url() ),
+			'namespace'     => Controller::NAMESPACE,
 			'nonce'         => wp_create_nonce( 'wp_rest' ),
 			'pluginVersion' => $this->plugin->version(),
 			'canManage'     => Capabilities::currentUserCanManage(),

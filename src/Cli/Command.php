@@ -419,6 +419,11 @@ final class Command {
 	 *   - json
 	 * ---
 	 *
+	 * [--e2e]
+	 * : Print how to run the end-to-end browser suite, and exit. The suite is a
+	 * development tool that is not shipped with the plugin, so this prints
+	 * instructions rather than pretending to run something that is not there.
+	 *
 	 * @param array<int,string>    $args       Positional arguments.
 	 * @param array<string,string> $assoc_args Options.
 	 * @return void
@@ -428,6 +433,12 @@ final class Command {
 
 		$this->run(
 			function () use ( $assoc_args ): int {
+				if ( $this->flag( $assoc_args, 'e2e' ) ) {
+					$this->printE2eInstructions();
+
+					return self::EXIT_OK;
+				}
+
 				$result = $this->plugin->verify();
 
 				if ( $this->wantsJson( $assoc_args ) ) {
@@ -443,6 +454,34 @@ final class Command {
 				return $result->isClean() ? self::EXIT_OK : self::EXIT_WARNINGS;
 			}
 		);
+	}
+
+	/**
+	 * Explain how to run the end-to-end suite.
+	 *
+	 * The suite lives in the repository, not in the plugin: it drives a real
+	 * browser through a real WordPress with WooCommerce and Elementor on it, and
+	 * none of that belongs in a plugin somebody installs. So `--e2e` is a
+	 * signpost rather than a runner, and says so plainly instead of failing with
+	 * "playwright: not found".
+	 *
+	 * @return void
+	 */
+	private function printE2eInstructions(): void {
+		$this->io->line( __( 'The end-to-end suite is part of the WP Debloat repository and is not shipped with the plugin.', 'wp-debloat' ) );
+		$this->io->line( '' );
+		$this->io->line( __( 'To run it from a checkout:', 'wp-debloat' ) );
+		$this->io->line( '' );
+		$this->io->line( '    npm install' );
+		$this->io->line( '    npm run test:e2e:install     # downloads the browser, once' );
+		$this->io->line( '    npx wp-env start             # WordPress with the full stack on it' );
+		$this->io->line( '    npm run build                # the admin bundle the suite drives' );
+		$this->io->line( '    npm run test:e2e:seed        # a product, a form and an Elementor page' );
+		$this->io->line( '    npm run test:e2e' );
+		$this->io->line( '' );
+		$this->io->line( __( 'It also runs nightly in CI, and on a pull request labelled "e2e".', 'wp-debloat' ) );
+		$this->io->line( '' );
+		$this->io->line( __( 'To check this site instead, run `wp debloat verify` with no flag.', 'wp-debloat' ) );
 	}
 
 	/**

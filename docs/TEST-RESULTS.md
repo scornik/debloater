@@ -1414,3 +1414,82 @@ nothing else. PHPStan level 6 clean.
 | PHPCS | ✅ 0 errors, 0 warnings, 283 files |
 | PHPStan level 6 | ✅ no errors |
 | ESLint | ✅ clean |
+
+---
+
+## Phase 16 — Headless verification
+
+### Run 1 — the plugin did not work
+
+The first browser run put twelve of thirteen scenarios on the floor with one
+message:
+
+```
+No route was found matching the URL and request method.
+```
+
+`rest_url( 'wpdebloat/v1' )` as the API root, joined with `/status`, gives
+`…/wpdebloat/v1//status` on pretty permalinks and something worse on plain ones.
+Plain is WordPress's default. The screen had never worked on a default install.
+
+Fixed by handing the bundle a bare root and the namespace separately. Covered by
+`RestUrlTest`, and — because a regression test that has never failed is not a
+regression test — the fix was reverted and the test rerun: three failures,
+including the exact URL the screen would have asked for. Restored, and green.
+
+### Run 2 — a wrapper's exit code is not the command's
+
+Every apply failed with "exit code 3". Three is `EXIT_WARNINGS`: applied, but
+could not verify — which is what wp-env always produces, because the site cannot
+reach itself. The helper allowed exit codes but read `error.code`, which is
+`npx wp-env`'s status, not WP-CLI's. The real number is in the output. Parsed
+from there, and the allowed list stated per call rather than blanket-ignored.
+
+### Run 3 — my own selectors
+
+| Failure | Cause |
+|---|---|
+| Apply button never found | The label is "Create snapshot & apply". My regex was `/Apply\|Create recovery/` — case-sensitive, and matching neither. |
+| Contact page had no form | `postUrl()` built `?p=<id>` for pages. WordPress addresses pages by `page_id` and silently serves the front page for `?p=`, so the test looked for a form on the home page and blamed the form. |
+| Elementor editor "not visible" | The locator matched three elements at once; strict mode refused. The editor had booted fine. |
+| Login timeouts | wp-env under a suite that keeps applying and rolling back is sometimes slow to paint. Waited for the button rather than assuming it. |
+
+### Run 4 — two fixtures that were measuring nothing
+
+**The checkout was a placeholder.** WooCommerce ships with "coming soon" mode
+on. The cart assertion — "does not say the cart is empty" — was also true of the
+launch page, of a 404, and of a blank page. It passed while checking nothing.
+Now the product must be named on the cart page, and the seed opens the store.
+
+**The add-to-cart button did not exist.** The fixture site runs a block theme,
+where add-to-cart is a block rather than `form.cart`. The scenario uses
+WooCommerce's own `?add-to-cart=` URL — what the button does — so it tests the
+cart and the checkout rather than the theme.
+
+### Run 5 — a test that skipped itself
+
+`the screen says the change was undone` had a `test.skip` on "nothing
+recommended to apply", and quietly took it whenever the dashboard opened in its
+empty state. The one assertion about what a person *sees* after a rollback was
+not running. It now scans from the screen first and asserts the button is
+enabled.
+
+### Final
+
+```
+13 scenarios: 13 passed
+```
+
+| Gate | Result |
+|---|---|
+| End-to-end (local, full stack) | ✅ 13 of 13 |
+| Unit | ✅ 1 140 tests, 11 399 assertions |
+| Integration | ✅ 246 tests, 1 561 assertions |
+| Forced-failure suite | ✅ 9 tests, 105 assertions |
+| CLI end-to-end | ✅ |
+| Jest | ✅ 12 tests |
+| Bundle | ✅ 10.6 KB of 250 KB |
+| PHPCS | ✅ 0 errors, 0 warnings, 284 files |
+| PHPStan level 6 | ✅ no errors |
+| ESLint | ✅ clean |
+| Nightly CI matrix | ⚠️ never run — running it is an external action on somebody's account |

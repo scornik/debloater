@@ -24,6 +24,26 @@ if ( bootstrap.root ) {
 }
 
 /**
+ * The REST namespace every path here sits under.
+ *
+ * Paths are written as `/status` and `/findings` because that is what they are
+ * about; the namespace is added here, once.
+ *
+ * It has to be added to the *path* rather than baked into the root URL. On a
+ * site with plain permalinks — WordPress's default — the REST root is
+ * `…/index.php?rest_route=/`, and api-fetch's root middleware knows how to join
+ * a path onto that. A root with the namespace already in it does not survive
+ * the same join: it produces `…/wpdebloat/v1//status`, which matches no route,
+ * and every screen shows "No route was found matching the URL".
+ */
+const NAMESPACE = ( bootstrap.namespace || 'wpdebloat/v1' ).replace(
+	/^\/|\/$/g,
+	''
+);
+
+const namespaced = ( path ) => `/${ NAMESPACE }${ path }`;
+
+/**
  * An error with a message a person can act on.
  *
  * WordPress sends `{ code, message, data: { status } }`; a network failure
@@ -82,10 +102,13 @@ export const get = ( path, query = {} ) => {
 		)
 		.join( '&' );
 
-	return request( { path: search ? `${ path }?${ search }` : path } );
+	const full = namespaced( path );
+
+	return request( { path: search ? `${ full }?${ search }` : full } );
 };
 
-export const post = ( path, data ) => request( { path, method: 'POST', data } );
+export const post = ( path, data ) =>
+	request( { path: namespaced( path ), method: 'POST', data } );
 
 export const canManage = () => Boolean( bootstrap.canManage );
 

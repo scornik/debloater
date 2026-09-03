@@ -227,6 +227,24 @@ All notable changes to WP Debloat are recorded here. The format follows
 
 ### Added since 0.1.0
 
+- **Fixed: the WP Debloat screen did not work on a default WordPress.**
+  On a site using plain permalinks — which is what WordPress uses out of the box
+  — every screen showed "No route was found matching the URL and request
+  method." and nothing loaded. This affected every version since the admin
+  screen was added. It is fixed, and there is now a test that builds the same
+  URLs the screen does and checks they resolve under both permalink settings.
+
+- **Phase 16 — testing it the way you use it.**
+  - A browser-driven test suite now opens the real admin screen on a real site
+    with WooCommerce, Elementor and Contact Form 7 installed, runs a scan, fixes
+    the safe issues, reads the report, buys a product, reaches the checkout,
+    submits a form and opens the Elementor editor.
+  - It also forces a verification failure on purpose, and checks that the site
+    goes back exactly as it was and that the screen says so.
+  - None of this ships with the plugin — it is a development tool. `wp debloat
+    verify --e2e` tells you how to run it from a checkout.
+
+
 - **Phase 15 — WooCommerce.**
   - WP Debloat now works out which of your pages are actually part of the shop,
     and which are not. That matters because WooCommerce's cart-fragments script

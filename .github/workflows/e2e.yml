@@ -1,0 +1,85 @@
+name: End-to-end
+
+# BUILD-SPEC §14 and §17 Phase 16.
+#
+# Nightly, and on demand for a pull request that asks for it with the "e2e"
+# label. Not on every push: this boots a full WordPress with WooCommerce,
+# Elementor, Contact Form 7, Rank Math and LiteSpeed Cache on it, then drives a
+# real browser through a real checkout. It is worth several minutes once a day
+# and is not worth them on every commit.
+#
+# Nothing here ships. The Playwright suite lives in tests/E2E and is excluded
+# from the plugin package.
+
+on:
+  schedule:
+    # 03:17 UTC — an odd minute, so this is not queued behind everyone else's
+    # midnight cron.
+    - cron: '17 3 * * *'
+  pull_request:
+    types: [ labeled, synchronize ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    # On a pull request, only when somebody has asked for it.
+    if: >-
+      github.event_name != 'pull_request' ||
+      contains( github.event.pull_request.labels.*.name, 'e2e' )
+
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    strategy:
+      fail-fast: false
+      matrix:
+        php: [ '8.1', '8.3' ]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install the browser
+        run: npm run test:e2e:install
+
+      - name: Start WordPress with the full stack
+        run: npx wp-env start --update
+        env:
+          WP_ENV_PHP_VERSION: ${{ matrix.php }}
+
+      - name: Build the admin bundle
+        run: npm run build
+
+      - name: Seed the fixtures
+        run: npm run test:e2e:seed
+
+      - name: Run the end-to-end suite
+        run: npm run test:e2e
+
+      - name: Keep the evidence when it fails
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-${{ matrix.php }}
+          path: |
+            tests/E2E/.report
+            tests/E2E/.artifacts
+          retention-days: 7
+
+      - name: Stop WordPress
+        if: always()
+        run: npx wp-env stop

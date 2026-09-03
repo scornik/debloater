@@ -17,7 +17,13 @@
  * @package WPDebloat
  */
 
-declare( strict_types = 1 );
+/*
+ * No `declare( strict_types = 1 )` here on purpose. `wp eval-file` runs a script
+ * through eval(), where a declare must be the very first statement of the file
+ * and therefore cannot be — the file fatals before it does anything. Every other
+ * PHP file in this repository declares strict types; these two are eval'd rather
+ * than included, which is the whole difference.
+ */
 
 if ( ! defined( 'WP_CLI' ) || ! WP_CLI ) {
 	exit( 1 );
