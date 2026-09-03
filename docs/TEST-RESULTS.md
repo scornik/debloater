@@ -1560,3 +1560,46 @@ removed, and the result is still checked rather than trusted.
 | PHPStan level 6 | ✅ no errors |
 | ESLint | ✅ clean |
 | Manifest describes the registry | ✅ 58 files |
+
+---
+
+## CI — first real runs
+
+Local suites had been green for seventeen phases. The first time a workflow
+actually ran, it failed four times in a row, and every cause was about the
+machine rather than the code.
+
+### Registry workflow
+
+```
+Run 1  ✗  Could not open input file: tools/phpunit-9.phar
+Run 2  ✗  The PHPUnit Polyfills library is a requirement for running the WP test suite
+Run 3  ✓  registry (8.1) (8.2) (8.3) + against-wordpress
+```
+
+Both failures were missing setup steps: the PHPUnit phar is downloaded rather
+than committed, and the WordPress test suite needs Composer's dev dependencies
+inside the container the plugin is mapped into.
+
+### End-to-end workflow
+
+```
+Run 1  ✗  10 of 13 failed — 'debloat' is not a registered wp command
+Run 2  ✗  8.3 green; 8.1 failed 2 of 13 on a login timeout
+Run 3  ✓  e2e (8.1) 13 of 13 · e2e (8.3) 13 of 13
+```
+
+**Run 1** was the plugin being inactive: wp-env activates what
+`.wp-env.json` lists, and WP Debloat is mapped in rather than listed. It looked
+active locally because a session weeks of phases ago had activated it and the
+wp-env database persisted.
+
+**Run 2** produced the genuine finding. Adding a shared session via
+`storageState` should have removed twelve of the thirteen logins, and on 8.3 it
+appeared to — but `login()` was checking for a form on `wp-login.php`, which
+WordPress renders for authenticated visitors too. The helper had been doing a
+full login on every call regardless. Fixed to ask for an admin page and read the
+redirect.
+
+That one is worth keeping in mind: the shared session *looked* like it worked
+because the faster runner stopped failing. The slower one was telling the truth.

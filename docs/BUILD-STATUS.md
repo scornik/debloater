@@ -1555,3 +1555,63 @@ concern. It moved to `src/Update/` (D-0044).
 ### Next
 
 Phase 18 — WordPress.org release hardening.
+
+---
+
+## CI — the workflows have now actually run
+
+**Status:** green · 2026-09-03 · resolves the "not verified" warnings on
+Phases 16 and 17
+
+Both phases shipped a workflow and recorded the same known warning: *the
+nightly workflow has never run, and running it is an external action*. The
+Phase 17 push triggered the registry workflow by itself, it failed, and the
+first real runs found four things that no amount of local testing would have.
+
+| Run | Failure | Cause |
+|---|---|---|
+| Registry #1 | `Could not open input file: tools/phpunit-9.phar` | The PHPUnit 9 phar is git-ignored and downloaded by `npm run test:integration:setup`. The workflow never ran it. |
+| Registry #2 | "The PHPUnit Polyfills library is a requirement" | The job installed npm dependencies but never ran `composer install`, and the plugin directory is mapped into the container as-is — so a missing `vendor/` on the runner is a missing one in the container. |
+| E2E #1 | 10 of 13 failed: `'debloat' is not a registered wp command` | wp-env activates the plugins listed in `.wp-env.json`; WP Debloat is *mapped* in rather than listed, so a fresh runner has it installed and inactive. It only looked active locally because an earlier session activated it and the database persisted. |
+| E2E #2 | 2 of 13 failed on PHP 8.1: login timed out | See below. |
+
+### The one that was a real bug in the harness
+
+`login()` asked for `wp-login.php` and looked for a form. WordPress renders that
+page perfectly happily for somebody who is already signed in — so the check
+answered *"is there a login form"* rather than *"am I signed in"*, and the
+helper did a full form login on **every** call, over the stored session that
+had just been added to make it unnecessary.
+
+It now asks for an admin page and reads the redirect, which is the question it
+was always trying to ask. On the slower PHP 8.1 runner that difference was what
+pushed two logins past sixty seconds.
+
+Also fixed on the way: `actions/checkout`, `setup-node` and `upload-artifact`
+were on versions still running Node 20, which every job warned about.
+
+### Where it stands
+
+| Workflow | Result |
+|---|---|
+| Registry — `registry (8.1, 8.2, 8.3)` | ✅ JSON validity, manifest agreement, unit suite, PHPCS, PHPStan |
+| Registry — `against-wordpress` | ✅ full integration suite on a clean runner |
+| End-to-end — `e2e (8.1)` | ✅ 13 of 13 |
+| End-to-end — `e2e (8.3)` | ✅ 13 of 13 |
+
+The Phase 16 exit criterion "nightly E2E green on the full stack matrix" is now
+**met and observed** rather than assumed, and the same warning on Phase 17 is
+withdrawn.
+
+### What this says about the local suites
+
+Nothing they were testing was wrong — 1 157 unit, 256 integration and 13
+browser scenarios all passed locally throughout. What they could not see was
+everything about the *machine*: a phar that happened to be on disk, a `vendor/`
+that happened to be installed, a plugin that happened to be active from an
+earlier session. Every one of those is a thing a new contributor would also hit
+on their first checkout.
+
+The one still outstanding: §14 asks for unit, integration and static checks on
+**every push**, and there is still no workflow for that — only the registry one,
+which fires on `registry/**`. It belongs to Phase 18.
