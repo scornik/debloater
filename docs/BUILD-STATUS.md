@@ -857,3 +857,111 @@ operation deleted expired transients.
 ### Next
 
 Phase 11 — Plugin intelligence.
+
+---
+
+## Phase 11 — Plugin intelligence
+
+**Status:** complete · 2026-09-03
+
+Four rules about the plugin list, all `info`, none of which proposes anything.
+The phase's real subject is the network: it is where WP Debloat first has a
+reason to ask somebody else a question, and most of the work went into making
+sure it does not.
+
+### What exists now
+
+- `registry/plugin-categories.json`: forty-eight plugin slugs across the seven
+  categories §17 names. A **registry table** — one file holding a lookup, as
+  against one file per object — with its own schema and its own loading path
+  (D-0030).
+- `registry/host-optimizers.json`: optimization layers that offer settings of
+  their own for ground WP Debloat also covers, keyed to the findings they
+  overlap.
+- `plugins.duplicate_functionality`: two or more active plugins doing the same
+  kind of job, named, with what doubling up on that particular kind costs. It
+  proposes nothing and there is a test that it cannot start to.
+- `plugins.abandoned`: active plugins with no sign of life in two years. Two
+  readings, worded and scored differently — see below.
+- `plugins.host_optimizer_detected`: which other optimizers are on the site.
+- `WpOrgUpdates`: the release-date lookup, off unless this scan was explicitly
+  asked for it, with a bounded timeout, a lookup ceiling and a day's cache.
+- `wp debloat scan --check-plugin-updates` and `POST /scan {check_plugin_updates}`.
+
+### Two readings of "abandoned", and why they are not the same finding
+
+With the opt-in, the date is the plugin's last release: a claim about the plugin,
+confidence 0.9.
+
+Without it — the default — the date is when the plugin's main file last changed
+on this server. That is a narrower question and it is wrong in both directions. A
+site moved by copying files has every modification time reset to the day of the
+move, so a genuinely abandoned plugin looks new; and a plugin whose author has
+shipped three releases the site never installed looks abandoned when what is
+stale is the installation. Still worth knowing, so it is reported — in different
+words, as a statement about this server rather than about the plugin, at
+confidence 0.35.
+
+`plugins.update_source` records which reading produced the figure, so the
+distinction survives into the evidence rather than living only in a comment.
+
+### The thing this phase got wrong first
+
+§17 asks for findings that overlap a host optimizer to be marked `info` with the
+reason "already handled by host". Building it showed the reason is false exactly
+when it would be shown: a finding fires because the scan *observed* the thing
+happening, so if the other tool had handled it there would be no finding to
+downgrade. Marking a real cost as `info` would also understate what the site is
+paying.
+
+So the intent is kept and the wording is not. A finding on shared ground gains a
+sentence naming the other tool and where its setting lives; it keeps its
+severity, its decision and its recommendation, and the choice stays with the
+person who now knows there are two places to make it. Recorded as D-0028.
+
+### Exit checklist (§17 Phase 11)
+
+| Criterion | Result |
+|---|---|
+| `registry/plugin-categories.json` with cache, seo, security, image, forms, backup, analytics | ✅ 48 slugs |
+| `plugins.inactive_present` | ✅ shipped in Phase 4, unchanged |
+| `plugins.duplicate_functionality`, info, lists the overlap, never disables | ✅ |
+| `plugins.abandoned` using wp.org only on opt-in | ✅ |
+| Fallback mtime heuristic, low confidence, said so in evidence | ✅ 0.35, and worded as a different claim |
+| `plugins.host_optimizer_detected` | ✅ |
+| Overlapping findings marked `info` "already handled by host" | ⚠️ **deliberately not** — the claim is false when shown; the intent is met with an added sentence instead (D-0028) |
+| All info, no automatic action | ✅ asserted for all three new rules |
+| `PluginScanner` facts and the fact schema extended | ✅ `plugins.categories`, `plugins.update_source`, `plugins.host_optimizers`, `plugins.meta[*].file_mtime` |
+| **Two SEO and two cache plugins produce duplicate findings** | ✅ |
+| **Abandoned detection works with network disabled** | ✅ |
+| **No HTTP request during a scan when opt-in is off** | ✅ asserted by counting `pre_http_request`, over both the scan and the analyze |
+| Unit suite | ✅ 1 053 tests, 7 607 assertions |
+| Integration suite | ✅ 201 tests, 1 332 assertions |
+| Forced-failure suite | ✅ 9 tests, 102 assertions |
+| CLI end-to-end | ✅ against the real `wp` binary |
+| Jest | ✅ 12 tests |
+| Bundle | ✅ 10.6 KB of 250 KB |
+| PHPCS | ✅ 0 errors, 0 warnings across 238 files |
+| PHPStan level 6 | ✅ no errors |
+| ESLint | ✅ clean |
+
+### Known warnings
+
+- The `covers` lists are two entries long, both emoji removal, because those are
+  the two settings whose existence in another product's interface can be pointed
+  at with confidence. A longer list would be more useful and less true. Growing
+  it is a research task, not a coding one.
+- The signal for SiteGround is the constant SG Optimizer defines, so the entry
+  fires when that plugin is present rather than when the site is on SiteGround.
+  For this purpose that is the better signal; for a host with no plugin
+  (WP Engine, Kinsta) there is currently no entry at all, and no claim.
+- The wordpress.org path is exercised against a fixture response, never the real
+  endpoint. No test in this repository makes an outbound request, and none should
+  — but it does mean the shape of a real answer is asserted from documentation
+  rather than from observation.
+- `ExpiredTransientsCleanup` from Phase 5 still does not use the collection
+  ceiling (carried from Phase 10).
+
+### Next
+
+Phase 12 — Admin intelligence.

@@ -66,8 +66,87 @@ final class Loader {
 			$this->loadTweaks(),
 			$this->loadDetectors(),
 			$this->loadCompatibility(),
-			$this->loadProfiles()
+			$this->loadProfiles(),
+			$this->loadPluginCategories(),
+			$this->loadHostOptimizers()
 		);
+	}
+
+	/**
+	 * Load the plugin category table.
+	 *
+	 * Unlike the four sets above, this is one file rather than one file per
+	 * object, so there is no id-matches-filename check to make and no ordering
+	 * to impose beyond what the value object does for itself.
+	 *
+	 * A registry without the file is valid and yields an empty table: the rules
+	 * that read it simply have nothing to say, which is the correct behaviour
+	 * for a lookup table nobody has authored yet.
+	 *
+	 * @return PluginCategories
+	 * @throws RuntimeException When the document exists but is invalid.
+	 */
+	public function loadPluginCategories(): PluginCategories {
+		$path = $this->file( 'plugin-categories.json' );
+
+		if ( ! is_file( $path ) ) {
+			return new PluginCategories();
+		}
+
+		$document   = $this->decode( $path );
+		$violations = $this->validator( 'plugin-categories.schema.json' )->validate( $document );
+
+		if ( array() !== $violations ) {
+			throw new RuntimeException(
+				sprintf(
+					'registry/plugin-categories.json is invalid: %s',
+					implode( '; ', array_map( 'strval', $violations ) )
+				)
+			);
+		}
+
+		return PluginCategories::fromArray( $document );
+	}
+
+	/**
+	 * Load the host and stack optimizer table.
+	 *
+	 * @return array<int,HostOptimizer>
+	 * @throws RuntimeException When the document exists but is invalid.
+	 */
+	public function loadHostOptimizers(): array {
+		$path = $this->file( 'host-optimizers.json' );
+
+		if ( ! is_file( $path ) ) {
+			return array();
+		}
+
+		$document   = $this->decode( $path );
+		$violations = $this->validator( 'host-optimizers.schema.json' )->validate( $document );
+
+		if ( array() !== $violations ) {
+			throw new RuntimeException(
+				sprintf(
+					'registry/host-optimizers.json is invalid: %s',
+					implode( '; ', array_map( 'strval', $violations ) )
+				)
+			);
+		}
+
+		$optimizers = array();
+		$entries    = $document['optimizers'] ?? array();
+
+		if ( ! is_array( $entries ) ) {
+			return array();
+		}
+
+		foreach ( $entries as $entry ) {
+			if ( is_array( $entry ) ) {
+				$optimizers[] = HostOptimizer::fromArray( $entry );
+			}
+		}
+
+		return $optimizers;
 	}
 
 	/**
@@ -283,6 +362,16 @@ final class Loader {
 	 */
 	public function directory( string $subdirectory ): string {
 		return $this->registry_dir . '/' . $subdirectory;
+	}
+
+	/**
+	 * The absolute path of a registry file that is not inside a subdirectory.
+	 *
+	 * @param string $name File name.
+	 * @return string
+	 */
+	public function file( string $name ): string {
+		return $this->registry_dir . '/' . $name;
 	}
 
 	/**

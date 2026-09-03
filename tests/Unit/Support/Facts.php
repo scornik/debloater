@@ -66,6 +66,9 @@ final class Facts {
 					'plugins.inactive'         => array(),
 					'plugins.meta'             => array(),
 					'plugins.detected'         => self::noDetections(),
+					'plugins.categories'       => array(),
+					'plugins.update_source'    => 'file_mtime',
+					'plugins.host_optimizers'  => array(),
 
 					'theme.active'             => 'twentytwentyfour',
 					'theme.parent'             => null,
@@ -116,8 +119,34 @@ final class Facts {
 						'litespeed-cache/litespeed-cache.php',
 					),
 					'plugins.inactive'        => array( 'hello-dolly/hello.php', 'akismet/akismet.php' ),
+					'plugins.meta'            => self::meta(
+						array(
+							'woocommerce/woocommerce.php' => 'WooCommerce',
+							'contact-form-7/wp-contact-form-7.php' => 'Contact Form 7',
+							'litespeed-cache/litespeed-cache.php' => 'LiteSpeed Cache',
+						)
+					),
 					'plugins.detected'        => self::detections(
 						array( 'woocommerce', 'contact-form-7', 'litespeed-cache' )
+					),
+					'plugins.categories'      => array(
+						array(
+							'plugin'   => 'litespeed-cache',
+							'category' => 'cache',
+							'label'    => 'Page caching',
+						),
+						array(
+							'plugin'   => 'contact-form-7',
+							'category' => 'forms',
+							'label'    => 'Forms',
+						),
+					),
+					'plugins.host_optimizers' => array(
+						array(
+							'id'      => 'litespeed-cache',
+							'name'    => 'LiteSpeed Cache',
+							'finding' => 'wp.emojis.loaded',
+						),
 					),
 					'theme.active'            => 'storefront',
 					'db.revisions.count'      => 31421,
@@ -128,6 +157,33 @@ final class Facts {
 				$overrides
 			)
 		);
+	}
+
+	/**
+	 * Plugin metadata for the given files, all recently updated.
+	 *
+	 * Recent on purpose: the abandoned-plugin rule should stay quiet on the
+	 * general-purpose fixtures, so the tests that care about it can set their own
+	 * dates without every other test acquiring a finding it did not ask for.
+	 *
+	 * @param array<string,string> $plugins Plugin file to display name.
+	 * @param int|null             $mtime   Modification time; now when omitted.
+	 * @return array<string,array<string,mixed>>
+	 */
+	public static function meta( array $plugins, ?int $mtime = null ): array {
+		$meta = array();
+
+		foreach ( $plugins as $plugin_file => $name ) {
+			$meta[ $plugin_file ] = array(
+				'name'       => $name,
+				'version'    => '1.0.0',
+				'file_mtime' => $mtime ?? time(),
+			);
+		}
+
+		ksort( $meta, SORT_STRING );
+
+		return $meta;
 	}
 
 	/**

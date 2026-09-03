@@ -33,14 +33,23 @@ then put back.
 
 ## Commands
 
-### `wp debloat scan [--format=json]`
+### `wp debloat scan [--format=json] [--check-plugin-updates]`
 
 Reads the site and analyses what it found. Writes a run; changes nothing else.
 
 ```
 wp debloat scan
 wp debloat scan --json
+wp debloat scan --check-plugin-updates
 ```
+
+`--check-plugin-updates` is the only thing in WP Debloat that sends anything off
+the server: it asks wordpress.org when each active plugin was last released.
+Without it the scan stays entirely on the machine and reads staleness from file
+dates instead — a weaker answer, reported as one, at a third of the confidence.
+
+The flag is not remembered. There is no setting that, once ticked, makes future
+scans reach out; the next scan asks again (docs/DECISIONS.md D-0029).
 
 ### `wp debloat findings [--risk=<low|medium|high>] [--format=json]`
 

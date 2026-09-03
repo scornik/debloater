@@ -129,7 +129,20 @@ final class RepositoryInvariantsTest extends TestCase {
 	}
 
 	/**
-	 * Every shipped registry schema is valid JSON and declares draft-07.
+	 * Every shipped registry schema is valid JSON and declares draft-07 — and
+	 * the set of them is exactly what it should be.
+	 *
+	 * The set is asserted by name rather than by count, which is both stricter
+	 * and more honest than the number it replaced. Six of them are the object
+	 * types BUILD-SPEC §4 lists: one document per tweak, per detector, per
+	 * compatibility rule, per profile, plus the fact and finding shapes. The
+	 * other two describe registry *tables* — single files holding a lookup,
+	 * added in Phase 11, where a document per object would have been forty files
+	 * each holding one word.
+	 *
+	 * The schema for the configuration document `wp debloat export` writes is
+	 * deliberately not here: that is not registry content, and it lives in
+	 * `schemas/`, checked below.
 	 *
 	 * @return void
 	 */
@@ -137,7 +150,24 @@ final class RepositoryInvariantsTest extends TestCase {
 		$schemas = glob( WPDEBLOAT_TESTS_ROOT . '/registry/schemas/*.schema.json' );
 
 		$this->assertIsArray( $schemas );
-		$this->assertCount( 6, $schemas, 'BUILD-SPEC §4 lists six registry schemas' );
+
+		$names = array_map( 'basename', $schemas );
+		sort( $names, SORT_STRING );
+
+		$this->assertSame(
+			array(
+				'compat.schema.json',
+				'detector.schema.json',
+				'fact.schema.json',
+				'finding.schema.json',
+				'host-optimizers.schema.json',
+				'plugin-categories.schema.json',
+				'profile.schema.json',
+				'tweak.schema.json',
+			),
+			$names,
+			'registry/schemas holds the six object types BUILD-SPEC §4 names plus the two Phase 11 tables, and nothing else'
+		);
 
 		$this->assertSchemasAreWellFormed( $schemas );
 	}

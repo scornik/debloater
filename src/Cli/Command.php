@@ -113,10 +113,18 @@ final class Command {
 	 *   - json
 	 * ---
 	 *
+	 * [--check-plugin-updates]
+	 * : Look up plugin release dates at wordpress.org. This is the only thing WP
+	 * Debloat sends off the server; without this flag the scan stays entirely on
+	 * the machine and staleness is read from file dates instead, which is a
+	 * weaker answer and is reported as one. Not remembered: the next scan asks
+	 * again.
+	 *
 	 * ## EXAMPLES
 	 *
 	 *     wp debloat scan
 	 *     wp debloat scan --json
+	 *     wp debloat scan --check-plugin-updates
 	 *
 	 * @param array<int,string>    $args       Positional arguments.
 	 * @param array<string,string> $assoc_args Options.
@@ -127,7 +135,7 @@ final class Command {
 
 		$this->run(
 			function () use ( $assoc_args ): int {
-				$run      = $this->plugin->scan();
+				$run      = $this->plugin->scan( $this->flag( $assoc_args, 'check-plugin-updates' ) );
 				$findings = $this->plugin->findingsOf( $run );
 				$analysis = is_array( $run->payload['analysis'] ?? null ) ? $run->payload['analysis'] : array();
 				$score    = is_array( $analysis['score'] ?? null ) ? $analysis['score'] : array();

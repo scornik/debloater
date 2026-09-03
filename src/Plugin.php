@@ -53,6 +53,7 @@ use WPDebloat\Rest\Routes\ScanRoute;
 use WPDebloat\Rest\Routes\SnapshotsRoute;
 use WPDebloat\Rest\Routes\StatusRoute;
 use WPDebloat\Scan\ScanRunner;
+use WPDebloat\Scan\WpOrgUpdates;
 use WPDebloat\Scan\Scanners\AdminScanner;
 use WPDebloat\Scan\Scanners\AutoloadScanner;
 use WPDebloat\Scan\Scanners\CoreFeatureScanner;
@@ -378,7 +379,7 @@ final class Plugin {
 					new WordPressScanner(),
 					new CoreFeatureScanner(),
 					new UserScanner(),
-					new PluginScanner( $this->registry() ),
+					new PluginScanner( $this->registry(), $this->wpOrgUpdates() ),
 					new ThemeScanner(),
 					new DatabaseScanner(),
 					new AutoloadScanner(),
@@ -388,6 +389,20 @@ final class Plugin {
 				$this->runs()
 			)
 		);
+	}
+
+	/**
+	 * The wordpress.org release-date lookup.
+	 *
+	 * Off unless a scan is explicitly asked for it. There is no stored setting
+	 * that, once ticked, makes every future scan reach the network: consent is
+	 * given for the action that makes the request, and the next scan asks again
+	 * (BUILD-SPEC §13 rule 9, docs/DECISIONS.md D-0029).
+	 *
+	 * @return WpOrgUpdates
+	 */
+	public function wpOrgUpdates(): WpOrgUpdates {
+		return $this->service( 'wp_org_updates', static fn (): WpOrgUpdates => new WpOrgUpdates( false ) );
 	}
 
 	/**
@@ -409,12 +424,24 @@ final class Plugin {
 	 * only meaningful next to the facts it was drawn from, and storing them
 	 * apart would let one be read against the other's site.
 	 *
+	 * @param bool $check_plugin_updates Whether the caller asked, on this scan,
+	 *                                    for plugin release dates to be looked
+	 *                                    up at wordpress.org. Off by default and
+	 *                                    reset afterwards, so it can never
+	 *                                    become a standing permission.
 	 * @return Run
 	 */
-	public function scan(): Run {
+	public function scan( bool $check_plugin_updates = false ): Run {
 		$this->schema()->ensure();
 
-		$run      = $this->scanRunner()->run( $this->context(), $this->registry()->hash() );
+		$this->wpOrgUpdates()->setEnabled( $check_plugin_updates );
+
+		try {
+			$run = $this->scanRunner()->run( $this->context(), $this->registry()->hash() );
+		} finally {
+			$this->wpOrgUpdates()->setEnabled( false );
+		}
+
 		$analysis = $this->analyzer()->analyze( $run->facts() );
 
 		$run = $this->runs()->update(

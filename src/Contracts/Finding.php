@@ -484,6 +484,47 @@ final class Finding {
 	}
 
 	/**
+	 * A copy with something added to the reasoning.
+	 *
+	 * The analyzer already amends a finding after the rule that produced it has
+	 * returned — its confidence, its decision, its risk. This is the same kind
+	 * of amendment for the one field a user actually reads: a rule states the
+	 * general case, and the analyzer knows things about this site that the rule
+	 * does not.
+	 *
+	 * Appending rather than replacing is the point. What the rule said stays
+	 * said; the site-specific sentence follows it.
+	 *
+	 * @param string $sentence Sentence to append. Blank input returns the same finding.
+	 * @return self
+	 */
+	public function withAddedReasoning( string $sentence ): self {
+		if ( '' === trim( $sentence ) ) {
+			return $this;
+		}
+
+		return new self(
+			$this->id,
+			$this->category,
+			$this->severity,
+			$this->risk,
+			$this->confidence,
+			$this->title,
+			$this->summary,
+			rtrim( $this->why ) . ' ' . trim( $sentence ),
+			$this->evidence,
+			$this->impact,
+			$this->decision,
+			$this->decision_reason,
+			$this->recommendation,
+			$this->undo,
+			$this->requires,
+			$this->conflicts,
+			$this->dependencies_detected
+		);
+	}
+
+	/**
 	 * A copy with a different risk level.
 	 *
 	 * @param Risk $risk New risk level.

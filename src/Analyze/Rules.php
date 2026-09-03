@@ -9,15 +9,18 @@ declare( strict_types = 1 );
 
 namespace WPDebloat\Analyze;
 
+use WPDebloat\Analyze\Rules\AbandonedPluginsRule;
 use WPDebloat\Analyze\Rules\AutoDraftsRule;
 use WPDebloat\Analyze\Rules\AutoloadRule;
 use WPDebloat\Analyze\Rules\DashiconsFrontendRule;
+use WPDebloat\Analyze\Rules\DuplicateFunctionalityRule;
 use WPDebloat\Analyze\Rules\EmbedsRule;
 use WPDebloat\Analyze\Rules\EmojiScriptRule;
 use WPDebloat\Analyze\Rules\ExpiredTransientsRule;
 use WPDebloat\Analyze\Rules\FileEditorRule;
 use WPDebloat\Analyze\Rules\GeneratorTagRule;
 use WPDebloat\Analyze\Rules\HeartbeatIntervalRule;
+use WPDebloat\Analyze\Rules\HostOptimizerRule;
 use WPDebloat\Analyze\Rules\InactivePluginsRule;
 use WPDebloat\Analyze\Rules\JqueryMigrateRule;
 use WPDebloat\Analyze\Rules\OrphanMetaRule;
@@ -80,6 +83,9 @@ final class Rules {
 
 			// Informational: worth knowing, proposes nothing.
 			new InactivePluginsRule(),
+			new DuplicateFunctionalityRule(),
+			new AbandonedPluginsRule(),
+			new HostOptimizerRule(),
 			new FileEditorRule(),
 			new XmlRpcRule(),
 		);

@@ -10,6 +10,7 @@ declare( strict_types = 1 );
 namespace WPDebloat\Scan\Scanners;
 
 use WPDebloat\Contracts\Context;
+use WPDebloat\Scan\HostVendor;
 
 /**
  * Collects the `env.*` facts (BUILD-SPEC §5).
@@ -21,18 +22,6 @@ use WPDebloat\Contracts\Context;
  * depends on it.
  */
 final class EnvironmentScanner extends AbstractScanner {
-
-	/**
-	 * Host signatures, in the order they are checked.
-	 *
-	 * Each is a constant or server variable the host itself sets. Nothing here
-	 * infers a host from something a site owner could plausibly have set.
-	 */
-	private const HOST_SIGNATURES = array(
-		'wpengine'   => array( 'constants' => array( 'WPE_APIKEY', 'IS_WPE', 'WPE_API' ) ),
-		'kinsta'     => array( 'constants' => array( 'KINSTA_CACHE_ZONE', 'KINSTAMU_VERSION' ) ),
-		'siteground' => array( 'constants' => array( 'SITEGROUND_OPTIMIZER_VERSION', 'SG_CACHEPRESS_VERSION' ) ),
-	);
 
 	/**
 	 * Cache plugins we recognise, keyed by the fact value they produce.
@@ -63,35 +52,10 @@ final class EnvironmentScanner extends AbstractScanner {
 		return array(
 			'env.wp_version'   => $context->wp_version,
 			'env.php_version'  => $context->php_version,
-			'env.host_vendor'  => $this->hostVendor(),
+			'env.host_vendor'  => HostVendor::identify(),
 			'env.cache_plugin' => $this->cachePlugin(),
 			'env.is_multisite' => $context->is_multisite,
 		);
-	}
-
-	/**
-	 * Identify the host, or report that we could not.
-	 *
-	 * @return string
-	 */
-	private function hostVendor(): string {
-		foreach ( self::HOST_SIGNATURES as $vendor => $signature ) {
-			foreach ( $signature['constants'] as $constant ) {
-				if ( $this->constantExists( $constant ) ) {
-					return $vendor;
-				}
-			}
-		}
-
-		// LiteSpeed is a web server rather than a host, but it is the signature
-		// that matters for the tweaks that interact with its cache.
-		$software = isset( $_SERVER['SERVER_SOFTWARE'] ) ? sanitize_text_field( wp_unslash( $_SERVER['SERVER_SOFTWARE'] ) ) : '';
-
-		if ( '' !== $software && false !== stripos( $software, 'litespeed' ) ) {
-			return 'litespeed';
-		}
-
-		return 'unknown';
 	}
 
 	/**

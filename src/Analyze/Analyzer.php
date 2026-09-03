@@ -31,6 +31,10 @@ use WPDebloat\Registry\Registry;
  * 3. **Refusals are applied.** A finding may become `dont_touch`, keeping the
  *    confidence figure, because how sure we are of a reading does not change
  *    when we decide not to act on it.
+ * 4. **Site-specific reasoning is added.** Where another optimizer on the site
+ *    offers the same setting, the finding gains a sentence saying so. It keeps
+ *    its severity and its recommendation: the scan has just observed that the
+ *    thing is still happening, so nothing has been handled (D-0028).
  *
  * A rule that cannot evaluate the facts is recorded as **not evaluated** rather
  * than passing silently. "We could not look" and "we looked and it was fine"
@@ -82,6 +86,7 @@ final class Analyzer {
 	public function analyze( FactSet $facts ): AnalysisResult {
 		$confidence = new ConfidenceCalculator( $facts, $this->has_custom_code );
 		$refusals   = new DontTouchRules( $this->registry, $facts );
+		$optimizers = new HostOptimizerRules( $this->registry, $facts );
 
 		$findings      = array();
 		$not_evaluated = array();
@@ -113,7 +118,7 @@ final class Analyzer {
 				$dependents
 			);
 
-			$findings[ $finding->id ] = $refusals->apply( $finding );
+			$findings[ $finding->id ] = $optimizers->apply( $refusals->apply( $finding ) );
 		}
 
 		ksort( $findings, SORT_STRING );

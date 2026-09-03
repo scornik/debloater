@@ -74,12 +74,33 @@ final class ScannerTest extends IntegrationTestCase {
 		// Plugin and theme names are other people's product names, echoed
 		// verbatim. Searching them for opinion words would say nothing about
 		// whether this plugin graded anything — and "WP Debloat" itself is in
-		// the list.
-		foreach ( array( 'plugins.active', 'plugins.inactive', 'plugins.meta', 'plugins.detected', 'theme.active', 'theme.parent' ) as $observed_name ) {
+		// the list. The Phase 11 facts are the same case twice over: they carry
+		// plugin slugs, and the products they name include one called an
+		// optimizer, which is what its author calls it rather than a verdict of
+		// ours.
+		foreach ( array( 'plugins.active', 'plugins.inactive', 'plugins.meta', 'plugins.detected', 'plugins.categories', 'plugins.host_optimizers', 'theme.active', 'theme.parent' ) as $observed_name ) {
 			unset( $facts[ $observed_name ] );
 		}
 
 		$encoded = strtolower( (string) wp_json_encode( $facts ) );
+
+		// The exemptions above are for names, not for a licence to editorialise
+		// inside them. Nothing in a fact set may be a sentence: prose belongs to
+		// the analyzer, and a fact that explains itself is a fact that has
+		// started grading.
+		foreach ( $this->plugin->scanRunner()->collect( $this->context() )->facts->toArray() as $key => $value ) {
+			foreach ( is_array( $value ) ? $value : array() as $row ) {
+				foreach ( is_array( $row ) ? $row : array() as $field => $text ) {
+					if ( is_string( $text ) ) {
+						$this->assertStringNotContainsString(
+							'. ',
+							$text,
+							sprintf( '%s[%s] reads like prose. Facts are observations.', $key, (string) $field )
+						);
+					}
+				}
+			}
+		}
 
 		foreach ( $opinionated as $word ) {
 			$this->assertStringNotContainsString(

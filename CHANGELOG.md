@@ -227,6 +227,28 @@ All notable changes to WP Debloat are recorded here. The format follows
 
 ### Added since 0.1.0
 
+- **Phase 11 — the plugin list.**
+  - WP Debloat now notices when two plugins are doing the same job — two page
+    caches, two SEO plugins, two backup plugins — and tells you which ones, and
+    what running two of that particular kind actually costs. It will not
+    deactivate or delete either. Two of something is often deliberate, and a
+    plugin that cannot tell a duplicate from a migration in progress has no
+    business making that call.
+  - It also reports active plugins with no sign of life in two years — worth
+    knowing, never a recommendation, since plenty of small plugins are simply
+    finished.
+  - The date behind that comes from your own server unless you ask otherwise, and
+    WP Debloat says which. `wp debloat scan --check-plugin-updates` is the one
+    thing in the whole plugin that sends anything off your server; it asks
+    wordpress.org for release dates and nothing else, and it is not remembered.
+    The next scan asks again.
+  - Where something else on your site — your host's optimizer, or a cache plugin
+    — has its own setting for something WP Debloat found, the finding says so and
+    says where to look, so you can use one switch instead of two. It does not
+    claim the other tool has already dealt with it: if it had, there would be
+    nothing to report.
+
+
 - **Phase 10 — the database.**
   - Five things WP Debloat can now remove: old post revisions, abandoned
     auto-drafts, content already in the trash, comments marked as spam, and

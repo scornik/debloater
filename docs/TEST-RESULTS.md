@@ -1045,3 +1045,86 @@ who asked to undo something and what they need is the reason.
 | PHPCS | ✅ 0 errors, 0 warnings, 227 files |
 | PHPStan level 6 | ✅ no errors |
 | ESLint | ✅ clean |
+
+---
+
+## Phase 11 — Plugin intelligence
+
+### Run 1 — unit suite after the new rules landed
+
+```
+vendor/bin/phpunit
+```
+
+**Result:** 1 031 tests, **2 failures**.
+
+| Failure | Root cause | Fix | Retest |
+|---|---|---|---|
+| `AnalyzerTest::test_a_complete_fact_set_evaluates_every_rule` | The "complete fact set" fixture predates three facts. | Added `plugins.categories`, `plugins.update_source` and `plugins.host_optimizers` to the fixture, and gave the busy store a plugin list with dates. | ✅ |
+| `RepositoryInvariantsTest::test_registry_schemas_are_valid_json` — expected 6, found 8 | A count standing in for "the registry object types are these". | Assert the exact set by name instead: the six §4 object types plus the two Phase 11 tables, and nothing else. Stricter, and it does not need editing when the truth changes. | ✅ |
+
+### Run 2 — the contract said no
+
+```
+vendor/bin/phpunit
+```
+
+**Result:** 1 031 tests, **111 errors**, every one of them
+`Fact::plugins.categories: must not nest more than one level below the fact
+value`.
+
+Both new facts were shaped as a list of objects with a list inside — a category
+with its plugins, an optimizer with the findings it covers. `Fact` has allowed
+exactly one level of nesting since Phase 0, so that fact values stay trivially
+diffable.
+
+The contract was right. Both facts are now **one row per pair** — one per
+classified plugin, one per optimizer-and-finding — which is flat, and is also
+what they actually are: small relations, which the rules group for themselves.
+
+### Run 3 — integration, and prose where it should not be
+
+```
+npm run test:integration:main
+```
+
+**Result:** 201 tests, **2 failures**.
+
+| Failure | Root cause | Fix | Retest |
+|---|---|---|---|
+| `ScannerTest::test_facts_contain_no_opinions` — a fact contained "optimi" | Two things at once. The word is in a product's own name, which the test already exempts elsewhere for plugin and theme names. But the fact *also* carried registry prose: a sentence about what running two page caches costs. | Both. The exemption list gains the two new plugin facts, with the same rationale it already gives. And the prose came out: the category table now carries a **label only**, the reasoning moved into `DuplicateFunctionalityRule` where reasoning belongs, and where an optimizer keeps its settings is read from the registry rather than copied into the facts. A new assertion refuses any sentence-shaped string in a fact set, so this cannot come back under a word the list does not have. | ✅ |
+| `PluginIntelligenceTest::test_the_opt_in_looks_up_release_dates` — no requests were made | The fixture install has plugins on disk and none active, so the lookup asked about an empty list. The test would have passed on broken code just as happily. | Activate one first, and assert it is active before asserting the requests. | ✅ |
+
+### Run 4 — a registry entry that pointed at nothing
+
+`PluginIntelligenceTest::test_a_covered_finding_gains_a_sentence_and_keeps_its_weight`
+failed on a null. `host-optimizers.json` claimed a setting for
+`wp.emojis.enabled` — which is the *fact* key. The finding is
+`wp.emojis.loaded`.
+
+Nothing errored. The lookup simply never matched, and the whole feature was a
+no-op that looked implemented. `RegistryTablesTest::test_every_covered_finding_id_is_real`
+now asserts every `covers` id against `Rules::all()`.
+
+### Run 5 — static analysis
+
+PHPCS objected to `wp_remote_get()` under the VIP standard, which prefers
+`vip_safe_wp_remote_get()`. That function exists only on VIP; WP Debloat ships
+with zero runtime dependencies and has to work anywhere. What it buys — a bounded
+timeout and a graceful failure — this call already has: five seconds, and every
+failure path returns null so the scan falls back to the local reading. Ignored
+with that reason on the line.
+
+### Run 6 — full regression
+
+| Gate | Result |
+|---|---|
+| Unit | ✅ 1 053 tests, 7 607 assertions |
+| Integration | ✅ 201 tests, 1 332 assertions |
+| Forced-failure suite | ✅ 9 tests, 102 assertions |
+| CLI end-to-end (real `wp` binary) | ✅ whole loop on the fixture site |
+| Jest | ✅ 12 tests |
+| Bundle | ✅ 10.6 KB of 250 KB |
+| PHPCS | ✅ 0 errors, 0 warnings, 238 files |
+| PHPStan level 6 | ✅ no errors |
+| ESLint | ✅ clean |

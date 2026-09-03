@@ -53,6 +53,20 @@ final class Registry {
 	private readonly array $profiles;
 
 	/**
+	 * The plugin category table.
+	 *
+	 * @var PluginCategories
+	 */
+	private readonly PluginCategories $plugin_categories;
+
+	/**
+	 * Host and stack optimizers keyed by id, in sorted order.
+	 *
+	 * @var array<string,HostOptimizer>
+	 */
+	private readonly array $host_optimizers;
+
+	/**
 	 * Cached registry hash.
 	 *
 	 * @var string
@@ -66,13 +80,17 @@ final class Registry {
 	 * @param array<int,Detector>        $detectors     Detectors.
 	 * @param array<int,CompatRule>      $compatibility Compatibility rules.
 	 * @param array<int,Profile>         $profiles      Profiles.
+	 * @param PluginCategories|null      $categories    Plugin category table.
+	 * @param array<int,HostOptimizer>   $optimizers    Host and stack optimizers.
 	 * @throws RuntimeException When an id is duplicated or a reference dangles.
 	 */
 	public function __construct(
 		array $tweaks = array(),
 		array $detectors = array(),
 		array $compatibility = array(),
-		array $profiles = array()
+		array $profiles = array(),
+		?PluginCategories $categories = null,
+		array $optimizers = array()
 	) {
 		$indexed = array();
 
@@ -150,11 +168,54 @@ final class Registry {
 
 		ksort( $by_profile, SORT_STRING );
 
-		$this->tweaks        = $indexed;
-		$this->detectors     = $by_id;
-		$this->compatibility = $by_subject;
-		$this->profiles      = $by_profile;
-		$this->hash          = self::computeHash( $indexed, $by_id, $by_subject, $by_profile );
+		$by_optimizer = array();
+
+		foreach ( $optimizers as $optimizer ) {
+			if ( ! $optimizer instanceof HostOptimizer ) {
+				throw new RuntimeException( 'Registry accepts HostOptimizer instances only.' );
+			}
+
+			if ( array_key_exists( $optimizer->id, $by_optimizer ) ) {
+				throw new RuntimeException( sprintf( 'Duplicate optimizer id "%s" in registry.', $optimizer->id ) );
+			}
+
+			$by_optimizer[ $optimizer->id ] = $optimizer;
+		}
+
+		ksort( $by_optimizer, SORT_STRING );
+
+		$this->tweaks            = $indexed;
+		$this->detectors         = $by_id;
+		$this->compatibility     = $by_subject;
+		$this->profiles          = $by_profile;
+		$this->plugin_categories = $categories ?? new PluginCategories();
+		$this->host_optimizers   = $by_optimizer;
+		$this->hash              = self::computeHash(
+			$indexed,
+			$by_id,
+			$by_subject,
+			$by_profile,
+			$this->plugin_categories,
+			$by_optimizer
+		);
+	}
+
+	/**
+	 * The plugin category table.
+	 *
+	 * @return PluginCategories
+	 */
+	public function pluginCategories(): PluginCategories {
+		return $this->plugin_categories;
+	}
+
+	/**
+	 * Host and stack optimizers, in sorted id order.
+	 *
+	 * @return array<string,HostOptimizer>
+	 */
+	public function hostOptimizers(): array {
+		return $this->host_optimizers;
 	}
 
 	/**
@@ -384,15 +445,30 @@ final class Registry {
 	 * @param array<string,Detector>        $detectors     Detectors in sorted order.
 	 * @param array<string,CompatRule>      $compatibility Rules in sorted order.
 	 * @param array<string,Profile>         $profiles      Profiles in sorted order.
+	 * @param PluginCategories              $categories    Plugin category table.
+	 * @param array<string,HostOptimizer>   $optimizers    Optimizers in sorted order.
 	 * @return string
 	 */
-	private static function computeHash( array $tweaks, array $detectors, array $compatibility, array $profiles ): string {
+	private static function computeHash(
+		array $tweaks,
+		array $detectors,
+		array $compatibility,
+		array $profiles,
+		PluginCategories $categories,
+		array $optimizers
+	): string {
 		$canonical = array(
-			'tweaks'        => array(),
-			'detectors'     => array(),
-			'compatibility' => array(),
-			'profiles'      => array(),
+			'tweaks'            => array(),
+			'detectors'         => array(),
+			'compatibility'     => array(),
+			'profiles'          => array(),
+			'plugin_categories' => $categories->toArray(),
+			'host_optimizers'   => array(),
 		);
+
+		foreach ( $optimizers as $id => $optimizer ) {
+			$canonical['host_optimizers'][ $id ] = $optimizer->toArray();
+		}
 
 		foreach ( $tweaks as $id => $definition ) {
 			$canonical['tweaks'][ $id ] = $definition->toArray();

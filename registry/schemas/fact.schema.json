@@ -86,6 +86,11 @@
           "last_updated": {
             "description": "Only present once the user has opted in to the wp.org update check (Phase 11). Absent means it was not looked up, never that the plugin was never updated.",
             "type": ["string", "null"]
+          },
+          "file_mtime": {
+            "description": "Unix time the plugin's main file was last written on this server. A local fact, not a release date: a copy-based migration resets it, and an upstream release the site never installed does not change it. Null when the file could not be read.",
+            "type": ["integer", "null"],
+            "minimum": 0
           }
         }
       }
@@ -95,6 +100,39 @@
       "type": "object",
       "propertyNames": { "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
       "additionalProperties": { "type": "boolean" }
+    },
+    "plugins.categories": {
+      "description": "One row per active plugin the registry classifies: which functional category it is in, and what that category is called. Rows rather than nested groups because a fact value nests exactly one level, and because this is a small relation the rules group for themselves. A label and nothing more: what running two of a kind costs is reasoning, and reasoning belongs to the analyzer. Plugins nobody has classified are absent, which says nothing about them.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["plugin", "category", "label"],
+        "properties": {
+          "plugin": { "type": "string", "minLength": 1 },
+          "category": { "type": "string", "minLength": 1 },
+          "label": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "plugins.update_source": {
+      "description": "Where the staleness reading came from on this scan. \"wp_org\" means the user opted in and release dates were looked up; \"file_mtime\" means nothing left the server and the reading is the weaker local one.",
+      "type": "string",
+      "enum": ["wp_org", "file_mtime"]
+    },
+    "plugins.host_optimizers": {
+      "description": "One row per optimizer present on the site and finding it offers its own setting for, so a finding can say where else it can be changed. Identifiers only — where in that product the setting lives is registry knowledge, and the analyzer looks it up there. Presence is not a claim that the other tool has done anything: a finding fires because the scan observed the thing still happening.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "name", "finding"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "name": { "type": "string", "minLength": 1 },
+          "finding": { "type": "string", "minLength": 1 }
+        }
+      }
     },
 
     "theme.active": { "type": "string", "minLength": 1 },

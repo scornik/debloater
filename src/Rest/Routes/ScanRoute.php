@@ -61,12 +61,22 @@ final class ScanRoute implements RouteInterface {
 	}
 
 	/**
-	 * Argument definitions. This route takes none.
+	 * Argument definitions.
 	 *
 	 * @return array<string,array<string,mixed>>
 	 */
 	public function args(): array {
-		return array();
+		return array(
+			'check_plugin_updates' => array(
+				'description' => __(
+					'Look up plugin release dates at wordpress.org for this scan. This is the only thing WP Debloat sends off the server, it happens only when this is true, and it is not remembered: the next scan asks again.',
+					'wp-debloat'
+				),
+				'type'        => 'boolean',
+				'required'    => false,
+				'default'     => false,
+			),
+		);
 	}
 
 	/**
@@ -76,9 +86,7 @@ final class ScanRoute implements RouteInterface {
 	 * @return WP_REST_Response
 	 */
 	public function handle( WP_REST_Request $request ) {
-		unset( $request );
-
-		$run = $this->plugin->scan();
+		$run = $this->plugin->scan( (bool) $request->get_param( 'check_plugin_updates' ) );
 
 		return new WP_REST_Response(
 			array(
