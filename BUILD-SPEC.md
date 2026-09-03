@@ -533,6 +533,21 @@ Aggregate: FAIL if any FAIL; else WARN if any WARN/UNKNOWN; else PASS. Probes no
 10. Uninstall removes runtime + loader always; drops tables/options only if `uninstall_cleanup=true`.
 11. Kill-switch bypass is read-only and never logs request contents.
 12. No PII in journal beyond actor id.
+13. **Licensing is provider-agnostic.** Pro entitlement is obtained through an
+    `EntitlementProvider` interface; the first implementation targets a
+    third-party licensing platform (Freemius). WP Debloat operates no license
+    server of its own, and no Hakeemify host is a prerequisite for Pro.
+14. **Hakeemify Cloud is optional.** If a cloud service is used it is reachable
+    at exactly one host, `cloud.hakeemify.com`, under versioned, product-scoped
+    paths (`https://cloud.hakeemify.com/v1/wp-debloat/...`). It exists for
+    substantive server-backed functionality only; a cloud endpoint whose real
+    purpose is license validation is prohibited. No separate `license.`, `api.`,
+    `registry.` or `app.` host is required infrastructure.
+15. **Nothing secret ships.** No private signing key, payment-provider secret,
+    or global API secret appears in any distributed package. A public
+    verification key may be embedded. Free WP Debloat is fully functional with
+    no Pro, no licensing platform and no cloud; a service outage never causes
+    destructive behaviour; and security fixes are never license-gated.
 
 ---
 
@@ -813,13 +828,13 @@ Exit: nightly workflow green on the full stack matrix. Commit as "phase-16: e2e 
 ```
 
 ### PHASE 17 — Registry ecosystem
-**Tasks:** split `registry/` into public `scornik/wp-debloat-registry` (`tweaks/ compatibility/ detectors/ profiles/ schemas/ tests/`) with CI (JSON → schema → compat tests → WP matrix → Woo → Elementor); plugin vendors a pinned snapshot; opt-in update check fetching a cryptographically signed manifest (Ed25519 signature over a canonical manifest containing sha256 per file) from a fixed GitHub raw URL, JSON only, never executable; `docs/REGISTRY.md` authoring guide, PR template, "new WP release" checklist.
+**Tasks:** split `registry/` into public `scornik/wp-debloat-registry` (`tweaks/ compatibility/ detectors/ profiles/ schemas/ tests/`) with CI (JSON → schema → compat tests → WP matrix → Woo → Elementor); plugin vendors a pinned snapshot; opt-in update check fetching a cryptographically signed manifest (Ed25519 signature over a canonical manifest containing sha256 per file) from a single pinned origin — either the public registry repository's raw URL or `https://cloud.hakeemify.com/v1/wp-debloat/registry/manifest` and `.../registry/files` — JSON only, never executable; `docs/REGISTRY.md` authoring guide, PR template, "new WP release" checklist.
 **Exit:** plugin builds from a pinned tag; bad-hash/signature manifest rejected; no network unless opt-in; remote publication is not required for local phase completion.
 
 ```
 [CC] Phase 17 — Registry ecosystem
 Read CLAUDE.md, docs/BUILD-SPEC.md §7, §13 rule 9 and §17 Phase 17. Restate goal and exit criteria, then implement Phase 17 as the current phase.
-Prepare registry/ as a separate repository layout (scornik/wp-debloat-registry); create/publish the remote repository only when GitHub credentials and explicit publication authorization are available with tweaks/, compatibility/, detectors/, profiles/, schemas/ and tests/, and a CI workflow that validates JSON, validates against schemas, runs compatibility-rule tests, and runs the plugin's WP/Woo/Elementor integration matrix against the registry. In the plugin, vendor a pinned registry snapshot with its tag recorded in a manifest, and implement an opt-in "check for registry updates" flow that fetches a cryptographically signed manifest (Ed25519 signature over a canonical manifest containing sha256 per file) from a fixed GitHub raw URL, verifies every file hash before activation, and never executes anything from the registry (JSON only; handlers stay in the plugin). Write docs/REGISTRY.md as an authoring guide with a PR template and a "new WordPress release" checklist.
+Prepare registry/ as a separate repository layout (scornik/wp-debloat-registry); create/publish the remote repository only when GitHub credentials and explicit publication authorization are available with tweaks/, compatibility/, detectors/, profiles/, schemas/ and tests/, and a CI workflow that validates JSON, validates against schemas, runs compatibility-rule tests, and runs the plugin's WP/Woo/Elementor integration matrix against the registry. In the plugin, vendor a pinned registry snapshot with its tag recorded in a manifest, and implement an opt-in "check for registry updates" flow that fetches a cryptographically signed manifest (Ed25519 signature over a canonical manifest containing sha256 per file) from a single pinned origin resolved through one endpoint resolver (the registry repository's raw URL, or the optional cloud service at `https://cloud.hakeemify.com/v1/wp-debloat/registry/*`), verifies every file hash before activation, and never executes anything from the registry (JSON only; handlers stay in the plugin). Write docs/REGISTRY.md as an authoring guide with a PR template and a "new WordPress release" checklist.
 Tests: plugin builds from the pinned tag; fixtures with a bad hash or invalid Ed25519 signature are rejected; no network call happens unless opt-in is enabled. Commit as "phase-17: registry ecosystem" and report the exit checklist.
 ```
 
@@ -835,23 +850,41 @@ Exit: all §13 tests green, PCP clean, matrix green, zip builds. Commit as "phas
 ```
 
 ### PHASE 19 — Pro (workflow only, never safety)
-**Tasks:** separate `wp-debloat-pro` extending the free plugin through documented, tested hooks: scheduled scans + drift detection (diff of findings between runs; surfaced on our screen; optional email), white-label before/after report (print-CSS HTML first; server PDF only if bundled lib size is acceptable), bulk apply of a saved profile, registry priority-update channel, Lemon Squeezy license validation (cached, offline-tolerant); multisite groundwork behind a feature flag (network defaults + per-site overrides for selection and intent profile only).
-**Exit:** free plugin fully functional without Pro; Pro adds no tweaks and no safety features (invariant test).
+**Tasks:** separate `wp-debloat-pro` extending the free plugin through documented, tested hooks: scheduled scans + drift detection (diff of findings between runs; surfaced on our screen; optional email), white-label before/after report (print-CSS HTML first; server PDF only if bundled lib size is acceptable), bulk apply of a saved profile, registry priority-update channel; multisite groundwork behind a feature flag (network defaults + per-site overrides for selection and intent profile only).
+
+**Licensing (§13 rule 13).** Entitlement is read through an `EntitlementProvider`
+interface with a `FreemiusEntitlementProvider` as the first implementation. No
+Freemius call appears anywhere but that adapter, and no part of Pro asks "is the
+licence valid" of anything except the interface, so the platform can be replaced
+without touching feature code. Development and CI use a fixture provider; live
+credentials are never required to build or test.
+
+**Cloud (§13 rule 14).** Any server-backed feature goes through a
+`CloudServiceClient` interface with a `HakeemifyCloudClient` implementation
+resolving every path from one canonical base, `https://cloud.hakeemify.com`,
+under `/v1/wp-debloat/...`. It is optional: with the cloud unreachable, Pro
+degrades to its local features and the site is untouched. Licensing and cloud are
+separate concerns and neither is implemented in terms of the other.
+
+**Exit:** free plugin fully functional without Pro, without a licensing platform
+and without cloud access; Pro adds no tweaks and no safety features (invariant
+test); no Freemius symbol outside its adapter; no cloud host outside the
+endpoint resolver.
 
 ```
 [CC] Phase 19 — Pro plugin
 Read CLAUDE.md, docs/BUILD-SPEC.md §17 Phase 19 and the Free/Pro table in the v0.2 spec. Restate goal and exit criteria, then implement Phase 19 as the current phase.
-Create a separate plugin wp-debloat-pro that depends on the free plugin and extends it only through documented hooks (add and document them in the free plugin as needed, with tests). Implement scheduled scans with drift detection (diff findings between the last two runs, surface on our screen, optional email), a white-label before/after report (print-CSS HTML first; add server-side PDF only if the bundled library stays under a size you record in DECISIONS.md), bulk apply of a saved profile, a registry priority-update channel, and Lemon Squeezy license validation with cached, offline-tolerant results. Begin multisite support behind a feature flag: network defaults and per-site overrides for selection and intent profile only.
-Tests: the free plugin passes its full suite with Pro absent; with Pro active no new tweaks or safety features appear (invariant test); license offline fallback works; drift detection reports added and resolved findings. Commit as "phase-19: pro workflow features" and report the exit checklist.
+Create a separate plugin wp-debloat-pro that depends on the free plugin and extends it only through documented hooks (add and document them in the free plugin as needed, with tests). Implement scheduled scans with drift detection (diff findings between the last two runs, surface on our screen, optional email), a white-label before/after report (print-CSS HTML first; add server-side PDF only if the bundled library stays under a size you record in DECISIONS.md), bulk apply of a saved profile, and a registry priority-update channel. Read entitlement through an EntitlementProvider interface implemented by a FreemiusEntitlementProvider, with cached, offline-tolerant results and a fixture provider for tests; keep every Freemius symbol inside that adapter. Put any server-backed feature behind a CloudServiceClient interface whose HakeemifyCloudClient resolves paths from the single base https://cloud.hakeemify.com under /v1/wp-debloat/, and treat the cloud as optional. Begin multisite support behind a feature flag: network defaults and per-site overrides for selection and intent profile only.
+Tests: the free plugin passes its full suite with Pro absent, with no licensing SDK present and with no cloud reachable; with Pro active no new tweaks or safety features appear (invariant test); a missing or invalid entitlement fails safe and never destructively; a cloud outage degrades Pro to local features and changes nothing on the site; no endpoint can cause PHP or JS from a remote to execute on the site; drift detection reports added and resolved findings. Commit as "phase-19: pro workflow features" and report the exit checklist.
 ```
 
 ### PHASE 20 — Agency / Cloud (post-revenue; design only)
-**Tasks:** `docs/CLOUD-DESIGN.md`: multi-site dashboard requirements, push-only reporting via signed site keys (no inbound control in v1), data minimization/retention, reuse of run/report JSON, auth model, cost at zero/low scale, explicit deferrals. No infrastructure, accounts, or code.
+**Tasks:** `docs/CLOUD-DESIGN.md`: multi-site dashboard requirements, push-only reporting via signed site keys (no inbound control in v1), data minimization/retention, reuse of run/report JSON, auth model, cost at zero/low scale, explicit deferrals. Also: the one-host architecture and its versioned product-scoped routing, the isolation boundary between licensing (third-party platform) and cloud service (Hakeemify), where secrets and signing keys live, key rotation, retention and backups, and what a migration off Hakeemify WordPress to a standalone service would and would not change in the plugin's contract. No infrastructure, accounts, or code.
 **Exit:** design doc reviewed; nothing deployed.
 
 ```
 [CC] Phase 20 — Agency/Cloud design
-Read CLAUDE.md and docs/BUILD-SPEC.md §17 Phase 20. Produce docs/CLOUD-DESIGN.md only: multi-site dashboard requirements, push-only reporting from sites using signed site keys, data minimization and retention, how it reuses the existing run/report JSON, auth model, cost model at zero/low scale, and an explicit list of what is deferred until revenue. Do not create infrastructure, accounts, or code. Commit as "phase-20: cloud design doc".
+Read CLAUDE.md and docs/BUILD-SPEC.md §17 Phase 20. Produce docs/CLOUD-DESIGN.md only: multi-site dashboard requirements, push-only reporting from sites using signed site keys, data minimization and retention, how it reuses the existing run/report JSON, auth model, cost model at zero/low scale, the single-host routing and isolation model, the boundary between third-party licensing and Hakeemify cloud services, secret and signing-key ownership, key rotation, backups and monitoring, the migration path to a standalone service, and an explicit list of what is deferred until revenue. Do not create infrastructure, accounts, or code. Commit as "phase-20: cloud design doc".
 ```
 
 ---
