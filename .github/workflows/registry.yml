@@ -1,0 +1,92 @@
+name: Registry
+
+# BUILD-SPEC §14, §17 Phase 17.
+#
+# This workflow belongs to the registry: it validates every JSON document
+# against its schema, checks the manifest describes what is actually on disk,
+# and runs the plugin's own suites against the registry so that a change to a
+# tweak cannot pass review while breaking the engine that reads it.
+#
+# It lives here for now because the registry has not been split into its own
+# repository yet — publishing one is an external act that needs a person. When
+# it is split, this file moves with `registry/` and the checkout step gains the
+# plugin as a second repository. See docs/REGISTRY.md.
+
+on:
+  push:
+    paths:
+      - 'registry/**'
+      - 'tools/registry-manifest.php'
+      - '.github/workflows/registry.yml'
+  pull_request:
+    paths:
+      - 'registry/**'
+      - 'tools/registry-manifest.php'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: registry-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  registry:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    strategy:
+      fail-fast: false
+      matrix:
+        php: [ '8.1', '8.2', '8.3' ]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: sodium, json
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --no-interaction --no-progress
+
+      - name: Every registry document is valid JSON
+        run: |
+          find registry -name '*.json' -print0 \
+            | xargs -0 -n1 -I{} php -r 'json_decode(file_get_contents($argv[1]), true) !== null || exit(fprintf(STDERR, "%s is not valid JSON\n", $argv[1]) && 1);' {}
+
+      - name: The manifest describes the registry on disk
+        run: php tools/registry-manifest.php --check
+
+      - name: Schemas, loader, references and invariants
+        run: vendor/bin/phpunit --no-coverage
+
+      - name: Static analysis
+        run: |
+          vendor/bin/phpcs --standard=phpcs.xml.dist
+          vendor/bin/phpstan analyse --no-progress
+
+  # The registry has to work against a real WordPress with the stack on it, not
+  # only against its own schemas. A tweak that validates and then does nothing
+  # is worse than one that fails to parse.
+  against-wordpress:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: registry
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+      - run: npx wp-env start --update
+      - run: npm run test:integration
+      - run: npx wp-env stop
+        if: always()

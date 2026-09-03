@@ -485,6 +485,91 @@ final class Command {
 	}
 
 	/**
+	 * Show the registry this build carries, and optionally look for a newer one.
+	 *
+	 * ## OPTIONS
+	 *
+	 * [--check-updates]
+	 * : Ask whether a newer registry release exists. This is the only thing this
+	 * command sends off the server, it happens only with this flag, and it is not
+	 * remembered. Nothing is installed: a release that verifies is reported, and
+	 * installing it is a separate, deliberate act.
+	 *
+	 * [--format=<format>]
+	 * : How to print the result.
+	 * ---
+	 * default: table
+	 * options:
+	 *   - table
+	 *   - json
+	 * ---
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     wp debloat registry
+	 *     wp debloat registry --check-updates
+	 *
+	 * @param array<int,string>    $args       Positional arguments.
+	 * @param array<string,string> $assoc_args Options.
+	 * @return void
+	 */
+	public function registry( array $args, array $assoc_args ): void {
+		unset( $args );
+
+		$this->run(
+			function () use ( $assoc_args ): int {
+				$tag      = $this->plugin->registryTag();
+				$registry = $this->plugin->registry();
+
+				if ( ! $this->flag( $assoc_args, 'check-updates' ) ) {
+					$document = array(
+						'tag'      => $tag,
+						'hash'     => $registry->hash(),
+						'tweaks'   => $registry->count(),
+						'profiles' => count( $registry->profiles() ),
+					);
+
+					if ( $this->wantsJson( $assoc_args ) ) {
+						$this->io->json( $document );
+
+						return self::EXIT_OK;
+					}
+
+					$this->io->line(
+						sprintf(
+							/* translators: 1: registry tag, 2: number of changes. */
+							__( 'Registry %1$s, %2$d changes.', 'wp-debloat' ),
+							'' === $tag ? __( 'unversioned', 'wp-debloat' ) : $tag,
+							$registry->count()
+						)
+					);
+					$this->io->line( sprintf( 'Hash: %s', $registry->hash() ) );
+
+					return self::EXIT_OK;
+				}
+
+				$updater = $this->plugin->registryUpdater();
+
+				$updater->setEnabled( true );
+
+				try {
+					$result = $updater->check( $tag );
+				} finally {
+					$updater->setEnabled( false );
+				}
+
+				if ( $this->wantsJson( $assoc_args ) ) {
+					$this->io->json( $result->toArray() );
+				} else {
+					$this->io->line( $result->message );
+				}
+
+				return $result->wasRefused() ? self::EXIT_WARNINGS : self::EXIT_OK;
+			}
+		);
+	}
+
+	/**
 	 * Undo a change.
 	 *
 	 * ## OPTIONS

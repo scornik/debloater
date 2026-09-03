@@ -40,6 +40,8 @@ use WPDebloat\Recommend\PlanResult;
 use WPDebloat\Recommend\PreviewPlanner;
 use WPDebloat\Recommend\RecommendationEngine;
 use WPDebloat\Registry\Loader;
+use WPDebloat\Update\Manifest;
+use WPDebloat\Update\RegistryUpdater;
 use WPDebloat\Registry\Profile;
 use WPDebloat\Registry\Registry;
 use WPDebloat\Registry\SchemaValidator;
@@ -413,6 +415,45 @@ final class Plugin {
 	 */
 	public function wpOrgUpdates(): WpOrgUpdates {
 		return $this->service( 'wp_org_updates', static fn (): WpOrgUpdates => new WpOrgUpdates( false ) );
+	}
+
+	/**
+	 * The tag of the registry snapshot this build carries.
+	 *
+	 * Read from the vendored manifest, not from a constant somebody has to
+	 * remember to bump: the manifest is generated from the files themselves, so
+	 * the tag and the contents cannot drift apart.
+	 *
+	 * @return string
+	 */
+	public function registryTag(): string {
+		$path = $this->context()->plugin_dir . '/registry/manifest.json';
+
+		if ( ! is_file( $path ) ) {
+			return '';
+		}
+
+		try {
+			$decoded = json_decode( (string) file_get_contents( $path ), true );
+
+			return is_array( $decoded ) ? Manifest::fromArray( $decoded )->tag : '';
+		} catch ( \Throwable $error ) {
+			unset( $error );
+
+			return '';
+		}
+	}
+
+	/**
+	 * The registry update check, off unless asked.
+	 *
+	 * @return RegistryUpdater
+	 */
+	public function registryUpdater(): RegistryUpdater {
+		return $this->service(
+			'registry_updater',
+			fn (): RegistryUpdater => new RegistryUpdater( $this->registryTag() )
+		);
 	}
 
 	/**

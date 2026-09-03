@@ -1493,3 +1493,70 @@ enabled.
 | PHPStan level 6 | ✅ no errors |
 | ESLint | ✅ clean |
 | Nightly CI matrix | ⚠️ never run — running it is an external action on somebody's account |
+
+---
+
+## Phase 17 — Registry ecosystem
+
+### Run 1 — an invariant that was right
+
+```
+vendor/bin/phpunit
+```
+
+**Result:** 1 157 tests, **1 failure** —
+`RepositoryInvariantsTest::test_contracts_and_registry_do_not_call_wordpress`.
+`src/Registry/Update/RegistryUpdater.php` calls `wp_remote_get()`, and
+`src/Registry` is asserted to load with no WordPress at all.
+
+The tempting fix was to add one exception to the invariant. The invariant was
+right: `src/Registry` is *what the registry is* — documents, schemas, a loader,
+all pure — and fetching a newer one over the network is a different concern. The
+whole subtree moved to `src/Update/` (D-0044).
+
+### Run 2 — two of my own
+
+| Failure | Cause |
+|---|---|
+| "is not a JSON document" never matched | `Json::decode()` throws rather than returning null, so the refusal came out as "Syntax error" with no filename. Caught and restated: a refusal a person cannot act on is barely a refusal. |
+| `assertSame` on the downloaded files | `download()` returns files in the manifest's order, which is sorted. Compared with `assertEquals`, plus an explicit assertion that the order *is* the manifest's. |
+
+### Run 3 — verification, from both sides
+
+The unit suite generates an Ed25519 keypair per test and never writes it down,
+then checks that a good signature verifies and that each of these does not:
+
+- a manifest whose file hashes were edited after signing;
+- a manifest signed by a different key;
+- an empty, non-hex, too-short or too-long signature (a "no", not an exception);
+- **anything at all when no key is pinned**, which is the shipped state.
+
+And that the canonical form makes key order irrelevant, so reformatting cannot
+break a signature and reordering cannot forge one.
+
+The integration suite serves a fixture origin through `pre_http_request` and
+checks the behaviour a person gets: nothing requested unless asked, every request
+to the pinned origin, a signed newer release offered, a release signed by
+somebody else refused, one bad file hash rejecting **the whole release**, and a
+file that is not JSON refused even when its hash is right.
+
+### Run 4 — static analysis
+
+PHPCS objected to `@hex2bin()`. The pattern and even-length checks above it
+already guarantee the decode, so the silencing was noise rather than defence;
+removed, and the result is still checked rather than trusted.
+
+### Run 5 — full regression
+
+| Gate | Result |
+|---|---|
+| Unit | ✅ 1 157 tests, 11 707 assertions |
+| Integration | ✅ 256 tests, 1 585 assertions |
+| Forced-failure suite | ✅ 9 tests, 105 assertions |
+| CLI end-to-end (real `wp` binary) | ✅ |
+| Jest | ✅ 12 tests |
+| Bundle | ✅ 10.6 KB of 250 KB |
+| PHPCS | ✅ 0 errors, 0 warnings, 291 files |
+| PHPStan level 6 | ✅ no errors |
+| ESLint | ✅ clean |
+| Manifest describes the registry | ✅ 58 files |

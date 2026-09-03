@@ -1461,3 +1461,97 @@ theme's choice of element (D-0042).
 ### Next
 
 Phase 17 — Registry ecosystem.
+
+---
+
+## Phase 17 — Registry ecosystem
+
+**Status:** complete · 2026-09-03
+
+### What exists now
+
+- **`registry/manifest.json`** — 58 files with their SHA-256s, and the tag the
+  plugin is pinned to. Generated from the files themselves by
+  `tools/registry-manifest.php`, so the tag and the contents cannot drift apart.
+- **`src/Update/`** — `Manifest`, `SignatureVerifier`, `RegistryOrigin`,
+  `RegistryUpdater`, `UpdateCheck`. Ed25519 over the canonical manifest, one
+  pinned HTTPS origin, and a refusal at every step (D-0043).
+- **`wp debloat registry`** — what this build carries; `--check-updates` asks
+  whether a newer signed release exists, and is the only thing that leaves the
+  server.
+- **`docs/REGISTRY.md`** — the authoring guide, a PR checklist, and a "new
+  WordPress release" checklist.
+- **`.github/workflows/registry.yml`** — JSON validity, manifest agreement,
+  schemas and loader, static analysis, and the plugin's integration suite run
+  against the registry.
+
+### Fail closed, on purpose
+
+No signing key exists yet, so `SignatureVerifier::PUBLIC_KEY_HEX` is empty — and
+while it is empty **every update check refuses**:
+
+```
+$ wp debloat registry --check-updates
+No registry signing key is pinned in this build, so there is nothing to check a
+signed update against.
+```
+
+That is the correct behaviour rather than a placeholder. A test asserts the
+constant is empty, so pinning a real key later is a deliberate change to a test
+rather than a quiet edit to a constant.
+
+### An invariant that produced a better design
+
+The update code was first written under `src/Registry/Update/` and failed the
+Phase 0 rule that `src/Registry` must not call WordPress. The tempting fix was to
+loosen the invariant for one file. The invariant was right: `src/Registry` is
+*what the registry is*, and fetching a newer one over HTTP is a different
+concern. It moved to `src/Update/` (D-0044).
+
+### Exit checklist (§17 Phase 17)
+
+| Criterion | Result |
+|---|---|
+| `registry/` laid out as a standalone repository | ✅ becomes that repository's root unchanged |
+| CI for it: JSON → schema → compat tests → WP matrix | ✅ `registry.yml` |
+| Plugin vendors a pinned snapshot with its tag in a manifest | ✅ v0.1.0, 58 files |
+| Opt-in update check | ✅ off by default; off means no request, asserted |
+| Ed25519 signature over a canonical manifest with sha256 per file | ✅ |
+| Every file hash verified before activation | ✅ and one bad hash rejects the whole release |
+| JSON only, never executable | ✅ refused by path *and* by parse; handlers stay in the plugin |
+| `docs/REGISTRY.md` with PR template and "new WP release" checklist | ✅ |
+| **Plugin builds from the pinned tag** | ✅ `wp debloat registry` reports v0.1.0 |
+| **Bad hash / invalid signature rejected** | ✅ both, plus wrong product, unknown format, path escape, non-JSON |
+| **No network unless opt-in** | ✅ asserted by counting requests |
+| Remote publication not required | ✅ prepared, not published (D-0045) |
+| Unit suite | ✅ 1 157 tests, 11 707 assertions |
+| Integration suite | ✅ 256 tests, 1 585 assertions |
+| Forced-failure suite | ✅ 9 tests, 105 assertions |
+| CLI end-to-end | ✅ |
+| Jest | ✅ 12 tests |
+| Bundle | ✅ 10.6 KB of 250 KB |
+| PHPCS | ✅ 0 errors, 0 warnings across 291 files |
+| PHPStan level 6 | ✅ no errors |
+| ESLint | ✅ clean |
+
+### Known warnings
+
+- **The registry repository does not exist.** Creating a public repository is an
+  external act needing a person's decision and credentials, and it publishes
+  something that cannot be unpublished. The layout, tooling and CI are ready;
+  the publishing is not done, which §17 explicitly allows (D-0045).
+- **No release has ever been signed**, because no signing key exists. The
+  verification path is fully implemented and fully tested against runtime
+  keypairs; what has not happened is a real release. Pinning the public key is a
+  release-time step.
+- `RegistryUpdater` stages a verified release; it does not activate one.
+  Swapping the live registry is a separate act and belongs with the apply
+  machinery, not with the download.
+- There is still no push-CI workflow for the plugin's own suites (§14). Carried
+  from Phase 16; it belongs to Phase 18.
+- `ExpiredTransientsCleanup` from Phase 5 still does not use the collection
+  ceiling (carried from Phase 10).
+
+### Next
+
+Phase 18 — WordPress.org release hardening.

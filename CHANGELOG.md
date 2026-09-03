@@ -227,6 +227,22 @@ All notable changes to WP Debloat are recorded here. The format follows
 
 ### Added since 0.1.0
 
+- **Phase 17 — where the change list comes from.**
+  - The list of changes WP Debloat knows how to make is now versioned. `wp
+    debloat registry` tells you which release your copy is carrying.
+  - It can check for a newer one — `wp debloat registry --check-updates` — and
+    that is the only thing it sends off your server. It is off by default, and
+    off means no request at all.
+  - Nothing is installed unless it is signed with the key built into your copy
+    of the plugin, and every single file has to match the checksum in that
+    signed list. If one file does not, the whole update is rejected rather than
+    half-applied.
+  - The list is data, never code. WP Debloat will not download anything but
+    JSON, and nothing it downloads is ever executed.
+  - `docs/REGISTRY.md` explains how to propose a change to the list, and what
+    has to be true before it ships.
+
+
 - **Fixed: the WP Debloat screen did not work on a default WordPress.**
   On a site using plain permalinks — which is what WordPress uses out of the box
   — every screen showed "No route was found matching the URL and request
