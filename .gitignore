@@ -15,6 +15,7 @@ Thumbs.db
 
 # Playwright, which is a development tool and never ships.
 /tests/E2E/.artifacts/
+/tests/E2E/.auth/
 /tests/E2E/.report/
 /e2e-report.json
 /playwright-report/

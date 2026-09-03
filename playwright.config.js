@@ -15,12 +15,18 @@
  */
 
 const { defineConfig, devices } = require( '@playwright/test' );
+const path = require( 'path' );
 
 const BASE_URL = process.env.WP_BASE_URL || 'http://localhost:8888';
 
 module.exports = defineConfig( {
 	testDir: './tests/E2E',
 	outputDir: './tests/E2E/.artifacts',
+
+	// Sign in once rather than in every scenario. None of these tests is about
+	// logging in, and on a loaded CI runner the thirteenth login is the one
+	// that times out.
+	globalSetup: require.resolve( './tests/E2E/global-setup.js' ),
 
 	// One at a time. Each scenario applies changes to one shared site, and the
 	// apply lock would turn a parallel run into a test of the lock.
@@ -44,6 +50,7 @@ module.exports = defineConfig( {
 
 	use: {
 		baseURL: BASE_URL,
+		storageState: path.join( __dirname, 'tests', 'E2E', '.auth', 'admin.json' ),
 		trace: 'retain-on-failure',
 		screenshot: 'only-on-failure',
 		video: 'off',
