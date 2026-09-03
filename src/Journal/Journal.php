@@ -155,7 +155,11 @@ final class Journal {
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Our own table name; the id is parameterised.
 		$rows = $wpdb->get_results(
-			$wpdb->prepare( "SELECT * FROM `{$table}` WHERE run_id = %d ORDER BY id ASC", $run_id ),
+			$wpdb->prepare(
+				'SELECT * FROM %i WHERE run_id = %d ORDER BY id ASC',
+				$table,
+				$run_id 
+			),
 			ARRAY_A
 		);
 
@@ -177,7 +181,12 @@ final class Journal {
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- As above.
 		$rows = $wpdb->get_results(
-			$wpdb->prepare( "SELECT * FROM `{$table}` WHERE tweak_id = %s ORDER BY id DESC LIMIT %d", $tweak_id, $limit ),
+			$wpdb->prepare(
+				'SELECT * FROM %i WHERE tweak_id = %s ORDER BY id DESC LIMIT %d',
+				$table,
+				$tweak_id,
+				$limit 
+			),
 			ARRAY_A
 		);
 
@@ -197,7 +206,11 @@ final class Journal {
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- As above.
 		return (int) $wpdb->get_var(
-			$wpdb->prepare( "SELECT COUNT(*) FROM `{$table}` WHERE run_id = %d", $run_id )
+			$wpdb->prepare(
+				'SELECT COUNT(*) FROM %i WHERE run_id = %d',
+				$table,
+				$run_id 
+			)
 		);
 	}
 

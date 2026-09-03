@@ -9,6 +9,11 @@ declare( strict_types = 1 );
 
 namespace Debloater\Storage\Repositories;
 
+// phpcs:disable WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception messages never reach output raw. Rest\Controller::guard() escapes
+// every Throwable at the REST edge and Cli\Command catches at the CLI edge, which is where BUILD-SPEC §13 rule 4 puts escaping;
+// tests/Integration/ExceptionBoundaryTest.php holds both. Escaping at the throw sites instead would put esc_html() inside
+// src/Contracts and src/Registry, which are required not to call WordPress at all.
+
 use RuntimeException;
 use Debloater\Contracts\ContractViolation;
 use Debloater\Contracts\Json;
@@ -89,7 +94,14 @@ final class RunRepository {
 		$table = Schema::table( Schema::RUNS );
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- The table name comes from our own constant; the id is parameterised.
-		$row = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM `{$table}` WHERE id = %d", $id ), ARRAY_A );
+		$row = $wpdb->get_row(
+			$wpdb->prepare(
+				'SELECT * FROM %i WHERE id = %d',
+				$table,
+				$id 
+			),
+			ARRAY_A 
+		);
 
 		if ( ! is_array( $row ) ) {
 			return null;
@@ -111,7 +123,11 @@ final class RunRepository {
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared -- As above.
 		$row = $wpdb->get_row(
-			$wpdb->prepare( "SELECT * FROM `{$table}` WHERE type = %s ORDER BY id DESC LIMIT 1", $type->value ),
+			$wpdb->prepare(
+				'SELECT * FROM %i WHERE type = %s ORDER BY id DESC LIMIT 1',
+				$table,
+				$type->value 
+			),
 			ARRAY_A
 		);
 
@@ -140,11 +156,23 @@ final class RunRepository {
 
 		if ( null === $type ) {
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- As above.
-			$rows = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM `{$table}` ORDER BY id DESC LIMIT %d", $limit ), ARRAY_A );
+			$rows = $wpdb->get_results(
+				$wpdb->prepare(
+					'SELECT * FROM %i ORDER BY id DESC LIMIT %d',
+					$table,
+					$limit 
+				),
+				ARRAY_A 
+			);
 		} else {
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- As above.
 			$rows = $wpdb->get_results(
-				$wpdb->prepare( "SELECT * FROM `{$table}` WHERE type = %s ORDER BY id DESC LIMIT %d", $type->value, $limit ),
+				$wpdb->prepare(
+					'SELECT * FROM %i WHERE type = %s ORDER BY id DESC LIMIT %d',
+					$table,
+					$type->value,
+					$limit 
+				),
 				ARRAY_A
 			);
 		}
@@ -180,9 +208,14 @@ final class RunRepository {
 		$table        = Schema::table( Schema::RUNS );
 		$placeholders = implode( ', ', array_fill( 0, count( $statuses ), '%s' ) );
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- The placeholder list is built from a count, never from input; the values are parameterised.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- The placeholder list is built from a count of the statuses, never from input, and every value is parameterised.
 		$rows = $wpdb->get_results(
-			$wpdb->prepare( "SELECT * FROM `{$table}` WHERE status IN ({$placeholders}) ORDER BY id ASC", ...$statuses ),
+			// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- The count is right at runtime: the sniff sees only the placeholders written in the literal, not the ones inside $placeholders.
+			$wpdb->prepare(
+				"SELECT * FROM %i WHERE status IN ({$placeholders}) ORDER BY id ASC",
+				$table,
+				...$statuses
+			),
 			ARRAY_A
 		);
 
@@ -223,7 +256,7 @@ final class RunRepository {
 		$table = Schema::table( Schema::RUNS );
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Our own table name.
-		return (int) $wpdb->get_var( "SELECT COUNT(*) FROM `{$table}`" );
+		return (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM %i', $table ) );
 	}
 
 	/**

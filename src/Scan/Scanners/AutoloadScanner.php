@@ -9,6 +9,8 @@ declare( strict_types = 1 );
 
 namespace Debloater\Scan\Scanners;
 
+// phpcs:disable PluginCheck.Security.DirectDB.UnescapedDBParameter -- The interpolated name is a $wpdb property, never input, and the condition beside it is SQL the subclass already prepared; nesting prepare() around it would process those placeholders a second time.
+
 use Debloater\Contracts\Context;
 
 /**

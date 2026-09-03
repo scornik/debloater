@@ -32,6 +32,23 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 
 require_once __DIR__ . '/vendor/autoload.php';
 
+// phpcs:disable WordPress.WP.AlternativeFunctions.unlink_unlink, WordPress.WP.AlternativeFunctions.rename_rename, WordPress.WP.AlternativeFunctions.file_system_operations_mkdir,
+// phpcs:disable WordPress.WP.AlternativeFunctions.file_system_operations_chmod, WordPress.WP.AlternativeFunctions.file_system_operations_is_writable,
+// phpcs:disable WordPress.WP.AlternativeFunctions.file_system_operations_rmdir, WordPress.WP.AlternativeFunctions.file_system_operations_fwrite, WordPress.WP.AlternativeFunctions.file_system_operations_fclose
+// -- WP_Filesystem is the wrong tool here and using it would be less safe, not more.
+//
+// It cannot do an atomic replace: there is no move() that guarantees
+// rename(2) semantics, and a non-atomic write to a file loaded on every
+// request is exactly how a site ends up serving half a runtime. It also
+// asks for FTP credentials when it cannot write directly, which during an
+// apply means a modal in the middle of a change that is already underway.
+//
+// Everything written here is inside wp-content/debloater or mu-plugins,
+// from paths this plugin builds itself (BUILD-SPEC §13 rule 6), and
+// tests/Integration/SecurityRulesTest.php asserts that boundary.
+//
+// phpcs:disable WordPress.DB.DirectDatabaseQuery.SchemaChange -- Dropping this plugin's own tables is what an opt-in uninstall is.
+
 /**
  * Remove the generated runtime and the loader, whatever else happens.
  *
@@ -106,8 +123,8 @@ function debloater_uninstall_data(): void {
 	foreach ( \Debloater\Storage\Schema::tables() as $key ) {
 		$table = \Debloater\Storage\Schema::table( $key );
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- A table name cannot be a placeholder, and these names come from the plugin's own schema rather than from input.
-		$wpdb->query( "DROP TABLE IF EXISTS `{$table}`" );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Dropping this plugin's own tables, and only on the opt-in path above.
+		$wpdb->query( $wpdb->prepare( 'DROP TABLE IF EXISTS %i', $table ) );
 	}
 
 	delete_option( \Debloater\Brand::STATE_OPTION );

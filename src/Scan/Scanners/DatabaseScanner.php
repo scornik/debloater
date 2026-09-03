@@ -208,9 +208,16 @@ final class DatabaseScanner extends AbstractScanner {
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Every interpolated name comes from $wpdb, never from input.
 		// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Table and column names cannot be parameterised; every interpolated name here comes from $wpdb or from a constant in this class, never from input. Values are parameterised.
 		return (int) $wpdb->get_var(
-			"SELECT COUNT(*) FROM `{$meta_table}` AS m
-			LEFT JOIN `{$parent_table}` AS p ON m.`{$foreign_key}` = p.`{$parent_key}`
-			WHERE p.`{$parent_key}` IS NULL"
+			$wpdb->prepare(
+				'SELECT COUNT(*) FROM %i AS m
+				LEFT JOIN %i AS p ON m.%i = p.%i
+				WHERE p.%i IS NULL',
+				$meta_table,
+				$parent_table,
+				$foreign_key,
+				$parent_key,
+				$parent_key
+			)
 		);
 		// phpcs:enable WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 	}

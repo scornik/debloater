@@ -9,6 +9,13 @@ declare( strict_types = 1 );
 
 namespace Debloater\Apply\DataOperations;
 
+// phpcs:disable PluginCheck.Security.DirectDB.UnescapedDBParameter -- The interpolated name is a $wpdb property, never input, and the condition beside it is SQL the subclass already prepared; nesting prepare() around it would process those placeholders a second time.
+
+// phpcs:disable WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- Querying by meta_key is the operation.
+// Finding orphaned meta means asking which meta rows point at nothing, and there is
+// no way to ask that without naming meta_key. It runs when somebody explicitly asks
+// for a cleanup, never on a page load, and it is bounded by the collection ceiling.
+
 use Debloater\Contracts\Context;
 use Debloater\Contracts\SnapshotItem;
 use Debloater\Contracts\TweakParams;

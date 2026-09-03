@@ -77,11 +77,67 @@ final class Controller {
 				$route->path(),
 				array(
 					'methods'             => $route->methods(),
-					'callback'            => array( $route, 'handle' ),
+					'callback'            => fn ( \WP_REST_Request $request ) => self::guard( $route, $request ),
 					'permission_callback' => $changes_state
 						? array( self::class, 'writePermissionCallback' )
 						: array( self::class, 'permissionCallback' ),
 					'args'                => $route->args(),
+				)
+			);
+		}
+	}
+
+	/**
+	 * Run a route, and turn anything it throws into a response.
+	 *
+	 * Without this, an exception from the engine reaches WordPress's REST
+	 * server, which does not catch one — so it becomes a PHP fatal. What the
+	 * caller then gets is an empty body or, on a site with display_errors on, a
+	 * stack trace; and the dashboard, which is waiting for JSON, shows nothing
+	 * useful about a change that may have half happened.
+	 *
+	 * The engine throws on purpose. Every contract validates in its constructor
+	 * and refuses rather than coerces (Phase 0, docs/DECISIONS.md D-0002), which
+	 * is the right behaviour for a plugin that edits people's sites — but it
+	 * means "something was wrong" arrives as a Throwable, and a Throwable needs
+	 * a place to land. This is that place, and there is exactly one of them for
+	 * the same reason there is exactly one permission callback.
+	 *
+	 * It is also where BUILD-SPEC §13 rule 4 is satisfied for exception text.
+	 * The message goes into a WP_Error and leaves as JSON, so it is encoded on
+	 * the way out rather than escaped at each of the several hundred places
+	 * something is thrown.
+	 *
+	 * @param Routes\RouteInterface                 $route   The route to run.
+	 * @param \WP_REST_Request<array<string,mixed>> $request The request.
+	 * @return \WP_REST_Response|\WP_Error
+	 */
+	private static function guard( Routes\RouteInterface $route, \WP_REST_Request $request ) {
+		try {
+			return $route->handle( $request );
+		} catch ( \Throwable $error ) {
+			// Escaped here, and only here. JSON encoding is not enough on its
+			// own — `wp_json_encode()` leaves `<` and `>` alone, so a message
+			// carrying markup would arrive at the dashboard intact and be one
+			// careless `dangerouslySetInnerHTML` away from running. Escaping at
+			// this edge is what §13 rule 4 asks for, and doing it here rather
+			// than at the several hundred throw sites is why those can stay
+			// readable — and why `src/Contracts/` and `src/Registry/` can go on
+			// not calling WordPress at all.
+			//
+			// The message itself is kept. Only somebody holding the capability
+			// reaches this line, and a boundary that discards the reason makes
+			// every failure look the same.
+			return new \WP_Error(
+				'debloater_unexpected_error',
+				sprintf(
+					/* translators: %s: the error reported by the plugin. */
+					__( 'Debloater could not complete that: %s', 'debloater' ),
+					esc_html( $error->getMessage() )
+				),
+				array(
+					'status' => 500,
+					'where'  => $route->path(),
 				)
 			);
 		}

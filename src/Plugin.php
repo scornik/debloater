@@ -914,10 +914,41 @@ final class Plugin {
 	 * Separate from recoverInterruptedRuns() only because a hook callback must
 	 * return nothing, and the ids are worth having for the CLI and the tests.
 	 *
+	 * Nothing may escape from here. This runs on admin_init, on every admin
+	 * page load, and it runs precisely when the previous request did not
+	 * finish — so the state it reads is the state least likely to be
+	 * well-formed. An exception at this point would be a fatal on every
+	 * wp-admin page, which locks somebody out of the only screen that could fix
+	 * it, over a run that was already broken before they arrived.
+	 *
+	 * So a failure to recover leaves the interrupted run interrupted, which is
+	 * where it already was, and the dashboard still loads and still says so.
+	 *
 	 * @return void
 	 */
 	public function recoverOnBoot(): void {
-		$this->recoverInterruptedRuns();
+		global $wpdb;
+
+		// $wpdb prints its errors straight into the page when WP_DEBUG_DISPLAY
+		// is on. On the one path where a database error is expected and
+		// tolerated, that would put raw markup at the top of every admin screen
+		// — which is both the admin notice this plugin promised not to add and
+		// a worse way to learn about it than the dashboard already offers.
+		$suppressed = $wpdb->suppress_errors( true );
+
+		try {
+			$this->recoverInterruptedRuns();
+		} catch ( \Throwable $error ) {
+			// Swallowed, and not silently: the run stays in the state it was
+			// already in, the dashboard and `status` both show it as
+			// interrupted, and recovery runs again on the next admin page load
+			// because it is idempotent. So the failure is visible in the place
+			// somebody would look, without an admin notice this plugin promised
+			// not to add and without taking wp-admin down to say it.
+			unset( $error );
+		} finally {
+			$wpdb->suppress_errors( $suppressed );
+		}
 	}
 
 	/**

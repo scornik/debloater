@@ -1662,3 +1662,74 @@ belong to Phase 18 rather than to the rename, and none is caused by it:
 | `AlternativeFunctions.*` | 22 | Direct filesystem calls, deliberate (§10: the loader runs before `WP_Filesystem` exists) |
 | `outdated_tested_upto_header` | 1 | `Tested up to: 6.8`, current is 7.1 |
 | `trademarked_term` | 2 | The display title. See BUILD-STATUS. |
+
+---
+
+## Phase 18 — Plugin Check, and what chasing a linter turned up
+
+```
+Plugin Check, against the staged zip contents
+  before   407 findings
+  after      2 warnings, 0 errors
+
+Unit                 OK  1 170 tests, 11 836 assertions
+Integration          OK    278 tests,  4 481 assertions
+Fail-probe rollback  OK      9 tests,    105 assertions
+PHPCS                clean
+PHPStan level 6      no errors
+plugin-zip           debloater-0.1.0.zip, 301 files, 520 KB
+```
+
+### The first run was measuring the wrong thing
+
+439 errors, almost all of them `hidden_files`, `application_detected` and
+`phar_files` — because Plugin Check had been pointed at the working directory
+and was reading `.git`, `node_modules` and a PHPUnit phar. Run against the tree
+`npm run plugin-zip` stages, the real number was 407.
+
+Worth stating plainly: the wrong way produced a bigger, more alarming number,
+and would have led to "fixing" files that never ship.
+
+### 326 findings that were one architectural gap
+
+`EscapeOutput.ExceptionNotEscaped` accounted for four fifths of the report, and
+the sniff's own suggested fix — wrap the interpolated value in `esc_html()` —
+was impossible in the files where it fired most: `src/Contracts/` and
+`src/Registry/` are forbidden from calling WordPress at all.
+
+Which was the useful question. If escaping cannot happen at the throw, where
+does it happen? §13 rule 4 says at the edge. So: does the edge exist?
+
+It did not. `grep -rn "catch" src/Rest/` returned nothing. Every one of nine
+routes could take a request down with a PHP fatal, and had been able to since
+Phase 8. The same check found `recoverOnBoot()` unguarded on `admin_init`.
+
+Both are now closed, and `ExceptionBoundaryTest` holds them with a route that
+exists only to throw — registered through the real `Controller`, because a mock
+would have tested the mock.
+
+### Two assumptions the tests caught
+
+**`wp_json_encode()` does not escape `<` or `>`.** The REST boundary was written
+believing a JSON response was safe by construction. The first version of the
+test asserted the body contained no `<script>` and failed, with the tag intact
+in the output. The boundary escapes explicitly now, and the test asserts both
+halves: no raw markup leaves, and the escaped form is still there, so the reason
+is not discarded.
+
+**Several existing `phpcs:ignore` comments named sniff codes that do not
+exist** — `file_system_operations_unlink`, where the real code is
+`unlink_unlink`. They had been suppressing nothing, and looked like they were.
+Found by running PHPCS with the sniffs named explicitly and comparing.
+
+### `%i`, and why it is a real fix
+
+Twenty call sites interpolated a table name into SQL. WordPress 6.2 added `%i`
+for identifiers and this plugin requires 6.5, so there was never a reason not
+to — the comments saying "table names cannot be parameterised" had simply
+outlived the fact.
+
+The conversion is the kind most likely to break something quietly: a wrong
+argument order produces a query that runs and returns the wrong rows. The
+integration suite exercises every one of those queries against real tables,
+which is why it was safe to do at all.

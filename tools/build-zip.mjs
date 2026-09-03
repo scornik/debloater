@@ -43,6 +43,7 @@ const SHIP = [
 	{ from: 'debloater.php' },
 	{ from: 'uninstall.php' },
 	{ from: 'readme.txt' },
+	{ from: 'composer.json' },
 	{ from: 'LICENSE' },
 	{ from: 'src' },
 	{ from: 'runtime-handlers' },
@@ -192,6 +193,14 @@ function stage( from, filter ) {
 	fs.cpSync( source, target, {
 		recursive: true,
 		filter: ( entry ) => {
+			// Never a dotfile. `.gitkeep` markers were shipping inside src/,
+			// and wordpress.org rejects hidden files outright — but the better
+			// reason is that a dotfile in a release is always an accident:
+			// it exists to say something to the repository, not to the site.
+			if ( path.basename( entry ).startsWith( '.' ) ) {
+				return false;
+			}
+
 			if ( ! filter ) {
 				return true;
 			}

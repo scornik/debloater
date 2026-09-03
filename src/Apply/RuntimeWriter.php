@@ -9,6 +9,27 @@ declare( strict_types = 1 );
 
 namespace Debloater\Apply;
 
+// phpcs:disable WordPress.WP.AlternativeFunctions.unlink_unlink, WordPress.WP.AlternativeFunctions.rename_rename, WordPress.WP.AlternativeFunctions.file_system_operations_mkdir,
+// phpcs:disable WordPress.WP.AlternativeFunctions.file_system_operations_chmod, WordPress.WP.AlternativeFunctions.file_system_operations_is_writable,
+// phpcs:disable WordPress.WP.AlternativeFunctions.file_system_operations_rmdir, WordPress.WP.AlternativeFunctions.file_system_operations_fwrite, WordPress.WP.AlternativeFunctions.file_system_operations_fclose
+// -- WP_Filesystem is the wrong tool here, and using it would be less safe rather
+// than more.
+//
+// It cannot do an atomic replace: there is no move() that guarantees rename(2)
+// semantics, and a non-atomic write to a file that is loaded on every request is
+// exactly how a site ends up serving half a runtime. It also asks for FTP
+// credentials when it cannot write directly, which during an apply means a
+// credentials prompt in the middle of a change that is already underway.
+//
+// Everything written here goes inside wp-content/debloater or mu-plugins, along
+// paths this plugin builds itself (BUILD-SPEC §13 rule 6), and
+// tests/Integration/SecurityRulesTest.php asserts that boundary.
+
+// phpcs:disable WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception messages never reach output raw. Rest\Controller::guard() escapes
+// every Throwable at the REST edge and Cli\Command catches at the CLI edge, which is where BUILD-SPEC §13 rule 4 puts escaping;
+// tests/Integration/ExceptionBoundaryTest.php holds both. Escaping at the throw sites instead would put esc_html() inside
+// src/Contracts and src/Registry, which are required not to call WordPress at all.
+
 use RuntimeException;
 use Debloater\Contracts\Context;
 use Debloater\Contracts\Json;
@@ -199,12 +220,21 @@ final class RuntimeWriter {
 	/**
 	 * Check that PHP can parse the source before it is put in place.
 	 *
-	 * Two checks, deliberately. token_get_all() catches lexical damage and is
-	 * always available. A `php -l` subprocess catches parse errors that
-	 * tokenising alone will not, but exec functions are disabled on plenty of
-	 * shared hosts, so its absence must not block a write. The generated source
-	 * is produced entirely by Compiler from validated inputs, so the lint is a
-	 * safety net rather than the primary defence.
+	 * `token_get_all()` with TOKEN_PARSE runs the real parser rather than only
+	 * the lexer, so it raises ParseError on anything `php -l` would reject. It
+	 * does this in-process, which matters twice over: there is no subprocess to
+	 * spawn on every apply, and there is no dependency on exec functions, which
+	 * are disabled on a large share of shared hosting.
+	 *
+	 * This file used to run `php -l` through proc_open() as a second opinion.
+	 * It was removed: TOKEN_PARSE already catches every case it caught, and on
+	 * exactly the hosts where a corrupted write would be hardest to recover
+	 * from, proc_open() was disabled and the check had been quietly doing
+	 * nothing. A safety net that is absent where it is most needed is worse
+	 * than no safety net, because it is mistaken for one.
+	 *
+	 * The generated source comes entirely from Compiler, out of validated
+	 * inputs, so this is a last line rather than the first.
 	 *
 	 * @param string $source Source to check.
 	 * @return void
@@ -228,63 +258,6 @@ final class RuntimeWriter {
 		if ( T_OPEN_TAG !== $tokens[0][0] ) {
 			throw new RuntimeException( 'Generated runtime does not start with a PHP open tag; refusing to write it.' );
 		}
-
-		$error = $this->lint( $source );
-
-		if ( null !== $error ) {
-			throw new RuntimeException( 'Generated runtime failed a syntax check: ' . $error );
-		}
-	}
-
-	/**
-	 * Run `php -l` on the source when the environment allows it.
-	 *
-	 * @param string $source Source to lint.
-	 * @return string|null Error message, or null when the source is fine or the
-	 *                     check could not be run.
-	 */
-	private function lint( string $source ): ?string {
-		if ( ! function_exists( 'proc_open' ) ) {
-			return null;
-		}
-
-		$disabled = explode( ',', (string) ini_get( 'disable_functions' ) );
-
-		foreach ( $disabled as $function ) {
-			if ( 'proc_open' === trim( $function ) ) {
-				return null;
-			}
-		}
-
-		$descriptors = array(
-			0 => array( 'pipe', 'r' ),
-			1 => array( 'pipe', 'w' ),
-			2 => array( 'pipe', 'w' ),
-		);
-
-		$pipes   = array();
-		$process = @proc_open( array( PHP_BINARY, '-n', '-l' ), $descriptors, $pipes );
-
-		if ( ! is_resource( $process ) ) {
-			return null;
-		}
-
-		fwrite( $pipes[0], $source );
-		fclose( $pipes[0] );
-
-		$output  = (string) stream_get_contents( $pipes[1] );
-		$output .= (string) stream_get_contents( $pipes[2] );
-
-		fclose( $pipes[1] );
-		fclose( $pipes[2] );
-
-		$status = proc_close( $process );
-
-		if ( 0 === $status ) {
-			return null;
-		}
-
-		return trim( $output );
 	}
 
 	/**

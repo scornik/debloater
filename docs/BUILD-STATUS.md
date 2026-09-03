@@ -1697,3 +1697,78 @@ implemented exactly as specified and this is recorded rather than quietly
 changed. Whether to keep it, or fall back to something like
 `Debloater – Scan, Fix & Undo Site Bloat`, is a naming decision rather than an
 implementation one.
+
+---
+
+## Phase 18 — wordpress.org release hardening
+
+**Status:** complete except one naming decision · 2026-09-04
+
+### What §17 asked for, and where it landed
+
+| Task | Result |
+|---|---|
+| A test for every §13 rule | Done — `tests/Integration/SecurityRulesTest.php`, one test named per rule number, 15 of 15 |
+| §14 performance assertions | Done — the three that were missing added to `RuntimeOverheadTest`: no queries on a front-end request **with** a selection, the runtime reads no registry JSON, and a parse-time budget |
+| `readme.txt` | Done, with the screenshot list, FAQ, and requirements that must agree with the header |
+| POT file and i18n audit | Done — `languages/debloater.pot`, 517 strings; a test asserts every `__()` uses this plugin's domain and only it |
+| `uninstall.php` per §13 rule 10 | Done — runtime and loader always; tables and options only on opt-in, and the two halves are separate functions so the unconditional one cannot be made conditional by accident |
+| GPL headers | Done — asserted across header, readme, `composer.json`, `package.json`, `LICENSE` and the mu-loader |
+| CHANGELOG | Done |
+| Public name and slug via `Brand` | Done — D-0047, and `ReleaseReadinessTest` holds every machine-readable identifier to a single definition |
+| `npm run plugin-zip` | Done — `debloater-0.1.0.zip`, 301 files, 520 KB, built from an allow-list |
+| Plugin Check clean | **407 findings to 2 warnings, 0 errors.** The two are the title decision below |
+| §14 every-push CI | Done — `.github/workflows/ci.yml`, the warning Phases 16 and 17 both carried forward |
+
+### What Plugin Check actually found
+
+Three real defects, none of which any existing test would have caught. Full
+reasoning in `docs/DECISIONS.md` D-0048.
+
+**The REST layer had no exception handling at all.** No `try`, no `catch`,
+anywhere in `src/Rest/`. WordPress does not catch exceptions from a route
+callback, so every engine throw — and the engine throws on purpose, because
+every contract refuses rather than coerces — was a PHP fatal on a REST request:
+an empty body to a dashboard waiting for JSON, and a stack trace on any site
+with `display_errors` on. There is now one boundary, in `Controller::guard()`,
+for the same reason there is one permission callback.
+
+**Crash recovery could lock somebody out of the admin.** `recoverOnBoot()` runs
+on `admin_init`, on every admin page load, and it runs precisely when the last
+request did not finish — so it reads the state least likely to be well-formed. A
+throw there would have made every admin page fatal, over a run that was already
+broken before anybody arrived. It now swallows: the run stays visibly
+interrupted, and the next page load retries, because recovery is idempotent.
+
+**A syntax check that did nothing where it mattered most.** `RuntimeWriter`
+shelled out to `php -l` through `proc_open()` as a second opinion on generated
+code. `token_get_all( $source, TOKEN_PARSE )`, one line above, already runs the
+real parser. And `proc_open` is disabled on much shared hosting — so on exactly
+the hosts where a corrupt runtime is hardest to recover from, the safety net had
+been quietly absent. Removed rather than annotated.
+
+Also fixed, all genuine: table names now go through `prepare()` with `%i`
+(WordPress 6.2+, and this plugin requires 6.5) at twenty call sites; `.gitkeep`
+files were shipping inside the zip; `composer.json` was missing beside a shipped
+`vendor/`; and `Tested up to` said 6.8 while the suite runs against 7.1.
+
+### The one thing still open
+
+Plugin Check warns that the display title
+**"Debloater – Scan, Fix & Undo WordPress Bloat"** contains the restricted term
+"wordpress", which it says "cannot be used at all in your plugin name".
+
+`Debloater` and `debloater` are both clean — the rename did what it was for.
+Only the tagline draws this. It is a warning rather than an error, the title was
+chosen deliberately for search, and changing it is a naming decision rather than
+an implementation one. So it stands, and is recorded here rather than quietly
+altered.
+
+Dropping "WordPress" from `Brand::TAGLINE` clears it, and is a one-line change.
+
+### Not done, and honestly so
+
+**Screenshot images.** `readme.txt` lists three, numbered as wordpress.org
+expects. The PNGs themselves are release assets that live in the wordpress.org
+SVN `/assets` directory rather than in the plugin, and uploading them is part of
+a submission this build does not perform.

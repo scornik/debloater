@@ -130,8 +130,8 @@ final class Schema {
 		foreach ( array_reverse( self::tables() ) as $table ) {
 			$name = self::table( $table );
 
-			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange -- Table names cannot be parameterised, and this one is built from our own constant plus $wpdb->prefix.
-			$wpdb->query( "DROP TABLE IF EXISTS `{$name}`" );
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange -- Creating and dropping this plugin's own tables is what this class is for.
+			$wpdb->query( $wpdb->prepare( 'DROP TABLE IF EXISTS %i', $name ) );
 		}
 	}
 

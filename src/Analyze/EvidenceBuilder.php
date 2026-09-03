@@ -9,6 +9,11 @@ declare( strict_types = 1 );
 
 namespace Debloater\Analyze;
 
+// phpcs:disable WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception messages never reach output raw. Rest\Controller::guard() escapes
+// every Throwable at the REST edge and Cli\Command catches at the CLI edge, which is where BUILD-SPEC §13 rule 4 puts escaping;
+// tests/Integration/ExceptionBoundaryTest.php holds both. Escaping at the throw sites instead would put esc_html() inside
+// src/Contracts and src/Registry, which are required not to call WordPress at all.
+
 use RuntimeException;
 use Debloater\Contracts\Evidence;
 use Debloater\Contracts\FactSet;

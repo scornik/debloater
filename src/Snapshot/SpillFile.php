@@ -9,6 +9,27 @@ declare( strict_types = 1 );
 
 namespace Debloater\Snapshot;
 
+// phpcs:disable WordPress.WP.AlternativeFunctions.unlink_unlink, WordPress.WP.AlternativeFunctions.rename_rename, WordPress.WP.AlternativeFunctions.file_system_operations_mkdir,
+// phpcs:disable WordPress.WP.AlternativeFunctions.file_system_operations_chmod, WordPress.WP.AlternativeFunctions.file_system_operations_is_writable,
+// phpcs:disable WordPress.WP.AlternativeFunctions.file_system_operations_rmdir, WordPress.WP.AlternativeFunctions.file_system_operations_fwrite, WordPress.WP.AlternativeFunctions.file_system_operations_fclose
+// -- WP_Filesystem is the wrong tool here, and using it would be less safe rather
+// than more.
+//
+// It cannot do an atomic replace: there is no move() that guarantees rename(2)
+// semantics, and a non-atomic write to a file that is loaded on every request is
+// exactly how a site ends up serving half a runtime. It also asks for FTP
+// credentials when it cannot write directly, which during an apply means a
+// credentials prompt in the middle of a change that is already underway.
+//
+// Everything written here goes inside wp-content/debloater or mu-plugins, along
+// paths this plugin builds itself (BUILD-SPEC §13 rule 6), and
+// tests/Integration/SecurityRulesTest.php asserts that boundary.
+
+// phpcs:disable WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception messages never reach output raw. Rest\Controller::guard() escapes
+// every Throwable at the REST edge and Cli\Command catches at the CLI edge, which is where BUILD-SPEC §13 rule 4 puts escaping;
+// tests/Integration/ExceptionBoundaryTest.php holds both. Escaping at the throw sites instead would put esc_html() inside
+// src/Contracts and src/Registry, which are required not to call WordPress at all.
+
 use RuntimeException;
 use Debloater\Contracts\Context;
 use Debloater\Contracts\Json;

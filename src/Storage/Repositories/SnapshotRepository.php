@@ -9,6 +9,13 @@ declare( strict_types = 1 );
 
 namespace Debloater\Storage\Repositories;
 
+// phpcs:disable PluginCheck.Security.DirectDB.UnescapedDBParameter -- The interpolated name is a $wpdb property, never input, and the condition beside it is SQL the subclass already prepared; nesting prepare() around it would process those placeholders a second time.
+
+// phpcs:disable WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception messages never reach output raw. Rest\Controller::guard() escapes
+// every Throwable at the REST edge and Cli\Command catches at the CLI edge, which is where BUILD-SPEC §13 rule 4 puts escaping;
+// tests/Integration/ExceptionBoundaryTest.php holds both. Escaping at the throw sites instead would put esc_html() inside
+// src/Contracts and src/Registry, which are required not to call WordPress at all.
+
 use RuntimeException;
 use Debloater\Contracts\ContractViolation;
 use Debloater\Contracts\Json;
@@ -106,7 +113,14 @@ final class SnapshotRepository {
 		$table = Schema::table( Schema::SNAPSHOTS );
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Our own table.
-		$row = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM `{$table}` WHERE id = %d", $id ), ARRAY_A );
+		$row = $wpdb->get_row(
+			$wpdb->prepare(
+				'SELECT * FROM %i WHERE id = %d',
+				$table,
+				$id 
+			),
+			ARRAY_A 
+		);
 
 		return is_array( $row ) ? $this->fromRow( $row ) : null;
 	}
@@ -124,7 +138,11 @@ final class SnapshotRepository {
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Our own table.
 		$rows = $wpdb->get_results(
-			$wpdb->prepare( "SELECT * FROM `{$table}` WHERE run_id = %d ORDER BY id ASC", $run_id ),
+			$wpdb->prepare(
+				'SELECT * FROM %i WHERE run_id = %d ORDER BY id ASC',
+				$table,
+				$run_id 
+			),
 			ARRAY_A
 		);
 
@@ -145,7 +163,8 @@ final class SnapshotRepository {
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Our own table.
 		$row = $wpdb->get_row(
 			$wpdb->prepare(
-				"SELECT * FROM `{$table}` WHERE level = %s AND status = %s ORDER BY id DESC LIMIT 1",
+				'SELECT * FROM %i WHERE level = %s AND status = %s ORDER BY id DESC LIMIT 1',
+				$table,
 				$level->value,
 				SnapshotStatus::COMPLETE->value
 			),
@@ -169,7 +188,11 @@ final class SnapshotRepository {
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Our own table.
 		$rows = $wpdb->get_results(
-			$wpdb->prepare( "SELECT * FROM `{$table}` ORDER BY id DESC LIMIT %d", $limit ),
+			$wpdb->prepare(
+				'SELECT * FROM %i ORDER BY id DESC LIMIT %d',
+				$table,
+				$limit 
+			),
 			ARRAY_A
 		);
 
@@ -207,8 +230,12 @@ final class SnapshotRepository {
 				$values[] = Json::encode( $item->payload );
 			}
 
-			$sql = "INSERT INTO `{$table}` (snapshot_id, object_type, object_key, payload, restored) VALUES "
+			$sql = 'INSERT INTO %i (snapshot_id, object_type, object_key, payload, restored) VALUES '
 				. implode( ', ', $placeholders );
+
+			// The table is the first placeholder in the statement, so it is the
+			// first argument.
+			array_unshift( $values, $table );
 
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- The placeholder list is built from a count, never from input; every value is parameterised.
 			$result = $wpdb->query( $wpdb->prepare( $sql, ...$values ) );
@@ -237,12 +264,12 @@ final class SnapshotRepository {
 
 		$table = Schema::table( Schema::SNAPSHOT_ITEMS );
 
-		$sql = "SELECT * FROM `{$table}` WHERE snapshot_id = %d"
+		$sql = 'SELECT * FROM %i WHERE snapshot_id = %d'
 			. ( $unrestored_only ? ' AND restored = 0' : '' )
 			. ' ORDER BY id ASC';
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Our own table.
-		$rows = $wpdb->get_results( $wpdb->prepare( $sql, $snapshot_id ), ARRAY_A );
+		$rows = $wpdb->get_results( $wpdb->prepare( $sql, $table, $snapshot_id ), ARRAY_A );
 
 		$items = array();
 
@@ -288,7 +315,11 @@ final class SnapshotRepository {
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Our own table.
 		return (int) $wpdb->get_var(
-			$wpdb->prepare( "SELECT COUNT(*) FROM `{$table}` WHERE snapshot_id = %d", $snapshot_id )
+			$wpdb->prepare(
+				'SELECT COUNT(*) FROM %i WHERE snapshot_id = %d',
+				$table,
+				$snapshot_id 
+			)
 		);
 	}
 
@@ -310,7 +341,12 @@ final class SnapshotRepository {
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Our own table.
 		$result = $wpdb->query(
-			$wpdb->prepare( "UPDATE `{$table}` SET restored = 1 WHERE id IN ({$placeholders})", ...$item_ids )
+			// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- The count is right at runtime: the sniff sees only the placeholders written in the literal, not the ones inside $placeholders.
+			$wpdb->prepare(
+				"UPDATE %i SET restored = 1 WHERE id IN ({$placeholders})",
+				$table,
+				...$item_ids
+			)
 		);
 
 		return false === $result ? 0 : (int) $result;
@@ -346,7 +382,7 @@ final class SnapshotRepository {
 		$table = Schema::table( Schema::SNAPSHOTS );
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Our own table.
-		return (int) $wpdb->get_var( "SELECT COUNT(*) FROM `{$table}`" );
+		return (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM %i', $table ) );
 	}
 
 	/**

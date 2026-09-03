@@ -9,6 +9,10 @@
 
 defined( 'ABSPATH' ) || exit;
 
+// phpcs:disable PluginCheck.CodeAnalysis.Offloading.OffloadedContent -- This URL is matched, not fetched.
+// The whole point of the change is to stop the browser going there; naming the host
+// is how the script that goes there is recognised. Nothing here loads anything.
+
 if ( ! class_exists( 'Debloater_Handler_Core_Disable_Emojis', false ) ) {
 
 	/**

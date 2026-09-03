@@ -6,6 +6,34 @@ All notable changes to Debloater are recorded here. The format follows
 
 ## [Unreleased]
 
+### Fixed
+
+- **A REST request could take itself down.** `src/Rest/` had no exception
+  handling at all, and WordPress does not catch exceptions thrown by a route
+  callback — so anything the engine raised became a PHP fatal: an empty body to
+  a dashboard waiting for JSON, and a stack trace on any site running with
+  `display_errors` on. Every route is now behind one boundary that turns a
+  failure into a proper JSON error, escaped, with the route that failed named.
+
+- **Crash recovery could lock you out of the admin.** Recovery from an
+  interrupted run happens on every admin page load, and runs precisely when the
+  previous request did not finish — the moment the stored state is least likely
+  to be well-formed. A failure there would have made every admin page fatal,
+  over a run that was already broken before you arrived. It now steps aside: the
+  run stays visibly interrupted, and the next page load tries again.
+
+- **A syntax check that was absent where it mattered most.** Generated code was
+  checked twice, once in-process and once by running `php -l` in a subprocess.
+  The subprocess added nothing the in-process parser did not already catch, and
+  it needed `proc_open()`, which a lot of shared hosting disables — so on the
+  hosts where a damaged runtime is hardest to recover from, the second check had
+  quietly been doing nothing at all. Removed.
+
+- Table names in every query now go through `$wpdb->prepare()` with the `%i`
+  identifier placeholder rather than being written into the SQL directly.
+
+- `Tested up to` said 6.8 while the suite runs against 7.1.
+
 ### Changed
 
 - **Renamed to Debloater.** The plugin was called WP Debloat. wordpress.org
@@ -35,6 +63,11 @@ All notable changes to Debloater are recorded here. The format follows
     capability is `debloater_manage`.
   - Tweak ids (`core.*`, `db.*`, `admin.*`, `woo.*`, `elementor.*`) are
     unchanged. They identify a change, not a brand.
+
+
+- The release zip is built from an explicit list of what ships, rather than a
+  list of what does not. Repository dotfiles no longer ride along inside it, and
+  `composer.json` now travels beside the autoloader it describes.
 
 ### Added
 

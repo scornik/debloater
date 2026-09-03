@@ -9,6 +9,17 @@ declare( strict_types = 1 );
 
 namespace Debloater\Contracts;
 
+// phpcs:disable WordPress.PHP.DevelopmentFunctions.error_log_var_export -- var_export() is not debug output here: it is the code generator.
+// A validated value is turned back into PHP source with the one function whose
+// contract is that its result parses to the value it was given, which is what
+// makes BUILD-SPEC §13 rule 5 hold ("params via var_export of validated values
+// only"). Building that source by hand is how injection gets in.
+
+// phpcs:disable WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception messages never reach output raw. Rest\Controller::guard() escapes
+// every Throwable at the REST edge and Cli\Command catches at the CLI edge, which is where BUILD-SPEC §13 rule 4 puts escaping;
+// tests/Integration/ExceptionBoundaryTest.php holds both. Escaping at the throw sites instead would put esc_html() inside
+// src/Contracts and src/Registry, which are required not to call WordPress at all.
+
 /**
  * A finding (BUILD-SPEC §6).
  *

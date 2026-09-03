@@ -34,7 +34,6 @@ phpunit-wp-fail-probe.xml.dist
 phpcs.xml.dist
 phpstan.neon
 .eslintrc.json
-composer.json
 composer.lock
 
 # Local environment
