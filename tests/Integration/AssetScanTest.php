@@ -13,6 +13,7 @@ use WPDebloat\Analyze\Rules\Cf7AssetsRule;
 use WPDebloat\Contracts\Decision;
 use WPDebloat\Registry\SchemaValidator;
 use WPDebloat\Scan\PageSample;
+use WPDebloat\Scan\SampledPages;
 use WPDebloat\Scan\Scanners\AssetScanner;
 use WPDebloat\Scan\Sources;
 
@@ -261,7 +262,7 @@ final class AssetScanTest extends IntegrationTestCase {
 		);
 
 		$this->assertLessThanOrEqual(
-			AssetScanner::BUDGET_MS,
+			SampledPages::BUDGET_MS,
 			(int) $facts->value( 'assets.elapsed_ms', 0 ) + 1,
 			'the asset scan must respect its own budget'
 		);

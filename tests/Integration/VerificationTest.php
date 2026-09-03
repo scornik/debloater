@@ -109,8 +109,19 @@ final class VerificationTest extends IntegrationTestCase {
 
 		$this->assertSame( ProbeStatus::PASS, $result->status );
 		$this->assertSame(
-			array( 'admin', 'content_page', 'home', 'login', 'rest', 'runtime_loaded' ),
-			array_map( static fn ( $probe ): string => $probe->probe, $result->probes )
+			array(
+				'admin',
+				'content_page',
+				'home',
+				'login',
+				'rest',
+				'runtime_loaded',
+				'woo_account',
+				'woo_cart',
+				'woo_checkout',
+			),
+			array_map( static fn ( $probe ): string => $probe->probe, $result->probes ),
+			'every registered probe reports, including the ones that do not apply to this site'
 		);
 	}
 
@@ -405,15 +416,25 @@ final class VerificationTest extends IntegrationTestCase {
 	 * @return void
 	 */
 	public function test_blocked_loopback_reports_unknown_and_warns(): void {
-		// So that every probe applies and none of them can report NOT_TESTED
-		// for a reason unrelated to the loopback.
+		// So that every probe that could apply does, and none of them reports
+		// NOT_TESTED for a reason unrelated to the loopback.
 		self::factory()->post->create( array( 'post_status' => 'publish' ) );
 
 		$this->blockLoopback();
 
 		$result = $this->plugin->verifier()->verify();
 
+		$unknown = 0;
+
 		foreach ( $result->probes as $probe ) {
+			// A probe with nothing to check on this site — the WooCommerce
+			// probes on a site with no shop — was never going to run, blocked
+			// loopback or not. What must not happen is a verdict: a site we
+			// could not reach is not a site we checked.
+			if ( ProbeStatus::NOT_TESTED === $probe->status ) {
+				continue;
+			}
+
 			$this->assertSame(
 				ProbeStatus::UNKNOWN,
 				$probe->status,
@@ -421,7 +442,11 @@ final class VerificationTest extends IntegrationTestCase {
 			);
 
 			$this->assertTrue( (bool) $probe->evidence['loopback_blocked'] );
+
+			++$unknown;
 		}
+
+		$this->assertGreaterThan( 0, $unknown, 'some probes should have been attempted' );
 
 		$this->assertSame( ProbeStatus::WARN, $result->status );
 	}

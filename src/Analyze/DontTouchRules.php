@@ -30,9 +30,11 @@ use WPDebloat\Registry\Registry;
  *   site depends on that capability, the finding becomes dont_touch and names
  *   the dependent.
  * - **Situational rules**, which are about the site rather than about a
- *   declared dependency. BUILD-SPEC §17 Phase 3 gives the case: Heartbeat on a
- *   store with several recent editors, where slowing the poll is defensible in
- *   general and wrong here.
+ *   declared dependency. BUILD-SPEC §17 Phase 3 gives the first case: Heartbeat
+ *   on a store with several recent editors, where slowing the poll is defensible
+ *   in general and wrong here. Phase 15 gives the second and sharper one: cart
+ *   fragments on a store with a mini-cart in its header, where the change would
+ *   leave a cart total that never updates.
  *
  * A refusal always carries its reason. The contract enforces that a dont_touch
  * finding has a `decision_reason`; this class is where the reason is written,
@@ -256,6 +258,10 @@ final class DontTouchRules {
 	 * @return string|null
 	 */
 	private function situationalReason( Finding $finding ): ?string {
+		if ( 'woo.cart_fragments.everywhere' === $finding->id ) {
+			return $this->miniCartReason();
+		}
+
 		if ( 'wp.heartbeat.aggressive' !== $finding->id ) {
 			return null;
 		}
@@ -274,6 +280,48 @@ final class DontTouchRules {
 				'wp-debloat'
 			),
 			$editors
+		);
+	}
+
+	/**
+	 * A refusal because something on this site shows a cart away from the shop.
+	 *
+	 * The cart-fragments change is the one where WP Debloat is most likely to be
+	 * confidently wrong. Most shop themes put a cart total in the header, and on
+	 * such a site the fragments are needed on every page — that is what keeps the
+	 * total correct. Making them conditional there leaves a number that never
+	 * changes until the visitor reloads, which is worse than the request it saved
+	 * and looks like the shop is broken.
+	 *
+	 * So this is a refusal rather than a warning or a confidence penalty. There
+	 * is no version of "apply it anyway and see" that is acceptable on a store.
+	 *
+	 * @return string|null
+	 */
+	private function miniCartReason(): ?string {
+		if ( true !== $this->facts->value( 'woo.mini_cart' ) ) {
+			return null;
+		}
+
+		$pages = $this->facts->value( 'woo.mini_cart_pages', array() );
+		$pages = is_array( $pages ) ? array_map( 'strval', $pages ) : array();
+
+		if ( array() === $pages ) {
+			return __(
+				'Something on this site shows a cart away from the shop, so the cart-fragments script is needed on every page to keep it correct. Making it conditional here would leave a cart total that never updates.',
+				'wp-debloat'
+			);
+		}
+
+		return sprintf(
+			/* translators: %s: comma-separated page paths showing a cart. */
+			_n(
+				'This page shows a cart away from the shop: %s. The cart-fragments script is what keeps that total correct, so it is needed on every page; making it conditional would leave a number that never updates.',
+				'These pages show a cart away from the shop: %s. The cart-fragments script is what keeps those totals correct, so it is needed on every page; making it conditional would leave numbers that never update.',
+				count( $pages ),
+				'wp-debloat'
+			),
+			implode( ', ', array_slice( $pages, 0, 5 ) )
 		);
 	}
 

@@ -1354,3 +1354,63 @@ The last one is worth its place: every registry schema carries a
 `wp-debloat.hakeemify.com` `$id`, and it would be easy to read those as a host
 dependency. They are names, and the assertion proves the validator never treats
 them as addresses.
+
+---
+
+## Phase 15 — WooCommerce intelligence
+
+### Run 1 — the pinned registry, again
+
+Three unit failures, all invariants working: the MVP tweak list and the pinned
+risks needed the four Woo tweaks, and the complete-fact-set fixture needed
+`woo.present`. The busy-store fixture became an actual store, with a shop, a
+blog, fragments on the blog and no mini-cart — which is the shape the
+cart-fragments rule is about.
+
+### Run 2 — three new probes changed what verification sees
+
+```
+npm run test:integration:main
+```
+
+**Result:** 241 tests, **2 failures**, both in `VerificationTest` and neither a
+defect.
+
+| Failure | What it meant | Fix |
+|---|---|---|
+| `test_every_probe_passes_on_a_healthy_site` asserted the probe list was exactly six | The Verifier reports every registered probe, including ones that do not apply, as `NOT_TESTED`. Three new probes, three new rows. | Asserted the new list, with a note that it includes probes which do not apply to the site. |
+| `test_blocked_loopback_reports_unknown_and_warns` asserted **every** probe is `UNKNOWN` | The Woo probes do not apply on a site with no shop, so they are `NOT_TESTED` — and a probe that was never going to run is not evidence about the loopback. | Assert instead that no probe reaches a verdict, and that every probe which *does* apply is `UNKNOWN` with the loopback evidence. That is the claim the test was always making. |
+
+Neither was weakened to pass. The first is a straight list update; the second is
+a more precise statement of the same property.
+
+### Run 3 — the two exit criteria
+
+**Classification.** 100% on a six-page fixture — home, a blog post, shop, cart,
+checkout and account. Asserted as a proportion because the sample chooses one URL
+per post type and does not necessarily reach every seeded page; a page nobody
+sampled is not a misclassification.
+
+**Checkout with everything applied.** All four Woo tweaks selected, runtime
+generated and loaded, and `WooCheckoutProbe` returns `PASS`. There is a companion
+test that a checkout page which lost its form returns `FAIL`, because a probe
+that cannot fail is not a probe.
+
+### Run 4 — static analysis
+
+PHPCS fixed 73 alignment issues across four files automatically and found
+nothing else. PHPStan level 6 clean.
+
+### Run 5 — full regression
+
+| Gate | Result |
+|---|---|
+| Unit | ✅ 1 140 tests, 11 399 assertions |
+| Integration | ✅ 241 tests, 1 541 assertions |
+| Forced-failure suite | ✅ 9 tests, 105 assertions |
+| CLI end-to-end (real `wp` binary) | ✅ |
+| Jest | ✅ 12 tests |
+| Bundle | ✅ 10.6 KB of 250 KB |
+| PHPCS | ✅ 0 errors, 0 warnings, 283 files |
+| PHPStan level 6 | ✅ no errors |
+| ESLint | ✅ clean |

@@ -52,6 +52,22 @@ abstract class AbstractScanner implements ScannerInterface {
 	}
 
 	/**
+	 * Forget anything cached from a previous scan.
+	 *
+	 * Almost every scanner reads the site fresh each time and has nothing to
+	 * forget, so the default does nothing. The exceptions are the ones that
+	 * share the fetched page sample: a scan answered with pages fetched during
+	 * an earlier one would not be an observation of this site now, and the whole
+	 * product rests on facts being observations.
+	 *
+	 * Called by ScanRunner before each scanner runs.
+	 *
+	 * @return void
+	 */
+	public function reset(): void {
+	}
+
+	/**
 	 * Whether a constant is defined and truthy.
 	 *
 	 * @param string $name Constant name.

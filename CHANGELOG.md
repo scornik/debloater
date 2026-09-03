@@ -227,6 +227,25 @@ All notable changes to WP Debloat are recorded here. The format follows
 
 ### Added since 0.1.0
 
+- **Phase 15 — WooCommerce.**
+  - WP Debloat now works out which of your pages are actually part of the shop,
+    and which are not. That matters because WooCommerce's cart-fragments script
+    asks your server what is in the cart every time any page loads — including
+    the blog and the contact page — and that request can never be cached.
+  - It can make that script load only where a cart could appear. **Unless
+    something on your site shows a cart away from the shop** — a total in the
+    header, a widget in a sidebar — in which case WP Debloat refuses the change
+    outright and tells you which page it saw the cart on. There the script is
+    what keeps the total correct, and switching it off would leave a number that
+    never updates.
+  - The same for WooCommerce's block stylesheets, plus two admin changes: turn
+    off Analytics if you read your numbers elsewhere, and hide the panels
+    recommending paid extensions. Notices about your own store are untouched.
+  - Every one of these is checked against your cart, checkout and account pages
+    as a customer sees them. If any of the three stops working, the change is
+    undone rather than kept.
+
+
 - **Phase 14 — Elementor.**
   - WP Debloat now counts the Elementor widgets your site has registered, which
     plugin registered each one, and how many of them your saved designs actually

@@ -362,6 +362,45 @@
       "minimum": 0
     },
 
+    "woo.present": {
+      "description": "Whether WooCommerce is active. False is the only fact in this namespace on a site without a shop.",
+      "type": "boolean"
+    },
+    "woo.version": { "type": ["string", "null"] },
+    "woo.pages_sampled": {
+      "description": "How many pages were classified. Every page list here is a statement about these pages and no others.",
+      "type": "integer",
+      "minimum": 0
+    },
+    "woo.shop_pages": {
+      "description": "Sampled pages that are part of the shop, as paths. Classified from the rendered page — the body classes WooCommerce adds, its block and shortcode markers, its own asset handles — because conditional tags answer for the request the scan is inside rather than for the page being classified.",
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "woo.other_pages": {
+      "description": "Sampled pages that are not part of the shop, as paths.",
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "woo.fragments_on_other": {
+      "description": "Non-shop pages that loaded the cart-fragments script, as paths.",
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "woo.block_styles_on_other": {
+      "description": "Non-shop pages that loaded WooCommerce block stylesheets, as paths.",
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "woo.mini_cart_pages": {
+      "description": "Sampled pages showing a cart — a header total, a widget, a mini-cart block — as paths. A store with one genuinely needs cart fragments everywhere, which is why this fact turns a recommendation into a refusal rather than adjusting a number.",
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "woo.mini_cart": { "type": "boolean" },
+    "woo.admin_analytics": { "type": "boolean" },
+    "woo.marketplace_suggestions": { "type": "boolean" },
+
     "elementor.present": {
       "description": "Whether Elementor is active. False is the only fact in this namespace on a site without it: zeroes for the rest would read as an Elementor site with nothing on it.",
       "type": "boolean"

@@ -12,6 +12,7 @@ namespace WPDebloat\Analyze;
 use WPDebloat\Analyze\Rules\AbandonedPluginsRule;
 use WPDebloat\Analyze\Rules\AutoDraftsRule;
 use WPDebloat\Analyze\Rules\AutoloadRule;
+use WPDebloat\Analyze\Rules\CartFragmentsRule;
 use WPDebloat\Analyze\Rules\Cf7AssetsRule;
 use WPDebloat\Analyze\Rules\DashboardWidgetsRule;
 use WPDebloat\Analyze\Rules\DashiconsFrontendRule;
@@ -38,6 +39,9 @@ use WPDebloat\Analyze\Rules\StoredRevisionsRule;
 use WPDebloat\Analyze\Rules\TrashRule;
 use WPDebloat\Analyze\Rules\UpdateNagRule;
 use WPDebloat\Analyze\Rules\WelcomePanelRule;
+use WPDebloat\Analyze\Rules\WooAnalyticsRule;
+use WPDebloat\Analyze\Rules\WooBlockStylesRule;
+use WPDebloat\Analyze\Rules\WooMarketplaceRule;
 use WPDebloat\Analyze\Rules\XmlRpcRule;
 use WPDebloat\Contracts\AnalyzerRuleInterface;
 
@@ -100,6 +104,13 @@ final class Rules {
 			// Page builders: a lot of registered code, and a great deal of care
 			// about what the counts can honestly be said to mean.
 			new ElementorAuditRule(),
+
+			// Stores: where being wrong costs the most, so every change here
+			// names the cart, checkout and account probes.
+			new CartFragmentsRule(),
+			new WooBlockStylesRule(),
+			new WooAnalyticsRule(),
+			new WooMarketplaceRule(),
 
 			// Informational: worth knowing, proposes nothing.
 			new InactivePluginsRule(),

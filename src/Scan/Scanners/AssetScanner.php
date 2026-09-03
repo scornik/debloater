@@ -11,24 +11,25 @@ namespace WPDebloat\Scan\Scanners;
 
 use WPDebloat\Contracts\Context;
 use WPDebloat\Scan\AssetParser;
-use WPDebloat\Scan\PageSample;
+use WPDebloat\Scan\SampledPages;
 use WPDebloat\Scan\Sources;
-use WPDebloat\Verify\HttpClient;
 
 /**
  * Collects the `assets.*` facts (BUILD-SPEC §5, §17 Phase 13).
  *
- * This is the first scanner that fetches anything. Every request is to this
- * site, over loopback, and there is a test that fails if one is not (§13
- * rule 9).
+ * The pages come from {@see SampledPages}, which fetches them once and lends
+ * them to every scanner that reads pages — the WooCommerce scan needs the same
+ * bodies, and fetching them twice would double a scan's loopback traffic to
+ * learn nothing new. Every request is to this site, and there is a test that
+ * fails if one is not (§13 rule 9).
  *
  * Three properties are load-bearing.
  *
  * **It gives up rather than hanging.** Loopback is checked first, and a site
  * that cannot reach itself produces `assets.available = false` and a reason
- * instead of ten timeouts. There is a wall-clock budget across the whole scan,
- * and the number of pages actually fetched is recorded, so a partial sample is
- * visible as a partial sample.
+ * instead of ten timeouts. There is a wall-clock budget across the fetch, and
+ * the number of pages actually read is recorded, so a partial sample is visible
+ * as a partial sample.
  *
  * **It measures a sample, and says so.** `assets.pages_sampled` travels with
  * every other fact here precisely so that no rule can turn "on all four pages we
@@ -42,38 +43,33 @@ use WPDebloat\Verify\HttpClient;
 final class AssetScanner extends AbstractScanner {
 
 	/**
-	 * Seconds to wait for one page.
-	 */
-	public const PAGE_TIMEOUT = 5;
-
-	/**
-	 * Milliseconds the whole asset scan may take before it stops early.
-	 *
-	 * The exit criterion for this phase is a scan under ten seconds. This is
-	 * what makes that true on a slow site rather than hoped for: when the budget
-	 * is gone, what has been fetched is reported and the rest is left.
-	 */
-	public const BUDGET_MS = 8000;
-
-	/**
 	 * Hosts that serve Google Fonts.
 	 */
 	private const GOOGLE_FONT_HOSTS = array( 'fonts.googleapis.com', 'fonts.gstatic.com' );
 
 	/**
-	 * The client used for page fetches.
+	 * The page sample, shared with every other scanner that reads pages.
 	 *
-	 * @var HttpClient|null
+	 * @var SampledPages
 	 */
-	private ?HttpClient $http;
+	private SampledPages $sample;
 
 	/**
 	 * Constructor.
 	 *
-	 * @param HttpClient|null $http Client to fetch pages with; built per scan when omitted.
+	 * @param SampledPages|null $sample Page sample to read.
 	 */
-	public function __construct( ?HttpClient $http = null ) {
-		$this->http = $http;
+	public function __construct( ?SampledPages $sample = null ) {
+		$this->sample = $sample ?? new SampledPages();
+	}
+
+	/**
+	 * Forget the fetched pages.
+	 *
+	 * @return void
+	 */
+	public function reset(): void {
+		$this->sample->forget();
 	}
 
 	/**
@@ -92,66 +88,45 @@ final class AssetScanner extends AbstractScanner {
 	 * @return array<string,mixed>
 	 */
 	protected function collect( Context $context ): array {
-		$http     = $this->http ?? new HttpClient( $context, null, self::PAGE_TIMEOUT );
-		$loopback = $http->loopbackCheck();
-
-		if ( ! $loopback->reachable() ) {
-			// Ten timeouts would tell us the same thing as one, five seconds at
-			// a time. Say what happened and stop.
+		if ( ! $this->sample->available( $context ) ) {
 			return array(
 				'assets.available'          => false,
-				'assets.unavailable_reason' => $this->reason( $loopback->error, $loopback->status ),
+				'assets.unavailable_reason' => $this->sample->reason( $context ),
 				'assets.pages_sampled'      => 0,
 			);
 		}
 
-		$started = microtime( true );
-		$sample  = PageSample::urls( $context->home_url );
-		$assets  = array();
-		$pages   = array();
-		$fetched = 0;
-		$forms   = 0;
-		$cf7     = 0;
+		$pages  = $this->sample->pages( $context );
+		$assets = array();
+		$types  = array();
+		$cf7    = 0;
+		$forms  = 0;
 
-		foreach ( $sample as $page ) {
-			if ( ( microtime( true ) - $started ) * 1000 >= self::BUDGET_MS ) {
-				break;
-			}
-
-			$response = $http->get( $page['url'] );
-
-			if ( ! $response->isSuccess() || $response->isEmpty() ) {
-				continue;
-			}
-
-			++$fetched;
-
-			$found = AssetParser::parse( $response->body );
+		foreach ( $pages as $page ) {
+			$found = AssetParser::parse( $page['body'] );
 
 			foreach ( $found as $asset ) {
 				$assets[] = $asset;
 			}
 
-			$pages[] = $page['post_type'];
+			$types[] = $page['post_type'];
 
 			if ( $this->hasCf7Assets( $found ) ) {
 				++$cf7;
 			}
 
-			if ( $this->hasCf7Form( $response->body ) ) {
+			if ( $this->hasCf7Form( $page['body'] ) ) {
 				++$forms;
 			}
 		}
 
-		$elapsed = (int) round( ( microtime( true ) - $started ) * 1000 );
-
 		return array_merge(
 			array(
 				'assets.available'       => true,
-				'assets.pages_sampled'   => $fetched,
-				'assets.pages_offered'   => count( $sample ),
-				'assets.elapsed_ms'      => $elapsed,
-				'assets.post_types'      => $this->uniqueSorted( $pages ),
+				'assets.pages_sampled'   => count( $pages ),
+				'assets.pages_offered'   => $this->sample->offered( $context ),
+				'assets.elapsed_ms'      => $this->sample->elapsedMs( $context ),
+				'assets.post_types'      => $this->uniqueSorted( $types ),
 				'assets.cf7_asset_pages' => $cf7,
 				'assets.cf7_form_pages'  => $forms,
 			),
@@ -287,23 +262,6 @@ final class AssetScanner extends AbstractScanner {
 		$without_query = strtok( $url, '?' );
 
 		return false === $without_query ? $url : $without_query;
-	}
-
-	/**
-	 * A short, honest reason the pages could not be read.
-	 *
-	 * @param string $error  Transport error, if any.
-	 * @param int    $status HTTP status, if any.
-	 * @return string
-	 */
-	private function reason( string $error, int $status ): string {
-		if ( '' !== $error ) {
-			return $error;
-		}
-
-		return $status > 0
-			? sprintf( 'The site answered its own request with HTTP %d.', $status )
-			: 'The site could not reach itself.';
 	}
 
 	/**

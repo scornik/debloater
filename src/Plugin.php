@@ -55,6 +55,7 @@ use WPDebloat\Rest\Routes\StatusRoute;
 use WPDebloat\Scan\ScanRunner;
 use WPDebloat\Scan\WpOrgUpdates;
 use WPDebloat\Scan\Scanners\AdminScanner;
+use WPDebloat\Scan\SampledPages;
 use WPDebloat\Scan\Scanners\AssetScanner;
 use WPDebloat\Scan\Scanners\ElementorScanner;
 use WPDebloat\Scan\Scanners\AutoloadScanner;
@@ -64,6 +65,7 @@ use WPDebloat\Scan\Scanners\DatabaseScanner;
 use WPDebloat\Scan\Scanners\EnvironmentScanner;
 use WPDebloat\Scan\Scanners\PluginScanner;
 use WPDebloat\Scan\Scanners\ThemeScanner;
+use WPDebloat\Scan\Scanners\WooCommerceScanner;
 use WPDebloat\Scan\Scanners\UserScanner;
 use WPDebloat\Scan\Scanners\WordPressScanner;
 use WPDebloat\Security\Capabilities;
@@ -80,6 +82,9 @@ use WPDebloat\Verify\Probes\HomeProbe;
 use WPDebloat\Verify\Probes\LoginProbe;
 use WPDebloat\Verify\Probes\RestProbe;
 use WPDebloat\Verify\Probes\RuntimeLoadedProbe;
+use WPDebloat\Verify\Probes\WooAccountProbe;
+use WPDebloat\Verify\Probes\WooCartProbe;
+use WPDebloat\Verify\Probes\WooCheckoutProbe;
 use WPDebloat\Verify\Verifier;
 
 /**
@@ -387,7 +392,8 @@ final class Plugin {
 					new AutoloadScanner(),
 					new CronScanner(),
 					new AdminScanner( $this->registry() ),
-					new AssetScanner(),
+					new AssetScanner( $this->sampledPages() ),
+					new WooCommerceScanner( $this->sampledPages() ),
 					new ElementorScanner(),
 				),
 				$this->runs()
@@ -407,6 +413,20 @@ final class Plugin {
 	 */
 	public function wpOrgUpdates(): WpOrgUpdates {
 		return $this->service( 'wp_org_updates', static fn (): WpOrgUpdates => new WpOrgUpdates( false ) );
+	}
+
+	/**
+	 * The page sample, shared by every scanner that reads pages.
+	 *
+	 * One fetch, several readers. The asset scan and the WooCommerce scan both
+	 * need the rendered pages, and scanners cannot read each other's facts, so
+	 * without this the second one would fetch every page again to learn nothing
+	 * new.
+	 *
+	 * @return SampledPages
+	 */
+	public function sampledPages(): SampledPages {
+		return $this->service( 'sampled_pages', static fn (): SampledPages => new SampledPages() );
 	}
 
 	/**
@@ -768,6 +788,9 @@ final class Plugin {
 						new AdminProbe( $http ),
 						new RestProbe( $http ),
 						new LoginProbe( $http ),
+						new WooCartProbe( $http ),
+						new WooCheckoutProbe( $http ),
+						new WooAccountProbe( $http ),
 						new RuntimeLoadedProbe( $http, $this->state() ),
 					),
 					$http

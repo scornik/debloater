@@ -1258,3 +1258,100 @@ this phase's commit. No Phase 14 work was affected.
 ### Next
 
 Phase 15 — WooCommerce intelligence.
+
+---
+
+## Phase 15 — WooCommerce intelligence
+
+**Status:** complete · 2026-09-03
+
+The phase where being wrong is most expensive, so most of it is about not being.
+
+### What exists now
+
+- **`WooCommerceScanner`.** Classifies every sampled page as shop or not-shop
+  from the rendered markup, then records which non-shop pages loaded the
+  cart-fragments script and the block stylesheets, and which pages show a cart.
+  Also whether Analytics and the marketplace suggestions are on.
+- **`SampledPages`.** The page fetch, extracted from the asset scanner so both
+  scanners read the same bodies from one fetch (D-0038).
+- **Four rules and four tweaks**: cart fragments conditional (medium), block
+  styles conditional (medium), Analytics off (medium), marketplace suggestions
+  hidden (safe).
+- **Three probes** — `woo_cart`, `woo_checkout`, `woo_account` — fetching
+  WooCommerce's own pages as a guest.
+
+### Classification, and why not conditional tags
+
+§17 says "conditional tags + shortcode/block presence". Conditional tags turned
+out to be the wrong instrument: `is_cart()` answers for the request the scan is
+already inside, which is an admin request, not for the page being classified.
+They would have returned the same answer for every page on the site.
+
+So classification reads the rendered page — the body classes WooCommerce adds,
+its block and shortcode markers, its own asset handles. That is what a visitor
+receives, which is the thing the question is actually about. Shortcode and block
+presence are in there as §17 asks; the conditional tags live in the runtime
+handlers, where they run inside the request being decided and are exactly right.
+
+### The refusal this phase exists for
+
+A mini-cart anywhere off the shop makes the cart-fragments finding `dont_touch`.
+Most shop themes put a cart total in the header; there the fragments are what
+keep it correct, and making them conditional leaves a number that never updates
+until the visitor reloads. That is a refusal rather than a warning — there is no
+"apply it and see" on a store, and a warning is something a person clicks past
+(D-0039).
+
+### Exit checklist (§17 Phase 15)
+
+| Criterion | Result |
+|---|---|
+| Page classification over the sampled URLs | ✅ from rendered markup; conditional tags run in the handlers where they belong |
+| Shortcode and block presence | ✅ part of the marker set |
+| Mini-cart detection in headers | ✅ widget, block, cart-contents and cart menu item |
+| Finding: cart fragments on non-Woo pages, with the page list | ✅ |
+| Finding: Woo Admin/Analytics enabled | ✅ |
+| Finding: marketplace/promo notices | ✅ |
+| Finding: Woo block styles on non-Woo pages | ✅ |
+| `woo.cart_fragments_conditional`, medium, `dont_touch` when a mini-cart is detected | ✅ D-0039 |
+| `woo.disable_admin_analytics`, medium | ✅ through `woocommerce_admin_features` |
+| `woo.suppress_marketplace_suggestions`, safe | ✅ through WooCommerce's own two filters |
+| `woo.block_styles_conditional`, medium | ✅ |
+| Probes `woo_cart`, `woo_checkout`, `woo_account` | ✅ as a guest, and listed on both front-end tweaks |
+| **Classification ≥ 95% on fixture** | ✅ 100% on a six-page fixture |
+| **Checkout probe PASS with all Woo tweaks applied** | ✅ |
+| Unit suite | ✅ 1 140 tests, 11 399 assertions |
+| Integration suite | ✅ 241 tests, 1 541 assertions |
+| Forced-failure suite | ✅ 9 tests, 105 assertions |
+| CLI end-to-end | ✅ |
+| Jest | ✅ 12 tests |
+| Bundle | ✅ 10.6 KB of 250 KB |
+| PHPCS | ✅ 0 errors, 0 warnings across 283 files |
+| PHPStan level 6 | ✅ no errors |
+| ESLint | ✅ clean |
+
+### Known warnings
+
+- **WooCommerce is not installed in the test environment**, so pages come from
+  fixtures and the store is simulated through `active_plugins`. What that cannot
+  exercise is WooCommerce's own conditional tags inside the two dequeue
+  handlers — the code that decides, per request, whether to drop an asset. The
+  classification, the refusal and the probes are all exercised; the handlers'
+  conditionals are covered by construction (every test that says "keep" wins)
+  rather than by test. Running the suite against the development environment
+  would close this, and should happen before release.
+- Both dequeue handlers expose a filter — `wpdebloat_woo_page_needs_cart` and
+  `wpdebloat_woo_page_needs_block_styles` — because a cart or a WooCommerce
+  block inside a template part, a widget area or a page builder is not visible
+  from the page being built. A theme that has one must say so. That is a real
+  gap, documented in each tweak's `breaks` list rather than hidden.
+- Analytics detection reads WooCommerce's disabled-features option and its own
+  enabled flag. A store whose Analytics is off by some other means would be
+  reported as having it on.
+- `ExpiredTransientsCleanup` from Phase 5 still does not use the collection
+  ceiling (carried from Phase 10).
+
+### Next
+
+Phase 16 — Headless verification (Playwright, CI only).

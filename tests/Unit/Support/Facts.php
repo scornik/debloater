@@ -147,6 +147,7 @@ final class Facts {
 					'assets.cf7_asset_pages'        => 0,
 					'assets.cf7_form_pages'         => 0,
 
+					'woo.present'                   => false,
 					'elementor.present'             => false,
 
 					'cron.events.count'             => 12,
@@ -172,27 +173,27 @@ final class Facts {
 		return self::freshInstall(
 			array_merge(
 				array(
-					'env.host_vendor'         => 'unknown',
-					'env.cache_plugin'        => 'litespeed-cache',
-					'users.admin_count'       => 4,
-					'users.recent_editors_7d' => 3,
-					'plugins.active'          => array(
+					'env.host_vendor'             => 'unknown',
+					'env.cache_plugin'            => 'litespeed-cache',
+					'users.admin_count'           => 4,
+					'users.recent_editors_7d'     => 3,
+					'plugins.active'              => array(
 						'woocommerce/woocommerce.php',
 						'contact-form-7/wp-contact-form-7.php',
 						'litespeed-cache/litespeed-cache.php',
 					),
-					'plugins.inactive'        => array( 'hello-dolly/hello.php', 'akismet/akismet.php' ),
-					'plugins.meta'            => self::meta(
+					'plugins.inactive'            => array( 'hello-dolly/hello.php', 'akismet/akismet.php' ),
+					'plugins.meta'                => self::meta(
 						array(
 							'woocommerce/woocommerce.php' => 'WooCommerce',
 							'contact-form-7/wp-contact-form-7.php' => 'Contact Form 7',
 							'litespeed-cache/litespeed-cache.php' => 'LiteSpeed Cache',
 						)
 					),
-					'plugins.detected'        => self::detections(
+					'plugins.detected'            => self::detections(
 						array( 'woocommerce', 'contact-form-7', 'litespeed-cache' )
 					),
-					'plugins.categories'      => array(
+					'plugins.categories'          => array(
 						array(
 							'plugin'   => 'litespeed-cache',
 							'category' => 'cache',
@@ -204,24 +205,35 @@ final class Facts {
 							'label'    => 'Forms',
 						),
 					),
-					'plugins.host_optimizers' => array(
+					'plugins.host_optimizers'     => array(
 						array(
 							'id'      => 'litespeed-cache',
 							'name'    => 'LiteSpeed Cache',
 							'finding' => 'wp.emojis.loaded',
 						),
 					),
-					'assets.cf7_asset_pages'  => 2,
-					'assets.cf7_form_pages'   => 1,
-					'assets.external_hosts'   => array(
+					'woo.present'                 => true,
+					'woo.version'                 => '9.2.0',
+					'woo.pages_sampled'           => 4,
+					'woo.shop_pages'              => array( '/shop/', '/product/a-thing/' ),
+					'woo.other_pages'             => array( '/', '/hello-world/' ),
+					'woo.fragments_on_other'      => array( '/', '/hello-world/' ),
+					'woo.block_styles_on_other'   => array( '/hello-world/' ),
+					'woo.mini_cart_pages'         => array(),
+					'woo.mini_cart'               => false,
+					'woo.admin_analytics'         => true,
+					'woo.marketplace_suggestions' => true,
+					'assets.cf7_asset_pages'      => 2,
+					'assets.cf7_form_pages'       => 1,
+					'assets.external_hosts'       => array(
 						array(
 							'host'  => 'fonts.googleapis.com',
 							'count' => 2,
 						),
 					),
-					'assets.google_fonts'     => true,
-					'admin.notices.count'     => 5,
-					'admin.notices'           => array(
+					'assets.google_fonts'         => true,
+					'admin.notices.count'         => 5,
+					'admin.notices'               => array(
 						array(
 							'hook'   => 'admin_notices',
 							'source' => 'woocommerce',
@@ -243,7 +255,7 @@ final class Facts {
 							'source' => 'unknown',
 						),
 					),
-					'admin.notice_vendors'    => array(
+					'admin.notice_vendors'        => array(
 						array(
 							'vendor' => 'woocommerce',
 							'name'   => 'WooCommerce',
@@ -255,12 +267,12 @@ final class Facts {
 							'source' => 'wordpress-seo',
 						),
 					),
-					'admin.update_nag'        => true,
-					'theme.active'            => 'storefront',
-					'db.revisions.count'      => 31421,
-					'db.transients.count'     => 5210,
-					'db.transients.expired'   => 4832,
-					'db.autoload.bytes'       => 9646080,
+					'admin.update_nag'            => true,
+					'theme.active'                => 'storefront',
+					'db.revisions.count'          => 31421,
+					'db.transients.count'         => 5210,
+					'db.transients.expired'       => 4832,
+					'db.autoload.bytes'           => 9646080,
 				),
 				$overrides
 			)

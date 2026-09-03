@@ -15,6 +15,7 @@ use WPDebloat\Contracts\FactSet;
 use WPDebloat\Contracts\Run;
 use WPDebloat\Contracts\RunType;
 use WPDebloat\Contracts\ScannerInterface;
+use WPDebloat\Scan\Scanners\AbstractScanner;
 use WPDebloat\Storage\Repositories\RunRepository;
 
 /**
@@ -94,6 +95,13 @@ final class ScanRunner {
 			$begin = microtime( true );
 
 			try {
+				if ( $scanner instanceof AbstractScanner ) {
+					// Scanners that cache anything across a scan are told to
+					// forget it first, so no run is answered with an
+					// observation from a previous one.
+					$scanner->reset();
+				}
+
 				$produced = $scanner->scan( $context, new FactSet() );
 
 				$this->assertNoOverlap( $name, $produced, $owners );
