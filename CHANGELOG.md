@@ -227,6 +227,20 @@ All notable changes to WP Debloat are recorded here. The format follows
 
 ### Added since 0.1.0
 
+- **Phase 13 — what your pages actually load.**
+  - WP Debloat now fetches a few of your own pages — the home page and one of
+    each kind of content, up to ten — and reads the scripts and stylesheets back
+    out of them. Every one is attributed to the plugin, theme or WordPress
+    itself that it came from, with its size where the file is on your server.
+  - It counts the other servers your pages fetch from, and notices Google Fonts.
+  - It reports Contact Form 7 loading its script and stylesheet on pages that
+    have no form on them, which is what it does by default.
+  - It proposes nothing at all, and there is still no Assets score. This reads a
+    sample of your pages, not all of them, and every number says how many it
+    looked at. Deciding a script is unnecessary on that basis is how you break
+    somebody's contact page.
+
+
 - **Phase 12 — the admin screens.**
   - WP Debloat can now tell you who is putting what on your admin screens: which
     plugin registered each notice, each dashboard widget, each menu item.

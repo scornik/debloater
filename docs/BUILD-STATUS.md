@@ -1060,3 +1060,101 @@ preselected.
 ### Next
 
 Phase 13 — Asset intelligence (detection only).
+
+---
+
+## Phase 13 — Asset intelligence (detection only)
+
+**Status:** complete · 2026-09-03
+
+The first scanner that fetches anything, and the first phase whose whole output
+is a description with no proposal attached to it.
+
+### What exists now
+
+- **`AssetScanner`.** Fetches the home page plus the most recent entry of each
+  public post type, up to ten URLs, five seconds each, over loopback. Parses the
+  scripts and stylesheets out of the returned HTML, attributes each to a plugin,
+  theme or core by the file it is served from, reads sizes off the disk for
+  local files, counts external hosts and notices Google Fonts.
+- **`AssetParser`.** Reads assets back out of rendered HTML rather than from
+  `wp_scripts()->queue`, because the queue answers a different question: what
+  *would* be enqueued on a request shaped like the one we are already in, which
+  for a scan is an admin request.
+- **`PageSample`.** Chooses the URLs, and is the reason `assets.pages_sampled`
+  exists.
+- **`Sources`** — Phase 12's `AdminSources`, renamed, because attributing a file
+  to its owner was never an admin-specific job. It now answers for URLs too.
+- **`assets.cf7.everywhere`**, info, the finding §17 names.
+
+### Nothing here proposes anything
+
+No unloading tweaks, and Assets is still not a sub-score. §17 requires both, and
+building it produced a second reason: this reads a **sample**. "No form on the
+four pages we looked at" is not "no form anywhere", and a change made on that
+basis would break the contact page of any site whose contact page was not in the
+sample. Recorded as D-0033.
+
+The Contact Form 7 finding is therefore worded "Of N pages sampled…", capped at
+0.75 confidence, and points at Contact Form 7's own `WPCF7_LOAD_JS` constant —
+which is a better place to change this than anything WP Debloat could hook
+around it.
+
+### An assertion that was passing for the wrong reason
+
+Phase 11's tests asserted a scan makes **zero** HTTP requests. §13 rule 9 has
+always allowed loopback; the zero-request assertion was only equivalent because
+nothing had needed loopback yet. Four of them failed on a change entirely within
+the rule they were meant to defend. They now assert what the promise actually is
+— nothing leaves this server — which is stricter, not weaker (D-0034).
+
+### Exit checklist (§17 Phase 13)
+
+| Criterion | Result |
+|---|---|
+| Fetch home plus one URL per public post type, max 10, loopback, 5 s each | ✅ |
+| Parse script and style handles from the HTML | ✅ including assets printed by hand, which have no handle and are kept rather than dropped |
+| Attribute each to plugin, theme or core by source path | ✅ |
+| Record byte sizes when available | ✅ read off the disk for local files; `null` for anything on another host, because knowing would need a request nobody asked for |
+| Count external hosts | ✅ |
+| Detect Google Fonts | ✅ |
+| New `assets.*` fact namespace, fact schema extended | ✅ |
+| CF7 page-level usage detection | ✅ read from rendered markup, so a shortcode, a block and a page builder all count the same way |
+| Finding "CF7 assets loaded on N pages, forms on M", info, with evidence | ✅ |
+| **No unloading tweaks in this phase** | ✅ and the registry has none |
+| **Attribution accuracy ≥ 95% on the fixture** | ✅ 100% on a nineteen-asset stack |
+| **Scan under 10 s** | ⚠️ measured with pages served from fixtures — see below |
+| **No network requests beyond loopback** | ✅ asserted per request URL |
+| Unit suite | ✅ 1 099 tests, 7 925 assertions |
+| Integration suite | ✅ 223 tests, 1 473 assertions |
+| Forced-failure suite | ✅ 9 tests, 102 assertions |
+| CLI end-to-end | ✅ |
+| Jest | ✅ 12 tests |
+| Bundle | ✅ 10.6 KB of 250 KB |
+| PHPCS | ✅ 0 errors, 0 warnings across 258 files |
+| PHPStan level 6 | ✅ no errors |
+| ESLint | ✅ clean |
+
+### Known warnings
+
+- **The ten-second criterion is measured against fixtures, not the network.**
+  wp-env runs the test runner and the web server in separate containers, so the
+  site's canonical URL does not resolve to the site from where the tests execute
+  and real loopback is impossible here — the same environment limitation
+  recorded for Phase 6. What the timing test actually measures is parsing and
+  attribution, which is the part this code controls. The network cost is bounded
+  by design instead: five seconds per page, eight seconds across the whole asset
+  scan, and one loopback check before any of it.
+- Attribution cannot see through a CDN. An asset served from a plugin's files
+  via a rewriting cache plugin looks like an external host, because from the
+  URL that is exactly what it is.
+- Sizes are read from disk, so a file served compressed is reported at its
+  uncompressed size. That is the honest number for "how much is on the disk" and
+  the wrong one for "how much crosses the network"; nothing yet claims the
+  latter.
+- `ExpiredTransientsCleanup` from Phase 5 still does not use the collection
+  ceiling (carried from Phase 10).
+
+### Next
+
+Phase 14 — Elementor intelligence.

@@ -11,7 +11,7 @@ namespace WPDebloat\Scan\Scanners;
 
 use WPDebloat\Contracts\Context;
 use WPDebloat\Registry\Registry;
-use WPDebloat\Scan\AdminSources;
+use WPDebloat\Scan\Sources;
 use WP_Hook;
 
 /**
@@ -128,7 +128,7 @@ final class AdminScanner extends AbstractScanner {
 			foreach ( $this->callbacks( $hook ) as $callback ) {
 				$rows[] = array(
 					'hook'   => $hook,
-					'source' => AdminSources::of( $callback ),
+					'source' => Sources::of( $callback ),
 				);
 			}
 		}
@@ -170,7 +170,7 @@ final class AdminScanner extends AbstractScanner {
 
 					$rows[] = array(
 						'id'     => (string) $id,
-						'source' => AdminSources::of( $box['callback'] ?? null ),
+						'source' => Sources::of( $box['callback'] ?? null ),
 					);
 				}
 			}
@@ -231,28 +231,28 @@ final class AdminScanner extends AbstractScanner {
 	 */
 	private function menuSource( string $slug ): string {
 		if ( '' === $slug ) {
-			return AdminSources::UNKNOWN;
+			return Sources::UNKNOWN;
 		}
 
 		// A slug that is a core admin file is core, and has no page callback to
 		// reflect on.
 		if ( false !== strpos( $slug, '.php' ) && file_exists( ABSPATH . 'wp-admin/' . $slug ) ) {
-			return AdminSources::CORE;
+			return Sources::CORE;
 		}
 
 		if ( ! function_exists( 'get_plugin_page_hookname' ) ) {
-			return AdminSources::UNKNOWN;
+			return Sources::UNKNOWN;
 		}
 
 		foreach ( $this->callbacks( get_plugin_page_hookname( $slug, '' ) ) as $callback ) {
-			$source = AdminSources::of( $callback );
+			$source = Sources::of( $callback );
 
-			if ( AdminSources::UNKNOWN !== $source ) {
+			if ( Sources::UNKNOWN !== $source ) {
 				return $source;
 			}
 		}
 
-		return AdminSources::UNKNOWN;
+		return Sources::UNKNOWN;
 	}
 
 	/**
@@ -297,20 +297,20 @@ final class AdminScanner extends AbstractScanner {
 			// A handle with no source of its own is an alias — a dependency
 			// bundle. It belongs to whatever depends on it, which is not a
 			// question this can answer.
-			return AdminSources::UNKNOWN;
+			return Sources::UNKNOWN;
 		}
 
 		$content_url = content_url();
 
 		if ( 0 === strpos( $src, $content_url ) ) {
-			return AdminSources::fromPath( WP_CONTENT_DIR . substr( $src, strlen( $content_url ) ) );
+			return Sources::fromPath( WP_CONTENT_DIR . substr( $src, strlen( $content_url ) ) );
 		}
 
 		if ( 0 === strpos( $src, includes_url() ) || 0 === strpos( $src, admin_url() ) || 0 === strpos( $src, '/wp-' ) ) {
-			return AdminSources::CORE;
+			return Sources::CORE;
 		}
 
-		return AdminSources::UNKNOWN;
+		return Sources::UNKNOWN;
 	}
 
 	/**

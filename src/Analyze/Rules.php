@@ -12,6 +12,7 @@ namespace WPDebloat\Analyze;
 use WPDebloat\Analyze\Rules\AbandonedPluginsRule;
 use WPDebloat\Analyze\Rules\AutoDraftsRule;
 use WPDebloat\Analyze\Rules\AutoloadRule;
+use WPDebloat\Analyze\Rules\Cf7AssetsRule;
 use WPDebloat\Analyze\Rules\DashboardWidgetsRule;
 use WPDebloat\Analyze\Rules\DashiconsFrontendRule;
 use WPDebloat\Analyze\Rules\DuplicateFunctionalityRule;
@@ -89,9 +90,11 @@ final class Rules {
 			new PluginNoticesRule(),
 			new DashboardWidgetsRule(),
 
-			// Assets: not part of the score until Phase 13, but reported.
+			// Assets: reported, and still not part of the score. Phase 13 detects;
+			// nothing in it proposes unloading anything.
 			new JqueryMigrateRule(),
 			new DashiconsFrontendRule(),
+			new Cf7AssetsRule(),
 
 			// Informational: worth knowing, proposes nothing.
 			new InactivePluginsRule(),

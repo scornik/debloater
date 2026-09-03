@@ -119,6 +119,34 @@ final class Facts {
 					'admin.welcome_panel'           => true,
 					'admin.update_nag'              => false,
 
+					'assets.available'              => true,
+					'assets.pages_sampled'          => 2,
+					'assets.pages_offered'          => 2,
+					'assets.elapsed_ms'             => 180,
+					'assets.post_types'             => array( 'home', 'post' ),
+					'assets.scripts.count'          => 1,
+					'assets.scripts'                => array(
+						array(
+							'handle' => 'jquery-core',
+							'source' => 'wordpress',
+							'pages'  => 2,
+							'bytes'  => 89476,
+						),
+					),
+					'assets.styles.count'           => 1,
+					'assets.styles'                 => array(
+						array(
+							'handle' => 'wp-block-library',
+							'source' => 'wordpress',
+							'pages'  => 2,
+							'bytes'  => 84329,
+						),
+					),
+					'assets.external_hosts'         => array(),
+					'assets.google_fonts'           => false,
+					'assets.cf7_asset_pages'        => 0,
+					'assets.cf7_form_pages'         => 0,
+
 					'cron.events.count'             => 12,
 					'cron.events.subminute'         => array(),
 					'cron.orphans.count'            => 0,
@@ -181,6 +209,15 @@ final class Facts {
 							'finding' => 'wp.emojis.loaded',
 						),
 					),
+					'assets.cf7_asset_pages'  => 2,
+					'assets.cf7_form_pages'   => 1,
+					'assets.external_hosts'   => array(
+						array(
+							'host'  => 'fonts.googleapis.com',
+							'count' => 2,
+						),
+					),
+					'assets.google_fonts'     => true,
 					'admin.notices.count'     => 5,
 					'admin.notices'           => array(
 						array(

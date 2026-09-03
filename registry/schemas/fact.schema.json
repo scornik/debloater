@@ -273,6 +273,95 @@
       "type": "boolean"
     },
 
+    "assets.available": {
+      "description": "Whether the pages could be read at all. False means the site could not reach itself over loopback, so nothing else in this namespace was measured.",
+      "type": "boolean"
+    },
+    "assets.unavailable_reason": {
+      "description": "Why the pages could not be read. Present only when assets.available is false.",
+      "type": "string",
+      "minLength": 1
+    },
+    "assets.pages_sampled": {
+      "description": "How many pages were actually fetched and read. Every other fact here is a statement about these pages and no others, which is why the number travels with them: a rule that turned \"on all four pages we looked at\" into \"on every page\" would be making a claim nobody measured.",
+      "type": "integer",
+      "minimum": 0
+    },
+    "assets.pages_offered": {
+      "description": "How many URLs the sample chose before fetching began. A number larger than pages_sampled means some did not answer, or the time budget ran out.",
+      "type": "integer",
+      "minimum": 0
+    },
+    "assets.elapsed_ms": {
+      "description": "Milliseconds spent fetching and parsing pages.",
+      "type": "integer",
+      "minimum": 0
+    },
+    "assets.post_types": {
+      "description": "Which post types the sampled pages represent, plus \"home\" for the front page.",
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "assets.scripts.count": { "type": "integer", "minimum": 0 },
+    "assets.scripts": {
+      "description": "One row per distinct script across the sampled pages: its enqueue handle where WordPress printed one, who it belongs to, how many of the sampled pages loaded it, and its size on disk where it is served from this site. An empty handle means the script was printed by hand rather than enqueued, which is worth knowing because nothing that manages enqueues can reach it.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["handle", "source", "pages"],
+        "properties": {
+          "handle": { "type": "string" },
+          "source": { "type": "string", "minLength": 1 },
+          "pages": { "type": "integer", "minimum": 1 },
+          "bytes": { "type": ["integer", "null"], "minimum": 0 }
+        }
+      }
+    },
+    "assets.styles.count": { "type": "integer", "minimum": 0 },
+    "assets.styles": {
+      "description": "One row per distinct stylesheet across the sampled pages, in the same shape as assets.scripts.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["handle", "source", "pages"],
+        "properties": {
+          "handle": { "type": "string" },
+          "source": { "type": "string", "minLength": 1 },
+          "pages": { "type": "integer", "minimum": 1 },
+          "bytes": { "type": ["integer", "null"], "minimum": 0 }
+        }
+      }
+    },
+    "assets.external_hosts": {
+      "description": "Hosts other than this site that the sampled pages fetched assets from, most-used first. Each is a name lookup and a connection a visitor's browser has to make.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["host", "count"],
+        "properties": {
+          "host": { "type": "string", "minLength": 1 },
+          "count": { "type": "integer", "minimum": 1 }
+        }
+      }
+    },
+    "assets.google_fonts": {
+      "description": "Whether any sampled page fetched from a Google Fonts host.",
+      "type": "boolean"
+    },
+    "assets.cf7_asset_pages": {
+      "description": "How many sampled pages loaded Contact Form 7's own scripts or styles.",
+      "type": "integer",
+      "minimum": 0
+    },
+    "assets.cf7_form_pages": {
+      "description": "How many sampled pages actually contained a Contact Form 7 form, read from the rendered markup so that a shortcode, a block and a page builder all count the same way.",
+      "type": "integer",
+      "minimum": 0
+    },
+
     "scan.elapsed_ms": {
       "description": "Total milliseconds the scan took.",
       "type": "integer",

@@ -11,7 +11,7 @@ namespace WPDebloat\Tests\Integration;
 
 use WPDebloat\Analyze\Score;
 use WPDebloat\Registry\SchemaValidator;
-use WPDebloat\Scan\AdminSources;
+use WPDebloat\Scan\Sources;
 
 /**
  * BUILD-SPEC §17 Phase 12.
@@ -133,7 +133,7 @@ final class AdminIntelligenceTest extends IntegrationTestCase {
 		}
 
 		$this->assertArrayHasKey( 'dashboard_right_now', $sources, 'core registers this on every dashboard' );
-		$this->assertSame( AdminSources::CORE, $sources['dashboard_right_now'] );
+		$this->assertSame( Sources::CORE, $sources['dashboard_right_now'] );
 	}
 
 	/**
@@ -158,7 +158,7 @@ final class AdminIntelligenceTest extends IntegrationTestCase {
 		$sources = array_column( $notices, 'source' );
 
 		$this->assertContains(
-			AdminSources::fromPath( __FILE__ ),
+			Sources::fromPath( __FILE__ ),
 			$sources,
 			'a notice registered from a file in a plugin belongs to that plugin'
 		);
@@ -302,7 +302,7 @@ final class AdminIntelligenceTest extends IntegrationTestCase {
 
 		add_action( 'admin_notices', $ours );
 
-		$plugin_slug = AdminSources::fromPath( __FILE__ );
+		$plugin_slug = Sources::fromPath( __FILE__ );
 
 		$this->selectAndGenerate(
 			array( 'admin.suppress_promo_notices' => array( 'sources' => array( 'woocommerce' ) ) )
@@ -393,7 +393,7 @@ final class AdminIntelligenceTest extends IntegrationTestCase {
 
 		$this->assertIsArray( $notices );
 
-		$ours = AdminSources::fromPath( WPDEBLOAT_TESTS_ROOT . '/src/Plugin.php' );
+		$ours = Sources::fromPath( WPDEBLOAT_TESTS_ROOT . '/src/Plugin.php' );
 
 		foreach ( $notices as $notice ) {
 			$this->assertNotSame(

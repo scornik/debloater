@@ -1196,3 +1196,74 @@ npm run test:integration:main
 | PHPCS | ✅ 0 errors, 0 warnings, 252 files |
 | PHPStan level 6 | ✅ no errors |
 | ESLint | ✅ clean |
+
+---
+
+## Phase 13 — Asset intelligence
+
+### Run 1 — the fixture had one more asset than I counted
+
+`AssetParserTest::test_every_enqueued_asset_is_found` failed on `jquery-blockui`,
+which WooCommerce enqueues and which I had left out of the expected list when
+writing it. The parser was right and the expectation was wrong; corrected rather
+than loosened, because a list is the point of that assertion.
+
+### Run 2 — integration, and an assertion defending the wrong promise
+
+```
+npm run test:integration:main
+```
+
+**Result:** 223 tests, **7 failures**.
+
+Six of them were Phase 11's network tests, which asserted a scan makes **zero**
+HTTP requests. The asset scan makes loopback requests, which §13 rule 9 has
+always allowed — the zero-request assertion was equivalent only because nothing
+had needed loopback yet.
+
+Rewritten to assert what the promise actually is: every request URL must start
+with this site's home URL. That is stricter, not weaker, because it keeps
+holding however many loopback requests a later phase adds while still failing on
+the thing that matters. The opt-in test now separates off-site requests from
+local ones and asserts every off-site one goes to `api.wordpress.org`. Recorded
+as D-0034.
+
+The seventh was mine: `$sizes['analytics'] ?? 'missing'` — the null I was
+looking for is exactly what `??` treats as an absence, so the test could not
+distinguish "no size, correctly" from "no such asset". Replaced with an
+`assertArrayHasKey` before the `assertNull`.
+
+### Run 3 — static analysis
+
+| Finding | Fix |
+|---|---|
+| `'' === $url` after `strtok()` always false | `strtok()` returns `false` or a non-empty string; the empty check was noise. Removed. |
+| `WPINC` not found | The class is loaded by the unit suite, which runs with no WordPress. Read through `defined()`/`constant()` with the standard value as the fallback. |
+
+### Run 4 — full regression
+
+| Gate | Result |
+|---|---|
+| Unit | ✅ 1 099 tests, 7 925 assertions |
+| Integration | ✅ 223 tests, 1 473 assertions |
+| Forced-failure suite | ✅ 9 tests, 102 assertions |
+| CLI end-to-end (real `wp` binary) | ✅ |
+| Jest | ✅ 12 tests |
+| Bundle | ✅ 10.6 KB of 250 KB |
+| PHPCS | ✅ 0 errors, 0 warnings, 258 files |
+| PHPStan level 6 | ✅ no errors |
+| ESLint | ✅ clean |
+
+### What the ten-second criterion does and does not prove
+
+The exit criterion is a scan under ten seconds, and the test asserts it. What it
+measures is parsing and attribution over pages served from fixtures, because
+real loopback is impossible in this environment (the Phase 6 limitation: wp-env
+puts the runner and the web server in different containers, and the site's
+canonical URL does not resolve to the site from the runner).
+
+That is stated rather than glossed. The network cost is bounded by construction
+instead of by measurement: one loopback check before anything else, five seconds
+per page, eight seconds across the whole asset scan, and `pages_sampled` records
+how many pages the budget actually allowed — so a slow site produces a smaller
+sample rather than a slower scan, and the smaller sample is visible.

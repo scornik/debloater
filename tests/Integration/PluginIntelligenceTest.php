@@ -18,10 +18,17 @@ use WPDebloat\Scan\WpOrgUpdates;
 /**
  * BUILD-SPEC §13 rule 9 and §17 Phase 11.
  *
- * The load-bearing test in this file is the one that counts HTTP requests. WP
- * Debloat's claim is that a scan reads the site and nothing else, and a claim
+ * The load-bearing test in this file is the one that watches HTTP requests. WP
+ * Debloat's claim is that a scan reads *this site* and nothing else, and a claim
  * like that is worth exactly as much as the test that would fail if it stopped
  * being true.
+ *
+ * These assertions used to demand zero requests, which was true when they were
+ * written and stopped being true in Phase 13: the asset scan fetches a sample of
+ * this site's own pages over loopback, which §13 rule 9 has always allowed. The
+ * assertions now state the promise that was actually being made — nothing leaves
+ * this server — which is both the real invariant and a stricter one, since it
+ * keeps holding however many loopback requests a later phase adds.
  */
 final class PluginIntelligenceTest extends IntegrationTestCase {
 
@@ -80,22 +87,18 @@ final class PluginIntelligenceTest extends IntegrationTestCase {
 	}
 
 	/**
-	 * A scan makes no outbound request at all.
+	 * A scan sends nothing off this server.
 	 *
 	 * @return void
 	 */
-	public function test_a_scan_touches_the_network_not_at_all(): void {
+	public function test_a_scan_sends_nothing_off_this_server(): void {
 		$this->plugin->scanRunner()->collect( $this->context() );
 
-		$this->assertSame(
-			array(),
-			$this->requests,
-			'A scan reads the site. Anything here is a request nobody asked for.'
-		);
+		$this->assertNothingLeftTheSite();
 	}
 
 	/**
-	 * The whole scan-and-analyze path is silent too.
+	 * The whole scan-and-analyze path stays on the machine too.
 	 *
 	 * The scan is only half of it: the analyzer runs afterwards over the same
 	 * facts, and a rule that decided to look something up would be just as much
@@ -103,10 +106,27 @@ final class PluginIntelligenceTest extends IntegrationTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_scanning_and_analyzing_is_silent(): void {
+	public function test_scanning_and_analyzing_stays_local(): void {
 		$this->plugin->scan();
 
-		$this->assertSame( array(), $this->requests );
+		$this->assertNothingLeftTheSite();
+	}
+
+	/**
+	 * Every request made so far was to this site.
+	 *
+	 * @return void
+	 */
+	private function assertNothingLeftTheSite(): void {
+		$home = untrailingslashit( home_url() );
+
+		foreach ( $this->requests as $url ) {
+			$this->assertStringStartsWith(
+				$home,
+				$url,
+				'A scan reads this site. Anything else is a request nobody asked for.'
+			);
+		}
 	}
 
 	/**
@@ -118,7 +138,7 @@ final class PluginIntelligenceTest extends IntegrationTestCase {
 		$facts = $this->plugin->scanRunner()->collect( $this->context() )->facts;
 
 		$this->assertSame( 'file_mtime', $facts->value( 'plugins.update_source' ) );
-		$this->assertSame( array(), $this->requests );
+		$this->assertNothingLeftTheSite();
 
 		$meta = $facts->value( 'plugins.meta', array() );
 
@@ -180,13 +200,22 @@ final class PluginIntelligenceTest extends IntegrationTestCase {
 		}
 
 		$this->assertSame( 'wp_org', $facts->value( 'plugins.update_source' ) );
-		$this->assertNotSame( array(), $this->requests, 'the opt-in should have produced requests' );
+
+		$off_site = array();
 
 		foreach ( $this->requests as $url ) {
+			if ( 0 !== strpos( $url, untrailingslashit( home_url() ) ) ) {
+				$off_site[] = $url;
+			}
+		}
+
+		$this->assertNotSame( array(), $off_site, 'the opt-in should have asked wordpress.org something' );
+
+		foreach ( $off_site as $url ) {
 			$this->assertStringStartsWith(
 				WpOrgUpdates::ENDPOINT,
 				$url,
-				'the only thing a scan may ask about is plugin information'
+				'the only thing that may leave this server is a question about plugin information'
 			);
 		}
 
@@ -250,7 +279,7 @@ final class PluginIntelligenceTest extends IntegrationTestCase {
 
 		$facts = $this->plugin->scan()->facts();
 
-		$this->assertSame( array(), $this->requests );
+		$this->assertNothingLeftTheSite();
 		$this->assertSame( 'file_mtime', $facts->value( 'plugins.update_source' ) );
 	}
 
@@ -277,7 +306,7 @@ final class PluginIntelligenceTest extends IntegrationTestCase {
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertSame( 201, $response->get_status() );
-		$this->assertSame( array(), $this->requests, 'the default must be silence' );
+		$this->assertNothingLeftTheSite();
 
 		wp_set_current_user( 0 );
 	}

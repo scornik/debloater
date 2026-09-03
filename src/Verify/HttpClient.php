@@ -60,14 +60,37 @@ final class HttpClient {
 	private ActorSession $session;
 
 	/**
+	 * Seconds to wait for one request.
+	 *
+	 * @var int
+	 */
+	private int $timeout;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param Context           $context Site context.
 	 * @param ActorSession|null $session Actor authentication.
+	 * @param int|null          $timeout Seconds to wait, defaulting to TIMEOUT.
+	 *                                   The asset scan asks for less: it makes
+	 *                                   ten requests where verification makes
+	 *                                   one, and a page that has not answered in
+	 *                                   five seconds is not going to make the
+	 *                                   sample better by answering in fifteen.
 	 */
-	public function __construct( Context $context, ?ActorSession $session = null ) {
+	public function __construct( Context $context, ?ActorSession $session = null, ?int $timeout = null ) {
 		$this->context = $context;
 		$this->session = $session ?? new ActorSession( $context );
+		$this->timeout = null === $timeout ? self::TIMEOUT : max( 1, $timeout );
+	}
+
+	/**
+	 * How long one request may take.
+	 *
+	 * @return int
+	 */
+	public function timeout(): int {
+		return $this->timeout;
 	}
 
 	/**
@@ -140,7 +163,7 @@ final class HttpClient {
 		$response = wp_remote_get(
 			$url,
 			array(
-				'timeout'     => self::TIMEOUT,
+				'timeout'     => $this->timeout,
 				'redirection' => self::MAX_REDIRECTS,
 				'sslverify'   => $this->sslVerify(),
 				'headers'     => array_merge( array( self::HEADER => '1' ), $headers ),
