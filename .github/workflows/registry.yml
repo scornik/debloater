@@ -42,7 +42,7 @@ jobs:
         php: [ '8.1', '8.2', '8.3' ]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - uses: shivammathur/setup-php@v2
         with:
@@ -78,14 +78,21 @@ jobs:
     needs: registry
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       - run: npm ci
+
+      # PHPUnit 9 for the WordPress test suite is a phar, and it is git-ignored
+      # rather than committed. Without this the integration run dies with
+      # "Could not open input file", which is exactly how this workflow failed
+      # the first time it ran.
+      - run: npm run test:integration:setup
+
       - run: npx wp-env start --update
       - run: npm run test:integration
       - run: npx wp-env stop
