@@ -85,7 +85,18 @@ jobs:
           node-version: 22
           cache: npm
 
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: sodium, json
+          coverage: none
+
       - run: npm ci
+
+      # The WordPress test suite needs Yoast's PHPUnit Polyfills, which is a
+      # Composer dev dependency. The plugin directory is mapped into the
+      # container as-is, so a missing vendor/ here is a missing vendor/ there.
+      - run: composer install --no-interaction --no-progress
 
       # PHPUnit 9 for the WordPress test suite is a phar, and it is git-ignored
       # rather than committed. Without this the integration run dies with
