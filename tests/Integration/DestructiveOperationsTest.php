@@ -11,6 +11,7 @@ namespace Debloater\Tests\Integration;
 
 use Debloater\Apply\DataOperations\AutoDraftsCleanup;
 use Debloater\Apply\DataOperations\AutoloadReview;
+use Debloater\Apply\DataOperations\ExpiredTransientsCleanup;
 use Debloater\Apply\DataOperations\OrphanMetaCleanup;
 use Debloater\Apply\DataOperations\RevisionsCleanup;
 use Debloater\Apply\DataOperations\SpamCommentsCleanup;
@@ -429,6 +430,81 @@ final class DestructiveOperationsTest extends IntegrationTestCase {
 			get_post( $late ),
 			'A row that arrived after the recovery point was written has no backup, so it must survive.'
 		);
+	}
+
+	/**
+	 * The transient cleanup honours the ceiling too.
+	 *
+	 * Carried as a known warning from Phase 10 until the final audit, and worth
+	 * saying plainly why it was a real gap rather than a tidiness one.
+	 *
+	 * A transient expires by the clock. So on any site with traffic, more of
+	 * them become expired in the seconds between the recovery point being
+	 * written and the deletion running — and the operation used to re-query the
+	 * database in a loop and delete every expired transient it found, including
+	 * the ones that were never collected. Those had no backup. Restoring the
+	 * snapshot would not have brought them back, because they were never in it.
+	 *
+	 * Losing an expired transient is close to harmless: it is a cache entry the
+	 * site had already stopped honouring. That is not what makes this worth
+	 * fixing. Invariant 8 says a recovery point exists before a destructive
+	 * operation runs, and an operation that deletes outside its own recovery
+	 * point does not satisfy that — whatever the rows are worth.
+	 *
+	 * @return void
+	 */
+	public function test_a_transient_that_expires_after_collection_is_not_deleted(): void {
+		set_transient( 'debloater_ceiling_early', 'early', 60 );
+		update_option( '_transient_timeout_debloater_ceiling_early', time() - 3600 );
+
+		$operation = new ExpiredTransientsCleanup();
+		$params    = new TweakParams( array() );
+
+		$collected = $this->collect( $operation, $params );
+
+		$this->assertCount( 1, $collected );
+
+		// The clock moves on while the deletion is being prepared, and another
+		// transient falls past its expiry.
+		set_transient( 'debloater_ceiling_late', 'late', 60 );
+		update_option( '_transient_timeout_debloater_ceiling_late', time() - 3600 );
+
+		$removed = $operation->execute( $this->context(), $params );
+
+		$this->assertSame( 1, $removed, 'Only the collected transient should be removed.' );
+
+		$this->assertFalse(
+			get_option( '_transient_debloater_ceiling_early', false ),
+			'What was collected should be deleted.'
+		);
+
+		$this->assertNotFalse(
+			get_option( '_transient_debloater_ceiling_late', false ),
+			'A transient that expired after the recovery point was written has no backup, so it must survive.'
+		);
+
+		delete_transient( 'debloater_ceiling_late' );
+	}
+
+	/**
+	 * The transient cleanup deletes nothing when it collected nothing.
+	 *
+	 * @return void
+	 */
+	public function test_transient_cleanup_that_never_collected_deletes_nothing(): void {
+		set_transient( 'debloater_uncollected', 'value', 60 );
+		update_option( '_transient_timeout_debloater_uncollected', time() - 3600 );
+
+		$operation = new ExpiredTransientsCleanup();
+
+		// execute() without collect() first. No recovery point exists, so
+		// nothing may go.
+		$removed = $operation->execute( $this->context(), new TweakParams( array() ) );
+
+		$this->assertSame( 0, $removed );
+		$this->assertNotFalse( get_option( '_transient_debloater_uncollected', false ) );
+
+		delete_transient( 'debloater_uncollected' );
 	}
 
 	/**

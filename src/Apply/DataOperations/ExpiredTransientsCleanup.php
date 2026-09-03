@@ -48,6 +48,16 @@ final class ExpiredTransientsCleanup implements DataOperationInterface {
 	public const DEFAULT_BATCH_SIZE = 500;
 
 	/**
+	 * Names collect() backed up, and the only ones execute() may delete.
+	 *
+	 * Reset at the start of every collect(), so a reused instance cannot delete
+	 * on the strength of a recovery point taken for a previous run.
+	 *
+	 * @var array<string,true>
+	 */
+	private array $collected = array();
+
+	/**
 	 * The tweak id this operation implements.
 	 *
 	 * @return string
@@ -110,7 +120,11 @@ final class ExpiredTransientsCleanup implements DataOperationInterface {
 
 		unset( $context );
 
+		$this->collected = array();
+
 		foreach ( $this->expiredNames( $this->batchSize( $params ) ) as $name ) {
+			$this->collected[ $name ] = true;
+
 			$value_option   = '_transient_' . $name;
 			$timeout_option = '_transient_timeout_' . $name;
 
@@ -154,20 +168,36 @@ final class ExpiredTransientsCleanup implements DataOperationInterface {
 	public function execute( Context $context, TweakParams $params ): int {
 		unset( $context );
 
+		unset( $params );
+
 		$removed = 0;
-		$batch   = $this->batchSize( $params );
 
-		// Re-read each batch rather than paging with an offset: the rows are
-		// disappearing as we go, and an offset over a shrinking set skips rows.
-		do {
-			$names = $this->expiredNames( $batch );
+		// Only what collect() actually backed up. This is the collection
+		// ceiling, in the form this operation needs: the sibling operations
+		// bound execute() by the highest primary key collect() saw, and a
+		// transient has no id worth ordering by, so the bound is the set of
+		// names instead.
+		//
+		// The hole it closes is real rather than theoretical. A transient
+		// expires by the clock, so on any site with traffic more of them become
+		// expired in the seconds between the recovery point being written and
+		// the deletion running — and the previous version re-queried the
+		// database in a loop and deleted every one it found, including the ones
+		// that were never collected. Those could not have been restored,
+		// because they were never in the snapshot.
+		//
+		// Losing an expired transient is close to harmless, since it is a cache
+		// entry the site had already stopped honouring. That is not the point.
+		// Invariant 8 says a recovery point exists before a destructive
+		// operation runs, and an operation that deletes rows outside its own
+		// recovery point does not satisfy it — whatever the rows happen to be
+		// worth. Anything that expires after this runs is left for the next
+		// run, where it will be collected first like everything else.
+		foreach ( array_keys( $this->collected ) as $name ) {
+			delete_transient( (string) $name );
 
-			foreach ( $names as $name ) {
-				delete_transient( $name );
-
-				++$removed;
-			}
-		} while ( array() !== $names );
+			++$removed;
+		}
 
 		return $removed;
 	}

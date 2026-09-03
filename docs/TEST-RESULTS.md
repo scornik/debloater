@@ -1841,3 +1841,51 @@ contains no `http://` or `https://` anywhere.
 
 Neither is a test. Both are the kind of fact a design document should rest on
 rather than assert.
+
+---
+
+## Final completion gate
+
+Every check in `BUILD-SPEC.md` §21.7, run at the Phase 20 commit.
+
+```
+Unit (free)          OK  1 185 tests, 12 188 assertions
+Unit (pro)           OK     14 tests,    110 assertions
+Integration          OK    302 tests,  4 572 assertions
+Fail-probe rollback  OK      9 tests,    105 assertions
+E2E (full stack)     OK     13 of 13, 20.2 min
+Jest                 OK     12 tests
+Registry JSON        valid
+Registry manifest    matches all 58 files
+PHPCS                clean
+PHPStan level 6      no errors
+ESLint               clean
+Bundle budget        10 790 B gzipped, 4% of budget
+Plugin Check         0 errors, 2 warnings
+Package              debloater-0.1.0.zip, 301 files, 522 KB
+```
+
+### The gate found something
+
+`ExpiredTransientsCleanup` was deleting rows outside its own recovery point —
+carried as a known warning since Phase 10, and closed here. `collect()` wrote a
+batch into the snapshot; `execute()` then re-queried the database in a loop and
+deleted every expired transient it found, including ones that expired in the
+seconds in between. Those had no backup.
+
+Two tests were added and **both were confirmed to fail on the pre-fix code**
+before the fix went back in.
+
+### The one flaky observation, diagnosed rather than waved through
+
+Run alongside the rest of the gate — integration, PHPCS, PHPStan, Plugin Check
+and two zip builds, all on the same Docker daemon — E2E took 25.3 minutes and
+two scenarios timed out. Run alone at the same commit: 13 of 13 in 20.2 minutes.
+
+The failures were a timeout and an element not appearing within one, never an
+assertion about behaviour; the contended run was 22% slower overall; and CI,
+which runs E2E in its own job, has been green twice.
+
+It is contention. The reason it is written down anyway is that "it passes when I
+run it again" is the sentence that hides real flakiness, and the next person
+should be able to see that the distinction was checked.

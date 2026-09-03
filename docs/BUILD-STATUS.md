@@ -1915,3 +1915,45 @@ measurement tells you.
 Four, in §13: whether the dashboard is Pro or a separate subscription, which
 jurisdiction stores the data, whether an agency's client gets access to their
 own site's page, and what the free tier is. None is decidable from the code.
+
+---
+
+## Final completion gate — Phases 0–20
+
+**Status:** complete · 2026-09-04 · `docs/FINAL-AUDIT.md`
+
+Every check in `BUILD-SPEC.md` §21.7 ran at the Phase 20 commit. No gate is red;
+none went unexecuted.
+
+| | |
+|---|---|
+| Automated tests | 1 523 across five suites, plus 13 browser scenarios |
+| PHPCS / PHPStan L6 / ESLint | clean |
+| Plugin Check, shipped tree | 0 errors, 2 warnings |
+| Package | `debloater-0.1.0.zip`, 301 files, 522 KB |
+
+### The gate closed a real gap
+
+`ExpiredTransientsCleanup` deleted rows outside its own recovery point — carried
+as a known warning since Phase 10. `collect()` wrote a batch into the snapshot;
+`execute()` then re-queried and deleted every expired transient it found,
+including any that expired in between. Those had no backup.
+
+Small in practical harm — an expired transient is a cache entry the site had
+already stopped honouring — and still a breach of invariant 8, which is about
+where the recovery point's boundary is rather than what the rows are worth. Two
+tests added, both confirmed failing on the pre-fix code.
+
+### Known warnings after the gate
+
+1. The display title draws a `trademarked_term` warning on "WordPress". A naming
+   decision, one line in `Brand::TAGLINE`.
+2. No release has been signed; the verifier fails closed until a key is pinned.
+3. The registry repository is prepared, not published (D-0045).
+4. `RegistryUpdater` stages a release; activation is separate.
+5. wp-env cannot verify over loopback, so applies there return exit 3 (D-0009).
+
+### Next
+
+Nothing in the specification. What remains needs a person: decide the title,
+generate a signing key, and submit to wordpress.org to reserve the slug.
