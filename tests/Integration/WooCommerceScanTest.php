@@ -2,23 +2,23 @@
 /**
  * The WooCommerce scan, and the refusal that protects a checkout.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Tests\Integration;
+namespace Debloater\Tests\Integration;
 
-use WPDebloat\Analyze\Analyzer;
-use WPDebloat\Analyze\DontTouchRules;
-use WPDebloat\Analyze\Rules;
-use WPDebloat\Analyze\Rules\CartFragmentsRule;
-use WPDebloat\Contracts\Decision;
-use WPDebloat\Contracts\FactSet;
-use WPDebloat\Contracts\ProbeStatus;
-use WPDebloat\Registry\SchemaValidator;
-use WPDebloat\Scan\SampledPages;
-use WPDebloat\Scan\Scanners\WooCommerceScanner;
+use Debloater\Analyze\Analyzer;
+use Debloater\Analyze\DontTouchRules;
+use Debloater\Analyze\Rules;
+use Debloater\Analyze\Rules\CartFragmentsRule;
+use Debloater\Contracts\Decision;
+use Debloater\Contracts\FactSet;
+use Debloater\Contracts\ProbeStatus;
+use Debloater\Registry\SchemaValidator;
+use Debloater\Scan\SampledPages;
+use Debloater\Scan\Scanners\WooCommerceScanner;
 
 /**
  * BUILD-SPEC §11 and §17 Phase 15.
@@ -228,7 +228,7 @@ final class WooCommerceScanTest extends IntegrationTestCase {
 		$this->loadRuntime();
 
 		try {
-			$probe  = new \WPDebloat\Verify\Probes\WooCheckoutProbe( $this->plugin->httpClient() );
+			$probe  = new \Debloater\Verify\Probes\WooCheckoutProbe( $this->plugin->httpClient() );
 			$result = $probe->run( $this->context() );
 
 			$this->assertSame(
@@ -264,7 +264,7 @@ final class WooCommerceScanTest extends IntegrationTestCase {
 				. '<body class="woocommerce-checkout"><p>Something went wrong.</p></body></html>'
 		);
 
-		$probe  = new \WPDebloat\Verify\Probes\WooCheckoutProbe( $this->plugin->httpClient() );
+		$probe  = new \Debloater\Verify\Probes\WooCheckoutProbe( $this->plugin->httpClient() );
 		$result = $probe->run( $this->context() );
 
 		$this->assertSame( ProbeStatus::FAIL, $result->status );
@@ -277,7 +277,7 @@ final class WooCommerceScanTest extends IntegrationTestCase {
 	 * @return void
 	 */
 	public function test_a_store_without_a_checkout_page_is_not_tested(): void {
-		$probe = new \WPDebloat\Verify\Probes\WooCheckoutProbe( $this->plugin->httpClient() );
+		$probe = new \Debloater\Verify\Probes\WooCheckoutProbe( $this->plugin->httpClient() );
 
 		$this->assertFalse( $probe->applies( $this->context(), new FactSet() ) );
 	}
@@ -317,7 +317,7 @@ final class WooCommerceScanTest extends IntegrationTestCase {
 	public function test_the_facts_validate(): void {
 		$this->serve( array( '/' => 'woo-blog-page.html' ) );
 
-		$violations = SchemaValidator::fromFile( WPDEBLOAT_TESTS_ROOT . '/registry/schemas/fact.schema.json' )
+		$violations = SchemaValidator::fromFile( DEBLOATER_TESTS_ROOT . '/registry/schemas/fact.schema.json' )
 			->validate( $this->scan()->toArray() );
 
 		$this->assertSame( array(), $violations, implode( '; ', array_map( 'strval', $violations ) ) );
@@ -402,7 +402,7 @@ final class WooCommerceScanTest extends IntegrationTestCase {
 		$this->routes = array();
 
 		foreach ( $routes as $path => $fixture ) {
-			$body = (string) file_get_contents( WPDEBLOAT_TESTS_ROOT . '/tests/Fixtures/html/' . $fixture );
+			$body = (string) file_get_contents( DEBLOATER_TESTS_ROOT . '/tests/Fixtures/html/' . $fixture );
 
 			$this->routes[ $this->normalise( (string) $path ) ] = str_replace(
 				'http://example.test',
@@ -411,7 +411,7 @@ final class WooCommerceScanTest extends IntegrationTestCase {
 			);
 		}
 
-		$fallback = (string) file_get_contents( WPDEBLOAT_TESTS_ROOT . '/tests/Fixtures/html/woo-blog-page.html' );
+		$fallback = (string) file_get_contents( DEBLOATER_TESTS_ROOT . '/tests/Fixtures/html/woo-blog-page.html' );
 		$fallback = str_replace( 'http://example.test', untrailingslashit( home_url() ), $fallback );
 
 		$this->intercept( $fallback );

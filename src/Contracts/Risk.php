@@ -2,12 +2,12 @@
 /**
  * How dangerous the recommended change is.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Contracts;
+namespace Debloater\Contracts;
 
 /**
  * Risk of applying a change (BUILD-SPEC §6, locked decision #4).

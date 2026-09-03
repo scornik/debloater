@@ -2,18 +2,18 @@
 /**
  * Recovery level of a snapshot.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Contracts;
+namespace Debloater\Contracts;
 
 /**
  * Snapshot level (BUILD-SPEC §8, locked decision #3).
  *
- * Only A and B are WP Debloat snapshots and therefore only they appear in the
- * wpdebloat_snapshots table.
+ * Only A and B are Debloater snapshots and therefore only they appear in the
+ * debloater_snapshots table.
  *
  * - A: configuration. Previous selection, runtime hash, and the previous values
  *   of every wp_options key a selected tweak touches.

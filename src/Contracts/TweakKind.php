@@ -2,12 +2,12 @@
 /**
  * Whether a tweak changes configuration or operates on data.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Contracts;
+namespace Debloater\Contracts;
 
 /**
  * Tweak kind (BUILD-SPEC §7.1).

@@ -2,16 +2,16 @@
 /**
  * Proof that the user confirmed this exact change.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Rest;
+namespace Debloater\Rest;
 
-use WPDebloat\Contracts\Json;
-use WPDebloat\Contracts\PreviewPlan;
-use WPDebloat\Contracts\Snapshot;
+use Debloater\Contracts\Json;
+use Debloater\Contracts\PreviewPlan;
+use Debloater\Contracts\Snapshot;
 
 /**
  * The confirmation step, made unforgeable (BUILD-SPEC §17 Phase 8, §13 rule 12).
@@ -93,6 +93,6 @@ final class ConfirmationToken {
 	 * @return string
 	 */
 	private static function sign( string $kind, string $payload ): string {
-		return hash_hmac( 'sha256', $kind . '|' . $payload, wp_salt( 'wpdebloat_confirm' ) );
+		return hash_hmac( 'sha256', $kind . '|' . $payload, wp_salt( 'debloater_confirm' ) );
 	}
 }

@@ -2,15 +2,15 @@
 /**
  * The per-tweak lifecycle state machine.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Apply;
+namespace Debloater\Apply;
 
-use WPDebloat\Contracts\IllegalTransition;
-use WPDebloat\Contracts\TweakState;
+use Debloater\Contracts\IllegalTransition;
+use Debloater\Contracts\TweakState;
 
 /**
  * Drives one tweak through the lifecycle in BUILD-SPEC §9.1.

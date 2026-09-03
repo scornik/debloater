@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://wp-debloat.hakeemify.com/schemas/tweak.schema.json",
+  "$id": "https://debloater.hakeemify.com/schemas/tweak.schema.json",
   "title": "Tweak",
   "description": "A registry tweak definition. Config tweaks compile into runtime.php as hook registrations; data tweaks run once as a DataOperation. Context rules live in analyzer rules and the recommendation engine, never here, so the runtime stays dumb.",
   "type": "object",

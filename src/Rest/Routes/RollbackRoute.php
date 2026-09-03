@@ -1,21 +1,21 @@
 <?php
 /**
- * POST wpdebloat/v1/rollback.
+ * POST debloater/v1/rollback.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Rest\Routes;
+namespace Debloater\Rest\Routes;
 
 use WP_Error;
 use WP_REST_Request;
 use WP_REST_Response;
-use WPDebloat\Contracts\RunState;
-use WPDebloat\Contracts\SnapshotLevel;
-use WPDebloat\Plugin;
-use WPDebloat\Rest\ConfirmationToken;
+use Debloater\Contracts\RunState;
+use Debloater\Contracts\SnapshotLevel;
+use Debloater\Plugin;
+use Debloater\Rest\ConfirmationToken;
 
 /**
  * Puts a site back (BUILD-SPEC §17 Phase 8).
@@ -73,13 +73,13 @@ final class RollbackRoute implements RouteInterface {
 	public function args(): array {
 		return array(
 			'snapshot_id' => array(
-				'description' => __( 'The recovery point to go back to. Defaults to the most recent one.', 'wp-debloat' ),
+				'description' => __( 'The recovery point to go back to. Defaults to the most recent one.', 'debloater' ),
 				'type'        => 'integer',
 				'minimum'     => 1,
 				'required'    => false,
 			),
 			'confirm'     => array(
-				'description' => __( 'The confirmation token for this recovery point.', 'wp-debloat' ),
+				'description' => __( 'The confirmation token for this recovery point.', 'debloater' ),
 				'type'        => 'string',
 				'required'    => true,
 				'minLength'   => 64,
@@ -103,16 +103,16 @@ final class RollbackRoute implements RouteInterface {
 
 		if ( null === $snapshot ) {
 			return new WP_Error(
-				'wpdebloat_no_snapshot',
-				__( 'There is no recovery point to restore.', 'wp-debloat' ),
+				'debloater_no_snapshot',
+				__( 'There is no recovery point to restore.', 'debloater' ),
 				array( 'status' => 404 )
 			);
 		}
 
 		if ( ! ConfirmationToken::matchesSnapshot( $snapshot, (string) $request->get_param( 'confirm' ) ) ) {
 			return new WP_Error(
-				'wpdebloat_stale_confirmation',
-				__( 'That confirmation does not match this recovery point. Reload the list and try again.', 'wp-debloat' ),
+				'debloater_stale_confirmation',
+				__( 'That confirmation does not match this recovery point. Reload the list and try again.', 'debloater' ),
 				array( 'status' => 409 )
 			);
 		}
@@ -120,7 +120,7 @@ final class RollbackRoute implements RouteInterface {
 		$refusal = $this->plugin->rollbackManager()->refusalReason( $snapshot );
 
 		if ( null !== $refusal ) {
-			return new WP_Error( 'wpdebloat_not_restorable', $refusal, array( 'status' => 409 ) );
+			return new WP_Error( 'debloater_not_restorable', $refusal, array( 'status' => 409 ) );
 		}
 
 		$result = $this->plugin->rollback( $snapshot->run_id );

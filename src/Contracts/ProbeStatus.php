@@ -2,12 +2,12 @@
 /**
  * Outcome of a single verification probe.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Contracts;
+namespace Debloater\Contracts;
 
 /**
  * Probe status (BUILD-SPEC §11, locked decision #11).

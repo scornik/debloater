@@ -2,17 +2,17 @@
 /**
  * Renders docs/STATE-MACHINE.md from the state enums.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Tests\Unit\Support;
+namespace Debloater\Tests\Unit\Support;
 
-use WPDebloat\Apply\RunStateMachine;
-use WPDebloat\Apply\TweakStateMachine;
-use WPDebloat\Contracts\RunState;
-use WPDebloat\Contracts\TweakState;
+use Debloater\Apply\RunStateMachine;
+use Debloater\Apply\TweakStateMachine;
+use Debloater\Contracts\RunState;
+use Debloater\Contracts\TweakState;
 
 /**
  * The document is generated, never hand-edited.
@@ -43,13 +43,13 @@ final class StateMachineDoc {
 			'     tests/Unit/StateMachine/StateMachineDocTest.php. Do not edit by hand:',
 			'     change the enum and run the test suite. -->',
 			'',
-			'Two state machines govern WP Debloat, and they are deliberately separate.',
+			'Two state machines govern Debloater, and they are deliberately separate.',
 			'`RunState` tracks what a run is doing; `TweakState` tracks where each',
 			'individual tweak stands. One run legitimately ends with some tweaks',
 			'`COMMITTED` and others parked at `DONT_TOUCH`, which a single machine could',
 			'not express.',
 			'',
-			'Illegal transitions throw `WPDebloat\\Contracts\\IllegalTransition`. That is',
+			'Illegal transitions throw `Debloater\\Contracts\\IllegalTransition`. That is',
 			'fatal rather than a returned `false` because the machine governs',
 			'snapshotting, applying and rollback: a caller that has lost track of where it',
 			'is must stop, not carry on guessing, when the next step might write to the',
@@ -71,7 +71,7 @@ final class StateMachineDoc {
 		$lines = array(
 			'## Apply run (`RunState`)',
 			'',
-			'The run state is persisted in `wpdebloat_runs.status` and updated on every',
+			'The run state is persisted in `debloater_runs.status` and updated on every',
 			'transition, so a crash leaves an accurate record of how far the run got.',
 			'',
 			'| State | Allowed next | Holds lock | Terminal |',
@@ -125,8 +125,8 @@ final class StateMachineDoc {
 		$lines = array(
 			'## Tweak lifecycle (`TweakState`)',
 			'',
-			'Stored per tweak in `wpdebloat_state.tweak_states`. Every transition writes a',
-			'row to `wpdebloat_journal`.',
+			'Stored per tweak in `debloater_state.tweak_states`. Every transition writes a',
+			'row to `debloater_journal`.',
 			'',
 			'| State | Allowed next | Terminal |',
 			'|---|---|---|',
@@ -162,6 +162,6 @@ final class StateMachineDoc {
 	 * @return string
 	 */
 	public static function path(): string {
-		return WPDEBLOAT_TESTS_ROOT . '/docs/STATE-MACHINE.md';
+		return DEBLOATER_TESTS_ROOT . '/docs/STATE-MACHINE.md';
 	}
 }

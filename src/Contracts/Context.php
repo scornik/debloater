@@ -2,12 +2,12 @@
 /**
  * The site context a run executes against.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Contracts;
+namespace Debloater\Contracts;
 
 /**
  * Current site context (BUILD-SPEC §4, locked decision #8).
@@ -223,14 +223,14 @@ final class Context {
 	/**
 	 * The directory generated artefacts are written to.
 	 *
-	 * Everything WP Debloat writes lives under this one directory
+	 * Everything Debloater writes lives under this one directory
 	 * (BUILD-SPEC §13 rule 6), which is what makes the filesystem boundary
 	 * testable.
 	 *
 	 * @return string
 	 */
 	public function runtimeDir(): string {
-		return $this->content_dir . '/wpdebloat';
+		return $this->content_dir . '/debloater';
 	}
 
 	/**

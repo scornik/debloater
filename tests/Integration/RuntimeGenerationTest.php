@@ -2,15 +2,15 @@
 /**
  * Generation, rewriting and integrity of the runtime file.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Tests\Integration;
+namespace Debloater\Tests\Integration;
 
 use RuntimeException;
-use WPDebloat\Apply\RuntimeLoader;
+use Debloater\Apply\RuntimeLoader;
 
 /**
  * BUILD-SPEC §10 and §17 Phase 1.
@@ -170,7 +170,7 @@ final class RuntimeGenerationTest extends IntegrationTestCase {
 	}
 
 	/**
-	 * Everything the plugin generates lives under wp-content/wpdebloat
+	 * Everything the plugin generates lives under wp-content/debloater
 	 * (BUILD-SPEC §13 rule 6).
 	 *
 	 * @return void
@@ -205,7 +205,7 @@ final class RuntimeGenerationTest extends IntegrationTestCase {
 		$this->assertSame(
 			array(),
 			array_values( array_diff( $directories, array( 'backups' ) ) ),
-			'Nothing but the backups directory belongs under wp-content/wpdebloat.'
+			'Nothing but the backups directory belongs under wp-content/debloater.'
 		);
 	}
 

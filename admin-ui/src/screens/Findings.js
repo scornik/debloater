@@ -11,28 +11,28 @@ import { useResource } from '../api/useResource';
 import { DecisionBadge, RiskBadge, SeverityBadge } from '../components/Badges';
 
 const RISKS = [
-	{ value: '', label: __( 'Any risk', 'wp-debloat' ) },
-	{ value: 'low', label: __( 'Low', 'wp-debloat' ) },
-	{ value: 'medium', label: __( 'Medium', 'wp-debloat' ) },
-	{ value: 'high', label: __( 'High', 'wp-debloat' ) },
+	{ value: '', label: __( 'Any risk', 'debloater' ) },
+	{ value: 'low', label: __( 'Low', 'debloater' ) },
+	{ value: 'medium', label: __( 'Medium', 'debloater' ) },
+	{ value: 'high', label: __( 'High', 'debloater' ) },
 ];
 
 const DECISIONS = [
-	{ value: '', label: __( 'Any decision', 'wp-debloat' ) },
-	{ value: 'recommend', label: __( 'Recommended', 'wp-debloat' ) },
-	{ value: 'dont_touch', label: __( 'Leave alone', 'wp-debloat' ) },
-	{ value: 'info', label: __( 'No action recommended', 'wp-debloat' ) },
+	{ value: '', label: __( 'Any decision', 'debloater' ) },
+	{ value: 'recommend', label: __( 'Recommended', 'debloater' ) },
+	{ value: 'dont_touch', label: __( 'Leave alone', 'debloater' ) },
+	{ value: 'info', label: __( 'No action recommended', 'debloater' ) },
 ];
 
 const CATEGORIES = [
-	{ value: '', label: __( 'Any category', 'wp-debloat' ) },
-	{ value: 'wordpress', label: __( 'WordPress', 'wp-debloat' ) },
-	{ value: 'configuration', label: __( 'Configuration', 'wp-debloat' ) },
-	{ value: 'database', label: __( 'Database', 'wp-debloat' ) },
-	{ value: 'plugins', label: __( 'Plugins', 'wp-debloat' ) },
-	{ value: 'maintenance', label: __( 'Maintenance', 'wp-debloat' ) },
-	{ value: 'admin', label: __( 'Admin', 'wp-debloat' ) },
-	{ value: 'assets', label: __( 'Assets', 'wp-debloat' ) },
+	{ value: '', label: __( 'Any category', 'debloater' ) },
+	{ value: 'wordpress', label: __( 'WordPress', 'debloater' ) },
+	{ value: 'configuration', label: __( 'Configuration', 'debloater' ) },
+	{ value: 'database', label: __( 'Database', 'debloater' ) },
+	{ value: 'plugins', label: __( 'Plugins', 'debloater' ) },
+	{ value: 'maintenance', label: __( 'Maintenance', 'debloater' ) },
+	{ value: 'admin', label: __( 'Admin', 'debloater' ) },
+	{ value: 'assets', label: __( 'Assets', 'debloater' ) },
 ];
 
 export const Findings = ( { onOpenFinding } ) => {
@@ -48,24 +48,24 @@ export const Findings = ( { onOpenFinding } ) => {
 	const items = findings.data?.findings || [];
 
 	return (
-		<div className="wpdebloat-findings">
-			<div className="wpdebloat-filters">
+		<div className="debloater-findings">
+			<div className="debloater-filters">
 				<SelectControl
-					label={ __( 'Risk', 'wp-debloat' ) }
+					label={ __( 'Risk', 'debloater' ) }
 					value={ risk }
 					options={ RISKS }
 					onChange={ setRisk }
 					__nextHasNoMarginBottom
 				/>
 				<SelectControl
-					label={ __( 'Category', 'wp-debloat' ) }
+					label={ __( 'Category', 'debloater' ) }
 					value={ category }
 					options={ CATEGORIES }
 					onChange={ setCategory }
 					__nextHasNoMarginBottom
 				/>
 				<SelectControl
-					label={ __( 'Decision', 'wp-debloat' ) }
+					label={ __( 'Decision', 'debloater' ) }
 					value={ decision }
 					options={ DECISIONS }
 					onChange={ setDecision }
@@ -74,53 +74,53 @@ export const Findings = ( { onOpenFinding } ) => {
 			</div>
 
 			{ findings.status === 'loading' && (
-				<p className="wpdebloat-loading">
-					<Spinner /> { __( 'Reading the findings…', 'wp-debloat' ) }
+				<p className="debloater-loading">
+					<Spinner /> { __( 'Reading the findings…', 'debloater' ) }
 				</p>
 			) }
 
 			{ findings.status === 'ready' && items.length === 0 && (
-				<p className="wpdebloat-findings__empty">
-					{ __( 'No findings match those filters.', 'wp-debloat' ) }
+				<p className="debloater-findings__empty">
+					{ __( 'No findings match those filters.', 'debloater' ) }
 				</p>
 			) }
 
 			{ findings.status === 'ready' && items.length > 0 && (
 				<>
-					<p className="wpdebloat-findings__count" role="status">
+					<p className="debloater-findings__count" role="status">
 						{ sprintf(
 							/* translators: %d: number of findings shown. */
 							_n(
 								'%d finding',
 								'%d findings',
 								items.length,
-								'wp-debloat'
+								'debloater'
 							),
 							items.length
 						) }
 					</p>
 
-					<ul className="wpdebloat-findings__list">
+					<ul className="debloater-findings__list">
 						{ items.map( ( finding ) => (
 							<li
 								key={ finding.id }
-								className="wpdebloat-finding-row"
+								className="debloater-finding-row"
 							>
-								<div className="wpdebloat-finding-row__main">
+								<div className="debloater-finding-row__main">
 									<Button
 										variant="link"
-										className="wpdebloat-finding-row__title"
+										className="debloater-finding-row__title"
 										onClick={ () =>
 											onOpenFinding( finding )
 										}
 									>
 										{ finding.title }
 									</Button>
-									<p className="wpdebloat-finding-row__summary">
+									<p className="debloater-finding-row__summary">
 										{ finding.summary }
 									</p>
 								</div>
-								<div className="wpdebloat-finding-row__meta">
+								<div className="debloater-finding-row__meta">
 									<SeverityBadge
 										severity={ finding.severity }
 									/>

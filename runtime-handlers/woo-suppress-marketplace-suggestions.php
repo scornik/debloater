@@ -4,12 +4,12 @@
  *
  * See core-remove-generator.php for the rules every runtime handler follows.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 defined( 'ABSPATH' ) || exit;
 
-if ( ! class_exists( 'WPDebloat_Handler_Woo_Suppress_Marketplace_Suggestions', false ) ) {
+if ( ! class_exists( 'Debloater_Handler_Woo_Suppress_Marketplace_Suggestions', false ) ) {
 
 	/**
 	 * Answers WooCommerce's own marketplace-suggestions filters.
@@ -23,7 +23,7 @@ if ( ! class_exists( 'WPDebloat_Handler_Woo_Suppress_Marketplace_Suggestions', f
 	 * Notices about the store itself are untouched: a pending database update or
 	 * a gateway that needs configuring still reaches the person running the shop.
 	 */
-	final class WPDebloat_Handler_Woo_Suppress_Marketplace_Suggestions {
+	final class Debloater_Handler_Woo_Suppress_Marketplace_Suggestions {
 
 		/**
 		 * Register the handler's hooks.

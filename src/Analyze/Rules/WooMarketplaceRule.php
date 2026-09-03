@@ -2,18 +2,18 @@
 /**
  * Analyzer rule: woo.marketplace.suggestions.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Analyze\Rules;
+namespace Debloater\Analyze\Rules;
 
-use WPDebloat\Contracts\Category;
-use WPDebloat\Contracts\FactSet;
-use WPDebloat\Contracts\Finding;
-use WPDebloat\Contracts\Risk;
-use WPDebloat\Contracts\Severity;
+use Debloater\Contracts\Category;
+use Debloater\Contracts\FactSet;
+use Debloater\Contracts\Finding;
+use Debloater\Contracts\Risk;
+use Debloater\Contracts\Severity;
 
 /**
  * WooCommerce is showing marketplace suggestions in the admin.
@@ -78,14 +78,14 @@ final class WooMarketplaceRule extends AbstractRule {
 				'severity' => Severity::LOW,
 				'risk'     => Risk::SAFE,
 				'tweak_id' => 'woo.suppress_marketplace_suggestions',
-				'title'    => __( 'WooCommerce is showing extension suggestions in your admin', 'wp-debloat' ),
-				'summary'  => __( 'Marketplace suggestions appear on the products, orders and settings screens.', 'wp-debloat' ),
+				'title'    => __( 'WooCommerce is showing extension suggestions in your admin', 'debloater' ),
+				'summary'  => __( 'Marketplace suggestions appear on the products, orders and settings screens.', 'debloater' ),
 				'why'      => __(
 					'These are the panels recommending paid extensions. WooCommerce has its own documented switches for them, which is what this change uses, and nothing operational goes through the same channel — notices about your store itself are untouched, so a pending database update or a gateway that needs configuring still reaches you. That is why this one is safe where hiding a plugin\'s admin notices wholesale is not.',
-					'wp-debloat'
+					'debloater'
 				),
 				'evidence' => $this->evidence( $facts )
-					->fact( __( 'Marketplace suggestions enabled', 'wp-debloat' ), 'woo.marketplace_suggestions' )
+					->fact( __( 'Marketplace suggestions enabled', 'debloater' ), 'woo.marketplace_suggestions' )
 					->build(),
 			)
 		);

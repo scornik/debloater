@@ -2,7 +2,7 @@
 <!--
 	Forced-verification-failure suite.
 
-	Separate from phpunit-wp.xml.dist because WPDEBLOAT_TEST_FAIL_PROBE is a
+	Separate from phpunit-wp.xml.dist because DEBLOATER_TEST_FAIL_PROBE is a
 	constant: once defined, every apply in the process fails verification and
 	rolls back. The tests that expect an apply to commit and the test that
 	expects one to roll back therefore cannot share a process.

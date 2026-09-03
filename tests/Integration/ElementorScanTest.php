@@ -2,19 +2,19 @@
 /**
  * The Elementor scan, against a real WordPress install.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Tests\Integration;
+namespace Debloater\Tests\Integration;
 
-use WPDebloat\Contracts\FactSet;
-use WPDebloat\Registry\SchemaValidator;
-use WPDebloat\Scan\Elementor\WidgetCatalog;
-use WPDebloat\Tests\Integration\Support\FakeWidgetCatalogue;
-use WPDebloat\Tests\Integration\Support\UnreadableWidgetCatalogue;
-use WPDebloat\Scan\Scanners\ElementorScanner;
+use Debloater\Contracts\FactSet;
+use Debloater\Registry\SchemaValidator;
+use Debloater\Scan\Elementor\WidgetCatalog;
+use Debloater\Tests\Integration\Support\FakeWidgetCatalogue;
+use Debloater\Tests\Integration\Support\UnreadableWidgetCatalogue;
+use Debloater\Scan\Scanners\ElementorScanner;
 
 /**
  * BUILD-SPEC §17 Phase 14.
@@ -188,7 +188,7 @@ final class ElementorScanTest extends IntegrationTestCase {
 	public function test_the_facts_validate(): void {
 		$this->seedDesign( array( 'heading' ) );
 
-		$violations = SchemaValidator::fromFile( WPDEBLOAT_TESTS_ROOT . '/registry/schemas/fact.schema.json' )
+		$violations = SchemaValidator::fromFile( DEBLOATER_TESTS_ROOT . '/registry/schemas/fact.schema.json' )
 			->validate( $this->scan()->toArray() );
 
 		$this->assertSame( array(), $violations, implode( '; ', array_map( 'strval', $violations ) ) );

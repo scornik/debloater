@@ -2,23 +2,23 @@
 /**
  * What the CLI reports when a change has to be undone.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Tests\FailProbe;
+namespace Debloater\Tests\FailProbe;
 
-use WPDebloat\Apply\Lock;
-use WPDebloat\Cli\Command;
-use WPDebloat\Tests\Integration\Support\RecordingIo;
+use Debloater\Apply\Lock;
+use Debloater\Cli\Command;
+use Debloater\Tests\Integration\Support\RecordingIo;
 
 /**
  * BUILD-SPEC §17 Phase 7: exit code 2 means "verification failed and the change
  * was rolled back".
  *
  * The code matters more than the message. A deployment script that runs
- * `wp debloat apply --profile=safe --yes` needs to be able to tell "applied" from
+ * `wp debloater apply --profile=safe --yes` needs to be able to tell "applied" from
  * "applied and then undone" without reading English prose, and 2 is how it is
  * told.
  */

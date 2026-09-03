@@ -2,25 +2,25 @@
 /**
  * Takes the recovery point before anything is changed.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Snapshot;
+namespace Debloater\Snapshot;
 
 use RuntimeException;
-use WPDebloat\Apply\RuntimeWriter;
-use WPDebloat\Contracts\Context;
-use WPDebloat\Contracts\DataOperationInterface;
-use WPDebloat\Contracts\Json;
-use WPDebloat\Contracts\Snapshot;
-use WPDebloat\Contracts\SnapshotItem;
-use WPDebloat\Contracts\SnapshotLevel;
-use WPDebloat\Contracts\SnapshotStatus;
-use WPDebloat\Contracts\Tweak;
-use WPDebloat\Storage\Repositories\SnapshotRepository;
-use WPDebloat\Storage\State;
+use Debloater\Apply\RuntimeWriter;
+use Debloater\Contracts\Context;
+use Debloater\Contracts\DataOperationInterface;
+use Debloater\Contracts\Json;
+use Debloater\Contracts\Snapshot;
+use Debloater\Contracts\SnapshotItem;
+use Debloater\Contracts\SnapshotLevel;
+use Debloater\Contracts\SnapshotStatus;
+use Debloater\Contracts\Tweak;
+use Debloater\Storage\Repositories\SnapshotRepository;
+use Debloater\Storage\State;
 
 /**
  * Creates Level A and Level B recovery points (BUILD-SPEC §8, decision #3).
@@ -490,7 +490,7 @@ final class SnapshotManager {
 	 */
 	private function affectedOptions( array $tweaks ): array {
 		$options  = array();
-		$sentinel = '__wpdebloat_absent__';
+		$sentinel = '__debloater_absent__';
 
 		foreach ( $tweaks as $tweak ) {
 			foreach ( $this->optionsTouchedBy( $tweak ) as $option ) {
@@ -533,7 +533,7 @@ final class SnapshotManager {
 		 * @param array<int,string> $options  Option names.
 		 * @param string            $tweak_id The tweak being snapshotted.
 		 */
-		$options = apply_filters( 'wpdebloat_tweak_options', array(), $tweak->id );
+		$options = apply_filters( 'debloater_tweak_options', array(), $tweak->id );
 
 		return is_array( $options ) ? array_values( array_filter( $options, 'is_string' ) ) : array();
 	}

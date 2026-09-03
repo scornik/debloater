@@ -2,17 +2,17 @@
 /**
  * Analyzer rule: wp.self_pingbacks.enabled.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Analyze\Rules;
+namespace Debloater\Analyze\Rules;
 
-use WPDebloat\Contracts\Category;
-use WPDebloat\Contracts\Impact;
-use WPDebloat\Contracts\Risk;
-use WPDebloat\Contracts\Severity;
+use Debloater\Contracts\Category;
+use Debloater\Contracts\Impact;
+use Debloater\Contracts\Risk;
+use Debloater\Contracts\Severity;
 
 /**
  * Fires when nothing is listening on pre_ping.
@@ -102,7 +102,7 @@ final class SelfPingbackRule extends CoreFeatureRule {
 	 * @return string
 	 */
 	protected function title(): string {
-		return __( 'The site pings itself whenever a post links internally', 'wp-debloat' );
+		return __( 'The site pings itself whenever a post links internally', 'debloater' );
 	}
 
 	/**
@@ -111,7 +111,7 @@ final class SelfPingbackRule extends CoreFeatureRule {
 	 * @return string
 	 */
 	protected function summary(): string {
-		return __( 'Nothing is filtering the ping list, so linking from one post to another on this site makes WordPress send itself a pingback and create a comment.', 'wp-debloat' );
+		return __( 'Nothing is filtering the ping list, so linking from one post to another on this site makes WordPress send itself a pingback and create a comment.', 'debloater' );
 	}
 
 	/**
@@ -120,7 +120,7 @@ final class SelfPingbackRule extends CoreFeatureRule {
 	 * @return string
 	 */
 	protected function why(): string {
-		return __( 'Each internal link costs an HTTP request from the site to itself at publish time and leaves a pingback comment on the linked post that has to be moderated or deleted. Pingbacks to other sites are a different thing and are unaffected.', 'wp-debloat' );
+		return __( 'Each internal link costs an HTTP request from the site to itself at publish time and leaves a pingback comment on the linked post that has to be moderated or deleted. Pingbacks to other sites are a different thing and are unaffected.', 'debloater' );
 	}
 
 	/**
@@ -129,6 +129,6 @@ final class SelfPingbackRule extends CoreFeatureRule {
 	 * @return string
 	 */
 	protected function evidenceLabel(): string {
-		return __( 'Self-pingbacks', 'wp-debloat' );
+		return __( 'Self-pingbacks', 'debloater' );
 	}
 }

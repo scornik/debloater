@@ -2,17 +2,17 @@
 /**
  * Analyzer rule: wp.xmlrpc.enabled.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Analyze\Rules;
+namespace Debloater\Analyze\Rules;
 
-use WPDebloat\Contracts\Category;
-use WPDebloat\Contracts\FactSet;
-use WPDebloat\Contracts\Finding;
-use WPDebloat\Contracts\Severity;
+use Debloater\Contracts\Category;
+use Debloater\Contracts\FactSet;
+use Debloater\Contracts\Finding;
+use Debloater\Contracts\Severity;
 
 /**
  * Reports that XML-RPC is answering requests. Info only in the MVP.
@@ -73,15 +73,15 @@ final class XmlRpcRule extends AbstractRule {
 			array(
 				'category' => Category::CONFIGURATION,
 				'severity' => Severity::LOW,
-				'title'    => __( 'XML-RPC is answering requests', 'wp-debloat' ),
-				'summary'  => __( 'The xmlrpc.php endpoint exists and nothing is filtering it, so it accepts requests.', 'wp-debloat' ),
+				'title'    => __( 'XML-RPC is answering requests', 'debloater' ),
+				'summary'  => __( 'The xmlrpc.php endpoint exists and nothing is filtering it, so it accepts requests.', 'debloater' ),
 				'why'      => __(
 					'XML-RPC is the old remote-publishing interface. It attracts steady automated login attempts, and its multicall feature lets an attacker try many passwords in one request. It is also what Jetpack, the WordPress mobile apps and several backup plugins use to talk to a site. Whether switching it off is right here depends on whether anything is using it — which is a question this version reports rather than answers.',
-					'wp-debloat'
+					'debloater'
 				),
 				'evidence' => $this->evidence( $facts )
-					->formatted( __( 'XML-RPC endpoint', 'wp-debloat' ), __( 'Reachable', 'wp-debloat' ), 'wp.xmlrpc_enabled' )
-					->optional( __( 'RSD discovery link', 'wp-debloat' ), 'wp.rsd_link' )
+					->formatted( __( 'XML-RPC endpoint', 'debloater' ), __( 'Reachable', 'debloater' ), 'wp.xmlrpc_enabled' )
+					->optional( __( 'RSD discovery link', 'debloater' ), 'wp.rsd_link' )
 					->build(),
 			)
 		);

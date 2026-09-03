@@ -2,15 +2,15 @@
 /**
  * Facts about who uses the site.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Scan\Scanners;
+namespace Debloater\Scan\Scanners;
 
-use WPDebloat\Contracts\Context;
-use WPDebloat\Storage\Schema;
+use Debloater\Contracts\Context;
+use Debloater\Storage\Schema;
 
 /**
  * Collects the `users.*` facts (BUILD-SPEC §5).

@@ -8,7 +8,7 @@
   "base_confidence": 0.9,
   "reversible": true,
   "destructive": false,
-  "handler": "WPDebloat\\Apply\\DataOperations\\AutoloadReview",
+  "handler": "Debloater\\Apply\\DataOperations\\AutoloadReview",
   "params": {
     "prefixes": {
       "type": "array",

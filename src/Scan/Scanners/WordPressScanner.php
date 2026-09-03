@@ -2,14 +2,14 @@
 /**
  * Facts about WordPress configuration.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Scan\Scanners;
+namespace Debloater\Scan\Scanners;
 
-use WPDebloat\Contracts\Context;
+use Debloater\Contracts\Context;
 
 /**
  * Collects the configuration half of the `wp.*` facts (BUILD-SPEC §5).

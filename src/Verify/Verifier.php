@@ -2,20 +2,20 @@
 /**
  * Runs the probes and adds up what they found.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Verify;
+namespace Debloater\Verify;
 
 use Throwable;
-use WPDebloat\Contracts\Context;
-use WPDebloat\Contracts\FactSet;
-use WPDebloat\Contracts\ProbeInterface;
-use WPDebloat\Contracts\ProbeResult;
-use WPDebloat\Contracts\ProbeStatus;
-use WPDebloat\Contracts\VerificationResult;
+use Debloater\Contracts\Context;
+use Debloater\Contracts\FactSet;
+use Debloater\Contracts\ProbeInterface;
+use Debloater\Contracts\ProbeResult;
+use Debloater\Contracts\ProbeStatus;
+use Debloater\Contracts\VerificationResult;
 
 /**
  * Verification (BUILD-SPEC §11).
@@ -44,7 +44,7 @@ final class Verifier {
 	 * a real site to do it. Defining it on a production site makes verification
 	 * fail and every apply roll back, which is inconvenient but never unsafe.
 	 */
-	public const TEST_FAIL_CONSTANT = 'WPDEBLOAT_TEST_FAIL_PROBE';
+	public const TEST_FAIL_CONSTANT = 'DEBLOATER_TEST_FAIL_PROBE';
 
 	/**
 	 * Site context.
@@ -136,7 +136,7 @@ final class Verifier {
 				ProbeStatus::NOT_TESTED,
 				sprintf(
 					/* translators: %s: probe name. */
-					__( 'The "%s" check does not apply to this site, so it was not run.', 'wp-debloat' ),
+					__( 'The "%s" check does not apply to this site, so it was not run.', 'debloater' ),
 					$probe->name()
 				)
 			);
@@ -148,7 +148,7 @@ final class Verifier {
 				ProbeStatus::UNKNOWN,
 				sprintf(
 					/* translators: %s: the underlying connection error. */
-					__( 'This site cannot make requests to itself, so nothing could be checked over HTTP: %s', 'wp-debloat' ),
+					__( 'This site cannot make requests to itself, so nothing could be checked over HTTP: %s', 'debloater' ),
 					$error
 				),
 				array( 'loopback_blocked' => true )
@@ -163,7 +163,7 @@ final class Verifier {
 				ProbeStatus::UNKNOWN,
 				sprintf(
 					/* translators: 1: probe name, 2: the error. */
-					__( 'The "%1$s" check could not complete: %2$s', 'wp-debloat' ),
+					__( 'The "%1$s" check could not complete: %2$s', 'debloater' ),
 					$probe->name(),
 					$thrown->getMessage()
 				)
@@ -193,7 +193,7 @@ final class Verifier {
 			ProbeStatus::FAIL,
 			sprintf(
 				/* translators: 1: probe name, 2: constant name. */
-				__( 'The "%1$s" check was forced to fail by the %2$s constant.', 'wp-debloat' ),
+				__( 'The "%1$s" check was forced to fail by the %2$s constant.', 'debloater' ),
 				$name,
 				self::TEST_FAIL_CONSTANT
 			),

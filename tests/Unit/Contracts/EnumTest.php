@@ -2,22 +2,22 @@
 /**
  * Tests for the contract enums.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Tests\Unit\Contracts;
+namespace Debloater\Tests\Unit\Contracts;
 
 use PHPUnit\Framework\TestCase;
-use WPDebloat\Contracts\Category;
-use WPDebloat\Contracts\Decision;
-use WPDebloat\Contracts\ProbeStatus;
-use WPDebloat\Contracts\Risk;
-use WPDebloat\Contracts\Severity;
-use WPDebloat\Contracts\SnapshotLevel;
-use WPDebloat\Contracts\SnapshotStatus;
-use WPDebloat\Contracts\TweakKind;
+use Debloater\Contracts\Category;
+use Debloater\Contracts\Decision;
+use Debloater\Contracts\ProbeStatus;
+use Debloater\Contracts\Risk;
+use Debloater\Contracts\Severity;
+use Debloater\Contracts\SnapshotLevel;
+use Debloater\Contracts\SnapshotStatus;
+use Debloater\Contracts\TweakKind;
 
 /**
  * The enums encode rules from the specification, so they are tested as rules,

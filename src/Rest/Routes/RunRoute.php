@@ -1,19 +1,19 @@
 <?php
 /**
- * GET wpdebloat/v1/runs/<id>.
+ * GET debloater/v1/runs/<id>.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Rest\Routes;
+namespace Debloater\Rest\Routes;
 
 use WP_Error;
 use WP_REST_Request;
 use WP_REST_Response;
-use WPDebloat\Contracts\RunState;
-use WPDebloat\Plugin;
+use Debloater\Contracts\RunState;
+use Debloater\Plugin;
 
 /**
  * One run, in enough detail to watch it happen (BUILD-SPEC §17 Phase 9).
@@ -70,7 +70,7 @@ final class RunRoute implements RouteInterface {
 	public function args(): array {
 		return array(
 			'id' => array(
-				'description' => __( 'The run to read.', 'wp-debloat' ),
+				'description' => __( 'The run to read.', 'debloater' ),
 				'type'        => 'integer',
 				'minimum'     => 1,
 				'required'    => true,
@@ -89,8 +89,8 @@ final class RunRoute implements RouteInterface {
 
 		if ( null === $run ) {
 			return new WP_Error(
-				'wpdebloat_no_run',
-				__( 'There is no change with that id.', 'wp-debloat' ),
+				'debloater_no_run',
+				__( 'There is no change with that id.', 'debloater' ),
 				array( 'status' => 404 )
 			);
 		}
@@ -127,25 +127,25 @@ final class RunRoute implements RouteInterface {
 	 */
 	private function label( RunState $state ): string {
 		return match ( $state ) {
-			RunState::IDLE                   => __( 'Waiting to start', 'wp-debloat' ),
-			RunState::PLANNING               => __( 'Working out what to change', 'wp-debloat' ),
-			RunState::PREVIEWED              => __( 'Waiting for you to confirm', 'wp-debloat' ),
-			RunState::LOCKED                 => __( 'Holding the site so nothing else changes it', 'wp-debloat' ),
-			RunState::MEASURING_BEFORE       => __( 'Counting what is there now', 'wp-debloat' ),
-			RunState::SNAPSHOTTING           => __( 'Taking a recovery point', 'wp-debloat' ),
-			RunState::APPLYING               => __( 'Applying the changes', 'wp-debloat' ),
-			RunState::APPLIED                => __( 'Changes applied', 'wp-debloat' ),
-			RunState::APPLY_FAILED           => __( 'Something went wrong while applying', 'wp-debloat' ),
-			RunState::VERIFYING              => __( 'Checking the site still works', 'wp-debloat' ),
-			RunState::VERIFIED               => __( 'The site checked out', 'wp-debloat' ),
-			RunState::VERIFIED_WITH_WARNINGS => __( 'The site works, with some checks incomplete', 'wp-debloat' ),
-			RunState::VERIFICATION_FAILED    => __( 'The site did not pass its checks', 'wp-debloat' ),
-			RunState::MEASURING_AFTER        => __( 'Counting what is there now', 'wp-debloat' ),
-			RunState::COMMITTED              => __( 'Done', 'wp-debloat' ),
-			RunState::ROLLING_BACK           => __( 'Putting the site back', 'wp-debloat' ),
-			RunState::ROLLED_BACK            => __( 'Rollback complete', 'wp-debloat' ),
-			RunState::ABORTED                => __( 'Stopped before anything changed', 'wp-debloat' ),
-			RunState::INTERRUPTED            => __( 'Interrupted partway through', 'wp-debloat' ),
+			RunState::IDLE                   => __( 'Waiting to start', 'debloater' ),
+			RunState::PLANNING               => __( 'Working out what to change', 'debloater' ),
+			RunState::PREVIEWED              => __( 'Waiting for you to confirm', 'debloater' ),
+			RunState::LOCKED                 => __( 'Holding the site so nothing else changes it', 'debloater' ),
+			RunState::MEASURING_BEFORE       => __( 'Counting what is there now', 'debloater' ),
+			RunState::SNAPSHOTTING           => __( 'Taking a recovery point', 'debloater' ),
+			RunState::APPLYING               => __( 'Applying the changes', 'debloater' ),
+			RunState::APPLIED                => __( 'Changes applied', 'debloater' ),
+			RunState::APPLY_FAILED           => __( 'Something went wrong while applying', 'debloater' ),
+			RunState::VERIFYING              => __( 'Checking the site still works', 'debloater' ),
+			RunState::VERIFIED               => __( 'The site checked out', 'debloater' ),
+			RunState::VERIFIED_WITH_WARNINGS => __( 'The site works, with some checks incomplete', 'debloater' ),
+			RunState::VERIFICATION_FAILED    => __( 'The site did not pass its checks', 'debloater' ),
+			RunState::MEASURING_AFTER        => __( 'Counting what is there now', 'debloater' ),
+			RunState::COMMITTED              => __( 'Done', 'debloater' ),
+			RunState::ROLLING_BACK           => __( 'Putting the site back', 'debloater' ),
+			RunState::ROLLED_BACK            => __( 'Rollback complete', 'debloater' ),
+			RunState::ABORTED                => __( 'Stopped before anything changed', 'debloater' ),
+			RunState::INTERRUPTED            => __( 'Interrupted partway through', 'debloater' ),
 		};
 	}
 }

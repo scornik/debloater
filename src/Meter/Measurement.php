@@ -2,12 +2,12 @@
 /**
  * One number, with its unit and where it came from.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Meter;
+namespace Debloater\Meter;
 
 /**
  * A single measured value (BUILD-SPEC §12).

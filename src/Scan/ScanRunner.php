@@ -2,21 +2,21 @@
 /**
  * Runs the scanners and records the result.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Scan;
+namespace Debloater\Scan;
 
 use Throwable;
-use WPDebloat\Contracts\Context;
-use WPDebloat\Contracts\FactSet;
-use WPDebloat\Contracts\Run;
-use WPDebloat\Contracts\RunType;
-use WPDebloat\Contracts\ScannerInterface;
-use WPDebloat\Scan\Scanners\AbstractScanner;
-use WPDebloat\Storage\Repositories\RunRepository;
+use Debloater\Contracts\Context;
+use Debloater\Contracts\FactSet;
+use Debloater\Contracts\Run;
+use Debloater\Contracts\RunType;
+use Debloater\Contracts\ScannerInterface;
+use Debloater\Scan\Scanners\AbstractScanner;
+use Debloater\Storage\Repositories\RunRepository;
 
 /**
  * Drives a scan (BUILD-SPEC §17 Phase 2).

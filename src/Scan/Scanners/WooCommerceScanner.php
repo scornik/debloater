@@ -2,16 +2,16 @@
 /**
  * Facts about a WooCommerce store.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Scan\Scanners;
+namespace Debloater\Scan\Scanners;
 
-use WPDebloat\Contracts\Context;
-use WPDebloat\Scan\AssetParser;
-use WPDebloat\Scan\SampledPages;
+use Debloater\Contracts\Context;
+use Debloater\Scan\AssetParser;
+use Debloater\Scan\SampledPages;
 
 /**
  * Collects the `woo.*` facts (BUILD-SPEC §5, §11, §17 Phase 15).

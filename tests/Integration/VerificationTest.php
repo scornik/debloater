@@ -2,21 +2,21 @@
 /**
  * Checking the site after a change.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Tests\Integration;
+namespace Debloater\Tests\Integration;
 
 use WP_Error;
-use WPDebloat\Apply\Lock;
-use WPDebloat\Apply\RuntimeLoader;
-use WPDebloat\Contracts\PreviewPlan;
-use WPDebloat\Contracts\ProbeStatus;
-use WPDebloat\Contracts\RunState;
-use WPDebloat\Verify\HttpClient;
-use WPDebloat\Verify\Verifier;
+use Debloater\Apply\Lock;
+use Debloater\Apply\RuntimeLoader;
+use Debloater\Contracts\PreviewPlan;
+use Debloater\Contracts\ProbeStatus;
+use Debloater\Contracts\RunState;
+use Debloater\Verify\HttpClient;
+use Debloater\Verify\Verifier;
 
 /**
  * BUILD-SPEC §11.
@@ -318,7 +318,7 @@ final class VerificationTest extends IntegrationTestCase {
 
 		$this->serveHealthySite(
 			array(
-				rest_url( 'wpdebloat/v1/status' ) => array(
+				rest_url( 'debloater/v1/status' ) => array(
 					'status' => 200,
 					'body'   => (string) wp_json_encode(
 						array(
@@ -347,7 +347,7 @@ final class VerificationTest extends IntegrationTestCase {
 
 		$this->serveHealthySite(
 			array(
-				rest_url( 'wpdebloat/v1/status' ) => array(
+				rest_url( 'debloater/v1/status' ) => array(
 					'status' => 200,
 					'body'   => (string) wp_json_encode(
 						array(
@@ -376,7 +376,7 @@ final class VerificationTest extends IntegrationTestCase {
 
 		$this->serveHealthySite(
 			array(
-				rest_url( 'wpdebloat/v1/status' ) => array(
+				rest_url( 'debloater/v1/status' ) => array(
 					'status' => 200,
 					'body'   => (string) wp_json_encode(
 						array(
@@ -608,7 +608,7 @@ final class VerificationTest extends IntegrationTestCase {
 	 * @return void
 	 */
 	public function test_the_forced_failure_constant_has_the_documented_name(): void {
-		$this->assertSame( 'WPDEBLOAT_TEST_FAIL_PROBE', Verifier::TEST_FAIL_CONSTANT );
+		$this->assertSame( 'DEBLOATER_TEST_FAIL_PROBE', Verifier::TEST_FAIL_CONSTANT );
 	}
 
 	/**
@@ -627,9 +627,9 @@ final class VerificationTest extends IntegrationTestCase {
 	/**
 	 * One probe's result, by name.
 	 *
-	 * @param \WPDebloat\Contracts\VerificationResult $result The verification.
+	 * @param \Debloater\Contracts\VerificationResult $result The verification.
 	 * @param string                                  $name   Probe name.
-	 * @return \WPDebloat\Contracts\ProbeResult
+	 * @return \Debloater\Contracts\ProbeResult
 	 */
 	private function probe( $result, string $name ) {
 		foreach ( $result->probes as $probe ) {
@@ -693,11 +693,11 @@ final class VerificationTest extends IntegrationTestCase {
 	 * A healthy response body for a given URL.
 	 *
 	 * @param string                $url    Requested URL.
-	 * @param \WPDebloat\Plugin     $plugin The plugin, for the runtime hash.
+	 * @param \Debloater\Plugin     $plugin The plugin, for the runtime hash.
 	 * @return string
 	 */
 	private static function bodyFor( string $url, $plugin ): string {
-		if ( 0 === strpos( $url, rest_url( 'wpdebloat/v1/status' ) ) ) {
+		if ( 0 === strpos( $url, rest_url( 'debloater/v1/status' ) ) ) {
 			return (string) wp_json_encode(
 				array(
 					'runtime' => array( 'hash' => $plugin->state()->runtimeHash() ),

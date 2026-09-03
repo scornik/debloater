@@ -2,20 +2,20 @@
 /**
  * The whole loop from a terminal.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Tests\Integration;
+namespace Debloater\Tests\Integration;
 
 use WP_Error;
-use WPDebloat\Apply\Lock;
-use WPDebloat\Apply\RuntimeLoader;
-use WPDebloat\Cli\Command;
-use WPDebloat\Config\ConfigDocument;
-use WPDebloat\Registry\SchemaValidator;
-use WPDebloat\Tests\Integration\Support\RecordingIo;
+use Debloater\Apply\Lock;
+use Debloater\Apply\RuntimeLoader;
+use Debloater\Cli\Command;
+use Debloater\Config\ConfigDocument;
+use Debloater\Registry\SchemaValidator;
+use Debloater\Tests\Integration\Support\RecordingIo;
 
 /**
  * BUILD-SPEC §17 Phase 7.
@@ -62,7 +62,7 @@ final class CliTest extends IntegrationTestCase {
 	public function tear_down(): void {
 		remove_all_filters( 'pre_http_request' );
 
-		$files = glob( sys_get_temp_dir() . '/wpdebloat-cli-*.json' );
+		$files = glob( sys_get_temp_dir() . '/debloater-cli-*.json' );
 
 		foreach ( is_array( $files ) ? $files : array() as $file ) {
 			unlink( $file );
@@ -408,7 +408,7 @@ final class CliTest extends IntegrationTestCase {
 		$this->applySafePlan();
 
 		$selection = $this->plugin->state()->selection();
-		$path      = sys_get_temp_dir() . '/wpdebloat-cli-export.json';
+		$path      = sys_get_temp_dir() . '/debloater-cli-export.json';
 
 		$export = new RecordingIo();
 
@@ -475,7 +475,7 @@ final class CliTest extends IntegrationTestCase {
 		$index = 0;
 
 		foreach ( $cases as $label => $contents ) {
-			$path = sys_get_temp_dir() . '/wpdebloat-cli-bad-' . $index . '.json';
+			$path = sys_get_temp_dir() . '/debloater-cli-bad-' . $index . '.json';
 			++$index;
 
 			file_put_contents( $path, $contents );
@@ -507,7 +507,7 @@ final class CliTest extends IntegrationTestCase {
 		$this->serveHealthySite();
 		$this->plugin->scan();
 
-		$path = sys_get_temp_dir() . '/wpdebloat-cli-partial.json';
+		$path = sys_get_temp_dir() . '/debloater-cli-partial.json';
 
 		file_put_contents(
 			$path,
@@ -553,7 +553,7 @@ final class CliTest extends IntegrationTestCase {
 	public function test_import_apply_requires_confirmation(): void {
 		$this->plugin->scan();
 
-		$path = sys_get_temp_dir() . '/wpdebloat-cli-confirm.json';
+		$path = sys_get_temp_dir() . '/debloater-cli-confirm.json';
 
 		file_put_contents(
 			$path,
@@ -666,7 +666,7 @@ final class CliTest extends IntegrationTestCase {
 	 * @return SchemaValidator
 	 */
 	private function schema( string $name ): SchemaValidator {
-		return SchemaValidator::fromFile( WPDEBLOAT_TESTS_ROOT . '/registry/schemas/' . $name . '.schema.json' );
+		return SchemaValidator::fromFile( DEBLOATER_TESTS_ROOT . '/registry/schemas/' . $name . '.schema.json' );
 	}
 
 	/**
@@ -684,7 +684,7 @@ final class CliTest extends IntegrationTestCase {
 
 				$body = self::GOOD_HTML;
 
-				if ( 0 === strpos( $url, rest_url( 'wpdebloat/v1/status' ) ) ) {
+				if ( 0 === strpos( $url, rest_url( 'debloater/v1/status' ) ) ) {
 					$body = (string) wp_json_encode(
 						array(
 							'runtime' => array( 'hash' => $plugin->state()->runtimeHash() ),

@@ -2,17 +2,17 @@
 /**
  * Shared base class for integration tests.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Tests\Integration;
+namespace Debloater\Tests\Integration;
 
 use WP_UnitTestCase;
-use WPDebloat\Apply\RuntimeLoader;
-use WPDebloat\Contracts\Context;
-use WPDebloat\Plugin;
+use Debloater\Apply\RuntimeLoader;
+use Debloater\Contracts\Context;
+use Debloater\Plugin;
 
 /**
  * Test case with the plugin's services to hand and a clean slate each time.

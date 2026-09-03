@@ -2,16 +2,16 @@
 /**
  * Tests for the hand-written JSON Schema subset validator.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Tests\Unit\Registry;
+namespace Debloater\Tests\Unit\Registry;
 
 use PHPUnit\Framework\TestCase;
-use WPDebloat\Registry\SchemaValidator;
-use WPDebloat\Registry\UnsupportedSchemaKeyword;
+use Debloater\Registry\SchemaValidator;
+use Debloater\Registry\UnsupportedSchemaKeyword;
 
 /**
  * The validator stands between user input and generated PHP (BUILD-SPEC §13
@@ -521,7 +521,7 @@ final class SchemaValidatorTest extends TestCase {
 	 * @return void
 	 */
 	public function test_from_file(): void {
-		$validator = SchemaValidator::fromFile( WPDEBLOAT_TESTS_ROOT . '/registry/schemas/tweak.schema.json' );
+		$validator = SchemaValidator::fromFile( DEBLOATER_TESTS_ROOT . '/registry/schemas/tweak.schema.json' );
 
 		$this->assertFalse( $validator->isValid( array() ) );
 	}
@@ -535,6 +535,6 @@ final class SchemaValidatorTest extends TestCase {
 	public function test_from_file_rejects_a_missing_file(): void {
 		$this->expectException( \RuntimeException::class );
 
-		SchemaValidator::fromFile( WPDEBLOAT_TESTS_ROOT . '/registry/schemas/does-not-exist.json' );
+		SchemaValidator::fromFile( DEBLOATER_TESTS_ROOT . '/registry/schemas/does-not-exist.json' );
 	}
 }

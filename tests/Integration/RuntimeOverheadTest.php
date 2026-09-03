@@ -2,17 +2,17 @@
 /**
  * The zero-overhead guarantee, asserted against a real WordPress install.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Tests\Integration;
+namespace Debloater\Tests\Integration;
 
-use WPDebloat\Brand;
+use Debloater\Brand;
 
 /**
- * BUILD-SPEC §10 and §14: with nothing selected, WP Debloat costs nothing.
+ * BUILD-SPEC §10 and §14: with nothing selected, Debloater costs nothing.
  *
  * This is the promise the whole architecture is arranged around, so it is
  * measured rather than reasoned about: no runtime file, no hooks, no queries,
@@ -109,7 +109,7 @@ final class RuntimeOverheadTest extends IntegrationTestCase {
 		$this->assertSame(
 			array(),
 			$offending,
-			"A front-end request queried WP Debloat's own storage:\n" . implode( "\n", $offending )
+			"A front-end request queried Debloater's own storage:\n" . implode( "\n", $offending )
 		);
 	}
 
@@ -133,7 +133,7 @@ final class RuntimeOverheadTest extends IntegrationTestCase {
 	}
 
 	/**
-	 * WP Debloat stores exactly one option (BUILD-SPEC §8).
+	 * Debloater stores exactly one option (BUILD-SPEC §8).
 	 *
 	 * @return void
 	 */
@@ -198,6 +198,177 @@ final class RuntimeOverheadTest extends IntegrationTestCase {
 		$this->unregisterHandlers( array( 'core.remove_generator', 'core.remove_rsd' ) );
 
 		$this->assertSame( $before, $this->hookSnapshot() );
+	}
+
+	/**
+	 * With a selection, a front-end request still queries none of our storage.
+	 *
+	 * The empty-selection case above is the easy half of the promise. This is
+	 * the half that matters in practice: a site that has actually selected
+	 * something is a site whose every page view now loads our generated code,
+	 * and if that code reads an option or a table then the plugin has become
+	 * the cost it was installed to remove.
+	 *
+	 * BUILD-SPEC §14 (performance) and product-safety invariant 4: the runtime
+	 * has no registry, no database, and no option intelligence.
+	 *
+	 * @return void
+	 */
+	public function test_a_selection_adds_no_queries_to_a_frontend_request(): void {
+		$tweaks = array(
+			'core.remove_generator'       => array(),
+			'core.disable_emojis'         => array(),
+			'core.disable_self_pingbacks' => array(),
+		);
+
+		$this->selectAndGenerate( $tweaks );
+
+		$queries = $this->captureQueries(
+			function (): void {
+				$this->assertTrue( $this->loadRuntime() );
+
+				remove_action( 'template_redirect', 'redirect_canonical' );
+
+				do_action( 'wp_loaded' );
+				do_action( 'template_redirect' );
+
+				ob_start();
+				do_action( 'wp_head' );
+				do_action( 'wp_footer' );
+				ob_end_clean();
+			}
+		);
+
+		$offending = array_values(
+			array_filter(
+				$queries,
+				static fn ( string $query ): bool => false !== stripos( $query, Brand::PREFIX )
+			)
+		);
+
+		$this->assertSame(
+			array(),
+			$offending,
+			"A front-end request with tweaks selected queried Debloater's own storage:\n"
+				. implode( "\n", $offending )
+		);
+
+		$this->unregisterHandlers( array_keys( $tweaks ) );
+	}
+
+	/**
+	 * The runtime reads no registry JSON.
+	 *
+	 * Invariant 4 again, from the other side. The registry is how the plugin
+	 * decides *what* to do; by the time the runtime exists that decision has
+	 * already been made and compiled in. A runtime that opened a registry file
+	 * on every request would have moved the plugin's slowest work into the hot
+	 * path — and would also mean a registry update silently changing a live
+	 * site's behaviour without anybody applying anything.
+	 *
+	 * @return void
+	 */
+	public function test_the_runtime_reads_no_registry_json(): void {
+		$tweaks = array(
+			'core.remove_generator' => array(),
+			'core.disable_emojis'   => array(),
+		);
+
+		$this->selectAndGenerate( $tweaks );
+
+		$source = (string) file_get_contents( $this->context()->runtimeFile() );
+
+		foreach ( array( 'registry/', '.json', 'json_decode', 'get_option', 'wpdb' ) as $needle ) {
+			$this->assertStringNotContainsString(
+				$needle,
+				$source,
+				'The generated runtime must not reference ' . $needle . '.'
+			);
+		}
+
+		// And nothing it loads does either. The handlers are the runtime's only
+		// dependency, so the guarantee is only as good as they are.
+		foreach ( $this->plugin->registry()->all() as $definition ) {
+			if ( ! str_starts_with( $definition->handler, 'runtime-handlers/' ) ) {
+				continue;
+			}
+
+			$handler = (string) file_get_contents( DEBLOATER_TESTS_ROOT . '/' . $definition->handler );
+
+			foreach ( array( 'registry/', 'json_decode', '$wpdb' ) as $needle ) {
+				$this->assertStringNotContainsString(
+					$needle,
+					$handler,
+					$definition->handler . ' must not reference ' . $needle . '.'
+				);
+			}
+		}
+
+		$this->unregisterHandlers( array_keys( $tweaks ) );
+	}
+
+	/**
+	 * The generated runtime parses in well under a millisecond.
+	 *
+	 * A budget rather than a comparison, because there is nothing to compare
+	 * against: the alternative to loading this file is not loading it. What the
+	 * number has to be is small enough that nobody would notice it, on the
+	 * slowest machine anybody runs this suite on.
+	 *
+	 * The budget is 5 ms, roughly two orders of magnitude above what a few
+	 * kilobytes of PHP actually costs to tokenise. That gap is deliberate: a
+	 * tight budget on a shared CI runner measures the runner's load rather than
+	 * this file, and a performance test that fails when a neighbouring job gets
+	 * busy is one people learn to re-run rather than read. At 5 ms the only
+	 * thing that trips it is the runtime having grown a real cost — reading a
+	 * file, hitting the database, doing work at include time instead of on a
+	 * hook.
+	 *
+	 * BUILD-SPEC §14: "runtime.php parse time".
+	 *
+	 * @return void
+	 */
+	public function test_the_runtime_parses_within_budget(): void {
+		$selection = array();
+
+		// Every config tweak there is: the worst case a real site can reach,
+		// and considerably worse than any real site would choose.
+		foreach ( $this->plugin->registry()->all() as $definition ) {
+			if ( str_starts_with( $definition->handler, 'runtime-handlers/' ) ) {
+				$selection[ $definition->id ] = array();
+			}
+		}
+
+		$this->assertGreaterThan( 10, count( $selection ), 'this needs a realistic worst case' );
+
+		$this->selectAndGenerate( $selection );
+
+		$source = (string) file_get_contents( $this->context()->runtimeFile() );
+
+		// Parse time, not execution time: the file is tokenised rather than
+		// included, because including it registers hooks and running the
+		// handlers is a different measurement.
+		$iterations = 20;
+		$started    = hrtime( true );
+
+		for ( $index = 0; $index < $iterations; $index++ ) {
+			$tokens = token_get_all( $source );
+
+			$this->assertNotEmpty( $tokens );
+		}
+
+		$elapsed_ms = ( hrtime( true ) - $started ) / 1e6 / $iterations;
+
+		$this->assertLessThan(
+			5.0,
+			$elapsed_ms,
+			sprintf(
+				'The generated runtime (%d selected tweaks, %d bytes) took %.3f ms to parse.',
+				count( $selection ),
+				strlen( $source ),
+				$elapsed_ms
+			)
+		);
 	}
 
 	/**

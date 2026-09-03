@@ -2,12 +2,12 @@
 /**
  * Contract for a single measured metric.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Contracts;
+namespace Debloater\Contracts;
 
 /**
  * A meter metric (BUILD-SPEC §12, locked decisions #1 and #2).
@@ -18,7 +18,7 @@ namespace WPDebloat\Contracts;
  *
  * Metrics are counts and sizes — requests, scripts, bytes, rows, events. Time is
  * deliberately absent: a plugin cannot honestly attribute page-load time to its
- * own changes on someone else's host, so WP Debloat never claims it.
+ * own changes on someone else's host, so Debloater never claims it.
  */
 interface MeterInterface {
 

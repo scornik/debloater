@@ -21,7 +21,7 @@ test.describe( 'Fix safe issues', () => {
 		await login( page );
 
 		// Start from nothing selected, so the report is about this run.
-		await wpCli( [ 'debloat', 'rollback', '--yes', '--allow-root', '--skip-themes' ], APPLY_EXIT_CODES ).catch( () => {} );
+		await wpCli( [ 'debloater', 'rollback', '--yes', '--allow-root', '--skip-themes' ], APPLY_EXIT_CODES ).catch( () => {} );
 	} );
 
 	test( 'previews, applies and reports', async ( { page } ) => {
@@ -66,10 +66,10 @@ test.describe( 'Fix safe issues', () => {
 		// Applying writes the runtime file, reloads it, verifies over loopback
 		// and measures before and after.
 		await expect(
-			page.locator( '.wpdebloat-report' )
+			page.locator( '.debloater-report' )
 		).toBeVisible( { timeout: 90_000 } );
 
-		const report = await page.locator( '.wpdebloat-report' ).innerText();
+		const report = await page.locator( '.debloater-report' ).innerText();
 
 		expect( report ).toMatch( /optimization[s]? applied|The change was undone/ );
 	} );
@@ -78,7 +78,7 @@ test.describe( 'Fix safe issues', () => {
 		test.setTimeout( 180_000 );
 
 		await wpCli(
-			[ 'debloat', 'apply', '--tweaks=core.remove_generator', '--yes', '--allow-root', '--skip-themes' ],
+			[ 'debloater', 'apply', '--tweaks=core.remove_generator', '--yes', '--allow-root', '--skip-themes' ],
 			APPLY_EXIT_CODES
 		);
 
@@ -99,13 +99,13 @@ test.describe( 'Fix safe issues', () => {
 		// assertion below is only interesting if there was a runtime file to
 		// remove.
 		await wpCli(
-			[ 'debloat', 'apply', '--tweaks=core.remove_generator', '--yes', '--allow-root', '--skip-themes' ],
+			[ 'debloater', 'apply', '--tweaks=core.remove_generator', '--yes', '--allow-root', '--skip-themes' ],
 			APPLY_EXIT_CODES
 		);
 
 		expect( ( await debloatStatus() ).runtime.present ).toBe( true );
 
-		await wpCli( [ 'debloat', 'rollback', '--yes', '--allow-root', '--skip-themes' ], APPLY_EXIT_CODES );
+		await wpCli( [ 'debloater', 'rollback', '--yes', '--allow-root', '--skip-themes' ], APPLY_EXIT_CODES );
 
 		const status = await debloatStatus();
 

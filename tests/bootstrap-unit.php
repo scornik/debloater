@@ -5,14 +5,14 @@
  * Unit tests run without WordPress: no globals, no database, no network. If a
  * test needs WordPress it belongs in tests/Integration, which boots wp-env.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-$wpdebloat_autoload = dirname( __DIR__ ) . '/vendor/autoload.php';
+$debloater_autoload = dirname( __DIR__ ) . '/vendor/autoload.php';
 
-if ( ! is_readable( $wpdebloat_autoload ) ) {
+if ( ! is_readable( $debloater_autoload ) ) {
 	fwrite(
 		STDERR,
 		"Composer dependencies are not installed. Run composer install before the test suite.\n"
@@ -20,7 +20,7 @@ if ( ! is_readable( $wpdebloat_autoload ) ) {
 	exit( 1 );
 }
 
-require_once $wpdebloat_autoload;
+require_once $debloater_autoload;
 
 // The unit suite runs without WordPress. Anything user-visible is still
 // translatable, so the analyzer legitimately calls __() and friends; these
@@ -31,4 +31,4 @@ require_once __DIR__ . '/wp-i18n-polyfill.php';
 /**
  * Absolute path to the repository root, for tests that read registry files.
  */
-define( 'WPDEBLOAT_TESTS_ROOT', dirname( __DIR__ ) );
+define( 'DEBLOATER_TESTS_ROOT', dirname( __DIR__ ) );

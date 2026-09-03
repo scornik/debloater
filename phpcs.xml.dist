@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
-<ruleset name="WP Debloat">
-	<description>Coding standards for WP Debloat.</description>
+<ruleset name="Debloater">
+	<description>Coding standards for Debloater.</description>
 
-	<file>wp-debloat.php</file>
+	<file>debloater.php</file>
 	<file>src</file>
 	<file>runtime-handlers</file>
 	<file>mu-loader</file>
@@ -68,9 +68,9 @@
 	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
 		<properties>
 			<property name="prefixes" type="array">
-				<element value="wpdebloat"/>
-				<element value="WPDEBLOAT"/>
-				<element value="WPDebloat"/>
+				<element value="debloater"/>
+				<element value="DEBLOATER"/>
+				<element value="Debloater"/>
 			</property>
 		</properties>
 		<!-- Tests fire core hooks and touch core globals in order to observe them.
@@ -81,7 +81,7 @@
 	<rule ref="WordPress.WP.I18n">
 		<properties>
 			<property name="text_domain" type="array">
-				<element value="wp-debloat"/>
+				<element value="debloater"/>
 			</property>
 		</properties>
 	</rule>
@@ -102,11 +102,11 @@
 		during activation would be both useless to the user and, on some hosts, fatal
 		to the redirect that follows.
 
-		Every path is checked against wp-content/wpdebloat after resolution
+		Every path is checked against wp-content/debloater after resolution
 		(BUILD-SPEC §13 rule 6), which is asserted by an integration test.
 
 		Snapshot\SpillFile is the third: BUILD-SPEC §4 puts Level B recovery points
-		above eight megabytes in wp-content/wpdebloat/backups as gzipped files, and
+		above eight megabytes in wp-content/debloater/backups as gzipped files, and
 		WP_Filesystem has no streaming or gzip interface at all — reading such a
 		snapshot through it would mean holding the whole thing in memory to restore
 		it, on a site that has just had something go wrong. Its paths are resolved

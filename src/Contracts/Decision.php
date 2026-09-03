@@ -2,12 +2,12 @@
 /**
  * What the analyzer decided about a finding.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Contracts;
+namespace Debloater\Contracts;
 
 /**
  * Analyzer decision for a finding (BUILD-SPEC §6, locked decision #6).

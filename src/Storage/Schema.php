@@ -2,25 +2,25 @@
 /**
  * Database tables.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Storage;
+namespace Debloater\Storage;
 
-use WPDebloat\Brand;
+use Debloater\Brand;
 
 /**
- * Creates and migrates WP Debloat's tables (BUILD-SPEC §8).
+ * Creates and migrates Debloater's tables (BUILD-SPEC §8).
  *
  * Tables are created through `dbDelta`, which is idempotent: running it against
  * an existing table produces the ALTERs needed to reach the declared shape and
- * nothing else. The schema version in `wpdebloat_state` records what the site
+ * nothing else. The schema version in `debloater_state` records what the site
  * has been migrated to, so `ensure()` is cheap on every request after the first.
  *
- * Only the tables a phase actually needs exist. `wpdebloat_snapshots`,
- * `wpdebloat_snapshot_items`, `wpdebloat_journal` and `wpdebloat_measurements`
+ * Only the tables a phase actually needs exist. `debloater_snapshots`,
+ * `debloater_snapshot_items`, `debloater_journal` and `debloater_measurements`
  * arrive with the code that writes them, rather than sitting empty in the
  * meantime.
  */

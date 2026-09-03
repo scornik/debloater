@@ -2,20 +2,20 @@
 /**
  * The asset scan, against a real WordPress install.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Tests\Integration;
+namespace Debloater\Tests\Integration;
 
-use WPDebloat\Analyze\Rules\Cf7AssetsRule;
-use WPDebloat\Contracts\Decision;
-use WPDebloat\Registry\SchemaValidator;
-use WPDebloat\Scan\PageSample;
-use WPDebloat\Scan\SampledPages;
-use WPDebloat\Scan\Scanners\AssetScanner;
-use WPDebloat\Scan\Sources;
+use Debloater\Analyze\Rules\Cf7AssetsRule;
+use Debloater\Contracts\Decision;
+use Debloater\Registry\SchemaValidator;
+use Debloater\Scan\PageSample;
+use Debloater\Scan\SampledPages;
+use Debloater\Scan\Scanners\AssetScanner;
+use Debloater\Scan\Sources;
 
 /**
  * BUILD-SPEC §13 rule 9 and §17 Phase 13.
@@ -51,7 +51,7 @@ final class AssetScanTest extends IntegrationTestCase {
 
 		$this->plugin->schema()->ensure();
 
-		$html = (string) file_get_contents( WPDEBLOAT_TESTS_ROOT . '/tests/Fixtures/html/stacked-page.html' );
+		$html = (string) file_get_contents( DEBLOATER_TESTS_ROOT . '/tests/Fixtures/html/stacked-page.html' );
 
 		// The fixture is written against example.test; rewrite it to this site so
 		// that attribution is exercised against real paths on a real install.
@@ -118,7 +118,7 @@ final class AssetScanTest extends IntegrationTestCase {
 	public function test_the_facts_validate_and_own_up_to_being_a_sample(): void {
 		$facts = $this->scan();
 
-		$violations = SchemaValidator::fromFile( WPDEBLOAT_TESTS_ROOT . '/registry/schemas/fact.schema.json' )
+		$violations = SchemaValidator::fromFile( DEBLOATER_TESTS_ROOT . '/registry/schemas/fact.schema.json' )
 			->validate( $facts->toArray() );
 
 		$this->assertSame( array(), $violations, implode( '; ', array_map( 'strval', $violations ) ) );
@@ -335,7 +335,7 @@ final class AssetScanTest extends IntegrationTestCase {
 	 * @return void
 	 */
 	public function test_assets_are_reported_but_not_scored(): void {
-		$sub_scores = ( new \WPDebloat\Analyze\Score( array() ) )->subScores();
+		$sub_scores = ( new \Debloater\Analyze\Score( array() ) )->subScores();
 
 		$this->assertArrayNotHasKey( 'assets', $sub_scores );
 	}
@@ -344,10 +344,10 @@ final class AssetScanTest extends IntegrationTestCase {
 	 * Run the asset scan and return the facts, optionally overridden.
 	 *
 	 * @param array<string,mixed> $overrides Facts to replace afterwards.
-	 * @return \WPDebloat\Contracts\FactSet
+	 * @return \Debloater\Contracts\FactSet
 	 */
-	private function scan( array $overrides = array() ): \WPDebloat\Contracts\FactSet {
-		$facts = ( new AssetScanner() )->scan( $this->context(), new \WPDebloat\Contracts\FactSet() );
+	private function scan( array $overrides = array() ): \Debloater\Contracts\FactSet {
+		$facts = ( new AssetScanner() )->scan( $this->context(), new \Debloater\Contracts\FactSet() );
 
 		if ( array() === $overrides ) {
 			return $facts;
@@ -355,6 +355,6 @@ final class AssetScanTest extends IntegrationTestCase {
 
 		$merged = array_merge( $facts->toArray(), $overrides );
 
-		return \WPDebloat\Contracts\FactSet::fromArray( $merged );
+		return \Debloater\Contracts\FactSet::fromArray( $merged );
 	}
 }

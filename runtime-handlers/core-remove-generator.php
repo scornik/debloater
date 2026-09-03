@@ -2,26 +2,26 @@
 /**
  * Runtime handler: remove the WordPress generator tag.
  *
- * Runtime handlers are loaded by the generated wp-content/wpdebloat/runtime.php
+ * Runtime handlers are loaded by the generated wp-content/debloater/runtime.php
  * through a direct require of an absolute path. They are deliberately outside
- * the autoloader and outside the WPDebloat namespace: nothing about the plugin
+ * the autoloader and outside the Debloater namespace: nothing about the plugin
  * is loaded on a front-end request, which is what makes the zero-overhead
  * guarantee in BUILD-SPEC §10 true rather than aspirational.
  *
  * A handler registers hooks and nothing else. It reads no options, touches no
  * database, produces no output, and knows nothing about the registry.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 defined( 'ABSPATH' ) || exit;
 
-if ( ! class_exists( 'WPDebloat_Handler_Core_Remove_Generator', false ) ) {
+if ( ! class_exists( 'Debloater_Handler_Core_Remove_Generator', false ) ) {
 
 	/**
 	 * Removes the <meta name="generator"> tag and empties the generator string.
 	 */
-	final class WPDebloat_Handler_Core_Remove_Generator {
+	final class Debloater_Handler_Core_Remove_Generator {
 
 		/**
 		 * Register the handler's hooks.

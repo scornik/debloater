@@ -2,17 +2,17 @@
 /**
  * Analyzer rule: wp.dashicons.frontend.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Analyze\Rules;
+namespace Debloater\Analyze\Rules;
 
-use WPDebloat\Contracts\Category;
-use WPDebloat\Contracts\Impact;
-use WPDebloat\Contracts\Risk;
-use WPDebloat\Contracts\Severity;
+use Debloater\Contracts\Category;
+use Debloater\Contracts\Impact;
+use Debloater\Contracts\Risk;
+use Debloater\Contracts\Severity;
 
 /**
  * Fires when dashicons is loading on the front end.
@@ -103,7 +103,7 @@ final class DashiconsFrontendRule extends CoreFeatureRule {
 	 * @return string
 	 */
 	protected function title(): string {
-		return __( 'The admin icon font loads for visitors', 'wp-debloat' );
+		return __( 'The admin icon font loads for visitors', 'debloater' );
 	}
 
 	/**
@@ -112,7 +112,7 @@ final class DashiconsFrontendRule extends CoreFeatureRule {
 	 * @return string
 	 */
 	protected function summary(): string {
-		return __( 'Dashicons is being loaded on the front end, where logged-out visitors download the whole icon font.', 'wp-debloat' );
+		return __( 'Dashicons is being loaded on the front end, where logged-out visitors download the whole icon font.', 'debloater' );
 	}
 
 	/**
@@ -121,7 +121,7 @@ final class DashiconsFrontendRule extends CoreFeatureRule {
 	 * @return string
 	 */
 	protected function why(): string {
-		return __( 'Dashicons is WordPress\'s admin icon font. Core loads it on the front end only for the admin bar, which logged-out visitors never see — but themes and plugins often enqueue it for a menu toggle or a search icon, and then every visitor downloads a font for two glyphs.', 'wp-debloat' );
+		return __( 'Dashicons is WordPress\'s admin icon font. Core loads it on the front end only for the admin bar, which logged-out visitors never see — but themes and plugins often enqueue it for a menu toggle or a search icon, and then every visitor downloads a font for two glyphs.', 'debloater' );
 	}
 
 	/**
@@ -130,6 +130,6 @@ final class DashiconsFrontendRule extends CoreFeatureRule {
 	 * @return string
 	 */
 	protected function evidenceLabel(): string {
-		return __( 'Dashicons on the front end', 'wp-debloat' );
+		return __( 'Dashicons on the front end', 'debloater' );
 	}
 }

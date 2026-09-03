@@ -2,17 +2,17 @@
 /**
  * Tests for detectors and the shipped detector set.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Tests\Unit\Registry;
+namespace Debloater\Tests\Unit\Registry;
 
 use PHPUnit\Framework\TestCase;
-use WPDebloat\Contracts\ContractViolation;
-use WPDebloat\Registry\Detector;
-use WPDebloat\Registry\Loader;
+use Debloater\Contracts\ContractViolation;
+use Debloater\Registry\Detector;
+use Debloater\Registry\Loader;
 
 /**
  * Detectors are pure data: they say what to look for, and PluginScanner does
@@ -184,10 +184,10 @@ final class DetectorTest extends TestCase {
 	 * @return void
 	 */
 	public function test_detectors_are_part_of_the_registry_hash(): void {
-		$loader = new Loader( WPDEBLOAT_TESTS_ROOT . '/registry' );
+		$loader = new Loader( DEBLOATER_TESTS_ROOT . '/registry' );
 
-		$with    = new \WPDebloat\Registry\Registry( $loader->loadTweaks(), $loader->loadDetectors() );
-		$without = new \WPDebloat\Registry\Registry( $loader->loadTweaks(), array() );
+		$with    = new \Debloater\Registry\Registry( $loader->loadTweaks(), $loader->loadDetectors() );
+		$without = new \Debloater\Registry\Registry( $loader->loadTweaks(), array() );
 
 		$this->assertNotSame( $with->hash(), $without->hash() );
 	}
@@ -203,6 +203,6 @@ final class DetectorTest extends TestCase {
 	 * @return array<string,Detector>
 	 */
 	private function shippedDetectors(): array {
-		return ( new Loader( WPDEBLOAT_TESTS_ROOT . '/registry' ) )->load()->detectors();
+		return ( new Loader( DEBLOATER_TESTS_ROOT . '/registry' ) )->load()->detectors();
 	}
 }

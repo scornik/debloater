@@ -74,13 +74,13 @@ describe( 'Score', () => {
 		);
 
 		expect(
-			good.querySelector( '.wpdebloat-score__headline' )
+			good.querySelector( '.debloater-score__headline' )
 		).toHaveClass( 'is-good' );
 		expect(
-			fair.querySelector( '.wpdebloat-score__headline' )
+			fair.querySelector( '.debloater-score__headline' )
 		).toHaveClass( 'is-fair' );
 		expect(
-			poor.querySelector( '.wpdebloat-score__headline' )
+			poor.querySelector( '.debloater-score__headline' )
 		).toHaveClass( 'is-poor' );
 	} );
 } );

@@ -1,27 +1,27 @@
-# CONVENTIONS.md — Hakeemify shared conventions (WP Debloat)
+# CONVENTIONS.md — Hakeemify shared conventions (Debloater)
 
 ## Naming
 
 | Thing | Convention | Example |
 |---|---|---|
-| PHP namespace | `WPDebloat\<Layer>` | `WPDebloat\Analyze\Score` |
+| PHP namespace | `Debloater\<Layer>` | `Debloater\Analyze\Score` |
 | Class files | PSR-4, `StudlyCase.php` under `src/` | `src/Registry/Loader.php` |
 | Runtime handler files | `kebab-case.php` under `runtime-handlers/` | `core-disable-emojis.php` |
-| Runtime handler class | `WPDebloat_Handler_<Studly_Snake_Id>` | `WPDebloat_Handler_Core_Disable_Emojis` |
-| Functions / hooks | `wpdebloat_` prefix | `wpdebloat_after_apply` |
-| Options | `wpdebloat_` prefix, `autoload = 'no'` | `wpdebloat_state` |
-| Tables | `{$wpdb->prefix}wpdebloat_` | `wp_wpdebloat_runs` |
-| Constants | `WPDEBLOAT_` | `WPDEBLOAT_VERSION` |
-| REST namespace | `wpdebloat/v1` | `wpdebloat/v1/status` |
-| CLI | `wp debloat <subcommand>` | `wp debloat preview` |
-| Text domain | `wp-debloat` | `__( 'Scan', 'wp-debloat' )` |
+| Runtime handler class | `Debloater_Handler_<Studly_Snake_Id>` | `Debloater_Handler_Core_Disable_Emojis` |
+| Functions / hooks | `debloater_` prefix | `debloater_after_apply` |
+| Options | `debloater_` prefix, `autoload = 'no'` | `debloater_state` |
+| Tables | `{$wpdb->prefix}debloater_` | `debloaterer_runs` |
+| Constants | `DEBLOATER_` | `DEBLOATER_VERSION` |
+| REST namespace | `debloater/v1` | `debloater/v1/status` |
+| CLI | `wp debloater <subcommand>` | `wp debloater preview` |
+| Text domain | `debloater` | `__( 'Scan', 'debloater' )` |
 | Tweak / finding ids | dot-namespaced, lower snake within segments | `core.heartbeat_interval` |
 | Fact keys | dot-namespaced, scanner owns the first segment | `db.autoload.bytes` |
 
 ## Branding
 
 Nothing user-visible is hardcoded in feature code. All product naming comes from
-`WPDebloat\Brand` (`Brand::NAME`, `Brand::SLUG`, `Brand::TEXT_DOMAIN`). Renaming the
+`Debloater\Brand` (`Brand::NAME`, `Brand::SLUG`, `Brand::TEXT_DOMAIN`). Renaming the
 product must require changing exactly one class plus build configuration.
 
 ## PHP style
@@ -29,7 +29,7 @@ product must require changing exactly one class plus build configuration.
 - `declare( strict_types = 1 );` in every `src/` file.
 - Value objects are `final readonly` with constructor property promotion.
 - Every value object implements `fromArray( array $data ): static` and `toArray(): array`.
-- Invalid contract input throws `WPDebloat\Contracts\ContractViolation`; never returns null.
+- Invalid contract input throws `Debloater\Contracts\ContractViolation`; never returns null.
 - No static mutable state outside enums and `final` constant holders.
 - Runtime handlers are the single exception: no namespace, no `declare`, no autoloading,
   no option reads, no database access.
@@ -37,7 +37,7 @@ product must require changing exactly one class plus build configuration.
 
 ## Errors
 
-- Domain failures throw typed exceptions extending `WPDebloat\Contracts\ContractViolation`
+- Domain failures throw typed exceptions extending `Debloater\Contracts\ContractViolation`
   or a layer-specific exception; they are never silently swallowed.
 - Anything user-visible is translated and escaped at the edge.
 

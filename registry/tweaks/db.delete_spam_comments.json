@@ -8,7 +8,7 @@
   "base_confidence": 0.94,
   "reversible": true,
   "destructive": true,
-  "handler": "WPDebloat\\Apply\\DataOperations\\SpamCommentsCleanup",
+  "handler": "Debloater\\Apply\\DataOperations\\SpamCommentsCleanup",
   "params": {
     "older_than_days": {
       "type": "integer",

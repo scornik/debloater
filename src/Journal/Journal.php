@@ -2,18 +2,18 @@
 /**
  * The record of what happened to each tweak.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Journal;
+namespace Debloater\Journal;
 
-use WPDebloat\Contracts\JournalAction;
-use WPDebloat\Contracts\Json;
-use WPDebloat\Contracts\TweakParams;
-use WPDebloat\Contracts\TweakState;
-use WPDebloat\Storage\Schema;
+use Debloater\Contracts\JournalAction;
+use Debloater\Contracts\Json;
+use Debloater\Contracts\TweakParams;
+use Debloater\Contracts\TweakState;
+use Debloater\Storage\Schema;
 
 /**
  * Append-only history of every tweak state transition (BUILD-SPEC §8, §9.1).

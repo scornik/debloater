@@ -2,40 +2,40 @@
 /**
  * Invalid-input tests for every contract.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Tests\Unit\Contracts;
+namespace Debloater\Tests\Unit\Contracts;
 
 use PHPUnit\Framework\TestCase;
-use WPDebloat\Contracts\ApplyResult;
-use WPDebloat\Contracts\Category;
-use WPDebloat\Contracts\Context;
-use WPDebloat\Contracts\ContractViolation;
-use WPDebloat\Contracts\Decision;
-use WPDebloat\Contracts\Evidence;
-use WPDebloat\Contracts\Fact;
-use WPDebloat\Contracts\FactSet;
-use WPDebloat\Contracts\Finding;
-use WPDebloat\Contracts\Impact;
-use WPDebloat\Contracts\PreviewPlan;
-use WPDebloat\Contracts\ProbeResult;
-use WPDebloat\Contracts\ProbeStatus;
-use WPDebloat\Contracts\Recommendation;
-use WPDebloat\Contracts\Risk;
-use WPDebloat\Contracts\RunState;
-use WPDebloat\Contracts\Severity;
-use WPDebloat\Contracts\Snapshot;
-use WPDebloat\Contracts\SnapshotItem;
-use WPDebloat\Contracts\SnapshotLevel;
-use WPDebloat\Contracts\SnapshotStatus;
-use WPDebloat\Contracts\Tweak;
-use WPDebloat\Contracts\TweakKind;
-use WPDebloat\Contracts\TweakParams;
-use WPDebloat\Contracts\VerificationResult;
-use WPDebloat\Tests\Unit\Support\Build;
+use Debloater\Contracts\ApplyResult;
+use Debloater\Contracts\Category;
+use Debloater\Contracts\Context;
+use Debloater\Contracts\ContractViolation;
+use Debloater\Contracts\Decision;
+use Debloater\Contracts\Evidence;
+use Debloater\Contracts\Fact;
+use Debloater\Contracts\FactSet;
+use Debloater\Contracts\Finding;
+use Debloater\Contracts\Impact;
+use Debloater\Contracts\PreviewPlan;
+use Debloater\Contracts\ProbeResult;
+use Debloater\Contracts\ProbeStatus;
+use Debloater\Contracts\Recommendation;
+use Debloater\Contracts\Risk;
+use Debloater\Contracts\RunState;
+use Debloater\Contracts\Severity;
+use Debloater\Contracts\Snapshot;
+use Debloater\Contracts\SnapshotItem;
+use Debloater\Contracts\SnapshotLevel;
+use Debloater\Contracts\SnapshotStatus;
+use Debloater\Contracts\Tweak;
+use Debloater\Contracts\TweakKind;
+use Debloater\Contracts\TweakParams;
+use Debloater\Contracts\VerificationResult;
+use Debloater\Tests\Unit\Support\Build;
 
 /**
  * Contracts validate in the constructor, so an instance that exists is valid
@@ -365,7 +365,7 @@ final class ContractValidationTest extends TestCase {
 			true,
 			false,
 			new TweakParams(),
-			'WPDebloat\\Apply\\DataOperations\\Thing'
+			'Debloater\\Apply\\DataOperations\\Thing'
 		);
 	}
 
@@ -802,7 +802,7 @@ final class ContractValidationTest extends TestCase {
 			'https://example.test/',
 			'C:\\sites\\example\\',
 			'C:\\sites\\example\\wp-content\\',
-			'C:\\sites\\example\\wp-content\\plugins\\wp-debloat\\',
+			'C:\\sites\\example\\wp-content\\plugins\\debloater\\',
 			'6.8.1',
 			'8.2.19',
 			'0.1.0',
@@ -811,7 +811,7 @@ final class ContractValidationTest extends TestCase {
 
 		$this->assertSame( 'https://example.test', $context->home_url );
 		$this->assertSame( 'C:/sites/example/', $context->abspath );
-		$this->assertSame( 'C:/sites/example/wp-content/wpdebloat/runtime.php', $context->runtimeFile() );
+		$this->assertSame( 'C:/sites/example/wp-content/debloater/runtime.php', $context->runtimeFile() );
 		$this->assertSame( 'C:/sites/example/wp-content/mu-plugins', $context->muPluginsDir() );
 		$this->assertSame( 12, $context->actorUserId() );
 	}

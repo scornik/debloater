@@ -157,7 +157,7 @@ Warning: The 'Debloat' plugin could not be found.
 
 | Diagnosis | Fix | Retest |
 |---|---|---|
-| `"plugins": ["."]` makes wp-env derive the plugin slug from the directory name, which here contains a space ("WP Debloat"), so it was parsed as two plugin names. | Replaced with an explicit `mappings` entry putting the plugin at `wp-content/plugins/wp-debloat`. | ✅ site starts |
+| `"plugins": ["."]` makes wp-env derive the plugin slug from the directory name, which here contains a space ("Debloater"), so it was parsed as two plugin names. | Replaced with an explicit `mappings` entry putting the plugin at `wp-content/plugins/debloater`. | ✅ site starts |
 
 ### Run 5 — PHPUnit Polyfills missing
 
@@ -186,7 +186,7 @@ Error: Call to undefined method PHPUnit\Util\Test::parseTestMethodAnnotations()
 
 | Failure | Root cause | Fix | Retest |
 |---|---|---|---|
-| `RuntimeOverheadTest::test_an_empty_selection_adds_no_queries_to_a_frontend_request` — "Cannot modify header information" | The test fires `template_redirect` to simulate a front-end request. Core's `redirect_canonical` runs on that hook and tries to send headers, which a PHPUnit run has already sent. | Remove `redirect_canonical` for the duration of the measurement. It is core behaviour, not ours, and removing it leaves what is being measured — whether *WP Debloat* adds a query — intact. | ✅ |
+| `RuntimeOverheadTest::test_an_empty_selection_adds_no_queries_to_a_frontend_request` — "Cannot modify header information" | The test fires `template_redirect` to simulate a front-end request. Core's `redirect_canonical` runs on that hook and tries to send headers, which a PHPUnit run has already sent. | Remove `redirect_canonical` for the duration of the measurement. It is core behaviour, not ours, and removing it leaves what is being measured — whether *Debloater* adds a query — intact. | ✅ |
 
 A `cacheResultFile` permission warning appeared in the same run: the plugin
 directory is mounted from Windows and the container user cannot write there.
@@ -198,7 +198,7 @@ Result caching is now off for the integration suite.
 
 | Fix | Retest |
 |---|---|
-| `phpstan.neon` now includes `szepeviktor/phpstan-wordpress`'s extension, adds `wp-debloat.php` to the analysed paths, and declares `WPDEBLOAT_DISABLE`, `WPDEBLOAT_LOADER_MODE` and `WP_CLI` as **dynamic** constants — without that, analysis reasons from the placeholder values in the bootstrap file and reports every guard against them as dead code. | ✅ |
+| `phpstan.neon` now includes `szepeviktor/phpstan-wordpress`'s extension, adds `debloater.php` to the analysed paths, and declares `DEBLOATER_DISABLE`, `DEBLOATER_LOADER_MODE` and `WP_CLI` as **dynamic** constants — without that, analysis reasons from the placeholder values in the bootstrap file and reports every guard against them as dead code. | ✅ |
 
 Four genuine findings came out of the same pass and were fixed rather than
 ignored: `token_get_all()` with `TOKEN_PARSE` throws `ParseError` instead of
@@ -242,7 +242,7 @@ Nothing is skipped or marked incomplete in either suite; both configurations set
 | Empty selection: zero hooks | `RuntimeOverheadTest` — full hook-table diff, not a spot check |
 | Empty selection: zero added DB queries | `RuntimeOverheadTest` — every query captured through the `query` filter |
 | One tweak: only its hooks | `RuntimeOverheadTest` — exactly one hook added, none removed |
-| `GET wpdebloat/v1/status` | `StatusRouteTest` — 401, 403, 200, plus tamper reporting |
+| `GET debloater/v1/status` | `StatusRouteTest` — 401, 403, 200, plus tamper reporting |
 
 ### Environment notes
 
@@ -270,7 +270,7 @@ Nothing is skipped or marked incomplete in either suite; both configurations set
 | Failure | Root cause | Fix | Retest |
 |---|---|---|---|
 | `ScannerTest::test_expired_transients_are_distinguished_from_live_ones` — expected 2 new transients, got 4 | **Real bug.** Every transient with an expiry has a companion `_transient_timeout_*` option, and that row also matches the `_transient_%` prefix, so `db.transients.count` was counting every transient twice. A user would have been shown double the number of transients their site actually has. | Excluded the timeout rows: `option_name LIKE '_transient_%' AND option_name NOT LIKE '_transient_timeout_%'`. | ✅ |
-| `ScannerTest::test_facts_contain_no_opinions` — a fact contained "bloat" | Test scoping, not a product problem: the plugin's own name ("WP Debloat") appears in `plugins.meta` and `plugins.inactive`, because a scan reports the plugins it finds. | Excluded the fact keys that are lists of other people's product names (`plugins.*`, `theme.*`) before searching. The invariant is about words *this plugin* writes, not names it observed. | ✅ |
+| `ScannerTest::test_facts_contain_no_opinions` — a fact contained "bloat" | Test scoping, not a product problem: the plugin's own name ("Debloater") appears in `plugins.meta` and `plugins.inactive`, because a scan reports the plugins it finds. | Excluded the fact keys that are lists of other people's product names (`plugins.*`, `theme.*`) before searching. The invariant is about words *this plugin* writes, not names it observed. | ✅ |
 
 ### Run 3 — PHPStan level 6
 
@@ -580,7 +580,7 @@ npm run test:integration
 
 | Failure | Root cause | Fix | Retest |
 |---|---|---|---|
-| `RuntimeGenerationTest::test_generated_files_stay_in_one_directory` — found `backups` beside the runtime | The Phase 1 test asserted that `wp-content/wpdebloat` contains exactly `index.php`, `runtime.lock` and `runtime.php`. Writing the first spilled recovery point creates the `backups/` subdirectory that `BUILD-SPEC.md` §4 places there, so the assertion was now narrower than the specification. | Separate files from directories: the file list is still exactly those three, and `backups` is the only directory permitted beside them. The invariant that matters — nothing generated outside `wp-content/wpdebloat` — is unchanged and still asserted. | ✅ |
+| `RuntimeGenerationTest::test_generated_files_stay_in_one_directory` — found `backups` beside the runtime | The Phase 1 test asserted that `wp-content/debloater` contains exactly `index.php`, `runtime.lock` and `runtime.php`. Writing the first spilled recovery point creates the `backups/` subdirectory that `BUILD-SPEC.md` §4 places there, so the assertion was now narrower than the specification. | Separate files from directories: the file list is still exactly those three, and `backups` is the only directory permitted beside them. The invariant that matters — nothing generated outside `wp-content/debloater` — is unchanged and still asserted. | ✅ |
 
 The failure only appeared on a second run, because the directory survives on the
 container's filesystem while the runtime files are removed after each test. Worth
@@ -1109,7 +1109,7 @@ now asserts every `covers` id against `Rules::all()`.
 ### Run 5 — static analysis
 
 PHPCS objected to `wp_remote_get()` under the VIP standard, which prefers
-`vip_safe_wp_remote_get()`. That function exists only on VIP; WP Debloat ships
+`vip_safe_wp_remote_get()`. That function exists only on VIP; Debloater ships
 with zero runtime dependencies and has to work anywhere. What it buys — a bounded
 timeout and a graceful failure — this call already has: five seconds, and every
 failure path returns null so the scan falls back to the local reading. Ignored
@@ -1143,7 +1143,7 @@ vendor/bin/phpunit
 
 | Failure | Root cause | Fix | Retest |
 |---|---|---|---|
-| `CompilerTest::test_every_generated_class_exists_in_its_handler_file` ×3 | The generated runtime derives a handler's class name from the *tweak id*, so `admin.remove_wp_news_widget` must define `WPDebloat_Handler_Admin_Remove_Wp_News_Widget`. Three handlers had been named after what they do rather than after their tweak. | Renamed the classes and the files to follow the id, as every existing handler already did. | ✅ |
+| `CompilerTest::test_every_generated_class_exists_in_its_handler_file` ×3 | The generated runtime derives a handler's class name from the *tweak id*, so `admin.remove_wp_news_widget` must define `Debloater_Handler_Admin_Remove_Wp_News_Widget`. Three handlers had been named after what they do rather than after their tweak. | Renamed the classes and the files to follow the id, as every existing handler already did. | ✅ |
 | `RepositoryInvariantsTest` — the schema set | A new registry table, so a new schema. | Added `admin-notices.schema.json` to the named set. | ✅ |
 
 ### Run 2 — the pinned tweak set
@@ -1351,7 +1351,7 @@ specification names is versioned and product-scoped, and the schema validator
 resolves `$id`s from disk rather than fetching them.
 
 The last one is worth its place: every registry schema carries a
-`wp-debloat.hakeemify.com` `$id`, and it would be easy to read those as a host
+`debloater.hakeemify.com` `$id`, and it would be easy to read those as a host
 dependency. They are names, and the assertion proves the validator never treats
 them as addresses.
 
@@ -1428,8 +1428,8 @@ message:
 No route was found matching the URL and request method.
 ```
 
-`rest_url( 'wpdebloat/v1' )` as the API root, joined with `/status`, gives
-`…/wpdebloat/v1//status` on pretty permalinks and something worse on plain ones.
+`rest_url( 'debloater/v1' )` as the API root, joined with `/status`, gives
+`…/debloater/v1//status` on pretty permalinks and something worse on plain ones.
 Plain is WordPress's default. The screen had never worked on a default install.
 
 Fixed by handing the bundle a bare root and the namespace separately. Covered by
@@ -1590,7 +1590,7 @@ Run 3  ✓  e2e (8.1) 13 of 13 · e2e (8.3) 13 of 13
 ```
 
 **Run 1** was the plugin being inactive: wp-env activates what
-`.wp-env.json` lists, and WP Debloat is mapped in rather than listed. It looked
+`.wp-env.json` lists, and Debloater is mapped in rather than listed. It looked
 active locally because a session weeks of phases ago had activated it and the
 wp-env database persisted.
 
@@ -1603,3 +1603,62 @@ redirect.
 
 That one is worth keeping in mind: the shared session *looked* like it worked
 because the faster runner stopped failing. The slower one was telling the truth.
+
+---
+
+## Phase 18a – the rename, re-run from scratch
+
+A rename is the change most likely to pass a test suite while breaking a site,
+because most of what it touches is a string that something else looks up by
+name. So every suite was re-run, and the two that matter most are the ones that
+touch real storage.
+
+```
+Unit                     OK  1 170 tests, 11 836 assertions
+Integration              OK    274 tests,  4 459 assertions
+Fail-probe rollback      OK      9 tests,    105 assertions
+WP-CLI end to end        OK    whole loop, `wp debloater`
+JS unit                  OK     12 tests
+PHPCS                    clean
+PHPStan level 6          no errors
+ESLint                   clean
+plugin-zip               debloater-0.1.0.zip, 309 files, 504 KB
+```
+
+### What the first pass missed
+
+Two things the token list did not catch, both found by grep rather than by a
+test – which is worth saying plainly, because a green suite was not enough:
+
+**`Brand::CLI_COMMAND` was still `'debloat'`.** The mapping renamed the
+two-word string `wp debloat`; the constant holds only the second word. Every
+test passed, because every test asks WP-CLI for whatever the constant says. The
+word-boundary sweep found it, and the E2E specs that hard-code `'debloat'` as
+the first argument alongside it.
+
+**`window.wpDebloat`.** A camelCase spelling in exactly two places – where the
+admin screen writes the bootstrap payload, and where the React app reads it.
+Neither is in the mapping's case families.
+
+Both are the same shape of bug: an identifier spelled in a case nobody thought
+to list. Which is why the residual sweep was run on word boundaries rather than
+on the mapping table.
+
+### Plugin Check
+
+Run against what actually ships, not the working directory – the first run
+scanned `.git`, `node_modules` and a PHPUnit phar, and reported 439 errors about
+them.
+
+The rename did what it was for: **no restricted-term finding for the slug or
+the short name, and the text domain matches the slug.** The remaining findings
+belong to Phase 18 rather than to the rename, and none is caused by it:
+
+| Finding | Count | Note |
+|---|---|---|
+| `EscapeOutput.ExceptionNotEscaped` | 326 | Exception messages built from variables |
+| `DirectDB.UnescapedDBParameter` | 30 | Table names, which cannot be placeholders – `%i` (WP 6.2+) would satisfy this |
+| `hidden_files` / `application_detected` | 16 | Development files the exclusions did not reach |
+| `AlternativeFunctions.*` | 22 | Direct filesystem calls, deliberate (§10: the loader runs before `WP_Filesystem` exists) |
+| `outdated_tested_upto_header` | 1 | `Tested up to: 6.8`, current is 7.1 |
+| `trademarked_term` | 2 | The display title. See BUILD-STATUS. |

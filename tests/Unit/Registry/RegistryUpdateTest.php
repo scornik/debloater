@@ -2,23 +2,23 @@
 /**
  * What a registry update is allowed to install.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Tests\Unit\Registry;
+namespace Debloater\Tests\Unit\Registry;
 
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
-use WPDebloat\Update\Manifest;
-use WPDebloat\Update\RegistryOrigin;
-use WPDebloat\Update\SignatureVerifier;
+use Debloater\Update\Manifest;
+use Debloater\Update\RegistryOrigin;
+use Debloater\Update\SignatureVerifier;
 
 /**
  * BUILD-SPEC §13 rule 9, §17 Phase 17.
  *
- * The registry decides what WP Debloat offers to change about a site, so
+ * The registry decides what Debloater offers to change about a site, so
  * replacing it is a security operation. These tests are mostly about the things
  * that must be refused.
  *
@@ -79,7 +79,7 @@ final class RegistryUpdateTest extends TestCase {
 
 		$altered = new Manifest(
 			1,
-			'wp-debloat',
+			'debloater',
 			$manifest->tag,
 			$manifest->generated_at,
 			array_merge( $manifest->files, array( 'tweaks/core.remove_rsd.json' => str_repeat( 'a', 64 ) ) )
@@ -162,8 +162,8 @@ final class RegistryUpdateTest extends TestCase {
 			'tweaks/a.json' => str_repeat( '2', 64 ),
 		);
 
-		$one = new Manifest( 1, 'wp-debloat', 'v1.0.0', '2026-01-01T00:00:00Z', $files );
-		$two = new Manifest( 1, 'wp-debloat', 'v1.0.0', '2026-01-01T00:00:00Z', array_reverse( $files, true ) );
+		$one = new Manifest( 1, 'debloater', 'v1.0.0', '2026-01-01T00:00:00Z', $files );
+		$two = new Manifest( 1, 'debloater', 'v1.0.0', '2026-01-01T00:00:00Z', array_reverse( $files, true ) );
 
 		$this->assertSame( $one->canonical(), $two->canonical() );
 	}
@@ -189,7 +189,7 @@ final class RegistryUpdateTest extends TestCase {
 		$this->expectException( RuntimeException::class );
 		$this->expectExceptionMessageMatches( '/Refusing rather than guessing/' );
 
-		new Manifest( 99, 'wp-debloat', 'v1.0.0', '2026-01-01T00:00:00Z', array( 'a.json' => str_repeat( '0', 64 ) ) );
+		new Manifest( 99, 'debloater', 'v1.0.0', '2026-01-01T00:00:00Z', array( 'a.json' => str_repeat( '0', 64 ) ) );
 	}
 
 	/**
@@ -208,7 +208,7 @@ final class RegistryUpdateTest extends TestCase {
 			'C:/windows/system.json',
 		) as $path ) {
 			try {
-				new Manifest( 1, 'wp-debloat', 'v1.0.0', '2026-01-01T00:00:00Z', array( $path => str_repeat( '0', 64 ) ) );
+				new Manifest( 1, 'debloater', 'v1.0.0', '2026-01-01T00:00:00Z', array( $path => str_repeat( '0', 64 ) ) );
 
 				$this->fail( sprintf( 'A manifest listing "%s" should have been refused.', $path ) );
 			} catch ( RuntimeException $error ) {
@@ -225,7 +225,7 @@ final class RegistryUpdateTest extends TestCase {
 	public function test_a_manifest_naming_php_is_refused(): void {
 		foreach ( array( 'evil.php', 'tweaks/handler.php', 'script.js' ) as $path ) {
 			try {
-				new Manifest( 1, 'wp-debloat', 'v1.0.0', '2026-01-01T00:00:00Z', array( $path => str_repeat( '0', 64 ) ) );
+				new Manifest( 1, 'debloater', 'v1.0.0', '2026-01-01T00:00:00Z', array( $path => str_repeat( '0', 64 ) ) );
 
 				$this->fail( sprintf( 'A manifest listing "%s" should have been refused.', $path ) );
 			} catch ( RuntimeException $error ) {
@@ -244,7 +244,7 @@ final class RegistryUpdateTest extends TestCase {
 
 		$manifest = new Manifest(
 			1,
-			'wp-debloat',
+			'debloater',
 			'v1.0.0',
 			'2026-01-01T00:00:00Z',
 			array( 'tweaks/core.remove_rsd.json' => hash( 'sha256', $contents ) )
@@ -345,7 +345,7 @@ final class RegistryUpdateTest extends TestCase {
 	 * @return void
 	 */
 	public function test_the_vendored_manifest_matches_the_vendored_registry(): void {
-		$path = WPDEBLOAT_TESTS_ROOT . '/registry/manifest.json';
+		$path = DEBLOATER_TESTS_ROOT . '/registry/manifest.json';
 
 		$this->assertFileExists( $path );
 
@@ -360,7 +360,7 @@ final class RegistryUpdateTest extends TestCase {
 		foreach ( $manifest->files as $relative => $hash ) {
 			unset( $hash );
 
-			$file = WPDEBLOAT_TESTS_ROOT . '/registry/' . $relative;
+			$file = DEBLOATER_TESTS_ROOT . '/registry/' . $relative;
 
 			$this->assertFileExists( $file, $relative . ' is in the manifest but not in the registry' );
 
@@ -373,7 +373,7 @@ final class RegistryUpdateTest extends TestCase {
 		// And nothing in the registry is missing from the manifest, which is the
 		// direction that would let an unsigned file ride along.
 		$iterator = new \RecursiveIteratorIterator(
-			new \RecursiveDirectoryIterator( WPDEBLOAT_TESTS_ROOT . '/registry', \FilesystemIterator::SKIP_DOTS )
+			new \RecursiveDirectoryIterator( DEBLOATER_TESTS_ROOT . '/registry', \FilesystemIterator::SKIP_DOTS )
 		);
 
 		foreach ( $iterator as $file ) {
@@ -384,7 +384,7 @@ final class RegistryUpdateTest extends TestCase {
 			$relative = str_replace(
 				'\\',
 				'/',
-				substr( $file->getPathname(), strlen( WPDEBLOAT_TESTS_ROOT . '/registry/' ) )
+				substr( $file->getPathname(), strlen( DEBLOATER_TESTS_ROOT . '/registry/' ) )
 			);
 
 			if ( 'manifest.json' === $relative ) {
@@ -407,7 +407,7 @@ final class RegistryUpdateTest extends TestCase {
 	private function manifest(): Manifest {
 		return new Manifest(
 			1,
-			'wp-debloat',
+			'debloater',
 			'v1.0.0',
 			'2026-01-01T00:00:00Z',
 			array(

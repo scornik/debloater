@@ -2,18 +2,18 @@
 /**
  * What the Elementor audit is allowed to claim.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Tests\Unit\Analyze;
+namespace Debloater\Tests\Unit\Analyze;
 
 use PHPUnit\Framework\TestCase;
-use WPDebloat\Analyze\Rules\ElementorAuditRule;
-use WPDebloat\Contracts\Decision;
-use WPDebloat\Contracts\FactSet;
-use WPDebloat\Tests\Unit\Support\Facts;
+use Debloater\Analyze\Rules\ElementorAuditRule;
+use Debloater\Contracts\Decision;
+use Debloater\Contracts\FactSet;
+use Debloater\Tests\Unit\Support\Facts;
 
 /**
  * BUILD-SPEC §17 Phase 14.

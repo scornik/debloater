@@ -2,15 +2,15 @@
 /**
  * JSON Schema validation for registry documents and inbound parameters.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Registry;
+namespace Debloater\Registry;
 
 /**
- * A JSON Schema draft-07 validator covering the subset WP Debloat uses.
+ * A JSON Schema draft-07 validator covering the subset Debloater uses.
  *
  * Written by hand rather than pulled in as a dependency, because the plugin ships
  * with zero Composer runtime dependencies (BUILD-SPEC §3) and this code sits on

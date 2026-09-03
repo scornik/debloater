@@ -46,7 +46,7 @@ are `NOT_STARTED`, `IN_PROGRESS`, `BLOCKED`, `COMPLETE`.
 ### Delivered
 
 - Repository scaffolded to `BUILD-SPEC.md` §4.
-- `composer.json` with PSR-4 `WPDebloat\` → `src/` and **zero runtime
+- `composer.json` with PSR-4 `Debloater\` → `src/` and **zero runtime
   dependencies** (asserted by a test).
 - `src/Contracts/*`: 16 contracts and 10 enums, all validating in the
   constructor, all rejecting unknown keys, all round-tripping losslessly
@@ -110,16 +110,16 @@ Phase 1 — Minimal runtime engine.
   `var_export` after schema validation.
 - `Apply\RuntimeWriter`: syntax check, atomic temp-file-and-rename, 0644,
   `runtime.lock` holding the runtime, selection and registry hashes; refuses any
-  path outside `wp-content/wpdebloat`.
-- `Apply\RuntimeLoader` and `mu-loader/wp-debloat-loader.php`, with the
+  path outside `wp-content/debloater`.
+- `Apply\RuntimeLoader` and `mu-loader/debloater-loader.php`, with the
   documented `plugins_loaded` fallback and the deferred bypass authorisation
   (D-0007).
-- `runtime-handlers/runtime-guard.php`: the `WPDEBLOAT_DISABLE` kill switch and
-  the authenticated `?wpdebloat=off` bypass.
+- `runtime-handlers/runtime-guard.php`: the `DEBLOATER_DISABLE` kill switch and
+  the authenticated `?debloater=off` bypass.
 - `Recommend\DependencyResolver` v1 and `Recommend\Resolution`.
 - `Storage\State`: one option, `autoload = no`.
 - `Rest\Controller`, `Rest\Routes\StatusRoute`, `Security\Capabilities`.
-- `wp-debloat.php` and `Plugin`: activation, deactivation, lazy services.
+- `debloater.php` and `Plugin`: activation, deactivation, lazy services.
 - `.wp-env.json`, `phpunit-wp.xml.dist`, `tests/bootstrap-integration.php` and
   the integration harness.
 
@@ -134,7 +134,7 @@ Phase 1 — Minimal runtime engine.
 | Empty selection registers zero hooks | ✅ asserted by hook-table diff |
 | Empty selection adds zero DB queries on a front-end request | ✅ every query captured through the `query` filter |
 | One tweak registers only its own hooks | ✅ exactly one hook added, none removed |
-| `GET wpdebloat/v1/status` | ✅ 401 anonymous, 403 subscriber, 200 admin |
+| `GET debloater/v1/status` | ✅ 401 anonymous, 403 subscriber, 200 admin |
 | Loader fallback documented | ✅ D-0007 |
 | Unit suite | ✅ 797 tests, 3 179 assertions |
 | Integration suite | ✅ 33 tests, 95 assertions |
@@ -173,7 +173,7 @@ Phase 2 — Scanner (facts only).
   scanner recorded by name rather than allowed to end the scan.
 - `Registry\Detector` plus the ten detectors §17 Phase 2 names. Detectors are
   pure data; PluginScanner evaluates their signals.
-- `Storage\Schema` (dbDelta, `wpdebloat_runs`) and
+- `Storage\Schema` (dbDelta, `debloater_runs`) and
   `Storage\Repositories\RunRepository`.
 - `Contracts\Run`, so a run is a validated value rather than a row shape.
 - `scan.*` diagnostics added to `registry/schemas/fact.schema.json`.
@@ -252,7 +252,7 @@ Phase 3 — Analyzer, findings, Don't Touch, Score.
   the single data operation, whose DataOperation class arrives in Phase 5.
 - Six compatibility rules, `Registry\CompatRule`, and the registry loading and
   hashing that goes with them.
-- `POST wpdebloat/v1/scan` and `GET wpdebloat/v1/findings`.
+- `POST debloater/v1/scan` and `GET debloater/v1/findings`.
 
 ### Exit checklist (§17 Phase 3)
 
@@ -318,7 +318,7 @@ Phase 4 — Recommendation engine.
   every exclusion carrying a reason.
 - `Registry\Profile` and the three shipped profiles. No profile admits a
   destructive tweak, whatever its own flag says.
-- `GET wpdebloat/v1/preview`.
+- `GET debloater/v1/preview`.
 
 ### Exit checklist (§17 Phase 4)
 
@@ -365,15 +365,15 @@ site by itself.
 
 ### What exists now
 
-- `Storage\Schema` version 2: `wpdebloat_snapshots`, `wpdebloat_snapshot_items`
-  and `wpdebloat_journal`, matching §8 field for field.
+- `Storage\Schema` version 2: `debloater_snapshots`, `debloater_snapshot_items`
+  and `debloater_journal`, matching §8 field for field.
 - `Journal\Journal`: append-only, one row per transition, with the actor and the
   parameters in force. A failed journal write never fails the work it describes —
   the journal is the record of the work, not the work.
 - `Snapshot\SnapshotManager`:
   - **Level A** — the previous selection, the tweak states, the runtime hash, the
     loader mode and the current value of every option a selected tweak declares
-    (through the `wpdebloat_tweak_options` filter), including the distinction
+    (through the `debloater_tweak_options` filter), including the distinction
     between "the option held null" and "the option did not exist".
   - **Level B** — the exact rows a `DataOperationInterface` yields from
     `collect()`, taken **before** `execute()` touches anything, read back and
@@ -382,7 +382,7 @@ site by itself.
   - `verify()`, which marks a snapshot corrupt on any mismatch and throws.
   - `forget()`, which removes a snapshot, its rows and its file (D-0016).
 - `Snapshot\SpillFile`: streaming gzip read and write under
-  `wp-content/wpdebloat/backups`, mode 0600, behind an `index.php` and an
+  `wp-content/debloater/backups`, mode 0600, behind an `index.php` and an
   `.htaccess`, with every path resolved and checked against that directory.
 - `Snapshot\RollbackManager`: restores both levels. Level A restores the options
   (deleting those that did not exist), the selection and the tweak states, then
@@ -417,7 +417,7 @@ site by itself.
 | Level B: exact rows from `collect()` before `execute()` | ✅ verified before the operation may run |
 | Checksum, and spill to gz file above a recorded threshold | ✅ 8 MB, D-0015 |
 | `ApplyManager` drives `RunStateMachine` | ✅ every transition recorded on the run |
-| `wpdebloat_lock` transient | ✅ atomic claim, 60 s TTL |
+| `debloater_lock` transient | ✅ atomic claim, 60 s TTL |
 | Journal rows on every transition | ✅ and every row is a legal edge, D-0018 |
 | Crash recovery for `APPLYING` / `VERIFYING` | ✅ lock-guarded, D-0017 |
 | `RollbackManager` for both levels, original ids and timestamps | ✅ transient timeouts restored exactly |
@@ -461,7 +461,7 @@ change needs undoing.
 
 - `Verify\HttpClient`: every loopback request in one place — fifteen-second
   timeout, `sslverify` from the site's own `https_local_ssl_verify` setting, an
-  `X-WPDebloat-Verify: 1` header that nothing in the plugin ever reads, and at
+  `X-Debloater-Verify: 1` header that nothing in the plugin ever reads, and at
   most three redirects.
 - `Verify\ActorSession`: the credential for the two probes that need one. An
   admin request's existing logged-in cookie is forwarded verbatim; from WP-CLI
@@ -474,7 +474,7 @@ change needs undoing.
   `login`, `runtime_loaded`. Each returns a `ProbeResult` with evidence — status
   code, elapsed time, bytes, and whatever marker decided the outcome.
 - `Verify\Verifier`: checks loopback once, runs the probes, and lets
-  `VerificationResult` do the aggregation. `WPDEBLOAT_TEST_FAIL_PROBE` forces a
+  `VerificationResult` do the aggregation. `DEBLOATER_TEST_FAIL_PROBE` forces a
   named probe to fail so the rollback path can be exercised without breaking a
   site to do it.
 - `ApplyManager` now really verifies: FAIL goes `VERIFICATION_FAILED →
@@ -488,14 +488,14 @@ change needs undoing.
 |---|---|
 | `HttpClient` over `wp_remote_get`, 15 s timeout | ✅ asserted against the constant and the request args |
 | `sslverify` honours the site setting | ✅ test flips `https_local_ssl_verify` and checks the arg |
-| `X-WPDebloat-Verify` header | ✅ and nothing reads it |
+| `X-Debloater-Verify` header | ✅ and nothing reads it |
 | Auth cookie for the acting user | ✅ forwarded when present, minted and destroyed otherwise |
 | Six probes exactly as §11 describes | ✅ every branch of each covered |
 | PASS/WARN/FAIL/UNKNOWN/NOT_TESTED with evidence | ✅ |
 | Aggregation: FAIL wins, then WARN/UNKNOWN, NOT_TESTED not counted | ✅ contract test plus an integration test |
 | FAIL → `VERIFICATION_FAILED` → `ROLLING_BACK` → `ROLLED_BACK` | ✅ end to end, runtime compared byte for byte |
 | WARN → `VERIFIED_WITH_WARNINGS` | ✅ recorded in the run history |
-| `WPDEBLOAT_TEST_FAIL_PROBE` | ✅ own suite, own process |
+| `DEBLOATER_TEST_FAIL_PROBE` | ✅ own suite, own process |
 | Markers decision recorded | ✅ D-0019 |
 | Blocked-loopback policy recorded | ✅ D-0020 |
 | Fixture fatal markers produce FAIL | ✅ |
@@ -518,7 +518,7 @@ change needs undoing.
   would not see the test's uncommitted transaction, so a probe could not observe
   the state the test had set up. Fixtures through `pre_http_request` cover every
   branch deterministically; a verification over real HTTP against committed state
-  is exercised on the fixture site in Phase 7 (`wp debloat verify`).
+  is exercised on the fixture site in Phase 7 (`wp debloater verify`).
 - §11's `WP_Error` fatal marker is implemented as its printed forms rather than
   the bare class name, deliberately and with reasons, in D-0019.
 - `MEASURING_BEFORE` and `MEASURING_AFTER` are still traversed without doing
@@ -543,7 +543,7 @@ The whole MVP loop, runnable from a terminal and from a deployment script.
 ### What exists now
 
 - `Cli\Command`: `scan`, `findings`, `preview`, `apply`, `verify`, `rollback`,
-  `snapshots`, `status`, `export`, `import`, registered as `wp debloat` when
+  `snapshots`, `status`, `export`, `import`, registered as `wp debloater` when
   WP-CLI is present and never constructed otherwise.
 - `Cli\Io` and `Cli\WpCliIo`: the boundary between the commands and WP-CLI.
   Everything the CLI says goes through it, which is what lets the tests assert
@@ -568,7 +568,7 @@ the first time one of them changed.
 
 | Criterion | Result |
 |---|---|
-| `wp debloat` with all ten subcommands | ✅ |
+| `wp debloater` with all ten subcommands | ✅ |
 | No logic in the CLI layer | ✅ engine calls only; asserted by review and by the shared behaviour with the REST layer |
 | `apply` and `rollback` require `--yes` | ✅ tested; without it nothing is written |
 | `import --apply` requires `--yes` | ✅ |
@@ -599,7 +599,7 @@ the first time one of them changed.
   change is in place — 2 would mean it was undone. Real-loopback verification
   against committed state needs a site whose own address resolves from where the
   command runs.
-- `wp debloat rollback <snapshot-id>` undoes the whole run that recovery point
+- `wp debloater rollback <snapshot-id>` undoes the whole run that recovery point
   belongs to, not just that one snapshot. Restoring half a run would leave the
   site in a state nothing has a name for.
 
@@ -654,7 +654,7 @@ through the same engine.
 | Finding detail with all ten fields | ✅ asserted by a Jest test that names each one |
 | Runs & snapshots with a restore behind a confirmation token | ✅ |
 | REST routes for preview, apply, rollback, status | ✅ plus snapshots |
-| `permission_callback` on `wpdebloat_manage` | ✅ every route, supplied centrally |
+| `permission_callback` on `debloater_manage` | ✅ every route, supplied centrally |
 | Nonce verification on state-changing routes | ✅ including `scan`, which writes a run |
 | No state change without confirmation | ✅ the token is required and is bound to the content |
 | State-management choice recorded | ✅ D-0023 |
@@ -708,7 +708,7 @@ confirm, apply, verify, report — and undo, unprompted, if the site says no.
 - `MEASURING_BEFORE` and `MEASURING_AFTER` now do something. A metering failure
   is a warning and never stops a run: somebody whose site cannot reach itself
   still gets their change, they just do not get a before-and-after.
-- `GET wpdebloat/v1/runs/<id>`: the run with its state history, its verification
+- `GET debloater/v1/runs/<id>`: the run with its state history, its verification
   and its measurements, each state labelled in words a person can read while
   waiting.
 - The preview modal: the profile, what will change, what will not, what was left
@@ -865,7 +865,7 @@ Phase 11 — Plugin intelligence.
 **Status:** complete · 2026-09-03
 
 Four rules about the plugin list, all `info`, none of which proposes anything.
-The phase's real subject is the network: it is where WP Debloat first has a
+The phase's real subject is the network: it is where Debloater first has a
 reason to ask somebody else a question, and most of the work went into making
 sure it does not.
 
@@ -876,7 +876,7 @@ sure it does not.
   against one file per object — with its own schema and its own loading path
   (D-0030).
 - `registry/host-optimizers.json`: optimization layers that offer settings of
-  their own for ground WP Debloat also covers, keyed to the findings they
+  their own for ground Debloater also covers, keyed to the findings they
   overlap.
 - `plugins.duplicate_functionality`: two or more active plugins doing the same
   kind of job, named, with what doubling up on that particular kind costs. It
@@ -886,7 +886,7 @@ sure it does not.
 - `plugins.host_optimizer_detected`: which other optimizers are on the site.
 - `WpOrgUpdates`: the release-date lookup, off unless this scan was explicitly
   asked for it, with a bounded timeout, a lookup ceiling and a day's cache.
-- `wp debloat scan --check-plugin-updates` and `POST /scan {check_plugin_updates}`.
+- `wp debloater scan --check-plugin-updates` and `POST /scan {check_plugin_updates}`.
 
 ### Two readings of "abandoned", and why they are not the same finding
 
@@ -1097,7 +1097,7 @@ sample. Recorded as D-0033.
 
 The Contact Form 7 finding is therefore worded "Of N pages sampled…", capped at
 0.75 confidence, and points at Contact Form 7's own `WPCF7_LOAD_JS` constant —
-which is a better place to change this than anything WP Debloat could hook
+which is a better place to change this than anything Debloater could hook
 around it.
 
 ### An assertion that was passing for the wrong reason
@@ -1174,7 +1174,7 @@ The phase where the honest number and the impressive number are furthest apart.
   documents and library templates exist; which font families the designs refer
   to; which experiments are explicitly on or off.
 - **`WidgetCatalog`** — an interface with a `LiveWidgetCatalog` that is the only
-  file in WP Debloat naming an Elementor class. Everything else reads the
+  file in Debloater naming an Elementor class. Everything else reads the
   database and needs no third-party code loaded at all.
 - **`elementor.widgets.audit`**, info: "*N* addon packs, *N* widgets available,
   *N* detected in use, *N* **potentially** unused".
@@ -1341,8 +1341,8 @@ until the visitor reloads. That is a refusal rather than a warning — there is 
   conditionals are covered by construction (every test that says "keep" wins)
   rather than by test. Running the suite against the development environment
   would close this, and should happen before release.
-- Both dequeue handlers expose a filter — `wpdebloat_woo_page_needs_cart` and
-  `wpdebloat_woo_page_needs_block_styles` — because a cart or a WooCommerce
+- Both dequeue handlers expose a filter — `debloater_woo_page_needs_cart` and
+  `debloater_woo_page_needs_block_styles` — because a cart or a WooCommerce
   block inside a template part, a widget area or a page builder is not visible
   from the page being built. A theme that has one must say so. That is a real
   gap, documented in each tweak's `breaks` list rather than hidden.
@@ -1367,10 +1367,10 @@ it did not work.
 
 ### What it found
 
-`Screen::bootstrapData()` handed the admin bundle `rest_url( 'wpdebloat/v1' )`
+`Screen::bootstrapData()` handed the admin bundle `rest_url( 'debloater/v1' )`
 as its API root, and the client joined `/status` onto it. On a site with **plain
 permalinks — WordPress's default —** `rest_url()` returns
-`…/index.php?rest_route=/wpdebloat/v1`, and that join produces a URL matching no
+`…/index.php?rest_route=/debloater/v1`, and that join produces a URL matching no
 route. Every screen showed *"No route was found matching the URL and request
 method."*
 
@@ -1393,7 +1393,7 @@ That is the entire argument for this phase, made on its first run.
   form, a page with a saved Elementor design.
 - `.github/workflows/e2e.yml`: nightly, on a pull request labelled `e2e`, and on
   demand, across PHP 8.1 and 8.3.
-- `wp debloat verify --e2e`, which prints how to run the suite rather than
+- `wp debloater verify --e2e`, which prints how to run the suite rather than
   pretending to run something the plugin package does not contain.
 
 ### Two fixtures that were measuring nothing
@@ -1423,7 +1423,7 @@ theme's choice of element (D-0042).
 | Elementor editor opens | ✅ |
 | Runs nightly and on an "e2e" PR label | ✅ workflow added |
 | Nothing ships; no infrastructure introduced | ✅ dev-only directory, git-ignored artefacts |
-| `wp debloat verify --e2e` stub | ✅ |
+| `wp debloater verify --e2e` stub | ✅ |
 | **Local E2E run** | ✅ 13 of 13 |
 | Unit suite | ✅ 1 140 tests, 11 399 assertions |
 | Integration suite | ✅ 246 tests, 1 561 assertions |
@@ -1476,7 +1476,7 @@ Phase 17 — Registry ecosystem.
 - **`src/Update/`** — `Manifest`, `SignatureVerifier`, `RegistryOrigin`,
   `RegistryUpdater`, `UpdateCheck`. Ed25519 over the canonical manifest, one
   pinned HTTPS origin, and a refusal at every step (D-0043).
-- **`wp debloat registry`** — what this build carries; `--check-updates` asks
+- **`wp debloater registry`** — what this build carries; `--check-updates` asks
   whether a newer signed release exists, and is the only thing that leaves the
   server.
 - **`docs/REGISTRY.md`** — the authoring guide, a PR checklist, and a "new
@@ -1491,7 +1491,7 @@ No signing key exists yet, so `SignatureVerifier::PUBLIC_KEY_HEX` is empty — a
 while it is empty **every update check refuses**:
 
 ```
-$ wp debloat registry --check-updates
+$ wp debloater registry --check-updates
 No registry signing key is pinned in this build, so there is nothing to check a
 signed update against.
 ```
@@ -1520,7 +1520,7 @@ concern. It moved to `src/Update/` (D-0044).
 | Every file hash verified before activation | ✅ and one bad hash rejects the whole release |
 | JSON only, never executable | ✅ refused by path *and* by parse; handlers stay in the plugin |
 | `docs/REGISTRY.md` with PR template and "new WP release" checklist | ✅ |
-| **Plugin builds from the pinned tag** | ✅ `wp debloat registry` reports v0.1.0 |
+| **Plugin builds from the pinned tag** | ✅ `wp debloater registry` reports v0.1.0 |
 | **Bad hash / invalid signature rejected** | ✅ both, plus wrong product, unknown format, path escape, non-JSON |
 | **No network unless opt-in** | ✅ asserted by counting requests |
 | Remote publication not required | ✅ prepared, not published (D-0045) |
@@ -1572,7 +1572,7 @@ first real runs found four things that no amount of local testing would have.
 |---|---|---|
 | Registry #1 | `Could not open input file: tools/phpunit-9.phar` | The PHPUnit 9 phar is git-ignored and downloaded by `npm run test:integration:setup`. The workflow never ran it. |
 | Registry #2 | "The PHPUnit Polyfills library is a requirement" | The job installed npm dependencies but never ran `composer install`, and the plugin directory is mapped into the container as-is — so a missing `vendor/` on the runner is a missing one in the container. |
-| E2E #1 | 10 of 13 failed: `'debloat' is not a registered wp command` | wp-env activates the plugins listed in `.wp-env.json`; WP Debloat is *mapped* in rather than listed, so a fresh runner has it installed and inactive. It only looked active locally because an earlier session activated it and the database persisted. |
+| E2E #1 | 10 of 13 failed: `'debloat' is not a registered wp command` | wp-env activates the plugins listed in `.wp-env.json`; Debloater is *mapped* in rather than listed, so a fresh runner has it installed and inactive. It only looked active locally because an earlier session activated it and the database persisted. |
 | E2E #2 | 2 of 13 failed on PHP 8.1: login timed out | See below. |
 
 ### The one that was a real bug in the harness
@@ -1615,3 +1615,85 @@ on their first checkout.
 The one still outstanding: §14 asks for unit, integration and static checks on
 **every push**, and there is still no workflow for that — only the registry one,
 which fires on `registry/**`. It belongs to Phase 18.
+
+---
+
+## Phase 18a – rename to Debloater
+
+**Status:** complete · 2026-09-03 · rename only, no behaviour changed
+
+### Why
+
+Preparing the wordpress.org submission found that the name could not be used.
+wordpress.org treats **"wp" as a restricted term** and refuses a plugin name or
+slug carrying it, so `WP Debloat` / `wp-debloat` was never submittable. Plugin
+Check enforces this, and so does the Readme Validator.
+
+`debloat` on its own is taken by an unrelated unused-CSS plugin. The search
+demand in this category is on the word *bloat*, and "WordPress" is not allowed
+in a slug – so the word goes in the subtitle instead.
+
+Full decision: `docs/DECISIONS.md` D-0047. Full token mapping:
+`docs/RENAME-MAP.md`.
+
+### What changed
+
+| | Old | New |
+|---|---|---|
+| Display name | WP Debloat | Debloater |
+| Full title | – | Debloater – Scan, Fix & Undo WordPress Bloat |
+| Slug / text domain | `wp-debloat` | `debloater` |
+| Namespace | `WPDebloat\` | `Debloater\` |
+| Constants | `WPDEBLOAT_` | `DEBLOATER_` |
+| Prefix | `wpdebloat_` | `debloater_` |
+| Tables | `{prefix}wpdebloat_*` | `{prefix}debloater_*` |
+| Capability | `wpdebloat_manage` | `debloater_manage` |
+| REST | `wpdebloat/v1` | `debloater/v1` |
+| WP-CLI | `wp debloat` | `wp debloater` |
+| Generated runtime | `wp-content/wpdebloat/` | `wp-content/debloater/` |
+| Loader | `wp-debloat-loader.php` | `debloater-loader.php` |
+
+A **full identifier rename**, not a display-only one, and no migration was
+written because there is nothing to migrate: zero production installs.
+`Storage\Schema` was edited directly. That window closes at the first release,
+which is the argument for doing it now.
+
+Not renamed: tweak ids (registry data, not brand), the Debloat Score (§1 locked
+decision), and `docs/DECISIONS.md` history.
+
+### Verification
+
+| Check | Result |
+|---|---|
+| Residual `wpdebloat` / `wp-debloat` / `WPDebloat` / `wp debloat` | 0, outside `DECISIONS.md` and `RENAME-MAP.md` |
+| Unit suite | OK 1 170 tests, 11 836 assertions |
+| Integration suite | OK 274 tests, 4 459 assertions |
+| Fail-probe rollback round trip | OK 9 tests, 105 assertions |
+| WP-CLI end to end (`wp debloater`) | OK whole loop on the fixture site |
+| Runtime overhead, new paths | OK part of the integration suite |
+| PHPCS | OK clean |
+| PHPStan level 6 | OK no errors |
+| ESLint + JS unit | OK clean, 12 tests |
+| `npm run plugin-zip` | OK `debloater-0.1.0.zip`, 309 files, 504 KB |
+| Plugin Check: restricted term in **slug** | OK none |
+| Plugin Check: restricted term in **short name** | OK none |
+| Plugin Check: text domain matches slug | OK |
+
+### One finding that needs a person
+
+Plugin Check **does** object to the full display title:
+
+> The plugin name includes a restricted term. Your chosen plugin name –
+> "Debloater – Scan, Fix & Undo WordPress Bloat" – contains the restricted
+> term "wordpress" which cannot be used at all in your plugin name.
+
+The brief for this phase stated that "WordPress" is permitted in a display name
+and forbidden only in a slug. Plugin Check disagrees, and it is the tool
+wordpress.org runs at review.
+
+It is a **warning**, not an error, and `Debloater` and `debloater` are both
+clean on their own. The title was chosen deliberately for search, so it has been
+implemented exactly as specified and this is recorded rather than quietly
+changed. Whether to keep it, or fall back to something like
+`Debloater – Scan, Fix & Undo Site Bloat`, is a naming decision rather than an
+implementation one.

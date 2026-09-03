@@ -2,12 +2,12 @@
 /**
  * The one place a registry update may come from.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Update;
+namespace Debloater\Update;
 
 use RuntimeException;
 
@@ -35,7 +35,7 @@ final class RegistryOrigin {
 	 * us. The optional cloud service serves the same signed bytes for sites that
 	 * would rather not reach GitHub (BUILD-SPEC §17 Phase 17).
 	 */
-	public const DEFAULT_BASE = 'https://raw.githubusercontent.com/scornik/wp-debloat-registry';
+	public const DEFAULT_BASE = 'https://raw.githubusercontent.com/scornik/debloater-registry';
 
 	/**
 	 * The path the manifest lives at, relative to a tag.

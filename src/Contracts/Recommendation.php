@@ -2,12 +2,12 @@
 /**
  * The tweak a finding recommends, with its parameters.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Contracts;
+namespace Debloater\Contracts;
 
 /**
  * A finding's recommendation (BUILD-SPEC §6, `recommendation` field).

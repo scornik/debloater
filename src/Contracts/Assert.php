@@ -2,12 +2,12 @@
 /**
  * Shared strict extraction helpers used by contract fromArray() implementations.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Contracts;
+namespace Debloater\Contracts;
 
 /**
  * Strict array-shape assertions.

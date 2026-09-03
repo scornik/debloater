@@ -1,27 +1,27 @@
 <?php
 /**
- * `wp debloat`.
+ * `wp debloater`.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Cli;
+namespace Debloater\Cli;
 
 use Throwable;
-use WPDebloat\Apply\Lock;
-use WPDebloat\Config\ConfigDocument;
-use WPDebloat\Contracts\ApplyResult;
-use WPDebloat\Contracts\Finding;
-use WPDebloat\Contracts\Json;
-use WPDebloat\Contracts\ProbeStatus;
-use WPDebloat\Contracts\Risk;
-use WPDebloat\Contracts\RunState;
-use WPDebloat\Contracts\Snapshot;
-use WPDebloat\Contracts\VerificationResult;
-use WPDebloat\Plugin;
-use WPDebloat\Recommend\PlanResult;
+use Debloater\Apply\Lock;
+use Debloater\Config\ConfigDocument;
+use Debloater\Contracts\ApplyResult;
+use Debloater\Contracts\Finding;
+use Debloater\Contracts\Json;
+use Debloater\Contracts\ProbeStatus;
+use Debloater\Contracts\Risk;
+use Debloater\Contracts\RunState;
+use Debloater\Contracts\Snapshot;
+use Debloater\Contracts\VerificationResult;
+use Debloater\Plugin;
+use Debloater\Recommend\PlanResult;
 
 /**
  * The whole MVP loop from a terminal (BUILD-SPEC §17 Phase 7).
@@ -91,7 +91,7 @@ final class Command {
 		$plugin = $plugin ?? Plugin::instance();
 
 		if ( null === $plugin ) {
-			throw new \RuntimeException( 'WP Debloat is not loaded.' );
+			throw new \RuntimeException( 'Debloater is not loaded.' );
 		}
 
 		$this->plugin = $plugin;
@@ -122,9 +122,9 @@ final class Command {
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     wp debloat scan
-	 *     wp debloat scan --json
-	 *     wp debloat scan --check-plugin-updates
+	 *     wp debloater scan
+	 *     wp debloater scan --json
+	 *     wp debloater scan --check-plugin-updates
 	 *
 	 * @param array<int,string>    $args       Positional arguments.
 	 * @param array<string,string> $assoc_args Options.
@@ -160,7 +160,7 @@ final class Command {
 				$this->io->success(
 					sprintf(
 						/* translators: 1: number of facts, 2: number of findings. */
-						__( 'Scanned the site: %1$d facts, %2$d findings.', 'wp-debloat' ),
+						__( 'Scanned the site: %1$d facts, %2$d findings.', 'debloater' ),
 						count( $run->facts()->toArray() ),
 						count( $findings )
 					)
@@ -209,7 +209,7 @@ final class Command {
 				$run = $this->plugin->latestScan();
 
 				if ( null === $run ) {
-					$this->io->error( __( 'There is no scan to read. Run `wp debloat scan` first.', 'wp-debloat' ) );
+					$this->io->error( __( 'There is no scan to read. Run `wp debloater scan` first.', 'debloater' ) );
 
 					return self::EXIT_ERROR;
 				}
@@ -224,7 +224,7 @@ final class Command {
 						$this->io->error(
 							sprintf(
 								/* translators: %s: the value given. */
-								__( '"%s" is not a risk level. Use low, medium or high.', 'wp-debloat' ),
+								__( '"%s" is not a risk level. Use low, medium or high.', 'debloater' ),
 								$risk
 							)
 						);
@@ -254,7 +254,7 @@ final class Command {
 				}
 
 				if ( array() === $findings ) {
-					$this->io->line( __( 'Nothing to report.', 'wp-debloat' ) );
+					$this->io->line( __( 'Nothing to report.', 'debloater' ) );
 
 					return self::EXIT_OK;
 				}
@@ -386,7 +386,7 @@ final class Command {
 				}
 
 				if ( $result->plan->isEmpty() ) {
-					$this->io->warning( __( 'There is nothing to apply: the plan is empty.', 'wp-debloat' ) );
+					$this->io->warning( __( 'There is nothing to apply: the plan is empty.', 'debloater' ) );
 
 					return self::EXIT_OK;
 				}
@@ -468,9 +468,9 @@ final class Command {
 	 * @return void
 	 */
 	private function printE2eInstructions(): void {
-		$this->io->line( __( 'The end-to-end suite is part of the WP Debloat repository and is not shipped with the plugin.', 'wp-debloat' ) );
+		$this->io->line( __( 'The end-to-end suite is part of the Debloater repository and is not shipped with the plugin.', 'debloater' ) );
 		$this->io->line( '' );
-		$this->io->line( __( 'To run it from a checkout:', 'wp-debloat' ) );
+		$this->io->line( __( 'To run it from a checkout:', 'debloater' ) );
 		$this->io->line( '' );
 		$this->io->line( '    npm install' );
 		$this->io->line( '    npm run test:e2e:install     # downloads the browser, once' );
@@ -479,9 +479,9 @@ final class Command {
 		$this->io->line( '    npm run test:e2e:seed        # a product, a form and an Elementor page' );
 		$this->io->line( '    npm run test:e2e' );
 		$this->io->line( '' );
-		$this->io->line( __( 'It also runs nightly in CI, and on a pull request labelled "e2e".', 'wp-debloat' ) );
+		$this->io->line( __( 'It also runs nightly in CI, and on a pull request labelled "e2e".', 'debloater' ) );
 		$this->io->line( '' );
-		$this->io->line( __( 'To check this site instead, run `wp debloat verify` with no flag.', 'wp-debloat' ) );
+		$this->io->line( __( 'To check this site instead, run `wp debloater verify` with no flag.', 'debloater' ) );
 	}
 
 	/**
@@ -506,8 +506,8 @@ final class Command {
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     wp debloat registry
-	 *     wp debloat registry --check-updates
+	 *     wp debloater registry
+	 *     wp debloater registry --check-updates
 	 *
 	 * @param array<int,string>    $args       Positional arguments.
 	 * @param array<string,string> $assoc_args Options.
@@ -538,8 +538,8 @@ final class Command {
 					$this->io->line(
 						sprintf(
 							/* translators: 1: registry tag, 2: number of changes. */
-							__( 'Registry %1$s, %2$d changes.', 'wp-debloat' ),
-							'' === $tag ? __( 'unversioned', 'wp-debloat' ) : $tag,
+							__( 'Registry %1$s, %2$d changes.', 'debloater' ),
+							'' === $tag ? __( 'unversioned', 'debloater' ) : $tag,
 							$registry->count()
 						)
 					);
@@ -675,7 +675,7 @@ final class Command {
 				}
 
 				if ( ! isset( $args[1] ) || ! ctype_digit( (string) $args[1] ) ) {
-					$this->io->error( __( 'Give the id of the recovery point.', 'wp-debloat' ) );
+					$this->io->error( __( 'Give the id of the recovery point.', 'debloater' ) );
 
 					return self::EXIT_ERROR;
 				}
@@ -686,7 +686,7 @@ final class Command {
 					$this->io->error(
 						sprintf(
 							/* translators: %s: the id given. */
-							__( 'There is no recovery point with the id %s.', 'wp-debloat' ),
+							__( 'There is no recovery point with the id %s.', 'debloater' ),
 							$args[1]
 						)
 					);
@@ -709,7 +709,7 @@ final class Command {
 				$this->io->success(
 					sprintf(
 						/* translators: %d: the id deleted. */
-						__( 'Deleted recovery point %d. That change can no longer be undone.', 'wp-debloat' ),
+						__( 'Deleted recovery point %d. That change can no longer be undone.', 'debloater' ),
 						(int) $snapshot->id
 					)
 				);
@@ -720,7 +720,7 @@ final class Command {
 	}
 
 	/**
-	 * Show what WP Debloat is doing on this site.
+	 * Show what Debloater is doing on this site.
 	 *
 	 * ## OPTIONS
 	 *
@@ -754,7 +754,7 @@ final class Command {
 				$this->io->line(
 					sprintf(
 						/* translators: 1: plugin version, 2: registry hash. */
-						__( 'WP Debloat %1$s, registry %2$s', 'wp-debloat' ),
+						__( 'Debloater %1$s, registry %2$s', 'debloater' ),
 						$document['plugin_version'],
 						substr( (string) $document['registry_hash'], 0, 12 )
 					)
@@ -763,7 +763,7 @@ final class Command {
 				$this->io->line(
 					sprintf(
 						/* translators: %d: number of selected changes. */
-						_n( '%d change selected', '%d changes selected', (int) $document['selection_count'], 'wp-debloat' ),
+						_n( '%d change selected', '%d changes selected', (int) $document['selection_count'], 'debloater' ),
 						(int) $document['selection_count']
 					)
 				);
@@ -775,16 +775,16 @@ final class Command {
 					$runtime['present']
 						? sprintf(
 							/* translators: 1: runtime hash, 2: loader mode. */
-							__( 'Runtime %1$s, loaded by the %2$s', 'wp-debloat' ),
+							__( 'Runtime %1$s, loaded by the %2$s', 'debloater' ),
 							substr( (string) $runtime['hash'], 0, 12 ),
 							(string) ( is_array( $document['loader'] ) ? $document['loader']['mode'] : '' )
 						)
-						: __( 'No runtime file: nothing is being changed on the front end.', 'wp-debloat' )
+						: __( 'No runtime file: nothing is being changed on the front end.', 'debloater' )
 				);
 
 				if ( ! $runtime['matches_state'] ) {
 					$this->io->warning(
-						__( 'The runtime file on disk is not the one WP Debloat generated.', 'wp-debloat' )
+						__( 'The runtime file on disk is not the one Debloater generated.', 'debloater' )
 					);
 				}
 
@@ -832,7 +832,7 @@ final class Command {
 					$this->io->error(
 						sprintf(
 							/* translators: %s: file path. */
-							__( 'Could not write to %s.', 'wp-debloat' ),
+							__( 'Could not write to %s.', 'debloater' ),
 							$path
 						)
 					);
@@ -843,7 +843,7 @@ final class Command {
 				$this->io->success(
 					sprintf(
 						/* translators: 1: number of changes, 2: file path. */
-						__( 'Wrote %1$d changes to %2$s.', 'wp-debloat' ),
+						__( 'Wrote %1$d changes to %2$s.', 'debloater' ),
 						$document->count(),
 						$path
 					)
@@ -891,7 +891,7 @@ final class Command {
 					$this->io->error(
 						sprintf(
 							/* translators: %s: file path. */
-							__( 'Cannot read %s.', 'wp-debloat' ),
+							__( 'Cannot read %s.', 'debloater' ),
 							'' === $path ? '(no file given)' : $path
 						)
 					);
@@ -907,7 +907,7 @@ final class Command {
 					$this->io->error(
 						sprintf(
 							/* translators: %s: file path. */
-							__( '%s is not valid JSON.', 'wp-debloat' ),
+							__( '%s is not valid JSON.', 'debloater' ),
 							$path
 						)
 					);
@@ -921,7 +921,7 @@ final class Command {
 					$this->io->error(
 						sprintf(
 							/* translators: 1: file path, 2: the first problem. */
-							__( '%1$s is not a WP Debloat configuration file: %2$s', 'wp-debloat' ),
+							__( '%1$s is not a Debloater configuration file: %2$s', 'debloater' ),
 							$path,
 							$errors[0]
 						)
@@ -937,7 +937,7 @@ final class Command {
 					$this->io->warning(
 						__(
 							'This file was written against a different version of the change registry. Check the plan before applying it.',
-							'wp-debloat'
+							'debloater'
 						)
 					);
 				}
@@ -964,7 +964,7 @@ final class Command {
 					$this->io->success(
 						sprintf(
 							/* translators: %d: number of changes. */
-							__( 'The file is valid and carries %d changes. Add --apply --yes to put them in place.', 'wp-debloat' ),
+							__( 'The file is valid and carries %d changes. Add --apply --yes to put them in place.', 'debloater' ),
 							$usable->count()
 						)
 					);
@@ -1041,7 +1041,7 @@ final class Command {
 				$this->io->error(
 					sprintf(
 						/* translators: %s: comma-separated tweak ids. */
-						__( 'No such change: %s', 'wp-debloat' ),
+						__( 'No such change: %s', 'debloater' ),
 						implode( ', ', $unknown )
 					)
 				);
@@ -1055,7 +1055,7 @@ final class Command {
 		}
 
 		if ( null === $result ) {
-			$this->io->error( __( 'There is no scan to plan from. Run `wp debloat scan` first.', 'wp-debloat' ) );
+			$this->io->error( __( 'There is no scan to plan from. Run `wp debloater scan` first.', 'debloater' ) );
 
 			return null;
 		}
@@ -1077,7 +1077,7 @@ final class Command {
 				$this->io->error(
 					sprintf(
 						/* translators: %s: the id given. */
-						__( 'There is no recovery point with the id %s.', 'wp-debloat' ),
+						__( 'There is no recovery point with the id %s.', 'debloater' ),
 						$args[0]
 					)
 				);
@@ -1088,10 +1088,10 @@ final class Command {
 			return $snapshot;
 		}
 
-		$snapshot = $this->plugin->snapshots()->latestRestorable( \WPDebloat\Contracts\SnapshotLevel::A );
+		$snapshot = $this->plugin->snapshots()->latestRestorable( \Debloater\Contracts\SnapshotLevel::A );
 
 		if ( null === $snapshot ) {
-			$this->io->error( __( 'There is nothing to roll back to.', 'wp-debloat' ) );
+			$this->io->error( __( 'There is nothing to roll back to.', 'debloater' ) );
 
 			return null;
 		}
@@ -1123,7 +1123,7 @@ final class Command {
 		}
 
 		if ( array() === $snapshots ) {
-			$this->io->line( __( 'There are no recovery points yet.', 'wp-debloat' ) );
+			$this->io->line( __( 'There are no recovery points yet.', 'debloater' ) );
 
 			return self::EXIT_OK;
 		}
@@ -1203,9 +1203,9 @@ final class Command {
 	 */
 	private function printPlan( PlanResult $result ): void {
 		if ( $result->plan->isEmpty() ) {
-			$this->io->line( __( 'Nothing would change.', 'wp-debloat' ) );
+			$this->io->line( __( 'Nothing would change.', 'debloater' ) );
 		} else {
-			$this->io->line( __( 'This would change:', 'wp-debloat' ) );
+			$this->io->line( __( 'This would change:', 'debloater' ) );
 
 			foreach ( $result->plan->will_change as $line ) {
 				$this->io->line( '  · ' . $line );
@@ -1213,7 +1213,7 @@ final class Command {
 		}
 
 		if ( array() !== $result->plan->will_not ) {
-			$this->io->line( __( 'This would not change:', 'wp-debloat' ) );
+			$this->io->line( __( 'This would not change:', 'debloater' ) );
 
 			foreach ( $result->plan->will_not as $line ) {
 				$this->io->line( '  · ' . $line );
@@ -1221,7 +1221,7 @@ final class Command {
 		}
 
 		if ( $result->plan->destructive ) {
-			$this->io->warning( __( 'This plan deletes data. A full recovery point is taken first.', 'wp-debloat' ) );
+			$this->io->warning( __( 'This plan deletes data. A full recovery point is taken first.', 'debloater' ) );
 		}
 	}
 
@@ -1236,7 +1236,7 @@ final class Command {
 			$this->io->success(
 				sprintf(
 					/* translators: %d: number of changes applied. */
-					_n( 'Applied %d change.', 'Applied %d changes.', count( $result->applied ), 'wp-debloat' ),
+					_n( 'Applied %d change.', 'Applied %d changes.', count( $result->applied ), 'debloater' ),
 					count( $result->applied )
 				)
 			);
@@ -1275,18 +1275,18 @@ final class Command {
 		$this->io->table( $rows, array( 'check', 'status', 'detail' ) );
 
 		if ( $result->isFailure() ) {
-			$this->io->error( __( 'The site did not pass its checks.', 'wp-debloat' ) );
+			$this->io->error( __( 'The site did not pass its checks.', 'debloater' ) );
 
 			return;
 		}
 
 		if ( ProbeStatus::PASS === $result->status ) {
-			$this->io->success( __( 'Everything checked out.', 'wp-debloat' ) );
+			$this->io->success( __( 'Everything checked out.', 'debloater' ) );
 
 			return;
 		}
 
-		$this->io->warning( __( 'The site works, but some checks could not be completed.', 'wp-debloat' ) );
+		$this->io->warning( __( 'The site works, but some checks could not be completed.', 'debloater' ) );
 	}
 
 	/**
@@ -1303,7 +1303,7 @@ final class Command {
 		$this->io->line(
 			sprintf(
 				/* translators: %s: the score out of 100. */
-				__( 'Debloat score: %s / 100', 'wp-debloat' ),
+				__( 'Debloat score: %s / 100', 'debloater' ),
 				(string) $score['headline']
 			)
 		);
@@ -1338,7 +1338,7 @@ final class Command {
 			return true;
 		}
 
-		$this->io->error( __( 'This changes the site. Add --yes to confirm.', 'wp-debloat' ) );
+		$this->io->error( __( 'This changes the site. Add --yes to confirm.', 'debloater' ) );
 
 		return false;
 	}

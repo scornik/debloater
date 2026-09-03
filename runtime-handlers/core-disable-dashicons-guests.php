@@ -4,12 +4,12 @@
  *
  * See core-remove-generator.php for the rules every runtime handler follows.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 defined( 'ABSPATH' ) || exit;
 
-if ( ! class_exists( 'WPDebloat_Handler_Core_Disable_Dashicons_Guests', false ) ) {
+if ( ! class_exists( 'Debloater_Handler_Core_Disable_Dashicons_Guests', false ) ) {
 
 	/**
 	 * Dequeues the dashicons stylesheet for visitors who are not logged in.
@@ -25,7 +25,7 @@ if ( ! class_exists( 'WPDebloat_Handler_Core_Disable_Dashicons_Guests', false ) 
 	 * font for something visible, and a missing icon font is silent — the layout
 	 * simply looks wrong.
 	 */
-	final class WPDebloat_Handler_Core_Disable_Dashicons_Guests {
+	final class Debloater_Handler_Core_Disable_Dashicons_Guests {
 
 		/**
 		 * Register the handler's hooks.

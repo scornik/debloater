@@ -2,23 +2,23 @@
 /**
  * Analyzer rule: admin.notices.from_plugins.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Analyze\Rules;
+namespace Debloater\Analyze\Rules;
 
-use WPDebloat\Contracts\Category;
-use WPDebloat\Contracts\FactSet;
-use WPDebloat\Contracts\Finding;
-use WPDebloat\Contracts\Risk;
-use WPDebloat\Contracts\Severity;
+use Debloater\Contracts\Category;
+use Debloater\Contracts\FactSet;
+use Debloater\Contracts\Finding;
+use Debloater\Contracts\Risk;
+use Debloater\Contracts\Severity;
 
 /**
  * Plugins on the allowlist are printing admin notices.
  *
- * This is the most cautious recommendation WP Debloat makes, and the wording
+ * This is the most cautious recommendation Debloater makes, and the wording
  * has to carry that. The change it proposes hides *everything* those plugins
  * say in the notice area, because they print upgrade prompts and "your database
  * needs updating" from the same hook and nothing separates the two. So:
@@ -131,23 +131,23 @@ final class PluginNoticesRule extends AbstractRule {
 						'%d admin notice comes from a plugin whose notices you can hide',
 						'%d admin notices come from plugins whose notices you can hide',
 						$count,
-						'wp-debloat'
+						'debloater'
 					),
 					$count
 				),
 				'summary'  => sprintf(
 					/* translators: %s: comma-separated plugin names. */
-					__( 'From: %s.', 'wp-debloat' ),
+					__( 'From: %s.', 'debloater' ),
 					implode( ', ', $labels )
 				),
 				'why'      => __(
 					'These plugins print into the admin notice area on every screen. Hiding them is offered because the interruption is real — but read this first: it hides everything they say there, not only the marketing. These plugins send upgrade prompts and warnings about pending database updates or expiring licences down the same channel, and nothing reliably tells them apart. Nothing is uninstalled or switched off, and unselecting this brings the notices straight back.',
-					'wp-debloat'
+					'debloater'
 				),
 				'evidence' => $this->evidence( $facts )
-					->fact( __( 'Notices by source', 'wp-debloat' ), 'admin.notices' )
-					->fact( __( 'Plugins whose notices can be hidden', 'wp-debloat' ), 'admin.notice_vendors' )
-					->optional( __( 'Total notice callbacks', 'wp-debloat' ), 'admin.notices.count' )
+					->fact( __( 'Notices by source', 'debloater' ), 'admin.notices' )
+					->fact( __( 'Plugins whose notices can be hidden', 'debloater' ), 'admin.notice_vendors' )
+					->optional( __( 'Total notice callbacks', 'debloater' ), 'admin.notices.count' )
 					->build(),
 			)
 		);

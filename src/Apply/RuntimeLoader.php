@@ -2,14 +2,14 @@
 /**
  * Installs the runtime loader and reports how the runtime got loaded.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Apply;
+namespace Debloater\Apply;
 
-use WPDebloat\Contracts\Context;
+use Debloater\Contracts\Context;
 
 /**
  * Puts the mu-plugin loader in place, with a documented fallback
@@ -42,7 +42,7 @@ final class RuntimeLoader {
 	/**
 	 * File name of the installed loader.
 	 */
-	public const LOADER_FILE = 'wp-debloat-loader.php';
+	public const LOADER_FILE = 'debloater-loader.php';
 
 	/**
 	 * Priority the fallback include runs at.
@@ -180,10 +180,10 @@ final class RuntimeLoader {
 			return self::MODE_NONE;
 		}
 
-		if ( defined( 'WPDEBLOAT_LOADER_MODE' ) ) {
+		if ( defined( 'DEBLOATER_LOADER_MODE' ) ) {
 			// The loader itself defines this, so it is the most direct evidence of
 			// how the runtime actually got loaded on this request.
-			return (string) WPDEBLOAT_LOADER_MODE;
+			return (string) DEBLOATER_LOADER_MODE;
 		}
 
 		return $this->isInstalled() ? self::MODE_MU_PLUGIN : self::MODE_FALLBACK;
@@ -198,7 +198,7 @@ final class RuntimeLoader {
 	 * @return bool Whether the runtime was loaded.
 	 */
 	public function loadFallback(): bool {
-		if ( defined( 'WPDEBLOAT_LOADER_MODE' ) ) {
+		if ( defined( 'DEBLOATER_LOADER_MODE' ) ) {
 			// The mu-plugin already ran. Loading again would double-register.
 			return false;
 		}
@@ -216,8 +216,8 @@ final class RuntimeLoader {
 			return false;
 		}
 
-		if ( ! defined( 'WPDEBLOAT_LOADER_MODE' ) ) {
-			define( 'WPDEBLOAT_LOADER_MODE', self::MODE_FALLBACK );
+		if ( ! defined( 'DEBLOATER_LOADER_MODE' ) ) {
+			define( 'DEBLOATER_LOADER_MODE', self::MODE_FALLBACK );
 		}
 
 		require_once $runtime;
@@ -237,11 +237,11 @@ final class RuntimeLoader {
 	 * @return bool Whether the bypass was honoured.
 	 */
 	public function resolveDeferredBypass( array $handler_classes ): bool {
-		if ( ! class_exists( 'WPDebloat_Runtime_Guard', false ) ) {
+		if ( ! class_exists( 'Debloater_Runtime_Guard', false ) ) {
 			return false;
 		}
 
-		if ( ! \WPDebloat_Runtime_Guard::bypass_deferred() || ! \WPDebloat_Runtime_Guard::authorised() ) {
+		if ( ! \Debloater_Runtime_Guard::bypass_deferred() || ! \Debloater_Runtime_Guard::authorised() ) {
 			return false;
 		}
 

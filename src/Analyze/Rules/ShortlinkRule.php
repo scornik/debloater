@@ -2,17 +2,17 @@
 /**
  * Analyzer rule: wp.shortlink.exposed.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Analyze\Rules;
+namespace Debloater\Analyze\Rules;
 
-use WPDebloat\Contracts\Category;
-use WPDebloat\Contracts\Impact;
-use WPDebloat\Contracts\Risk;
-use WPDebloat\Contracts\Severity;
+use Debloater\Contracts\Category;
+use Debloater\Contracts\Impact;
+use Debloater\Contracts\Risk;
+use Debloater\Contracts\Severity;
 
 /**
  * Fires when core still emits the shortlink tag and header.
@@ -100,7 +100,7 @@ final class ShortlinkRule extends CoreFeatureRule {
 	 * @return string
 	 */
 	protected function title(): string {
-		return __( 'Every page publishes its numeric URL as well as its real one', 'wp-debloat' );
+		return __( 'Every page publishes its numeric URL as well as its real one', 'debloater' );
 	}
 
 	/**
@@ -109,7 +109,7 @@ final class ShortlinkRule extends CoreFeatureRule {
 	 * @return string
 	 */
 	protected function summary(): string {
-		return __( 'WordPress emits a rel="shortlink" tag in the head and a matching Link: HTTP header, both giving the ?p=<id> form of the page.', 'wp-debloat' );
+		return __( 'WordPress emits a rel="shortlink" tag in the head and a matching Link: HTTP header, both giving the ?p=<id> form of the page.', 'debloater' );
 	}
 
 	/**
@@ -118,7 +118,7 @@ final class ShortlinkRule extends CoreFeatureRule {
 	 * @return string
 	 */
 	protected function why(): string {
-		return __( 'The shortlink is a leftover from an era of character limits. It exposes the internal post id of every page, adds a head tag and an HTTP header to every request, and almost nothing consumes it.', 'wp-debloat' );
+		return __( 'The shortlink is a leftover from an era of character limits. It exposes the internal post id of every page, adds a head tag and an HTTP header to every request, and almost nothing consumes it.', 'debloater' );
 	}
 
 	/**
@@ -127,6 +127,6 @@ final class ShortlinkRule extends CoreFeatureRule {
 	 * @return string
 	 */
 	protected function evidenceLabel(): string {
-		return __( 'Shortlink tag and header', 'wp-debloat' );
+		return __( 'Shortlink tag and header', 'debloater' );
 	}
 }

@@ -4,12 +4,12 @@
  *
  * See core-remove-generator.php for the rules every runtime handler follows.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 defined( 'ABSPATH' ) || exit;
 
-if ( ! class_exists( 'WPDebloat_Handler_Core_Disable_Embeds', false ) ) {
+if ( ! class_exists( 'Debloater_Handler_Core_Disable_Embeds', false ) ) {
 
 	/**
 	 * Removes WordPress's own embed machinery.
@@ -26,7 +26,7 @@ if ( ! class_exists( 'WPDebloat_Handler_Core_Disable_Embeds', false ) ) {
 	 * themselves, and the /embed/ endpoint. On a site nobody embeds, that is a
 	 * script and two head tags on every page for a feature never used.
 	 */
-	final class WPDebloat_Handler_Core_Disable_Embeds {
+	final class Debloater_Handler_Core_Disable_Embeds {
 
 		/**
 		 * Register the handler's hooks.

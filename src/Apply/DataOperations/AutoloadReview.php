@@ -2,16 +2,16 @@
 /**
  * Options WordPress reads on every single request.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Apply\DataOperations;
+namespace Debloater\Apply\DataOperations;
 
-use WPDebloat\Contracts\Context;
-use WPDebloat\Contracts\SnapshotItem;
-use WPDebloat\Contracts\TweakParams;
+use Debloater\Contracts\Context;
+use Debloater\Contracts\SnapshotItem;
+use Debloater\Contracts\TweakParams;
 
 /**
  * Stops a small, known-safe set of options being loaded eagerly.
@@ -233,7 +233,7 @@ final class AutoloadReview extends AbstractDataOperation {
 	 * Used by the analyzer to report what is actually costing memory. Reporting
 	 * is not changing: this list is wider than the allowlist on purpose, because
 	 * a user is owed the truth about what is loading on every request even when
-	 * WP Debloat will not touch it.
+	 * Debloater will not touch it.
 	 *
 	 * @param int $limit How many to return.
 	 * @return array<int,array{option_name:string,bytes:int}>

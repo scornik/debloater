@@ -2,12 +2,12 @@
 /**
  * The strings that decide whether a page rendered.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Verify;
+namespace Debloater\Verify;
 
 /**
  * Fatal and render markers (BUILD-SPEC §11, docs/DECISIONS.md D-0019).

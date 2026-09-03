@@ -2,18 +2,18 @@
 /**
  * Moves a tweak through its lifecycle, and writes down every step.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Apply;
+namespace Debloater\Apply;
 
-use WPDebloat\Contracts\JournalAction;
-use WPDebloat\Contracts\TweakParams;
-use WPDebloat\Contracts\TweakState;
-use WPDebloat\Journal\Journal;
-use WPDebloat\Storage\State;
+use Debloater\Contracts\JournalAction;
+use Debloater\Contracts\TweakParams;
+use Debloater\Contracts\TweakState;
+use Debloater\Journal\Journal;
+use Debloater\Storage\State;
 
 /**
  * The bridge between the §9.1 table, the stored tweak states and the journal.

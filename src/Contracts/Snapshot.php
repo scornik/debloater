@@ -2,12 +2,12 @@
 /**
  * A recovery point taken before a run changes anything.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Contracts;
+namespace Debloater\Contracts;
 
 /**
  * Snapshot metadata (BUILD-SPEC §8, locked decision #3).
@@ -18,7 +18,7 @@ namespace WPDebloat\Contracts;
  * be written back over live data (§13 rule 7).
  *
  * Level A carries its config payload inline. Level B carries item metadata here
- * and the rows themselves in wpdebloat_snapshot_items or, above the spill
+ * and the rows themselves in debloater_snapshot_items or, above the spill
  * threshold, in a gzipped file whose path is recorded.
  */
 final class Snapshot {

@@ -2,14 +2,14 @@
 /**
  * Emptying the trash, which is what the trash is for.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Apply\DataOperations;
+namespace Debloater\Apply\DataOperations;
 
-use WPDebloat\Contracts\TweakParams;
+use Debloater\Contracts\TweakParams;
 
 /**
  * Permanently deletes content that is already in the trash.

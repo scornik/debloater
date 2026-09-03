@@ -2,12 +2,12 @@
 /**
  * What the distributed plugin is allowed to depend on, and to contain.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Tests\Unit;
+namespace Debloater\Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
 
@@ -99,7 +99,7 @@ final class ServiceArchitectureTest extends TestCase {
 	/**
 	 * The free plugin reaches no licensing platform.
 	 *
-	 * "Free WP Debloat is fully functional with no Pro, no licensing platform
+	 * "Free Debloater is fully functional with no Pro, no licensing platform
 	 * and no cloud" is only worth as much as the test that would fail if a
 	 * licence check appeared in it.
 	 *
@@ -160,7 +160,7 @@ final class ServiceArchitectureTest extends TestCase {
 	 * @return void
 	 */
 	public function test_every_specified_cloud_path_is_versioned(): void {
-		$spec = file_get_contents( WPDEBLOAT_TESTS_ROOT . '/BUILD-SPEC.md' );
+		$spec = file_get_contents( DEBLOATER_TESTS_ROOT . '/BUILD-SPEC.md' );
 
 		$this->assertIsString( $spec );
 
@@ -175,7 +175,7 @@ final class ServiceArchitectureTest extends TestCase {
 			}
 
 			$this->assertMatchesRegularExpression(
-				'#^/v[0-9]+/wp-debloat/#',
+				'#^/v[0-9]+/debloater/#',
 				(string) $path,
 				sprintf( 'Cloud path "%s" is not versioned and product-scoped (D-0035).', (string) $path )
 			);
@@ -185,7 +185,7 @@ final class ServiceArchitectureTest extends TestCase {
 	/**
 	 * Schema `$id` values are names, not addresses.
 	 *
-	 * `wp-debloat.hakeemify.com` appears in every registry schema as its `$id`.
+	 * `debloater.hakeemify.com` appears in every registry schema as its `$id`.
 	 * That is a JSON Schema identifier — the validator resolves schemas from
 	 * disk and never fetches one — so it is not a host dependency. Asserted
 	 * rather than assumed, because the distinction is exactly the kind that gets
@@ -194,7 +194,7 @@ final class ServiceArchitectureTest extends TestCase {
 	 * @return void
 	 */
 	public function test_schema_ids_are_never_fetched(): void {
-		$validator = file_get_contents( WPDEBLOAT_TESTS_ROOT . '/src/Registry/SchemaValidator.php' );
+		$validator = file_get_contents( DEBLOATER_TESTS_ROOT . '/src/Registry/SchemaValidator.php' );
 
 		$this->assertIsString( $validator );
 
@@ -225,7 +225,7 @@ final class ServiceArchitectureTest extends TestCase {
 		$files = array();
 
 		foreach ( array( 'src', 'runtime-handlers', 'mu-loader', 'admin-ui/src' ) as $directory ) {
-			$root = WPDEBLOAT_TESTS_ROOT . '/' . $directory;
+			$root = DEBLOATER_TESTS_ROOT . '/' . $directory;
 
 			if ( ! is_dir( $root ) ) {
 				continue;

@@ -4,12 +4,12 @@
  *
  * See core-remove-generator.php for the rules every runtime handler follows.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 defined( 'ABSPATH' ) || exit;
 
-if ( ! class_exists( 'WPDebloat_Handler_Woo_Cart_Fragments_Conditional', false ) ) {
+if ( ! class_exists( 'Debloater_Handler_Woo_Cart_Fragments_Conditional', false ) ) {
 
 	/**
 	 * Dequeues wc-cart-fragments on pages that are not part of the shop.
@@ -30,7 +30,7 @@ if ( ! class_exists( 'WPDebloat_Handler_Woo_Cart_Fragments_Conditional', false )
 	 * That refusal lives in the analyzer, where it can see the whole site; this
 	 * handler is told what to do and does it.
 	 */
-	final class WPDebloat_Handler_Woo_Cart_Fragments_Conditional {
+	final class Debloater_Handler_Woo_Cart_Fragments_Conditional {
 
 		/**
 		 * The handle this manages.
@@ -108,7 +108,7 @@ if ( ! class_exists( 'WPDebloat_Handler_Woo_Cart_Fragments_Conditional', false )
 
 			// A theme showing a cart in its header, in a widget, or anywhere else
 			// this cannot see, says so through this filter.
-			return (bool) apply_filters( 'wpdebloat_woo_page_needs_cart', false );
+			return (bool) apply_filters( 'debloater_woo_page_needs_cart', false );
 		}
 	}
 }

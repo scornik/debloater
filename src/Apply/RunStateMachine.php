@@ -2,15 +2,15 @@
 /**
  * The apply-run state machine.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Apply;
+namespace Debloater\Apply;
 
-use WPDebloat\Contracts\IllegalTransition;
-use WPDebloat\Contracts\RunState;
+use Debloater\Contracts\IllegalTransition;
+use Debloater\Contracts\RunState;
 
 /**
  * Drives one run through the states in BUILD-SPEC §9.2.

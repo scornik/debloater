@@ -2,92 +2,92 @@
 /**
  * Plugin boot sequence and service locator.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat;
+namespace Debloater;
 
-use WPDebloat\Admin\Screen;
-use WPDebloat\Analyze\Analyzer;
-use WPDebloat\Analyze\Rules;
-use WPDebloat\Apply\ApplyManager;
-use WPDebloat\Apply\Compiler;
-use WPDebloat\Apply\DataOperations\AutoDraftsCleanup;
-use WPDebloat\Apply\DataOperations\AutoloadReview;
-use WPDebloat\Apply\DataOperations\ExpiredTransientsCleanup;
-use WPDebloat\Apply\DataOperations\OrphanMetaCleanup;
-use WPDebloat\Apply\DataOperations\RevisionsCleanup;
-use WPDebloat\Apply\DataOperations\SpamCommentsCleanup;
-use WPDebloat\Apply\DataOperations\TrashCleanup;
-use WPDebloat\Apply\Lock;
-use WPDebloat\Apply\RuntimeLoader;
-use WPDebloat\Apply\RuntimeWriter;
-use WPDebloat\Cli\Command;
-use WPDebloat\Contracts\ApplyResult;
-use WPDebloat\Contracts\Context;
-use WPDebloat\Contracts\DataOperationInterface;
-use WPDebloat\Contracts\FactSet;
-use WPDebloat\Contracts\PreviewPlan;
-use WPDebloat\Contracts\Run;
-use WPDebloat\Contracts\RunType;
-use WPDebloat\Contracts\VerificationResult;
-use WPDebloat\Journal\Journal;
-use WPDebloat\Meter\Meter;
-use WPDebloat\Recommend\IntentProfile;
-use WPDebloat\Recommend\PlanResult;
-use WPDebloat\Recommend\PreviewPlanner;
-use WPDebloat\Recommend\RecommendationEngine;
-use WPDebloat\Registry\Loader;
-use WPDebloat\Update\Manifest;
-use WPDebloat\Update\RegistryUpdater;
-use WPDebloat\Registry\Profile;
-use WPDebloat\Registry\Registry;
-use WPDebloat\Registry\SchemaValidator;
-use WPDebloat\Rest\Controller;
-use WPDebloat\Rest\Routes\ApplyRoute;
-use WPDebloat\Rest\Routes\FindingsRoute;
-use WPDebloat\Rest\Routes\PreviewRoute;
-use WPDebloat\Rest\Routes\RollbackRoute;
-use WPDebloat\Rest\Routes\RunRoute;
-use WPDebloat\Rest\Routes\ScanRoute;
-use WPDebloat\Rest\Routes\SnapshotsRoute;
-use WPDebloat\Rest\Routes\StatusRoute;
-use WPDebloat\Scan\ScanRunner;
-use WPDebloat\Scan\WpOrgUpdates;
-use WPDebloat\Scan\Scanners\AdminScanner;
-use WPDebloat\Scan\SampledPages;
-use WPDebloat\Scan\Scanners\AssetScanner;
-use WPDebloat\Scan\Scanners\ElementorScanner;
-use WPDebloat\Scan\Scanners\AutoloadScanner;
-use WPDebloat\Scan\Scanners\CoreFeatureScanner;
-use WPDebloat\Scan\Scanners\CronScanner;
-use WPDebloat\Scan\Scanners\DatabaseScanner;
-use WPDebloat\Scan\Scanners\EnvironmentScanner;
-use WPDebloat\Scan\Scanners\PluginScanner;
-use WPDebloat\Scan\Scanners\ThemeScanner;
-use WPDebloat\Scan\Scanners\WooCommerceScanner;
-use WPDebloat\Scan\Scanners\UserScanner;
-use WPDebloat\Scan\Scanners\WordPressScanner;
-use WPDebloat\Security\Capabilities;
-use WPDebloat\Snapshot\RollbackManager;
-use WPDebloat\Snapshot\SnapshotManager;
-use WPDebloat\Storage\Repositories\RunRepository;
-use WPDebloat\Storage\Repositories\SnapshotRepository;
-use WPDebloat\Storage\Schema;
-use WPDebloat\Storage\State;
-use WPDebloat\Verify\HttpClient;
-use WPDebloat\Verify\Probes\AdminProbe;
-use WPDebloat\Verify\Probes\ContentPageProbe;
-use WPDebloat\Verify\Probes\HomeProbe;
-use WPDebloat\Verify\Probes\LoginProbe;
-use WPDebloat\Verify\Probes\RestProbe;
-use WPDebloat\Verify\Probes\RuntimeLoadedProbe;
-use WPDebloat\Verify\Probes\WooAccountProbe;
-use WPDebloat\Verify\Probes\WooCartProbe;
-use WPDebloat\Verify\Probes\WooCheckoutProbe;
-use WPDebloat\Verify\Verifier;
+use Debloater\Admin\Screen;
+use Debloater\Analyze\Analyzer;
+use Debloater\Analyze\Rules;
+use Debloater\Apply\ApplyManager;
+use Debloater\Apply\Compiler;
+use Debloater\Apply\DataOperations\AutoDraftsCleanup;
+use Debloater\Apply\DataOperations\AutoloadReview;
+use Debloater\Apply\DataOperations\ExpiredTransientsCleanup;
+use Debloater\Apply\DataOperations\OrphanMetaCleanup;
+use Debloater\Apply\DataOperations\RevisionsCleanup;
+use Debloater\Apply\DataOperations\SpamCommentsCleanup;
+use Debloater\Apply\DataOperations\TrashCleanup;
+use Debloater\Apply\Lock;
+use Debloater\Apply\RuntimeLoader;
+use Debloater\Apply\RuntimeWriter;
+use Debloater\Cli\Command;
+use Debloater\Contracts\ApplyResult;
+use Debloater\Contracts\Context;
+use Debloater\Contracts\DataOperationInterface;
+use Debloater\Contracts\FactSet;
+use Debloater\Contracts\PreviewPlan;
+use Debloater\Contracts\Run;
+use Debloater\Contracts\RunType;
+use Debloater\Contracts\VerificationResult;
+use Debloater\Journal\Journal;
+use Debloater\Meter\Meter;
+use Debloater\Recommend\IntentProfile;
+use Debloater\Recommend\PlanResult;
+use Debloater\Recommend\PreviewPlanner;
+use Debloater\Recommend\RecommendationEngine;
+use Debloater\Registry\Loader;
+use Debloater\Update\Manifest;
+use Debloater\Update\RegistryUpdater;
+use Debloater\Registry\Profile;
+use Debloater\Registry\Registry;
+use Debloater\Registry\SchemaValidator;
+use Debloater\Rest\Controller;
+use Debloater\Rest\Routes\ApplyRoute;
+use Debloater\Rest\Routes\FindingsRoute;
+use Debloater\Rest\Routes\PreviewRoute;
+use Debloater\Rest\Routes\RollbackRoute;
+use Debloater\Rest\Routes\RunRoute;
+use Debloater\Rest\Routes\ScanRoute;
+use Debloater\Rest\Routes\SnapshotsRoute;
+use Debloater\Rest\Routes\StatusRoute;
+use Debloater\Scan\ScanRunner;
+use Debloater\Scan\WpOrgUpdates;
+use Debloater\Scan\Scanners\AdminScanner;
+use Debloater\Scan\SampledPages;
+use Debloater\Scan\Scanners\AssetScanner;
+use Debloater\Scan\Scanners\ElementorScanner;
+use Debloater\Scan\Scanners\AutoloadScanner;
+use Debloater\Scan\Scanners\CoreFeatureScanner;
+use Debloater\Scan\Scanners\CronScanner;
+use Debloater\Scan\Scanners\DatabaseScanner;
+use Debloater\Scan\Scanners\EnvironmentScanner;
+use Debloater\Scan\Scanners\PluginScanner;
+use Debloater\Scan\Scanners\ThemeScanner;
+use Debloater\Scan\Scanners\WooCommerceScanner;
+use Debloater\Scan\Scanners\UserScanner;
+use Debloater\Scan\Scanners\WordPressScanner;
+use Debloater\Security\Capabilities;
+use Debloater\Snapshot\RollbackManager;
+use Debloater\Snapshot\SnapshotManager;
+use Debloater\Storage\Repositories\RunRepository;
+use Debloater\Storage\Repositories\SnapshotRepository;
+use Debloater\Storage\Schema;
+use Debloater\Storage\State;
+use Debloater\Verify\HttpClient;
+use Debloater\Verify\Probes\AdminProbe;
+use Debloater\Verify\Probes\ContentPageProbe;
+use Debloater\Verify\Probes\HomeProbe;
+use Debloater\Verify\Probes\LoginProbe;
+use Debloater\Verify\Probes\RestProbe;
+use Debloater\Verify\Probes\RuntimeLoadedProbe;
+use Debloater\Verify\Probes\WooAccountProbe;
+use Debloater\Verify\Probes\WooCartProbe;
+use Debloater\Verify\Probes\WooCheckoutProbe;
+use Debloater\Verify\Verifier;
 
 /**
  * Wires the plugin together (BUILD-SPEC §4).
@@ -181,7 +181,7 @@ final class Plugin {
 		// The fallback loader only matters when the mu-plugin is not in place.
 		// Adding the hook unconditionally would mean every request pays for a
 		// check that is almost always answered "the mu-plugin already did it".
-		if ( ! defined( 'WPDEBLOAT_LOADER_MODE' ) ) {
+		if ( ! defined( 'DEBLOATER_LOADER_MODE' ) ) {
 			add_action( 'plugins_loaded', array( $this, 'loadRuntimeFallback' ), RuntimeLoader::FALLBACK_PRIORITY );
 		}
 
@@ -264,7 +264,7 @@ final class Plugin {
 	 * @return void
 	 */
 	public function resolveDeferredBypass(): void {
-		if ( ! class_exists( 'WPDebloat_Runtime_Guard', false ) ) {
+		if ( ! class_exists( 'Debloater_Runtime_Guard', false ) ) {
 			return;
 		}
 
@@ -580,7 +580,7 @@ final class Plugin {
 	 * screen that lists it: an old run should degrade, not explode.
 	 *
 	 * @param Run $run Run to read.
-	 * @return array<int,\WPDebloat\Contracts\Finding>
+	 * @return array<int,\Debloater\Contracts\Finding>
 	 */
 	public function findingsOf( Run $run ): array {
 		$analysis = $run->payload['analysis'] ?? array();
@@ -593,8 +593,8 @@ final class Plugin {
 			}
 
 			try {
-				$findings[] = \WPDebloat\Contracts\Finding::fromArray( $data );
-			} catch ( \WPDebloat\Contracts\ContractViolation $exception ) {
+				$findings[] = \Debloater\Contracts\Finding::fromArray( $data );
+			} catch ( \Debloater\Contracts\ContractViolation $exception ) {
 				unset( $exception );
 			}
 		}

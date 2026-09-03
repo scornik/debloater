@@ -1,17 +1,17 @@
 <?php
 /**
- * GET wpdebloat/v1/status.
+ * GET debloater/v1/status.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Rest\Routes;
+namespace Debloater\Rest\Routes;
 
 use WP_REST_Request;
 use WP_REST_Response;
-use WPDebloat\Plugin;
+use Debloater\Plugin;
 
 /**
  * Reports what the runtime is actually doing (BUILD-SPEC §17 Phase 1, §11).
@@ -106,7 +106,7 @@ final class StatusRoute implements RouteInterface {
 					'mode'       => $loader->mode(),
 					'installed'  => $loader->isInstalled(),
 					'up_to_date' => $loader->isUpToDate(),
-					'fallback'   => \WPDebloat\Apply\RuntimeLoader::MODE_FALLBACK === $loader->mode(),
+					'fallback'   => \Debloater\Apply\RuntimeLoader::MODE_FALLBACK === $loader->mode(),
 				),
 			),
 			200

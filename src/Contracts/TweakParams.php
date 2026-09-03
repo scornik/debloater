@@ -2,12 +2,12 @@
 /**
  * Validated parameter values for a tweak.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Contracts;
+namespace Debloater\Contracts;
 
 /**
  * Parameters passed to a tweak (BUILD-SPEC §7.1).

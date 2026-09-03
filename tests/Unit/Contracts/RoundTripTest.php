@@ -2,30 +2,30 @@
 /**
  * Every contract must survive a toArray()/fromArray() round trip unchanged.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Tests\Unit\Contracts;
+namespace Debloater\Tests\Unit\Contracts;
 
 use PHPUnit\Framework\TestCase;
-use WPDebloat\Contracts\ApplyResult;
-use WPDebloat\Contracts\Context;
-use WPDebloat\Contracts\Evidence;
-use WPDebloat\Contracts\Fact;
-use WPDebloat\Contracts\FactSet;
-use WPDebloat\Contracts\Finding;
-use WPDebloat\Contracts\Impact;
-use WPDebloat\Contracts\PreviewPlan;
-use WPDebloat\Contracts\ProbeResult;
-use WPDebloat\Contracts\Recommendation;
-use WPDebloat\Contracts\Snapshot;
-use WPDebloat\Contracts\SnapshotItem;
-use WPDebloat\Contracts\Tweak;
-use WPDebloat\Contracts\TweakParams;
-use WPDebloat\Contracts\VerificationResult;
-use WPDebloat\Tests\Unit\Support\Build;
+use Debloater\Contracts\ApplyResult;
+use Debloater\Contracts\Context;
+use Debloater\Contracts\Evidence;
+use Debloater\Contracts\Fact;
+use Debloater\Contracts\FactSet;
+use Debloater\Contracts\Finding;
+use Debloater\Contracts\Impact;
+use Debloater\Contracts\PreviewPlan;
+use Debloater\Contracts\ProbeResult;
+use Debloater\Contracts\Recommendation;
+use Debloater\Contracts\Snapshot;
+use Debloater\Contracts\SnapshotItem;
+use Debloater\Contracts\Tweak;
+use Debloater\Contracts\TweakParams;
+use Debloater\Contracts\VerificationResult;
+use Debloater\Tests\Unit\Support\Build;
 
 /**
  * Contracts are persisted into runs.payload and read back later, so a lossy

@@ -12,7 +12,7 @@
   "params": {},
   "description": "WooCommerce enqueues its block stylesheets site-wide. This keeps them on every WooCommerce page and on any page whose content contains a WooCommerce block, and drops them elsewhere.",
   "breaks": [
-    "A WooCommerce block inside a template part, a widget area or a page builder is not visible to this check and would lose its styling; such a theme uses the wpdebloat_woo_page_needs_block_styles filter"
+    "A WooCommerce block inside a template part, a widget area or a page builder is not visible to this check and would lose its styling; such a theme uses the debloater_woo_page_needs_block_styles filter"
   ],
   "requires": [
     "fact:plugins.detected.woocommerce=true"

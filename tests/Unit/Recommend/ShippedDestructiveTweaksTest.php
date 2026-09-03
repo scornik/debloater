@@ -1,19 +1,19 @@
 <?php
 /**
- * The destructive tweaks WP Debloat actually ships.
+ * The destructive tweaks Debloater actually ships.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Tests\Unit\Recommend;
+namespace Debloater\Tests\Unit\Recommend;
 
 use PHPUnit\Framework\TestCase;
-use WPDebloat\Contracts\SnapshotLevel;
-use WPDebloat\Contracts\TweakKind;
-use WPDebloat\Registry\Loader;
-use WPDebloat\Registry\Registry;
+use Debloater\Contracts\SnapshotLevel;
+use Debloater\Contracts\TweakKind;
+use Debloater\Registry\Loader;
+use Debloater\Registry\Registry;
 
 /**
  * BUILD-SPEC §7.4 and §17 Phase 10.
@@ -172,7 +172,7 @@ final class ShippedDestructiveTweaksTest extends TestCase {
 			$implements = class_implements( $definition->handler );
 
 			$this->assertContains(
-				'WPDebloat\\Contracts\\DataOperationInterface',
+				'Debloater\\Contracts\\DataOperationInterface',
 				is_array( $implements ) ? $implements : array(),
 				$definition->handler . ' must implement DataOperationInterface'
 			);
@@ -195,7 +195,7 @@ final class ShippedDestructiveTweaksTest extends TestCase {
 
 			$class = $definition->handler;
 
-			/** @var \WPDebloat\Contracts\DataOperationInterface $operation */
+			/** @var \Debloater\Contracts\DataOperationInterface $operation */
 			$operation = new $class();
 
 			$this->assertSame(

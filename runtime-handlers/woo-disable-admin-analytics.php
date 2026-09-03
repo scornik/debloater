@@ -4,12 +4,12 @@
  *
  * See core-remove-generator.php for the rules every runtime handler follows.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 defined( 'ABSPATH' ) || exit;
 
-if ( ! class_exists( 'WPDebloat_Handler_Woo_Disable_Admin_Analytics', false ) ) {
+if ( ! class_exists( 'Debloater_Handler_Woo_Disable_Admin_Analytics', false ) ) {
 
 	/**
 	 * Turns off the Analytics section of WooCommerce Admin.
@@ -27,7 +27,7 @@ if ( ! class_exists( 'WPDebloat_Handler_Woo_Disable_Admin_Analytics', false ) ) 
 	 * Done through `woocommerce_admin_features`, which is WooCommerce's own
 	 * documented filter for exactly this.
 	 */
-	final class WPDebloat_Handler_Woo_Disable_Admin_Analytics {
+	final class Debloater_Handler_Woo_Disable_Admin_Analytics {
 
 		/**
 		 * Register the handler's hooks.

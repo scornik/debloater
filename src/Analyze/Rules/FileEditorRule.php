@@ -2,24 +2,24 @@
 /**
  * Analyzer rule: wp.file_editor.enabled.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Analyze\Rules;
+namespace Debloater\Analyze\Rules;
 
-use WPDebloat\Contracts\Category;
-use WPDebloat\Contracts\FactSet;
-use WPDebloat\Contracts\Finding;
-use WPDebloat\Contracts\Severity;
+use Debloater\Contracts\Category;
+use Debloater\Contracts\FactSet;
+use Debloater\Contracts\Finding;
+use Debloater\Contracts\Severity;
 
 /**
  * Reports that the built-in theme and plugin file editor is available. Info only.
  *
  * Turning this off is a well-known hardening step, and it would be easy to
  * present it as a one-click fix. It is not one, for a reason worth stating: the
- * change lives in `wp-config.php`, not in a hook, and WP Debloat does not edit
+ * change lives in `wp-config.php`, not in a hook, and Debloater does not edit
  * `wp-config.php`.
  *
  * That is a deliberate limit rather than a missing feature. A plugin that
@@ -73,15 +73,15 @@ final class FileEditorRule extends AbstractRule {
 			array(
 				'category' => Category::CONFIGURATION,
 				'severity' => Severity::LOW,
-				'title'    => __( 'Theme and plugin files can be edited from the dashboard', 'wp-debloat' ),
-				'summary'  => __( 'The built-in file editor is available under Appearance and Plugins.', 'wp-debloat' ),
+				'title'    => __( 'Theme and plugin files can be edited from the dashboard', 'debloater' ),
+				'summary'  => __( 'The built-in file editor is available under Appearance and Plugins.', 'debloater' ),
 				'why'      => __(
-					'The file editor lets anyone with administrator access rewrite PHP that runs on every request. That is convenient once and dangerous every other day: it turns a stolen administrator password into the ability to run code, and it makes it easy to break the site with a typo and no way back. Adding define( \'DISALLOW_FILE_EDIT\', true ); to wp-config.php removes it. WP Debloat does not edit wp-config.php — a plugin that rewrites the file every request depends on can take a site offline by getting one line wrong.',
-					'wp-debloat'
+					'The file editor lets anyone with administrator access rewrite PHP that runs on every request. That is convenient once and dangerous every other day: it turns a stolen administrator password into the ability to run code, and it makes it easy to break the site with a typo and no way back. Adding define( \'DISALLOW_FILE_EDIT\', true ); to wp-config.php removes it. Debloater does not edit wp-config.php — a plugin that rewrites the file every request depends on can take a site offline by getting one line wrong.',
+					'debloater'
 				),
 				'evidence' => $this->evidence( $facts )
-					->formatted( __( 'File editor', 'wp-debloat' ), __( 'Available', 'wp-debloat' ), 'wp.file_editor_enabled' )
-					->optional( __( 'Administrators', 'wp-debloat' ), 'users.admin_count' )
+					->formatted( __( 'File editor', 'debloater' ), __( 'Available', 'debloater' ), 'wp.file_editor_enabled' )
+					->optional( __( 'Administrators', 'debloater' ), 'users.admin_count' )
 					->build(),
 			)
 		);

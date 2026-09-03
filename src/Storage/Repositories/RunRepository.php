@@ -2,22 +2,22 @@
 /**
  * Reads and writes run records.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Storage\Repositories;
+namespace Debloater\Storage\Repositories;
 
 use RuntimeException;
-use WPDebloat\Contracts\ContractViolation;
-use WPDebloat\Contracts\Json;
-use WPDebloat\Contracts\Run;
-use WPDebloat\Contracts\RunType;
-use WPDebloat\Storage\Schema;
+use Debloater\Contracts\ContractViolation;
+use Debloater\Contracts\Json;
+use Debloater\Contracts\Run;
+use Debloater\Contracts\RunType;
+use Debloater\Storage\Schema;
 
 /**
- * Persistence for wpdebloat_runs (BUILD-SPEC §8).
+ * Persistence for debloater_runs (BUILD-SPEC §8).
  *
  * A run written by a newer version of the plugin, or corrupted in storage, is
  * reported as unreadable rather than crashing the screen that lists it. The

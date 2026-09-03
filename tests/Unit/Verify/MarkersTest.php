@@ -2,16 +2,16 @@
 /**
  * Deciding whether a page rendered, from its text.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Tests\Unit\Verify;
+namespace Debloater\Tests\Unit\Verify;
 
 use PHPUnit\Framework\TestCase;
-use WPDebloat\Verify\Markers;
-use WPDebloat\Verify\Response;
+use Debloater\Verify\Markers;
+use Debloater\Verify\Response;
 
 /**
  * BUILD-SPEC §11, docs/DECISIONS.md D-0019.

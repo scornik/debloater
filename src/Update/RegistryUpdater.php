@@ -2,21 +2,21 @@
 /**
  * Checking for a newer registry, and refusing most of what it is offered.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Update;
+namespace Debloater\Update;
 
 use RuntimeException;
 use Throwable;
-use WPDebloat\Contracts\Json;
+use Debloater\Contracts\Json;
 
 /**
  * The opt-in registry update check (BUILD-SPEC §13 rule 9, §17 Phase 17).
  *
- * The registry decides what WP Debloat offers to change about a site. Anything
+ * The registry decides what Debloater offers to change about a site. Anything
  * that can replace it can change what this plugin does to somebody's shop, so
  * the update path is written as a series of refusals with one narrow way
  * through:
@@ -140,7 +140,7 @@ final class RegistryUpdater {
 			return $this->unavailable(
 				__(
 					'The registry update check is off, so nothing was requested. Nothing leaves this server unless you ask for it.',
-					'wp-debloat'
+					'debloater'
 				)
 			);
 		}
@@ -258,7 +258,7 @@ final class RegistryUpdater {
 			throw new RuntimeException(
 				__(
 					'The registry release is not signed with the key this plugin trusts. Nothing was installed.',
-					'wp-debloat'
+					'debloater'
 				)
 			);
 		}
@@ -268,7 +268,7 @@ final class RegistryUpdater {
 				UpdateCheck::CURRENT,
 				$this->current_tag,
 				$manifest->tag,
-				__( 'The registry is already the newest release.', 'wp-debloat' )
+				__( 'The registry is already the newest release.', 'debloater' )
 			);
 		}
 
@@ -278,7 +278,7 @@ final class RegistryUpdater {
 			$manifest->tag,
 			sprintf(
 				/* translators: 1: offered tag, 2: current tag. */
-				__( 'Registry release %1$s is available and its signature checks out. This site has %2$s.', 'wp-debloat' ),
+				__( 'Registry release %1$s is available and its signature checks out. This site has %2$s.', 'debloater' ),
 				$manifest->tag,
 				$this->current_tag
 			)
@@ -293,13 +293,13 @@ final class RegistryUpdater {
 	 * @throws RuntimeException When the request fails or answers with anything but 200.
 	 */
 	private function fetch( string $url ): string {
-		// phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.wp_remote_get_wp_remote_get -- vip_safe_wp_remote_get() exists only on VIP, and WP Debloat ships with zero runtime dependencies. What it buys — a bounded timeout and a graceful failure — this call already has.
+		// phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.wp_remote_get_wp_remote_get -- vip_safe_wp_remote_get() exists only on VIP, and Debloater ships with zero runtime dependencies. What it buys — a bounded timeout and a graceful failure — this call already has.
 		$response = wp_remote_get(
 			$url,
 			array(
 				'timeout'    => self::TIMEOUT,
 				'sslverify'  => true,
-				'user-agent' => 'WP Debloat; registry update check',
+				'user-agent' => 'Debloater; registry update check',
 			)
 		);
 

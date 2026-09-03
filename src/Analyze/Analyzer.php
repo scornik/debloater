@@ -2,18 +2,18 @@
 /**
  * Turns facts into findings.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Analyze;
+namespace Debloater\Analyze;
 
 use Throwable;
-use WPDebloat\Contracts\AnalyzerRuleInterface;
-use WPDebloat\Contracts\FactSet;
-use WPDebloat\Contracts\Finding;
-use WPDebloat\Registry\Registry;
+use Debloater\Contracts\AnalyzerRuleInterface;
+use Debloater\Contracts\FactSet;
+use Debloater\Contracts\Finding;
+use Debloater\Registry\Registry;
 
 /**
  * Runs every rule and assembles the result (BUILD-SPEC §6, §17 Phase 3).

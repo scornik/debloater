@@ -2,12 +2,12 @@
 /**
  * Repository-level invariants that no single class owns.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Tests\Unit;
+namespace Debloater\Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
 
@@ -42,7 +42,7 @@ final class RepositoryInvariantsTest extends TestCase {
 		$composer = $this->composerJson();
 
 		$this->assertSame(
-			array( 'WPDebloat\\' => 'src/' ),
+			array( 'Debloater\\' => 'src/' ),
 			$composer['autoload']['psr-4']
 		);
 	}
@@ -90,7 +90,7 @@ final class RepositoryInvariantsTest extends TestCase {
 			$contents = file_get_contents( $path );
 
 			$this->assertIsString( $contents );
-			$this->assertStringContainsString( '@package WPDebloat', $contents, $path . ' needs a file docblock' );
+			$this->assertStringContainsString( '@package Debloater', $contents, $path . ' needs a file docblock' );
 		}
 	}
 
@@ -141,14 +141,14 @@ final class RepositoryInvariantsTest extends TestCase {
 	 * Phase 11 added the plugin categories and the host optimizers; Phase 12
 	 * added the admin-notice vendor allowlist.
 	 *
-	 * The schema for the configuration document `wp debloat export` writes is
+	 * The schema for the configuration document `wp debloater export` writes is
 	 * deliberately not here: that is not registry content, and it lives in
 	 * `schemas/`, checked below.
 	 *
 	 * @return void
 	 */
 	public function test_registry_schemas_are_valid_json(): void {
-		$schemas = glob( WPDEBLOAT_TESTS_ROOT . '/registry/schemas/*.schema.json' );
+		$schemas = glob( DEBLOATER_TESTS_ROOT . '/registry/schemas/*.schema.json' );
 
 		$this->assertIsArray( $schemas );
 
@@ -178,14 +178,14 @@ final class RepositoryInvariantsTest extends TestCase {
 	 * Schemas that describe documents rather than registry content live apart.
 	 *
 	 * `registry/schemas` holds exactly the six documents §4 names. The
-	 * configuration file `wp debloat export` writes is not registry content, so
+	 * configuration file `wp debloater export` writes is not registry content, so
 	 * it lives in `schemas/` — where the same rules about being valid draft-07
 	 * with a title and a description still apply.
 	 *
 	 * @return void
 	 */
 	public function test_document_schemas_are_valid_json(): void {
-		$schemas = glob( WPDEBLOAT_TESTS_ROOT . '/schemas/*.schema.json' );
+		$schemas = glob( DEBLOATER_TESTS_ROOT . '/schemas/*.schema.json' );
 
 		$this->assertIsArray( $schemas );
 		$this->assertNotEmpty( $schemas );
@@ -221,7 +221,7 @@ final class RepositoryInvariantsTest extends TestCase {
 	 */
 	public function test_fixtures_are_valid_json(): void {
 		$iterator = new \RecursiveIteratorIterator(
-			new \RecursiveDirectoryIterator( WPDEBLOAT_TESTS_ROOT . '/tests/Fixtures', \FilesystemIterator::SKIP_DOTS )
+			new \RecursiveDirectoryIterator( DEBLOATER_TESTS_ROOT . '/tests/Fixtures', \FilesystemIterator::SKIP_DOTS )
 		);
 
 		$count = 0;
@@ -251,7 +251,7 @@ final class RepositoryInvariantsTest extends TestCase {
 	 * @return void
 	 */
 	public function test_phase_zero_decisions_are_recorded(): void {
-		$decisions = file_get_contents( WPDEBLOAT_TESTS_ROOT . '/docs/DECISIONS.md' );
+		$decisions = file_get_contents( DEBLOATER_TESTS_ROOT . '/docs/DECISIONS.md' );
 
 		$this->assertIsString( $decisions );
 
@@ -266,7 +266,7 @@ final class RepositoryInvariantsTest extends TestCase {
 	 * @return array<string,mixed>
 	 */
 	private function composerJson(): array {
-		$raw = file_get_contents( WPDEBLOAT_TESTS_ROOT . '/composer.json' );
+		$raw = file_get_contents( DEBLOATER_TESTS_ROOT . '/composer.json' );
 
 		$this->assertIsString( $raw );
 
@@ -289,7 +289,7 @@ final class RepositoryInvariantsTest extends TestCase {
 		foreach ( $directories as $directory ) {
 			$iterator = new \RecursiveIteratorIterator(
 				new \RecursiveDirectoryIterator(
-					WPDEBLOAT_TESTS_ROOT . '/' . $directory,
+					DEBLOATER_TESTS_ROOT . '/' . $directory,
 					\FilesystemIterator::SKIP_DOTS
 				)
 			);

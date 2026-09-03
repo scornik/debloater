@@ -2,14 +2,14 @@
 /**
  * The tweaks a set of findings supports.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Recommend;
+namespace Debloater\Recommend;
 
-use WPDebloat\Contracts\Tweak;
+use Debloater\Contracts\Tweak;
 
 /**
  * Everything the findings support, before any profile filtering.

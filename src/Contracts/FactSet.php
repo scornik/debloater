@@ -2,12 +2,12 @@
 /**
  * The complete set of facts produced by one scan run.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Contracts;
+namespace Debloater\Contracts;
 
 /**
  * An immutable collection of facts, keyed by fact key (BUILD-SPEC §5).

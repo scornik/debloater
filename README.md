@@ -1,9 +1,9 @@
-# WP Debloat
+# Debloater
 
 Evidence-based WordPress configuration auditing, with safe and reversible
 changes.
 
-WP Debloat scans a site, reports what it actually found with the facts behind
+Debloater scans a site, reports what it actually found with the facts behind
 each conclusion, and only then offers changes — each with its own risk level, a
 confidence figure, a plain statement of what will stop working, and a recovery
 point taken before anything is touched. If verification fails after a change, it
@@ -49,20 +49,20 @@ queries. That is asserted by a test, not assumed.
 
 ## Using it from the command line
 
-Everything the plugin does is available as `wp debloat`, driving the same engine
+Everything the plugin does is available as `wp debloater`, driving the same engine
 as the dashboard.
 
 ```bash
-wp debloat scan                                # look, and record what was found
-wp debloat findings --risk=low                 # what it concluded, and why
-wp debloat preview --profile=safe              # what would change; changes nothing
-wp debloat apply --profile=safe --yes          # take a recovery point, apply, verify
-wp debloat verify                              # check the site without changing it
-wp debloat rollback --yes                      # put it back
-wp debloat status                              # what is in place right now
-wp debloat snapshots list                      # the recovery points
-wp debloat export --file=wp-debloat.json       # configuration as code
-wp debloat import wp-debloat.json --apply --yes
+wp debloater scan                                # look, and record what was found
+wp debloater findings --risk=low                 # what it concluded, and why
+wp debloater preview --profile=safe              # what would change; changes nothing
+wp debloater apply --profile=safe --yes          # take a recovery point, apply, verify
+wp debloater verify                              # check the site without changing it
+wp debloater rollback --yes                      # put it back
+wp debloater status                              # what is in place right now
+wp debloater snapshots list                      # the recovery points
+wp debloater export --file=debloater.json       # configuration as code
+wp debloater import debloater.json --apply --yes
 ```
 
 Exit codes are meant for scripts: `0` worked, `1` refused, `2` the change was

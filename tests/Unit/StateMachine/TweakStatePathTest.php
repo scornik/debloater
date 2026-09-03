@@ -2,16 +2,16 @@
 /**
  * Finding a legal route between two tweak states.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Tests\Unit\StateMachine;
+namespace Debloater\Tests\Unit\StateMachine;
 
 use PHPUnit\Framework\TestCase;
-use WPDebloat\Apply\TweakStateMachine;
-use WPDebloat\Contracts\TweakState;
+use Debloater\Apply\TweakStateMachine;
+use Debloater\Contracts\TweakState;
 
 /**
  * BUILD-SPEC §9.1.

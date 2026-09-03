@@ -2,22 +2,22 @@
 /**
  * The admin screens, against a real WordPress install.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Tests\Integration;
+namespace Debloater\Tests\Integration;
 
-use WPDebloat\Analyze\Score;
-use WPDebloat\Registry\SchemaValidator;
-use WPDebloat\Scan\Sources;
+use Debloater\Analyze\Score;
+use Debloater\Registry\SchemaValidator;
+use Debloater\Scan\Sources;
 
 /**
  * BUILD-SPEC §17 Phase 12.
  *
  * Two claims are worth more than the counting: that every admin change can be
- * taken back exactly, and that WP Debloat itself never prints anything into the
+ * taken back exactly, and that Debloater itself never prints anything into the
  * area it is offering to tidy up.
  */
 final class AdminIntelligenceTest extends IntegrationTestCase {
@@ -95,7 +95,7 @@ final class AdminIntelligenceTest extends IntegrationTestCase {
 	public function test_inside_the_admin_the_facts_are_real(): void {
 		$facts = $this->adminFacts();
 
-		$violations = SchemaValidator::fromFile( WPDEBLOAT_TESTS_ROOT . '/registry/schemas/fact.schema.json' )
+		$violations = SchemaValidator::fromFile( DEBLOATER_TESTS_ROOT . '/registry/schemas/fact.schema.json' )
 			->validate( $facts->toArray() );
 
 		$this->assertSame( array(), $violations, implode( '; ', array_map( 'strval', $violations ) ) );
@@ -266,7 +266,7 @@ final class AdminIntelligenceTest extends IntegrationTestCase {
 		$this->loadRuntime();
 
 		wp_set_current_user( $author );
-		\WPDebloat_Handler_Admin_Hide_Update_Nags_Non_Admins::hide_for_others();
+		\Debloater_Handler_Admin_Hide_Update_Nags_Non_Admins::hide_for_others();
 
 		$this->assertFalse(
 			has_action( 'admin_notices', 'update_nag' ),
@@ -277,7 +277,7 @@ final class AdminIntelligenceTest extends IntegrationTestCase {
 		add_action( 'admin_notices', 'update_nag', 3 );
 
 		wp_set_current_user( $administrator );
-		\WPDebloat_Handler_Admin_Hide_Update_Nags_Non_Admins::hide_for_others();
+		\Debloater_Handler_Admin_Hide_Update_Nags_Non_Admins::hide_for_others();
 
 		$this->assertNotFalse(
 			has_action( 'admin_notices', 'update_nag' ),
@@ -309,7 +309,7 @@ final class AdminIntelligenceTest extends IntegrationTestCase {
 		);
 		$this->loadRuntime();
 
-		\WPDebloat_Handler_Admin_Suppress_Promo_Notices::hide_notices();
+		\Debloater_Handler_Admin_Suppress_Promo_Notices::hide_notices();
 
 		$this->assertNotFalse(
 			has_action( 'admin_notices', $ours ),
@@ -380,7 +380,7 @@ final class AdminIntelligenceTest extends IntegrationTestCase {
 	}
 
 	/**
-	 * WP Debloat prints nothing into the admin notice area, on any screen.
+	 * Debloater prints nothing into the admin notice area, on any screen.
 	 *
 	 * The whole phase is about other people's interruptions. Adding one of our
 	 * own while doing it would be the single most embarrassing possible bug, so
@@ -388,18 +388,18 @@ final class AdminIntelligenceTest extends IntegrationTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_wp_debloat_registers_no_admin_notices(): void {
+	public function test_debloater_registers_no_admin_notices(): void {
 		$notices = $this->adminFacts()->value( 'admin.notices', array() );
 
 		$this->assertIsArray( $notices );
 
-		$ours = Sources::fromPath( WPDEBLOAT_TESTS_ROOT . '/src/Plugin.php' );
+		$ours = Sources::fromPath( DEBLOATER_TESTS_ROOT . '/src/Plugin.php' );
 
 		foreach ( $notices as $notice ) {
 			$this->assertNotSame(
 				$ours,
 				$notice['source'],
-				'WP Debloat must never put anything in the admin notice area'
+				'Debloater must never put anything in the admin notice area'
 			);
 		}
 	}
@@ -407,9 +407,9 @@ final class AdminIntelligenceTest extends IntegrationTestCase {
 	/**
 	 * Facts from a scan taken on the dashboard.
 	 *
-	 * @return \WPDebloat\Contracts\FactSet
+	 * @return \Debloater\Contracts\FactSet
 	 */
-	private function adminFacts(): \WPDebloat\Contracts\FactSet {
+	private function adminFacts(): \Debloater\Contracts\FactSet {
 		set_current_screen( 'dashboard' );
 
 		wp_dashboard_setup();
@@ -478,11 +478,11 @@ final class AdminIntelligenceTest extends IntegrationTestCase {
 			static function ( $preempt, $args, $url ) use ( $plugin ) {
 				unset( $preempt, $args );
 
-				if ( 0 === strpos( $url, rest_url( 'wpdebloat/v1/status' ) ) ) {
+				if ( 0 === strpos( $url, rest_url( 'debloater/v1/status' ) ) ) {
 					$body = (string) wp_json_encode(
 						array(
 							'runtime' => array( 'hash' => $plugin->state()->runtimeHash() ),
-							'loader'  => array( 'mode' => \WPDebloat\Apply\RuntimeLoader::MODE_MU_PLUGIN ),
+							'loader'  => array( 'mode' => \Debloater\Apply\RuntimeLoader::MODE_MU_PLUGIN ),
 						)
 					);
 				} elseif ( 0 === strpos( $url, rest_url() ) ) {

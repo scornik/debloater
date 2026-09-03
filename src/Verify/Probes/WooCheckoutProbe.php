@@ -2,17 +2,17 @@
 /**
  * Does the checkout still work.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Verify\Probes;
+namespace Debloater\Verify\Probes;
 
 /**
  * GET the checkout page as a guest (BUILD-SPEC §11).
  *
- * The most important probe in the product. Everything WP Debloat does to a store
+ * The most important probe in the product. Everything Debloater does to a store
  * is worth less than one broken checkout, and this is the assertion that turns
  * that sentence into behaviour: every WooCommerce tweak lists this probe, so a
  * change that breaks it is rolled back rather than committed.
@@ -55,6 +55,6 @@ final class WooCheckoutProbe extends AbstractWooProbe {
 	 * @return string
 	 */
 	protected function describe(): string {
-		return __( 'The checkout', 'wp-debloat' );
+		return __( 'The checkout', 'debloater' );
 	}
 }

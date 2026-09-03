@@ -2,18 +2,18 @@
 /**
  * Turns findings into a set of tweaks to propose.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Recommend;
+namespace Debloater\Recommend;
 
-use WPDebloat\Contracts\FactSet;
-use WPDebloat\Contracts\Finding;
-use WPDebloat\Contracts\Tweak;
-use WPDebloat\Registry\Profile;
-use WPDebloat\Registry\Registry;
+use Debloater\Contracts\FactSet;
+use Debloater\Contracts\Finding;
+use Debloater\Contracts\Tweak;
+use Debloater\Registry\Profile;
+use Debloater\Registry\Registry;
 
 /**
  * Findings + intent + compatibility + registry → tweaks (BUILD-SPEC §2, §17
@@ -217,7 +217,7 @@ final class RecommendationEngine {
 		if ( ! $this->registry->has( $recommendation->tweak_id ) ) {
 			return sprintf(
 				/* translators: %s: tweak id. */
-				__( 'The tweak "%s" is not in this version of the registry.', 'wp-debloat' ),
+				__( 'The tweak "%s" is not in this version of the registry.', 'debloater' ),
 				$recommendation->tweak_id
 			);
 		}

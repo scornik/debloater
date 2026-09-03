@@ -2,12 +2,12 @@
 /**
  * Contract for a single analyzer rule.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Contracts;
+namespace Debloater\Contracts;
 
 /**
  * One rule, one finding id (BUILD-SPEC §17 Phase 3).

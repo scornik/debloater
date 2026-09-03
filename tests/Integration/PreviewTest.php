@@ -2,16 +2,16 @@
 /**
  * Previewing a plan against a real site.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Tests\Integration;
+namespace Debloater\Tests\Integration;
 
 use WP_REST_Request;
-use WPDebloat\Brand;
-use WPDebloat\Recommend\IntentProfile;
+use Debloater\Brand;
+use Debloater\Recommend\IntentProfile;
 
 /**
  * BUILD-SPEC §17 Phase 4.

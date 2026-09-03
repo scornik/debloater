@@ -1,5 +1,5 @@
 {
-  "name": "wp-debloat",
+  "name": "debloater",
   "version": "0.1.0",
   "description": "Evidence-based WordPress configuration auditing and safe, reversible debloating.",
   "license": "GPL-2.0-or-later",
@@ -15,15 +15,19 @@
     "env:destroy": "wp-env destroy",
     "env:clean": "wp-env clean all",
     "test:integration": "npm run test:integration:main && npm run test:integration:fail-probe",
-    "test:integration:main": "wp-env run tests-cli --env-cwd=wp-content/plugins/wp-debloat php tools/phpunit-9.phar -c phpunit-wp.xml.dist",
-    "test:integration:fail-probe": "wp-env run tests-cli --env-cwd=wp-content/plugins/wp-debloat php tools/phpunit-9.phar -c phpunit-wp-fail-probe.xml.dist",
-    "test:cli": "wp-env run cli --env-cwd=wp-content/plugins/wp-debloat sh tools/cli-e2e.sh",
-    "lint:php": "wp-env run cli --env-cwd=wp-content/plugins/wp-debloat vendor/bin/phpcs --standard=phpcs.xml.dist",
+    "test:integration:main": "wp-env run tests-cli --env-cwd=wp-content/plugins/debloater php tools/phpunit-9.phar -c phpunit-wp.xml.dist",
+    "test:integration:fail-probe": "wp-env run tests-cli --env-cwd=wp-content/plugins/debloater php tools/phpunit-9.phar -c phpunit-wp-fail-probe.xml.dist",
+    "test:cli": "wp-env run cli --env-cwd=wp-content/plugins/debloater sh tools/cli-e2e.sh",
+    "lint:php": "wp-env run cli --env-cwd=wp-content/plugins/debloater vendor/bin/phpcs --standard=phpcs.xml.dist",
     "test:integration:setup": "node tools/download-phpunit.mjs",
-    "env:seed": "wp-env run cli --env-cwd=wp-content/plugins/wp-debloat wp eval-file tools/seed-fixture.php",
+    "env:seed": "wp-env run cli --env-cwd=wp-content/plugins/debloater wp eval-file tools/seed-fixture.php",
     "test:e2e": "playwright test",
     "test:e2e:install": "playwright install --with-deps chromium",
-    "test:e2e:seed": "wp-env run cli --env-cwd=wp-content/plugins/wp-debloat wp eval-file tools/seed-e2e.php"
+    "test:e2e:seed": "wp-env run cli --env-cwd=wp-content/plugins/debloater wp eval-file tools/seed-e2e.php",
+    "plugin-zip": "node tools/build-zip.mjs",
+    "i18n:pot": "wp-env run cli --env-cwd=wp-content/plugins/debloater wp i18n make-pot . languages/debloater.pot --slug=debloater --domain=debloater --exclude=tests,tools,node_modules,admin-ui,vendor,docs,dist --headers={\\\"Report-Msgid-Bugs-To\\\":\\\"https://github.com/scornik/debloater/issues\\\",\\\"Last-Translator\\\":\\\"\\\",\\\"Language-Team\\\":\\\"\\\"}",
+    "i18n:json": "wp-env run cli --env-cwd=wp-content/plugins/debloater wp i18n make-json languages --no-purge",
+    "plugin-check": "wp-env run cli --env-cwd=wp-content/plugins/debloater wp plugin check debloater --format=table"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1",

@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://wp-debloat.hakeemify.com/schemas/compat.schema.json",
+  "$id": "https://debloater.hakeemify.com/schemas/compat.schema.json",
   "title": "Compatibility rule",
   "description": "States what a detected plugin, theme or stack component depends on. The CompatibilityResolver turns these into dependencies_detected counts and dont_touch decisions; a compatibility rule never names a tweak.",
   "type": "object",

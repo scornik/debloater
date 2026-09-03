@@ -2,14 +2,14 @@
 /**
  * A plan and an account of what was left out of it.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Recommend;
+namespace Debloater\Recommend;
 
-use WPDebloat\Contracts\PreviewPlan;
+use Debloater\Contracts\PreviewPlan;
 
 /**
  * The plan, plus why each candidate that did not make it was excluded.

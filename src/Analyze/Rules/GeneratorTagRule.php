@@ -2,17 +2,17 @@
 /**
  * Analyzer rule: wp.generator.exposed.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Analyze\Rules;
+namespace Debloater\Analyze\Rules;
 
-use WPDebloat\Contracts\Category;
-use WPDebloat\Contracts\Impact;
-use WPDebloat\Contracts\Risk;
-use WPDebloat\Contracts\Severity;
+use Debloater\Contracts\Category;
+use Debloater\Contracts\Impact;
+use Debloater\Contracts\Risk;
+use Debloater\Contracts\Severity;
 
 /**
  * Fires when core still prints the meta generator tag.
@@ -100,7 +100,7 @@ final class GeneratorTagRule extends CoreFeatureRule {
 	 * @return string
 	 */
 	protected function title(): string {
-		return __( 'The exact WordPress version is published on every page', 'wp-debloat' );
+		return __( 'The exact WordPress version is published on every page', 'debloater' );
 	}
 
 	/**
@@ -109,7 +109,7 @@ final class GeneratorTagRule extends CoreFeatureRule {
 	 * @return string
 	 */
 	protected function summary(): string {
-		return __( 'Every page and every feed carries a meta tag naming the WordPress version this site runs.', 'wp-debloat' );
+		return __( 'Every page and every feed carries a meta tag naming the WordPress version this site runs.', 'debloater' );
 	}
 
 	/**
@@ -118,7 +118,7 @@ final class GeneratorTagRule extends CoreFeatureRule {
 	 * @return string
 	 */
 	protected function why(): string {
-		return __( 'Knowing the version does not let anyone in, but it does let an automated scanner skip straight to the exploits that work against it. Removing the tag costs nothing and removes the site from that shortlist.', 'wp-debloat' );
+		return __( 'Knowing the version does not let anyone in, but it does let an automated scanner skip straight to the exploits that work against it. Removing the tag costs nothing and removes the site from that shortlist.', 'debloater' );
 	}
 
 	/**
@@ -127,6 +127,6 @@ final class GeneratorTagRule extends CoreFeatureRule {
 	 * @return string
 	 */
 	protected function evidenceLabel(): string {
-		return __( 'Generator tag', 'wp-debloat' );
+		return __( 'Generator tag', 'debloater' );
 	}
 }

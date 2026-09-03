@@ -2,12 +2,12 @@
 /**
  * One schema validation failure.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Registry;
+namespace Debloater\Registry;
 
 /**
  * A single validation failure, located by JSON pointer.

@@ -3,17 +3,17 @@
  * Plugin intelligence against a real install, and the promise about the
  * network.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Tests\Integration;
+namespace Debloater\Tests\Integration;
 
 use WP_REST_Request;
-use WPDebloat\Brand;
-use WPDebloat\Registry\SchemaValidator;
-use WPDebloat\Scan\WpOrgUpdates;
+use Debloater\Brand;
+use Debloater\Registry\SchemaValidator;
+use Debloater\Scan\WpOrgUpdates;
 
 /**
  * BUILD-SPEC §13 rule 9 and §17 Phase 11.
@@ -78,7 +78,7 @@ final class PluginIntelligenceTest extends IntegrationTestCase {
 		}
 
 		foreach ( array_keys( get_plugins() ) as $plugin_file ) {
-			delete_transient( 'wpdebloat_wporg_' . md5( \WPDebloat\Scan\Scanners\PluginScanner::slugOf( $plugin_file ) ) );
+			delete_transient( 'debloater_wporg_' . md5( \Debloater\Scan\Scanners\PluginScanner::slugOf( $plugin_file ) ) );
 		}
 
 		update_option( 'active_plugins', array() );
@@ -319,7 +319,7 @@ final class PluginIntelligenceTest extends IntegrationTestCase {
 	public function test_the_new_facts_validate_and_describe_the_site(): void {
 		$facts = $this->plugin->scanRunner()->collect( $this->context() )->facts;
 
-		$violations = SchemaValidator::fromFile( WPDEBLOAT_TESTS_ROOT . '/registry/schemas/fact.schema.json' )
+		$violations = SchemaValidator::fromFile( DEBLOATER_TESTS_ROOT . '/registry/schemas/fact.schema.json' )
 			->validate( $facts->toArray() );
 
 		$this->assertSame( array(), $violations, implode( '; ', array_map( 'strval', $violations ) ) );
@@ -360,7 +360,7 @@ final class PluginIntelligenceTest extends IntegrationTestCase {
 		$facts = $this->plugin->scanRunner()->collect( $this->context() )->facts;
 
 		$this->assertSame(
-			\WPDebloat\Scan\HostVendor::identify(),
+			\Debloater\Scan\HostVendor::identify(),
 			$facts->value( 'env.host_vendor' )
 		);
 	}

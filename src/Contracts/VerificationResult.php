@@ -2,12 +2,12 @@
 /**
  * The aggregate outcome of a verification pass.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Contracts;
+namespace Debloater\Contracts;
 
 /**
  * Verification result (BUILD-SPEC §11).

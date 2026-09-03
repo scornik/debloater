@@ -1,10 +1,40 @@
 # Changelog
 
-All notable changes to WP Debloat are recorded here. The format follows
+All notable changes to Debloater are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [semantic versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+### Changed
+
+- **Renamed to Debloater.** The plugin was called WP Debloat. wordpress.org
+  treats "wp" as a restricted term and refuses a plugin name or slug that
+  carries it, so that name was never submittable
+  (`docs/DECISIONS.md` D-0047).
+
+  The new name is **Debloater – Scan, Fix & Undo WordPress Bloat**, and the
+  slug is `debloater`. "WordPress" is allowed in a display title and not in a
+  slug, so the subtitle carries the word people actually search for.
+
+  This is a full identifier rename rather than a display-only one: the
+  namespace, constants, hook and option prefixes, database tables, capability,
+  REST namespace, WP-CLI command, generated paths, kill-switch query variable,
+  verification header and must-use loader filename all changed. There are zero
+  production installs, so nothing needed migrating and no migration was
+  written; `docs/RENAME-MAP.md` records every token, and the deliberate
+  non-renames.
+
+  Practical consequences for anyone running a development copy:
+
+  - `wp debloat` is now `wp debloater`. There is no alias.
+  - The generated runtime moved from `wp-content/wpdebloat/` to
+    `wp-content/debloater/`, and the loader from `wp-debloat-loader.php` to
+    `debloater-loader.php`.
+  - Tables are `{prefix}debloater_*`, the option is `debloater_state`, and the
+    capability is `debloater_manage`.
+  - Tweak ids (`core.*`, `db.*`, `admin.*`, `woo.*`, `elementor.*`) are
+    unchanged. They identify a change, not a brand.
 
 ### Added
 
@@ -42,15 +72,15 @@ All notable changes to WP Debloat are recorded here. The format follows
     validation, so nothing user-supplied reaches generated code as text.
   - `Apply\RuntimeWriter`: syntax check, atomic temp-file-and-rename, and a
     `runtime.lock` recording the runtime, selection and registry hashes. It
-    refuses to write anywhere but `wp-content/wpdebloat`.
+    refuses to write anywhere but `wp-content/debloater`.
   - The mu-plugin loader, with a documented `plugins_loaded` fallback for hosts
     where `mu-plugins` is not writable, and a runtime guard providing the
-    `WPDEBLOAT_DISABLE` kill switch and an authenticated `?wpdebloat=off` bypass.
+    `DEBLOATER_DISABLE` kill switch and an authenticated `?debloater=off` bypass.
   - `Recommend\DependencyResolver` v1: conflicts resolve in both directions,
     and anything with an unresolved requirement is excluded rather than assumed
     satisfied.
   - `Storage\State`: all plugin state in one option, never autoloaded.
-  - `GET wpdebloat/v1/status`, reporting what is actually on disk — including
+  - `GET debloater/v1/status`, reporting what is actually on disk — including
     when the runtime no longer matches the hash recorded for it.
   - Integration harness on `@wordpress/env`, with the zero-overhead guarantee
     measured rather than assumed: an empty selection registers no hooks and adds
@@ -71,7 +101,7 @@ All notable changes to WP Debloat are recorded here. The format follows
     kept, because interrupting PHP mid-scan would leave a fact set that looks
     complete and is not. A scanner that throws is named in the diagnostics and
     the rest of the scan continues.
-  - Runs are recorded in `wpdebloat_runs` with the facts in the payload and the
+  - Runs are recorded in `debloater_runs` with the facts in the payload and the
     registry hash they were produced against.
   - Two facts §5 lists are deliberately absent rather than guessed:
     `wp.dashicons_frontend` outside a front-end request, and the `admin.*`
@@ -99,7 +129,7 @@ All notable changes to WP Debloat are recorded here. The format follows
   - Six more tweaks completing the MVP set, and six compatibility rules
     recording what WooCommerce, Elementor, Contact Form 7, LiteSpeed and
     Wordfence actually depend on.
-  - `POST wpdebloat/v1/scan` and `GET wpdebloat/v1/findings`. Before any scan,
+  - `POST debloater/v1/scan` and `GET debloater/v1/findings`. Before any scan,
     the findings endpoint says the site has not been scanned rather than
     returning an empty list that reads like good news.
 
@@ -122,7 +152,7 @@ All notable changes to WP Debloat are recorded here. The format follows
   - Three profiles that widen in order. None of them admits a destructive
     change, whatever its own configuration says: deleting rows is never
     something a preset decides on your behalf.
-  - `GET wpdebloat/v1/preview`, which computes a plan from a recorded scan and
+  - `GET debloater/v1/preview`, which computes a plan from a recorded scan and
     changes nothing at all.
 
 - **Phase 5 — snapshots, apply and rollback.**
@@ -140,7 +170,7 @@ All notable changes to WP Debloat are recorded here. The format follows
   - Applying is ordered so that the reversible half goes first: configuration,
     which is a file swap, before data, which is rows put back one at a time.
   - Large recovery points spill to a gzipped file under
-    `wp-content/wpdebloat/backups`, written and read as a stream so neither
+    `wp-content/debloater/backups`, written and read as a stream so neither
     taking nor restoring one needs the whole thing in memory.
   - One change at a time per site, enforced by a lock that a second request
     cannot steal, and a run whose process died is rolled back on the next admin
@@ -171,7 +201,7 @@ All notable changes to WP Debloat are recorded here. The format follows
     not have been checked at all.
 
 - **Phase 7 — the command line.**
-  - The whole loop from a terminal: `wp debloat scan`, `findings`, `preview`,
+  - The whole loop from a terminal: `wp debloater scan`, `findings`, `preview`,
     `apply`, `verify`, `rollback`, `snapshots`, `status`, `export`, `import`.
   - Exit codes a deployment script can act on: `0` worked, `1` refused, `2` the
     change was applied and then rolled back because the site failed its checks,
@@ -228,22 +258,22 @@ All notable changes to WP Debloat are recorded here. The format follows
 ### Added since 0.1.0
 
 - **Phase 17 — where the change list comes from.**
-  - The list of changes WP Debloat knows how to make is now versioned. `wp
-    debloat registry` tells you which release your copy is carrying.
-  - It can check for a newer one — `wp debloat registry --check-updates` — and
+  - The list of changes Debloater knows how to make is now versioned. `wp
+    debloater registry` tells you which release your copy is carrying.
+  - It can check for a newer one — `wp debloater registry --check-updates` — and
     that is the only thing it sends off your server. It is off by default, and
     off means no request at all.
   - Nothing is installed unless it is signed with the key built into your copy
     of the plugin, and every single file has to match the checksum in that
     signed list. If one file does not, the whole update is rejected rather than
     half-applied.
-  - The list is data, never code. WP Debloat will not download anything but
+  - The list is data, never code. Debloater will not download anything but
     JSON, and nothing it downloads is ever executed.
   - `docs/REGISTRY.md` explains how to propose a change to the list, and what
     has to be true before it ships.
 
 
-- **Fixed: the WP Debloat screen did not work on a default WordPress.**
+- **Fixed: the Debloater screen did not work on a default WordPress.**
   On a site using plain permalinks — which is what WordPress uses out of the box
   — every screen showed "No route was found matching the URL and request
   method." and nothing loaded. This affected every version since the admin
@@ -257,18 +287,18 @@ All notable changes to WP Debloat are recorded here. The format follows
     submits a form and opens the Elementor editor.
   - It also forces a verification failure on purpose, and checks that the site
     goes back exactly as it was and that the screen says so.
-  - None of this ships with the plugin — it is a development tool. `wp debloat
+  - None of this ships with the plugin — it is a development tool. `wp debloater
     verify --e2e` tells you how to run it from a checkout.
 
 
 - **Phase 15 — WooCommerce.**
-  - WP Debloat now works out which of your pages are actually part of the shop,
+  - Debloater now works out which of your pages are actually part of the shop,
     and which are not. That matters because WooCommerce's cart-fragments script
     asks your server what is in the cart every time any page loads — including
     the blog and the contact page — and that request can never be cached.
   - It can make that script load only where a cart could appear. **Unless
     something on your site shows a cart away from the shop** — a total in the
-    header, a widget in a sidebar — in which case WP Debloat refuses the change
+    header, a widget in a sidebar — in which case Debloater refuses the change
     outright and tells you which page it saw the cart on. There the script is
     what keeps the total correct, and switching it off would leave a number that
     never updates.
@@ -281,12 +311,12 @@ All notable changes to WP Debloat are recorded here. The format follows
 
 
 - **Phase 14 — Elementor.**
-  - WP Debloat now counts the Elementor widgets your site has registered, which
+  - Debloater now counts the Elementor widgets your site has registered, which
     plugin registered each one, and how many of them your saved designs actually
     use. On a site with a few addon packs the gap is usually large.
   - It says "potentially unused", and means it. A widget can reach a page through
     a dynamic tag, a shortcode, a theme-builder template or a custom code block
-    without the saved design ever naming it, so where WP Debloat sees any of
+    without the saved design ever naming it, so where Debloater sees any of
     those it says so and lowers its own confidence.
   - It will never switch a widget off. Elementor has no supported way to remove
     another plugin's widget, and doing it unsupported loses the content on every
@@ -298,7 +328,7 @@ All notable changes to WP Debloat are recorded here. The format follows
 
 
 - **Phase 13 — what your pages actually load.**
-  - WP Debloat now fetches a few of your own pages — the home page and one of
+  - Debloater now fetches a few of your own pages — the home page and one of
     each kind of content, up to ten — and reads the scripts and stylesheets back
     out of them. Every one is attributed to the plugin, theme or WordPress
     itself that it came from, with its size where the file is on your server.
@@ -312,7 +342,7 @@ All notable changes to WP Debloat are recorded here. The format follows
 
 
 - **Phase 12 — the admin screens.**
-  - WP Debloat can now tell you who is putting what on your admin screens: which
+  - Debloater can now tell you who is putting what on your admin screens: which
     plugin registered each notice, each dashboard widget, each menu item.
   - You can take dashboard widgets off, remove the welcome panel, and remove the
     Events and News widget — the one that fetches something over the network
@@ -324,14 +354,14 @@ All notable changes to WP Debloat are recorded here. The format follows
   - You can also hide the admin notices of specific plugins. Read this bit: it
     hides all of them, not just the marketing. WooCommerce, Yoast and the others
     send upgrade prompts and real warnings down the same channel, and nothing
-    tells them apart, so WP Debloat does not claim to. You choose which plugins,
+    tells them apart, so Debloater does not claim to. You choose which plugins,
     one at a time, and it is never something a single click decides for you.
   - Admin joins the score as a sixth sub-score. See docs/SCORING.md, now at
     version 2.0.
 
 
 - **Phase 11 — the plugin list.**
-  - WP Debloat now notices when two plugins are doing the same job — two page
+  - Debloater now notices when two plugins are doing the same job — two page
     caches, two SEO plugins, two backup plugins — and tells you which ones, and
     what running two of that particular kind actually costs. It will not
     deactivate or delete either. Two of something is often deliberate, and a
@@ -341,19 +371,19 @@ All notable changes to WP Debloat are recorded here. The format follows
     knowing, never a recommendation, since plenty of small plugins are simply
     finished.
   - The date behind that comes from your own server unless you ask otherwise, and
-    WP Debloat says which. `wp debloat scan --check-plugin-updates` is the one
+    Debloater says which. `wp debloater scan --check-plugin-updates` is the one
     thing in the whole plugin that sends anything off your server; it asks
     wordpress.org for release dates and nothing else, and it is not remembered.
     The next scan asks again.
   - Where something else on your site — your host's optimizer, or a cache plugin
-    — has its own setting for something WP Debloat found, the finding says so and
+    — has its own setting for something Debloater found, the finding says so and
     says where to look, so you can use one switch instead of two. It does not
     claim the other tool has already dealt with it: if it had, there would be
     nothing to report.
 
 
 - **Phase 10 — the database.**
-  - Five things WP Debloat can now remove: old post revisions, abandoned
+  - Five things Debloater can now remove: old post revisions, abandoned
     auto-drafts, content already in the trash, comments marked as spam, and
     metadata whose owner no longer exists.
   - Every one of them copies each row before deleting it — with its id, its
@@ -370,7 +400,7 @@ All notable changes to WP Debloat are recorded here. The format follows
     complete backup is refused with the box ticked exactly as without it.
   - Autoloaded options are reported in full and changed narrowly: the report
     names the largest whatever they are, and the change touches only names on a
-    list WP Debloat maintains.
+    list Debloater maintains.
 
 ## [0.1.0] — 2026-09-03
 

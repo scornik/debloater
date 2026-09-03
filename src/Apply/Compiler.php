@@ -2,21 +2,21 @@
 /**
  * Turns a selection of tweaks into the generated runtime source.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Apply;
+namespace Debloater\Apply;
 
 use RuntimeException;
-use WPDebloat\Contracts\Context;
-use WPDebloat\Contracts\Json;
-use WPDebloat\Contracts\Tweak;
-use WPDebloat\Contracts\TweakKind;
+use Debloater\Contracts\Context;
+use Debloater\Contracts\Json;
+use Debloater\Contracts\Tweak;
+use Debloater\Contracts\TweakKind;
 
 /**
- * Compiles a selection into the PHP source of wp-content/wpdebloat/runtime.php
+ * Compiles a selection into the PHP source of wp-content/debloater/runtime.php
  * (BUILD-SPEC §10).
  *
  * Three properties matter here and each is enforced rather than assumed.
@@ -79,7 +79,7 @@ final class Compiler {
 		$lines = array(
 			'<?php',
 			'/**',
-			' * WP Debloat runtime. Generated file: DO NOT EDIT.',
+			' * Debloater runtime. Generated file: DO NOT EDIT.',
 			' *',
 			' * Editing this file will not change anything for long; it is rewritten',
 			' * from the saved selection whenever the selection changes. Any change',
@@ -89,9 +89,9 @@ final class Compiler {
 			' * selection ' . $this->selectionHash( $config ),
 			'' === $registry_hash ? ' * registry  (not recorded)' : ' * registry  ' . $registry_hash,
 			' *',
-			' * To switch the runtime off: define( \'WPDEBLOAT_DISABLE\', true ) in wp-config.php.',
+			' * To switch the runtime off: define( \'DEBLOATER_DISABLE\', true ) in wp-config.php.',
 			' *',
-			' * @package WPDebloat',
+			' * @package Debloater',
 			' */',
 			'',
 			'if ( ! defined( \'ABSPATH\' ) ) {',
@@ -100,7 +100,7 @@ final class Compiler {
 			'',
 			'require_once ' . var_export( $this->guardPath(), true ) . ';',
 			'',
-			'if ( WPDebloat_Runtime_Guard::disabled() || WPDebloat_Runtime_Guard::bypass_allowed() ) {',
+			'if ( Debloater_Runtime_Guard::disabled() || Debloater_Runtime_Guard::bypass_allowed() ) {',
 			"\treturn;",
 			'}',
 			'',
@@ -138,7 +138,7 @@ final class Compiler {
 	/**
 	 * The handler class name for a tweak id.
 	 *
-	 * "core.disable_emojis" becomes "WPDebloat_Handler_Core_Disable_Emojis"
+	 * "core.disable_emojis" becomes "Debloater_Handler_Core_Disable_Emojis"
 	 * (CONVENTIONS.md). The id has already been validated against the tweak-id
 	 * grammar, so the result cannot contain anything but word characters.
 	 *
@@ -152,7 +152,7 @@ final class Compiler {
 			throw new RuntimeException( sprintf( 'Could not derive a handler class from "%s".', $tweak_id ) );
 		}
 
-		return 'WPDebloat_Handler_' . implode( '_', array_map( 'ucfirst', $segments ) );
+		return 'Debloater_Handler_' . implode( '_', array_map( 'ucfirst', $segments ) );
 	}
 
 	/**

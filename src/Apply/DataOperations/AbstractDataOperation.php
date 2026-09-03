@@ -2,16 +2,16 @@
 /**
  * What every data operation does the same way.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Apply\DataOperations;
+namespace Debloater\Apply\DataOperations;
 
-use WPDebloat\Contracts\Context;
-use WPDebloat\Contracts\DataOperationInterface;
-use WPDebloat\Contracts\TweakParams;
+use Debloater\Contracts\Context;
+use Debloater\Contracts\DataOperationInterface;
+use Debloater\Contracts\TweakParams;
 
 /**
  * Shared machinery for the operations that delete rows (BUILD-SPEC §17 Phase 10).

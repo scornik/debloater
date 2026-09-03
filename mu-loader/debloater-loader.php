@@ -1,25 +1,25 @@
 <?php
 /**
- * Plugin Name: WP Debloat Loader
- * Description: Loads the WP Debloat generated runtime early, before plugins. Installed automatically; removed when WP Debloat is uninstalled.
+ * Plugin Name: Debloater Loader
+ * Description: Loads the Debloater generated runtime early, before plugins. Installed automatically; removed when Debloater is uninstalled.
  * Version: 1.0.0
  * Author: Hakeemify
  * License: GPL-2.0-or-later
  *
- * This file is copied into wp-content/mu-plugins by WP Debloat on activation.
+ * This file is copied into wp-content/mu-plugins by Debloater on activation.
  * It is intentionally tiny and has no dependencies: it runs on every request to
- * the site, including requests where WP Debloat itself is deactivated or broken.
+ * the site, including requests where Debloater itself is deactivated or broken.
  *
  * Nothing here reads an option, touches the database, or loads the plugin's
  * autoloader. If the generated runtime is absent, the whole file costs one
  * file_exists() call and returns (BUILD-SPEC §10).
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 defined( 'ABSPATH' ) || exit;
 
-if ( ! function_exists( 'wpdebloat_load_runtime' ) ) {
+if ( ! function_exists( 'debloater_load_runtime' ) ) {
 
 	/**
 	 * Load the generated runtime, if there is one and it is intact.
@@ -32,8 +32,8 @@ if ( ! function_exists( 'wpdebloat_load_runtime' ) ) {
 	 *
 	 * @return void
 	 */
-	function wpdebloat_load_runtime() {
-		$directory = ( defined( 'WP_CONTENT_DIR' ) ? WP_CONTENT_DIR : dirname( __DIR__ ) ) . '/wpdebloat';
+	function debloater_load_runtime() {
+		$directory = ( defined( 'WP_CONTENT_DIR' ) ? WP_CONTENT_DIR : dirname( __DIR__ ) ) . '/debloater';
 		$runtime   = $directory . '/runtime.php';
 
 		// The common case for a site with nothing selected: one stat, then out.
@@ -47,7 +47,7 @@ if ( ! function_exists( 'wpdebloat_load_runtime' ) ) {
 			return;
 		}
 
-		$recorded = wpdebloat_runtime_recorded_hash( $lock );
+		$recorded = debloater_runtime_recorded_hash( $lock );
 
 		if ( '' === $recorded ) {
 			return;
@@ -63,7 +63,7 @@ if ( ! function_exists( 'wpdebloat_load_runtime' ) ) {
 	}
 }
 
-if ( ! function_exists( 'wpdebloat_runtime_recorded_hash' ) ) {
+if ( ! function_exists( 'debloater_runtime_recorded_hash' ) ) {
 
 	/**
 	 * Read the runtime hash out of runtime.lock.
@@ -71,7 +71,7 @@ if ( ! function_exists( 'wpdebloat_runtime_recorded_hash' ) ) {
 	 * @param string $lock Absolute path of the lock file.
 	 * @return string The recorded hash, or '' when it cannot be read.
 	 */
-	function wpdebloat_runtime_recorded_hash( $lock ) {
+	function debloater_runtime_recorded_hash( $lock ) {
 		$raw = file_get_contents( $lock ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- Local file, read before WordPress HTTP APIs exist.
 
 		if ( false === $raw ) {
@@ -92,8 +92,8 @@ if ( ! function_exists( 'wpdebloat_runtime_recorded_hash' ) ) {
 	}
 }
 
-if ( ! defined( 'WPDEBLOAT_LOADER_MODE' ) ) {
-	define( 'WPDEBLOAT_LOADER_MODE', 'mu-plugin' );
+if ( ! defined( 'DEBLOATER_LOADER_MODE' ) ) {
+	define( 'DEBLOATER_LOADER_MODE', 'mu-plugin' );
 }
 
-wpdebloat_load_runtime();
+debloater_load_runtime();

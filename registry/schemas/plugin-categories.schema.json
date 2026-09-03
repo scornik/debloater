@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://wp-debloat.hakeemify.com/schemas/plugin-categories.schema.json",
+  "$id": "https://debloater.hakeemify.com/schemas/plugin-categories.schema.json",
   "title": "Plugin category map",
   "description": "One table, not one document per object: which functional category each known plugin slug belongs to, so the analyzer can notice that a site is running two of the same kind of thing. Membership is a statement about what a plugin is for, never about whether it should be there. Nothing in this file names a tweak or implies an action.",
   "type": "object",

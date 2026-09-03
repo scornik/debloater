@@ -2,18 +2,18 @@
 /**
  * Analyzer rule: db.transients.expired.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Analyze\Rules;
+namespace Debloater\Analyze\Rules;
 
-use WPDebloat\Contracts\Category;
-use WPDebloat\Contracts\FactSet;
-use WPDebloat\Contracts\Finding;
-use WPDebloat\Contracts\Risk;
-use WPDebloat\Contracts\Severity;
+use Debloater\Contracts\Category;
+use Debloater\Contracts\FactSet;
+use Debloater\Contracts\Finding;
+use Debloater\Contracts\Risk;
+use Debloater\Contracts\Severity;
 
 /**
  * Fires when expired transients have accumulated in the options table.
@@ -89,19 +89,19 @@ final class ExpiredTransientsRule extends AbstractRule {
 				'category' => Category::DATABASE,
 				'severity' => $expired >= self::SUBSTANTIAL_COUNT ? Severity::MEDIUM : Severity::LOW,
 				'risk'     => Risk::LOW,
-				'title'    => __( 'Expired transients are sitting in the options table', 'wp-debloat' ),
+				'title'    => __( 'Expired transients are sitting in the options table', 'debloater' ),
 				'summary'  => sprintf(
 					/* translators: %s: number of expired transients. */
-					__( '%s transients have passed their expiry time and are still stored.', 'wp-debloat' ),
+					__( '%s transients have passed their expiry time and are still stored.', 'debloater' ),
 					number_format_i18n( $expired )
 				),
 				'why'      => __(
 					'A transient is a cached value with an expiry date. WordPress deletes an expired one the next time something asks for it — which means the ones still here are the ones nothing will ask for again. They stay in the options table until something removes them, taking up space in every backup and every scan of that table.',
-					'wp-debloat'
+					'debloater'
 				),
 				'evidence' => $this->evidence( $facts )
-					->fact( __( 'Expired transients', 'wp-debloat' ), 'db.transients.expired' )
-					->optional( __( 'Transients in total', 'wp-debloat' ), 'db.transients.count' )
+					->fact( __( 'Expired transients', 'debloater' ), 'db.transients.expired' )
+					->optional( __( 'Transients in total', 'debloater' ), 'db.transients.count' )
 					->build(),
 				'impact'   => $this->measurable( 'db.transients_expired', (float) $expired, 'rows' ),
 				'tweak_id' => 'db.clean_expired_transients',

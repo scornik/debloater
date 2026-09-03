@@ -2,12 +2,12 @@
 /**
  * Before, after, and the difference between them.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Meter;
+namespace Debloater\Meter;
 
 /**
  * Deltas from two readings (BUILD-SPEC §12).
@@ -185,16 +185,16 @@ final class Comparison {
 	private function whyUnknown( Measurement $before, ?Measurement $after ): string {
 		if ( ! $before->isAvailable() ) {
 			return '' === $before->unavailable_because
-				? __( 'This was not measured before the change.', 'wp-debloat' )
+				? __( 'This was not measured before the change.', 'debloater' )
 				: $before->unavailable_because;
 		}
 
 		if ( null === $after ) {
-			return __( 'This was not measured after the change.', 'wp-debloat' );
+			return __( 'This was not measured after the change.', 'debloater' );
 		}
 
 		return '' === $after->unavailable_because
-			? __( 'This could not be measured after the change.', 'wp-debloat' )
+			? __( 'This could not be measured after the change.', 'debloater' )
 			: $after->unavailable_because;
 	}
 }

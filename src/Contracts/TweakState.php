@@ -2,12 +2,12 @@
 /**
  * Lifecycle state of a single tweak.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Contracts;
+namespace Debloater\Contracts;
 
 /**
  * Tweak lifecycle (BUILD-SPEC §9.1).
@@ -15,7 +15,7 @@ namespace WPDebloat\Contracts;
  * DISCOVERED -> ELIGIBLE -> RECOMMENDED -> SELECTED -> PREVIEWED -> SNAPSHOTTED
  * -> APPLIED -> VERIFIED -> COMMITTED, with DONT_TOUCH branching off ELIGIBLE and
  * the failure branches converging on ROLLED_BACK. Stored per tweak in
- * wpdebloat_state.tweak_states; every transition writes a journal row.
+ * debloater_state.tweak_states; every transition writes a journal row.
  */
 enum TweakState: string {
 

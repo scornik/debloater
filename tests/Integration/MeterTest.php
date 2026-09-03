@@ -2,19 +2,19 @@
 /**
  * Counting what is there, before and after.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Tests\Integration;
+namespace Debloater\Tests\Integration;
 
 use WP_Error;
-use WPDebloat\Meter\Comparison;
-use WPDebloat\Meter\Measurement;
-use WPDebloat\Meter\MeasurementSet;
-use WPDebloat\Meter\Meter;
-use WPDebloat\Meter\PageMetrics;
+use Debloater\Meter\Comparison;
+use Debloater\Meter\Measurement;
+use Debloater\Meter\MeasurementSet;
+use Debloater\Meter\Meter;
+use Debloater\Meter\PageMetrics;
 
 /**
  * BUILD-SPEC §12.

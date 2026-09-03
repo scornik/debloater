@@ -2,16 +2,16 @@
 /**
  * Shared behaviour for fact collectors.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Scan\Scanners;
+namespace Debloater\Scan\Scanners;
 
-use WPDebloat\Contracts\Context;
-use WPDebloat\Contracts\FactSet;
-use WPDebloat\Contracts\ScannerInterface;
+use Debloater\Contracts\Context;
+use Debloater\Contracts\FactSet;
+use Debloater\Contracts\ScannerInterface;
 
 /**
  * Base for the scanners in BUILD-SPEC §4.

@@ -2,24 +2,24 @@
 /**
  * Shared behaviour for analyzer rules.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Analyze\Rules;
+namespace Debloater\Analyze\Rules;
 
-use WPDebloat\Analyze\EvidenceBuilder;
-use WPDebloat\Contracts\AnalyzerRuleInterface;
-use WPDebloat\Contracts\Category;
-use WPDebloat\Contracts\Decision;
-use WPDebloat\Contracts\FactSet;
-use WPDebloat\Contracts\Finding;
-use WPDebloat\Contracts\Impact;
-use WPDebloat\Contracts\Recommendation;
-use WPDebloat\Contracts\Risk;
-use WPDebloat\Contracts\Severity;
-use WPDebloat\Contracts\TweakParams;
+use Debloater\Analyze\EvidenceBuilder;
+use Debloater\Contracts\AnalyzerRuleInterface;
+use Debloater\Contracts\Category;
+use Debloater\Contracts\Decision;
+use Debloater\Contracts\FactSet;
+use Debloater\Contracts\Finding;
+use Debloater\Contracts\Impact;
+use Debloater\Contracts\Recommendation;
+use Debloater\Contracts\Risk;
+use Debloater\Contracts\Severity;
+use Debloater\Contracts\TweakParams;
 
 /**
  * Base for the rules in BUILD-SPEC §17 Phase 3.

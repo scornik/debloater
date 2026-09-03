@@ -2,16 +2,16 @@
 /**
  * Writes the generated runtime to disk.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Apply;
+namespace Debloater\Apply;
 
 use RuntimeException;
-use WPDebloat\Contracts\Context;
-use WPDebloat\Contracts\Json;
+use Debloater\Contracts\Context;
+use Debloater\Contracts\Json;
 
 /**
  * Puts the compiled runtime in place safely (BUILD-SPEC §10, §13 rule 6).
@@ -23,7 +23,7 @@ use WPDebloat\Contracts\Json;
  * filesystem is atomic, so a request arriving mid-write sees either the old file
  * or the new one, never a partial one.
  *
- * Everything is written under wp-content/wpdebloat/ and nowhere else, and every
+ * Everything is written under wp-content/debloater/ and nowhere else, and every
  * path is checked against that directory after resolution rather than before.
  */
 final class RuntimeWriter {

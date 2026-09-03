@@ -2,17 +2,17 @@
 /**
  * Adjusts a tweak's declared risk for this site.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Recommend;
+namespace Debloater\Recommend;
 
-use WPDebloat\Contracts\FactSet;
-use WPDebloat\Contracts\Finding;
-use WPDebloat\Contracts\Risk;
-use WPDebloat\Contracts\Tweak;
+use Debloater\Contracts\FactSet;
+use Debloater\Contracts\Finding;
+use Debloater\Contracts\Risk;
+use Debloater\Contracts\Tweak;
 
 /**
  * Final risk = declared risk, raised where this site warrants it
@@ -99,14 +99,14 @@ final class RiskEngine {
 		if ( $this->hasDependents( $tweak, $finding ) ) {
 			$reasons[] = __(
 				'Something installed on this site depends on what this change would alter.',
-				'wp-debloat'
+				'debloater'
 			);
 		}
 
 		if ( 'unknown' === $this->facts->value( 'env.host_vendor', 'unknown' ) ) {
 			$reasons[] = __(
 				'This host was not recognised, so we cannot tell what it already changes for you.',
-				'wp-debloat'
+				'debloater'
 			);
 		}
 

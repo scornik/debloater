@@ -2,15 +2,15 @@
 /**
  * Reading a page's assets back out of its HTML.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Tests\Unit\Scan;
+namespace Debloater\Tests\Unit\Scan;
 
 use PHPUnit\Framework\TestCase;
-use WPDebloat\Scan\AssetParser;
+use Debloater\Scan\AssetParser;
 
 /**
  * BUILD-SPEC §17 Phase 13.
@@ -179,7 +179,7 @@ final class AssetParserTest extends TestCase {
 	 * @return string
 	 */
 	private function fixture(): string {
-		$html = file_get_contents( WPDEBLOAT_TESTS_ROOT . '/tests/Fixtures/html/stacked-page.html' );
+		$html = file_get_contents( DEBLOATER_TESTS_ROOT . '/tests/Fixtures/html/stacked-page.html' );
 
 		$this->assertIsString( $html );
 

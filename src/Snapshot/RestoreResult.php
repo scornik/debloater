@@ -2,14 +2,14 @@
 /**
  * What a restore put back.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Snapshot;
+namespace Debloater\Snapshot;
 
-use WPDebloat\Contracts\Snapshot;
+use Debloater\Contracts\Snapshot;
 
 /**
  * The outcome of restoring one recovery point.

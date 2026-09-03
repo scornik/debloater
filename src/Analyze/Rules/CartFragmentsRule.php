@@ -2,18 +2,18 @@
 /**
  * Analyzer rule: woo.cart_fragments.everywhere.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Analyze\Rules;
+namespace Debloater\Analyze\Rules;
 
-use WPDebloat\Contracts\Category;
-use WPDebloat\Contracts\FactSet;
-use WPDebloat\Contracts\Finding;
-use WPDebloat\Contracts\Risk;
-use WPDebloat\Contracts\Severity;
+use Debloater\Contracts\Category;
+use Debloater\Contracts\FactSet;
+use Debloater\Contracts\Finding;
+use Debloater\Contracts\Risk;
+use Debloater\Contracts\Severity;
 
 /**
  * WooCommerce's cart-fragments script loads on pages that are not the shop.
@@ -92,25 +92,25 @@ final class CartFragmentsRule extends AbstractRule {
 						'Cart fragments load on %d page that is not part of the shop',
 						'Cart fragments load on %d pages that are not part of the shop',
 						count( $pages ),
-						'wp-debloat'
+						'debloater'
 					),
 					count( $pages )
 				),
 				'summary'  => sprintf(
 					/* translators: 1: comma-separated page paths, 2: number of pages sampled. */
-					__( 'Loaded on: %1$s. Of %2$d pages sampled.', 'wp-debloat' ),
+					__( 'Loaded on: %1$s. Of %2$d pages sampled.', 'debloater' ),
 					implode( ', ', array_slice( array_map( 'strval', $pages ), 0, 10 ) ),
 					$sampled
 				),
 				'why'      => __(
-					'The cart-fragments script asks the server what is in the cart every time a page loads, and that request cannot be served from a cache because the answer is different for every visitor. On a shop page it is doing its job. On a blog post it is a round trip for a cart the page never shows. This change keeps the script on every WooCommerce page and drops it elsewhere, deciding page by page as each one is built. If anything on your site shows a cart away from the shop — a total in the header, a widget in a sidebar — WP Debloat will decline this change instead of offering it.',
-					'wp-debloat'
+					'The cart-fragments script asks the server what is in the cart every time a page loads, and that request cannot be served from a cache because the answer is different for every visitor. On a shop page it is doing its job. On a blog post it is a round trip for a cart the page never shows. This change keeps the script on every WooCommerce page and drops it elsewhere, deciding page by page as each one is built. If anything on your site shows a cart away from the shop — a total in the header, a widget in a sidebar — Debloater will decline this change instead of offering it.',
+					'debloater'
 				),
 				'evidence' => $this->evidence( $facts )
-					->fact( __( 'Non-shop pages loading cart fragments', 'wp-debloat' ), 'woo.fragments_on_other' )
-					->fact( __( 'Pages sampled', 'wp-debloat' ), 'woo.pages_sampled' )
-					->optional( __( 'Pages that are part of the shop', 'wp-debloat' ), 'woo.shop_pages' )
-					->optional( __( 'Pages showing a cart', 'wp-debloat' ), 'woo.mini_cart_pages' )
+					->fact( __( 'Non-shop pages loading cart fragments', 'debloater' ), 'woo.fragments_on_other' )
+					->fact( __( 'Pages sampled', 'debloater' ), 'woo.pages_sampled' )
+					->optional( __( 'Pages that are part of the shop', 'debloater' ), 'woo.shop_pages' )
+					->optional( __( 'Pages showing a cart', 'debloater' ), 'woo.mini_cart_pages' )
 					->build(),
 			)
 		);

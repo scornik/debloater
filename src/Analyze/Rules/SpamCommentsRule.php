@@ -2,18 +2,18 @@
 /**
  * Analyzer rule: db.comments.spam.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Analyze\Rules;
+namespace Debloater\Analyze\Rules;
 
-use WPDebloat\Contracts\Category;
-use WPDebloat\Contracts\FactSet;
-use WPDebloat\Contracts\Finding;
-use WPDebloat\Contracts\Risk;
-use WPDebloat\Contracts\Severity;
+use Debloater\Contracts\Category;
+use Debloater\Contracts\FactSet;
+use Debloater\Contracts\Finding;
+use Debloater\Contracts\Risk;
+use Debloater\Contracts\Severity;
 
 /**
  * Fires when comments marked as spam have piled up.
@@ -83,18 +83,18 @@ final class SpamCommentsRule extends AbstractRule {
 				'category' => Category::DATABASE,
 				'severity' => $spam >= self::SUBSTANTIAL_COUNT ? Severity::MEDIUM : Severity::LOW,
 				'risk'     => Risk::LOW,
-				'title'    => __( 'Comments marked as spam are still stored', 'wp-debloat' ),
+				'title'    => __( 'Comments marked as spam are still stored', 'debloater' ),
 				'summary'  => sprintf(
 					/* translators: %s: number of spam comments. */
-					__( '%s comments are marked as spam.', 'wp-debloat' ),
+					__( '%s comments are marked as spam.', 'debloater' ),
 					number_format_i18n( $spam )
 				),
 				'why'      => __(
 					'Spam comments stay in the comments table, with their metadata, until something deletes them. Only comments already marked as spam are considered here: anything still awaiting moderation is left exactly where it is, because nobody has judged it yet.',
-					'wp-debloat'
+					'debloater'
 				),
 				'evidence' => $this->evidence( $facts )
-					->fact( __( 'Comments marked as spam', 'wp-debloat' ), 'db.spam_comments.count' )
+					->fact( __( 'Comments marked as spam', 'debloater' ), 'db.spam_comments.count' )
 					->build(),
 				'impact'   => $this->estimated( 'rows', (float) $spam, 'rows' ),
 				'tweak_id' => 'db.delete_spam_comments',

@@ -2,17 +2,17 @@
 /**
  * Facts about what pages actually load.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Scan\Scanners;
+namespace Debloater\Scan\Scanners;
 
-use WPDebloat\Contracts\Context;
-use WPDebloat\Scan\AssetParser;
-use WPDebloat\Scan\SampledPages;
-use WPDebloat\Scan\Sources;
+use Debloater\Contracts\Context;
+use Debloater\Scan\AssetParser;
+use Debloater\Scan\SampledPages;
+use Debloater\Scan\Sources;
 
 /**
  * Collects the `assets.*` facts (BUILD-SPEC §5, §17 Phase 13).

@@ -7,24 +7,24 @@
  * front-end request makes, whether a runtime survives a round trip — cannot be
  * answered by a mock.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-$wpdebloat_plugin_dir = dirname( __DIR__ );
-$wpdebloat_tests_dir  = getenv( 'WP_TESTS_DIR' );
+$debloater_plugin_dir = dirname( __DIR__ );
+$debloater_tests_dir  = getenv( 'WP_TESTS_DIR' );
 
-if ( false === $wpdebloat_tests_dir || '' === $wpdebloat_tests_dir ) {
-	$wpdebloat_tests_dir = '/wordpress-phpunit';
+if ( false === $debloater_tests_dir || '' === $debloater_tests_dir ) {
+	$debloater_tests_dir = '/wordpress-phpunit';
 }
 
-$wpdebloat_tests_dir = rtrim( $wpdebloat_tests_dir, '/\\' );
+$debloater_tests_dir = rtrim( $debloater_tests_dir, '/\\' );
 
-if ( ! is_readable( $wpdebloat_tests_dir . '/includes/functions.php' ) ) {
+if ( ! is_readable( $debloater_tests_dir . '/includes/functions.php' ) ) {
 	fwrite(
 		STDERR,
-		"The WordPress test suite was not found at {$wpdebloat_tests_dir}.\n"
+		"The WordPress test suite was not found at {$debloater_tests_dir}.\n"
 		. "Integration tests run inside wp-env:\n\n"
 		. "  npm run env:start\n"
 		. "  npm run test:integration\n\n"
@@ -32,13 +32,13 @@ if ( ! is_readable( $wpdebloat_tests_dir . '/includes/functions.php' ) ) {
 	exit( 1 );
 }
 
-$wpdebloat_composer_autoload = $wpdebloat_plugin_dir . '/vendor/autoload.php';
+$debloater_composer_autoload = $debloater_plugin_dir . '/vendor/autoload.php';
 
-if ( is_readable( $wpdebloat_composer_autoload ) ) {
-	require_once $wpdebloat_composer_autoload;
+if ( is_readable( $debloater_composer_autoload ) ) {
+	require_once $debloater_composer_autoload;
 }
 
-require_once $wpdebloat_tests_dir . '/includes/functions.php';
+require_once $debloater_tests_dir . '/includes/functions.php';
 
 /**
  * Load the plugin the way WordPress does, at muplugins_loaded.
@@ -48,16 +48,16 @@ require_once $wpdebloat_tests_dir . '/includes/functions.php';
  */
 tests_add_filter(
 	'muplugins_loaded',
-	static function () use ( $wpdebloat_plugin_dir ): void {
-		require_once $wpdebloat_plugin_dir . '/wp-debloat.php';
+	static function () use ( $debloater_plugin_dir ): void {
+		require_once $debloater_plugin_dir . '/debloater.php';
 	}
 );
 
-require_once $wpdebloat_tests_dir . '/includes/bootstrap.php';
+require_once $debloater_tests_dir . '/includes/bootstrap.php';
 
 /**
  * Absolute path to the plugin, for tests that read registry or handler files.
  */
-define( 'WPDEBLOAT_TESTS_ROOT', $wpdebloat_plugin_dir );
+define( 'DEBLOATER_TESTS_ROOT', $debloater_plugin_dir );
 
 require_once __DIR__ . '/Integration/IntegrationTestCase.php';

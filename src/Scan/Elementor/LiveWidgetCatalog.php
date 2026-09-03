@@ -2,19 +2,19 @@
 /**
  * The widget catalogue, read from Elementor itself.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Scan\Elementor;
+namespace Debloater\Scan\Elementor;
 
 use Throwable;
 
 /**
  * Asks Elementor what it has registered (BUILD-SPEC §17 Phase 14).
  *
- * The only file in WP Debloat that names an Elementor class. Everything it does
+ * The only file in Debloater that names an Elementor class. Everything it does
  * is guarded, because this is somebody else's code and the version on any given
  * site is not one we chose:
  *

@@ -2,20 +2,20 @@
 /**
  * The one admin screen.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Admin;
+namespace Debloater\Admin;
 
-use WPDebloat\Brand;
-use WPDebloat\Plugin;
-use WPDebloat\Rest\Controller;
-use WPDebloat\Security\Capabilities;
+use Debloater\Brand;
+use Debloater\Plugin;
+use Debloater\Rest\Controller;
+use Debloater\Security\Capabilities;
 
 /**
- * WP Debloat's entire presence in wp-admin (BUILD-SPEC §17 Phase 8).
+ * Debloater's entire presence in wp-admin (BUILD-SPEC §17 Phase 8).
  *
  * One top-level menu item, one screen, one script bundle, and nothing else. No
  * admin notices, no dashboard widget, no pointers, no banner asking for a
@@ -34,7 +34,7 @@ final class Screen {
 	/**
 	 * Handle for the script bundle.
 	 */
-	public const HANDLE = 'wp-debloat-admin';
+	public const HANDLE = 'debloater-admin';
 
 	/**
 	 * Where the built assets live, relative to the plugin directory.
@@ -137,7 +137,7 @@ final class Screen {
 
 		wp_add_inline_script(
 			self::HANDLE,
-			sprintf( 'window.wpDebloat = %s;', wp_json_encode( $this->bootstrapData() ) ),
+			sprintf( 'window.debloater = %s;', wp_json_encode( $this->bootstrapData() ) ),
 			'before'
 		);
 	}
@@ -153,13 +153,13 @@ final class Screen {
 	 */
 	public function render(): void {
 		if ( ! Capabilities::currentUserCanManage() ) {
-			wp_die( esc_html__( 'You do not have permission to manage WP Debloat on this site.', 'wp-debloat' ) );
+			wp_die( esc_html__( 'You do not have permission to manage Debloater on this site.', 'debloater' ) );
 		}
 
 		printf(
-			'<div class="wrap"><h1 class="screen-reader-text">%s</h1><div id="wpdebloat-root">%s</div></div>',
+			'<div class="wrap"><h1 class="screen-reader-text">%s</h1><div id="debloater-root">%s</div></div>',
 			esc_html( Brand::NAME ),
-			esc_html__( 'Loading WP Debloat…', 'wp-debloat' )
+			esc_html__( 'Loading Debloater…', 'debloater' )
 		);
 	}
 

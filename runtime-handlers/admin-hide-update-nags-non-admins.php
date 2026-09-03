@@ -4,12 +4,12 @@
  *
  * See core-remove-generator.php for the rules every runtime handler follows.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 defined( 'ABSPATH' ) || exit;
 
-if ( ! class_exists( 'WPDebloat_Handler_Admin_Hide_Update_Nags_Non_Admins', false ) ) {
+if ( ! class_exists( 'Debloater_Handler_Admin_Hide_Update_Nags_Non_Admins', false ) ) {
 
 	/**
 	 * Hides the "WordPress x.y is available" notice from users without the
@@ -24,7 +24,7 @@ if ( ! class_exists( 'WPDebloat_Handler_Admin_Hide_Update_Nags_Non_Admins', fals
 	 * from the person responsible for acting on it. It is not an update-nag
 	 * blocker and must never become one.
 	 */
-	final class WPDebloat_Handler_Admin_Hide_Update_Nags_Non_Admins {
+	final class Debloater_Handler_Admin_Hide_Update_Nags_Non_Admins {
 
 		/**
 		 * Hooks the notice is printed from.

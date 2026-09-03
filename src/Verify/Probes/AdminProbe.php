@@ -2,17 +2,17 @@
 /**
  * Can the site still be administered.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Verify\Probes;
+namespace Debloater\Verify\Probes;
 
-use WPDebloat\Contracts\Context;
-use WPDebloat\Contracts\ProbeResult;
-use WPDebloat\Contracts\ProbeStatus;
-use WPDebloat\Verify\Markers;
+use Debloater\Contracts\Context;
+use Debloater\Contracts\ProbeResult;
+use Debloater\Contracts\ProbeStatus;
+use Debloater\Verify\Markers;
 
 /**
  * GET `/wp-admin/` with the acting user's cookie (BUILD-SPEC §11).
@@ -52,7 +52,7 @@ final class AdminProbe extends AbstractHttpProbe {
 				ProbeStatus::UNKNOWN,
 				__(
 					'The dashboard could not be checked, because there was no signed-in user to check it as.',
-					'wp-debloat'
+					'debloater'
 				)
 			);
 		}
@@ -70,7 +70,7 @@ final class AdminProbe extends AbstractHttpProbe {
 				ProbeStatus::UNKNOWN,
 				__(
 					'The dashboard answered with the login form, so this check could not confirm whether it renders.',
-					'wp-debloat'
+					'debloater'
 				),
 				$response->evidence()
 			);
@@ -84,7 +84,7 @@ final class AdminProbe extends AbstractHttpProbe {
 				ProbeStatus::WARN,
 				sprintf(
 					/* translators: %s: comma-separated markers. */
-					__( 'The dashboard loaded, but parts of it are missing: %s not found.', 'wp-debloat' ),
+					__( 'The dashboard loaded, but parts of it are missing: %s not found.', 'debloater' ),
 					implode( ', ', $missing )
 				),
 				array_merge( $response->evidence(), array( 'missing_markers' => implode( ',', $missing ) ) )
@@ -94,7 +94,7 @@ final class AdminProbe extends AbstractHttpProbe {
 		return new ProbeResult(
 			$this->name(),
 			ProbeStatus::PASS,
-			__( 'The dashboard loaded normally.', 'wp-debloat' ),
+			__( 'The dashboard loaded normally.', 'debloater' ),
 			$response->evidence()
 		);
 	}
@@ -105,6 +105,6 @@ final class AdminProbe extends AbstractHttpProbe {
 	 * @return string
 	 */
 	protected function describe(): string {
-		return __( 'The dashboard', 'wp-debloat' );
+		return __( 'The dashboard', 'debloater' );
 	}
 }

@@ -2,14 +2,14 @@
 /**
  * Base class for the forced-failure suite.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Tests\FailProbe;
+namespace Debloater\Tests\FailProbe;
 
-use WPDebloat\Tests\Integration\IntegrationTestCase;
+use Debloater\Tests\Integration\IntegrationTestCase;
 
 /**
  * The same setup as the integration suite, in a process where verification is

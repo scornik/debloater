@@ -2,17 +2,17 @@
 /**
  * Analyzer rule: assets.cf7.everywhere.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Analyze\Rules;
+namespace Debloater\Analyze\Rules;
 
-use WPDebloat\Contracts\Category;
-use WPDebloat\Contracts\FactSet;
-use WPDebloat\Contracts\Finding;
-use WPDebloat\Contracts\Severity;
+use Debloater\Contracts\Category;
+use Debloater\Contracts\FactSet;
+use Debloater\Contracts\Finding;
+use Debloater\Contracts\Severity;
 
 /**
  * Contact Form 7 loads its assets on pages that have no form on them. Info
@@ -94,7 +94,7 @@ final class Cf7AssetsRule extends AbstractRule {
 				'severity' => Severity::INFO,
 				'title'    => sprintf(
 					/* translators: 1: pages that loaded the assets, 2: pages that had a form. */
-					__( 'Contact Form 7 assets loaded on %1$d pages, forms on %2$d', 'wp-debloat' ),
+					__( 'Contact Form 7 assets loaded on %1$d pages, forms on %2$d', 'debloater' ),
 					$with_assets,
 					$with_forms
 				),
@@ -104,21 +104,21 @@ final class Cf7AssetsRule extends AbstractRule {
 						'Of %1$d page sampled, %2$d loaded Contact Form 7\'s script and stylesheet and %3$d actually contained a form.',
 						'Of %1$d pages sampled, %2$d loaded Contact Form 7\'s script and stylesheet and %3$d actually contained a form.',
 						$sampled,
-						'wp-debloat'
+						'debloater'
 					),
 					$sampled,
 					$with_assets,
 					$with_forms
 				),
 				'why'      => __(
-					'Contact Form 7 enqueues its script and stylesheet on every page by default, whether or not the page has a form on it. Contact Form 7 has its own supported setting for this — the WPCF7_LOAD_JS and WPCF7_LOAD_CSS constants — which is a better place to change it than anything WP Debloat could hook around it. Read the numbers as what they are: this looked at a sample of pages, not at your whole site, and a page nobody sampled was not measured.',
-					'wp-debloat'
+					'Contact Form 7 enqueues its script and stylesheet on every page by default, whether or not the page has a form on it. Contact Form 7 has its own supported setting for this — the WPCF7_LOAD_JS and WPCF7_LOAD_CSS constants — which is a better place to change it than anything Debloater could hook around it. Read the numbers as what they are: this looked at a sample of pages, not at your whole site, and a page nobody sampled was not measured.',
+					'debloater'
 				),
 				'evidence' => $this->evidence( $facts )
-					->fact( __( 'Pages that loaded the assets', 'wp-debloat' ), 'assets.cf7_asset_pages' )
-					->fact( __( 'Pages that contained a form', 'wp-debloat' ), 'assets.cf7_form_pages' )
-					->fact( __( 'Pages sampled', 'wp-debloat' ), 'assets.pages_sampled' )
-					->optional( __( 'Post types sampled', 'wp-debloat' ), 'assets.post_types' )
+					->fact( __( 'Pages that loaded the assets', 'debloater' ), 'assets.cf7_asset_pages' )
+					->fact( __( 'Pages that contained a form', 'debloater' ), 'assets.cf7_form_pages' )
+					->fact( __( 'Pages sampled', 'debloater' ), 'assets.pages_sampled' )
+					->optional( __( 'Post types sampled', 'debloater' ), 'assets.post_types' )
 					->build(),
 			)
 		);

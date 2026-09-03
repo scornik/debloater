@@ -4,12 +4,12 @@
  *
  * See core-remove-generator.php for the rules every runtime handler follows.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 defined( 'ABSPATH' ) || exit;
 
-if ( ! class_exists( 'WPDebloat_Handler_Core_Disable_Self_Pingbacks', false ) ) {
+if ( ! class_exists( 'Debloater_Handler_Core_Disable_Self_Pingbacks', false ) ) {
 
 	/**
 	 * Drops internal links from the list of URLs a post pings on publish.
@@ -20,7 +20,7 @@ if ( ! class_exists( 'WPDebloat_Handler_Core_Disable_Self_Pingbacks', false ) ) 
 	 * and a stale address would silently let self-pings resume
 	 * (docs/DECISIONS.md D-0006).
 	 */
-	final class WPDebloat_Handler_Core_Disable_Self_Pingbacks {
+	final class Debloater_Handler_Core_Disable_Self_Pingbacks {
 
 		/**
 		 * Register the handler's hooks.

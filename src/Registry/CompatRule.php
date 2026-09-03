@@ -2,15 +2,15 @@
 /**
  * A registry compatibility rule.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Registry;
+namespace Debloater\Registry;
 
-use WPDebloat\Contracts\Assert;
-use WPDebloat\Contracts\ContractViolation;
+use Debloater\Contracts\Assert;
+use Debloater\Contracts\ContractViolation;
 
 /**
  * What a detected component depends on (BUILD-SPEC §7.2).

@@ -2,15 +2,15 @@
 /**
  * Does the front page still work.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Verify\Probes;
+namespace Debloater\Verify\Probes;
 
-use WPDebloat\Contracts\Context;
-use WPDebloat\Contracts\ProbeResult;
+use Debloater\Contracts\Context;
+use Debloater\Contracts\ProbeResult;
 
 /**
  * GET `/` as a guest (BUILD-SPEC §11).
@@ -49,6 +49,6 @@ final class HomeProbe extends AbstractHttpProbe {
 	 * @return string
 	 */
 	protected function describe(): string {
-		return __( 'The home page', 'wp-debloat' );
+		return __( 'The home page', 'debloater' );
 	}
 }

@@ -2,16 +2,16 @@
 /**
  * Works out what on this site depends on what.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Recommend;
+namespace Debloater\Recommend;
 
-use WPDebloat\Contracts\FactSet;
-use WPDebloat\Registry\CompatRule;
-use WPDebloat\Registry\Registry;
+use Debloater\Contracts\FactSet;
+use Debloater\Registry\CompatRule;
+use Debloater\Registry\Registry;
 
 /**
  * Resolves the compatibility registry against one site (BUILD-SPEC §7.2).
@@ -22,7 +22,7 @@ use WPDebloat\Registry\Registry;
  *
  * Presence is the whole point. A dependency declared by a plugin nobody has
  * installed is not a reason to refuse anything, and treating it as one would
- * make WP Debloat progressively more timid as the registry grew — the opposite
+ * make Debloater progressively more timid as the registry grew — the opposite
  * of what a growing registry should do.
  */
 final class CompatibilityResolver {

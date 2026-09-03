@@ -2,12 +2,12 @@
 /**
  * Status of a stored snapshot.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Contracts;
+namespace Debloater\Contracts;
 
 /**
  * Snapshot status (BUILD-SPEC §8).

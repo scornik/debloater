@@ -2,16 +2,16 @@
 /**
  * Registers the REST routes.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Rest;
+namespace Debloater\Rest;
 
-use WPDebloat\Brand;
-use WPDebloat\Plugin;
-use WPDebloat\Security\Capabilities;
+use Debloater\Brand;
+use Debloater\Plugin;
+use Debloater\Security\Capabilities;
 
 /**
  * The REST surface (BUILD-SPEC §13 rules 1 and 2).
@@ -130,8 +130,8 @@ final class Controller {
 
 		if ( ! is_string( $nonce ) || false === wp_verify_nonce( $nonce, 'wp_rest' ) ) {
 			return new \WP_Error(
-				'wpdebloat_bad_nonce',
-				__( 'That request could not be verified as coming from this screen. Reload the page and try again.', 'wp-debloat' ),
+				'debloater_bad_nonce',
+				__( 'That request could not be verified as coming from this screen. Reload the page and try again.', 'debloater' ),
 				array( 'status' => 403 )
 			);
 		}
@@ -154,8 +154,8 @@ final class Controller {
 		}
 
 		return new \WP_Error(
-			'wpdebloat_forbidden',
-			__( 'You do not have permission to manage WP Debloat on this site.', 'wp-debloat' ),
+			'debloater_forbidden',
+			__( 'You do not have permission to manage Debloater on this site.', 'debloater' ),
 			array( 'status' => is_user_logged_in() ? 403 : 401 )
 		);
 	}

@@ -1,5 +1,5 @@
 /**
- * The shop, the form and the editor — with WP Debloat's changes applied.
+ * The shop, the form and the editor — with Debloater's changes applied.
  *
  * BUILD-SPEC §17 Phase 16.
  *
@@ -27,7 +27,7 @@ const {
  */
 async function applyWooTweaks() {
 	await wpCli( [
-		'debloat',
+		'debloater',
 		'apply',
 		'--tweaks=woo.cart_fragments_conditional,woo.block_styles_conditional,woo.disable_admin_analytics,woo.suppress_marketplace_suggestions',
 		'--yes',
@@ -38,12 +38,12 @@ async function applyWooTweaks() {
 
 test.describe( 'A store with every WooCommerce change applied', () => {
 	test.beforeAll( async () => {
-		await wpCli( [ 'debloat', 'scan', '--allow-root', '--skip-themes' ] );
+		await wpCli( [ 'debloater', 'scan', '--allow-root', '--skip-themes' ] );
 		await applyWooTweaks();
 	} );
 
 	test.afterAll( async () => {
-		await wpCli( [ 'debloat', 'rollback', '--yes', '--allow-root', '--skip-themes' ], APPLY_EXIT_CODES ).catch( () => {} );
+		await wpCli( [ 'debloater', 'rollback', '--yes', '--allow-root', '--skip-themes' ], APPLY_EXIT_CODES ).catch( () => {} );
 	} );
 
 	test( 'a customer can add a product to the cart and reach the checkout', async ( { page } ) => {

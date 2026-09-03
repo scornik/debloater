@@ -2,15 +2,15 @@
 /**
  * What an analysis produced.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Analyze;
+namespace Debloater\Analyze;
 
-use WPDebloat\Contracts\Decision;
-use WPDebloat\Contracts\Finding;
+use Debloater\Contracts\Decision;
+use Debloater\Contracts\Finding;
 
 /**
  * The findings, the score, and an account of what could not be looked at.
@@ -75,7 +75,7 @@ final class AnalysisResult {
 	}
 
 	/**
-	 * Findings WP Debloat has decided to leave alone.
+	 * Findings Debloater has decided to leave alone.
 	 *
 	 * @return array<int,Finding>
 	 */

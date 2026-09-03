@@ -2,14 +2,14 @@
 /**
  * A widget catalogue that could not be read.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Tests\Integration\Support;
+namespace Debloater\Tests\Integration\Support;
 
-use WPDebloat\Scan\Elementor\WidgetCatalog;
+use Debloater\Scan\Elementor\WidgetCatalog;
 
 /**
  * The failure case: an Elementor too old for the API this asks for, or an addon

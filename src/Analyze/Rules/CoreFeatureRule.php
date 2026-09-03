@@ -2,19 +2,19 @@
 /**
  * Base for rules about a core feature being switched on.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Analyze\Rules;
+namespace Debloater\Analyze\Rules;
 
-use WPDebloat\Contracts\Category;
-use WPDebloat\Contracts\FactSet;
-use WPDebloat\Contracts\Finding;
-use WPDebloat\Contracts\Impact;
-use WPDebloat\Contracts\Risk;
-use WPDebloat\Contracts\Severity;
+use Debloater\Contracts\Category;
+use Debloater\Contracts\FactSet;
+use Debloater\Contracts\Finding;
+use Debloater\Contracts\Impact;
+use Debloater\Contracts\Risk;
+use Debloater\Contracts\Severity;
 
 /**
  * Shared shape for "core still emits this, and there is a tweak that stops it".
@@ -28,7 +28,7 @@ use WPDebloat\Contracts\Severity;
  * else is here.
  *
  * The rule fires only when the fact is true. That means a feature already
- * removed — by a theme, another plugin, or a previous WP Debloat run — produces
+ * removed — by a theme, another plugin, or a previous Debloater run — produces
  * no finding at all, so the same suggestion is never made twice.
  */
 abstract class CoreFeatureRule extends AbstractRule {
@@ -140,7 +140,7 @@ abstract class CoreFeatureRule extends AbstractRule {
 				'summary'  => $this->summary(),
 				'why'      => $this->why(),
 				'evidence' => $this->evidence( $facts )
-					->formatted( $this->evidenceLabel(), __( 'Enabled', 'wp-debloat' ), $this->fact() )
+					->formatted( $this->evidenceLabel(), __( 'Enabled', 'debloater' ), $this->fact() )
 					->build(),
 				'impact'   => $this->impact(),
 				'tweak_id' => $this->tweakId(),

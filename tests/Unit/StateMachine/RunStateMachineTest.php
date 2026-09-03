@@ -2,17 +2,17 @@
 /**
  * Tests for the apply-run state machine.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Tests\Unit\StateMachine;
+namespace Debloater\Tests\Unit\StateMachine;
 
 use PHPUnit\Framework\TestCase;
-use WPDebloat\Apply\RunStateMachine;
-use WPDebloat\Contracts\IllegalTransition;
-use WPDebloat\Contracts\RunState;
+use Debloater\Apply\RunStateMachine;
+use Debloater\Contracts\IllegalTransition;
+use Debloater\Contracts\RunState;
 
 /**
  * Every legal transition in BUILD-SPEC §9.2 is exercised, and every transition

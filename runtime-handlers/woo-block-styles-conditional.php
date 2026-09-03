@@ -4,12 +4,12 @@
  *
  * See core-remove-generator.php for the rules every runtime handler follows.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 defined( 'ABSPATH' ) || exit;
 
-if ( ! class_exists( 'WPDebloat_Handler_Woo_Block_Styles_Conditional', false ) ) {
+if ( ! class_exists( 'Debloater_Handler_Woo_Block_Styles_Conditional', false ) ) {
 
 	/**
 	 * Dequeues WooCommerce's block stylesheets away from the shop.
@@ -20,7 +20,7 @@ if ( ! class_exists( 'WPDebloat_Handler_Woo_Block_Styles_Conditional', false ) )
 	 * visibly broken layout, so every test that says "keep" is preferred to any
 	 * cleverness that says "drop".
 	 */
-	final class WPDebloat_Handler_Woo_Block_Styles_Conditional {
+	final class Debloater_Handler_Woo_Block_Styles_Conditional {
 
 		/**
 		 * The handles this manages.
@@ -87,7 +87,7 @@ if ( ! class_exists( 'WPDebloat_Handler_Woo_Block_Styles_Conditional', false ) )
 
 			// A block in a template part, a widget area or a page builder is not
 			// visible from here, so a theme that has one says so.
-			return (bool) apply_filters( 'wpdebloat_woo_page_needs_block_styles', false );
+			return (bool) apply_filters( 'debloater_woo_page_needs_block_styles', false );
 		}
 	}
 }

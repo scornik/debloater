@@ -2,12 +2,12 @@
 /**
  * Shared identifier patterns.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Contracts;
+namespace Debloater\Contracts;
 
 /**
  * Identifier grammar used across contracts and registry schemas.

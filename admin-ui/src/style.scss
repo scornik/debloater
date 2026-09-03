@@ -1,5 +1,5 @@
 /**
- * WP Debloat's admin screen.
+ * Debloater's admin screen.
  *
  * The look is deliberately not the default admin grey. This screen makes claims
  * about a site and asks for permission to change it, and a page that looks like
@@ -10,79 +10,79 @@
  * evidence into a spreadsheet.
  */
 
-.wpdebloat-app {
-	--wpdebloat-ink: #14161a;
-	--wpdebloat-muted: #5c6470;
-	--wpdebloat-line: #e2e4e9;
-	--wpdebloat-surface: #fff;
-	--wpdebloat-raise: #f6f7f9;
-	--wpdebloat-accent: #2b3a67;
-	--wpdebloat-good: #1e7a4b;
-	--wpdebloat-fair: #9a6700;
-	--wpdebloat-poor: #a4262c;
+.debloater-app {
+	--debloater-ink: #14161a;
+	--debloater-muted: #5c6470;
+	--debloater-line: #e2e4e9;
+	--debloater-surface: #fff;
+	--debloater-raise: #f6f7f9;
+	--debloater-accent: #2b3a67;
+	--debloater-good: #1e7a4b;
+	--debloater-fair: #9a6700;
+	--debloater-poor: #a4262c;
 
 	max-width: 60rem;
 	margin: 0 20px 0 0;
-	color: var(--wpdebloat-ink);
+	color: var(--debloater-ink);
 	font-size: 14px;
 	line-height: 1.55;
 
 	*:focus-visible {
-		outline: 2px solid var(--wpdebloat-accent);
+		outline: 2px solid var(--debloater-accent);
 		outline-offset: 2px;
 	}
 }
 
-.wpdebloat-app__header {
+.debloater-app__header {
 	padding: 24px 0 8px;
-	border-bottom: 1px solid var(--wpdebloat-line);
+	border-bottom: 1px solid var(--debloater-line);
 }
 
-.wpdebloat-app__title {
+.debloater-app__title {
 	margin: 0;
 	font-size: 28px;
 	font-weight: 600;
 	letter-spacing: -0.02em;
 }
 
-.wpdebloat-app__tagline {
+.debloater-app__tagline {
 	margin: 4px 0 16px;
-	color: var(--wpdebloat-muted);
+	color: var(--debloater-muted);
 	font-size: 15px;
 }
 
-.wpdebloat-tabs {
+.debloater-tabs {
 	display: flex;
 	gap: 4px;
 }
 
-.wpdebloat-tabs__tab {
+.debloater-tabs__tab {
 	border-bottom: 2px solid transparent !important;
 	border-radius: 0 !important;
 	padding: 8px 12px !important;
-	color: var(--wpdebloat-muted) !important;
+	color: var(--debloater-muted) !important;
 
 	&.is-active {
-		border-bottom-color: var(--wpdebloat-accent) !important;
-		color: var(--wpdebloat-ink) !important;
+		border-bottom-color: var(--debloater-accent) !important;
+		color: var(--debloater-ink) !important;
 		font-weight: 600;
 	}
 }
 
-.wpdebloat-app__main {
+.debloater-app__main {
 	padding-top: 24px;
 }
 
-.wpdebloat-loading {
+.debloater-loading {
 	display: flex;
 	align-items: center;
 	gap: 8px;
-	color: var(--wpdebloat-muted);
+	color: var(--debloater-muted);
 }
 
 /* Score ------------------------------------------------------------------- */
 
-.wpdebloat-score {
+.debloater-score {
 	display: grid;
 	grid-template-columns: minmax(200px, 260px) 1fr;
 	gap: 24px;
@@ -94,10 +94,10 @@
 	}
 }
 
-.wpdebloat-score__headline {
+.debloater-score__headline {
 	padding: 20px 24px;
 	border-radius: 10px;
-	background: var(--wpdebloat-accent);
+	background: var(--debloater-accent);
 	color: #fff;
 
 	&.is-fair {
@@ -109,7 +109,7 @@
 	}
 }
 
-.wpdebloat-score__title {
+.debloater-score__title {
 	margin: 0;
 	font-size: 13px;
 	font-weight: 600;
@@ -119,7 +119,7 @@
 	color: inherit;
 }
 
-.wpdebloat-score__number {
+.debloater-score__number {
 	margin: 4px 0 0;
 	font-size: 15px;
 
@@ -131,18 +131,18 @@
 	}
 }
 
-.wpdebloat-score__outof {
+.debloater-score__outof {
 	margin-left: 6px;
 	opacity: 0.75;
 }
 
-.wpdebloat-score__meta {
+.debloater-score__meta {
 	margin: 12px 0 0;
 	font-size: 13px;
 	opacity: 0.85;
 }
 
-.wpdebloat-score__breakdown {
+.debloater-score__breakdown {
 	margin: 0;
 	padding: 0;
 	list-style: none;
@@ -150,7 +150,7 @@
 	gap: 8px;
 }
 
-.wpdebloat-subscore {
+.debloater-subscore {
 	display: grid;
 	grid-template-columns: 9rem 1fr 2.5rem;
 	gap: 12px;
@@ -158,51 +158,51 @@
 	margin: 0;
 }
 
-.wpdebloat-subscore__label {
-	color: var(--wpdebloat-muted);
+.debloater-subscore__label {
+	color: var(--debloater-muted);
 }
 
-.wpdebloat-subscore__track {
+.debloater-subscore__track {
 	height: 8px;
 	border-radius: 4px;
-	background: var(--wpdebloat-line);
+	background: var(--debloater-line);
 	overflow: hidden;
 }
 
-.wpdebloat-subscore__fill {
+.debloater-subscore__fill {
 	display: block;
 	height: 100%;
-	background: var(--wpdebloat-good);
+	background: var(--debloater-good);
 
 	&.is-fair {
-		background: var(--wpdebloat-fair);
+		background: var(--debloater-fair);
 	}
 
 	&.is-poor {
-		background: var(--wpdebloat-poor);
+		background: var(--debloater-poor);
 	}
 }
 
-.wpdebloat-subscore__value {
+.debloater-subscore__value {
 	text-align: right;
 	font-variant-numeric: tabular-nums;
 }
 
-.wpdebloat-score__unscored {
+.debloater-score__unscored {
 	grid-column: 1 / -1;
 	margin: 0;
-	color: var(--wpdebloat-muted);
+	color: var(--debloater-muted);
 	font-size: 13px;
 }
 
 /* Panels and counts ------------------------------------------------------- */
 
-.wpdebloat-panel,
-.wpdebloat-empty {
+.debloater-panel,
+.debloater-empty {
 	padding: 20px 24px;
-	border: 1px solid var(--wpdebloat-line);
+	border: 1px solid var(--debloater-line);
 	border-radius: 10px;
-	background: var(--wpdebloat-surface);
+	background: var(--debloater-surface);
 
 	h2 {
 		margin: 0 0 4px;
@@ -210,18 +210,18 @@
 	}
 }
 
-.wpdebloat-panel__lede,
-.wpdebloat-panel__note {
-	color: var(--wpdebloat-muted);
+.debloater-panel__lede,
+.debloater-panel__note {
+	color: var(--debloater-muted);
 	margin: 0 0 16px;
 }
 
-.wpdebloat-panel__note {
+.debloater-panel__note {
 	margin: 12px 0 0;
 	font-size: 13px;
 }
 
-.wpdebloat-counts {
+.debloater-counts {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 20px;
@@ -230,27 +230,27 @@
 	list-style: none;
 }
 
-.wpdebloat-counts__item {
+.debloater-counts__item {
 	display: flex;
 	align-items: baseline;
 	gap: 6px;
 }
 
-.wpdebloat-counts__number {
+.debloater-counts__number {
 	font-size: 22px;
 	font-weight: 700;
 	font-variant-numeric: tabular-nums;
 }
 
-.wpdebloat-counts__label {
-	color: var(--wpdebloat-muted);
+.debloater-counts__label {
+	color: var(--debloater-muted);
 }
 
-.wpdebloat-counts--decision .wpdebloat-counts__number {
+.debloater-counts--decision .debloater-counts__number {
 	font-size: 18px;
 }
 
-.wpdebloat-actions {
+.debloater-actions {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 8px;
@@ -259,90 +259,90 @@
 
 /* Badges ------------------------------------------------------------------ */
 
-.wpdebloat-badge {
+.debloater-badge {
 	display: inline-block;
 	padding: 2px 8px;
 	border-radius: 999px;
-	border: 1px solid var(--wpdebloat-line);
-	background: var(--wpdebloat-raise);
+	border: 1px solid var(--debloater-line);
+	background: var(--debloater-raise);
 	font-size: 12px;
 	white-space: nowrap;
 
 	&--risk.is-low {
 		border-color: #b7dfc8;
 		background: #eefaf2;
-		color: var(--wpdebloat-good);
+		color: var(--debloater-good);
 	}
 
 	&--risk.is-medium {
 		border-color: #ecd9a8;
 		background: #fdf7e7;
-		color: var(--wpdebloat-fair);
+		color: var(--debloater-fair);
 	}
 
 	&--risk.is-high {
 		border-color: #eabec0;
 		background: #fdeff0;
-		color: var(--wpdebloat-poor);
+		color: var(--debloater-poor);
 	}
 
 	&--decision.is-dont_touch {
 		border-color: #eabec0;
-		color: var(--wpdebloat-poor);
+		color: var(--debloater-poor);
 	}
 
 	&--decision.is-info {
-		color: var(--wpdebloat-muted);
+		color: var(--debloater-muted);
 	}
 }
 
-.wpdebloat-confidence {
-	color: var(--wpdebloat-muted);
+.debloater-confidence {
+	color: var(--debloater-muted);
 	font-size: 12px;
 }
 
 /* Findings ---------------------------------------------------------------- */
 
-.wpdebloat-filters {
+.debloater-filters {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 16px;
 	margin-bottom: 16px;
 }
 
-.wpdebloat-findings__count {
+.debloater-findings__count {
 	margin: 0 0 8px;
-	color: var(--wpdebloat-muted);
+	color: var(--debloater-muted);
 }
 
-.wpdebloat-findings__list {
+.debloater-findings__list {
 	margin: 0;
 	padding: 0;
 	list-style: none;
-	border: 1px solid var(--wpdebloat-line);
+	border: 1px solid var(--debloater-line);
 	border-radius: 10px;
 	overflow: hidden;
 }
 
-.wpdebloat-finding-row {
+.debloater-finding-row {
 	display: flex;
 	gap: 16px;
 	justify-content: space-between;
 	align-items: flex-start;
 	margin: 0;
 	padding: 14px 18px;
-	background: var(--wpdebloat-surface);
+	background: var(--debloater-surface);
 
-	+ .wpdebloat-finding-row {
-		border-top: 1px solid var(--wpdebloat-line);
+	+ .debloater-finding-row {
+		border-top: 1px solid var(--debloater-line);
 	}
 
 	&:hover {
-		background: var(--wpdebloat-raise);
+		background: var(--debloater-raise);
 	}
 }
 
-.wpdebloat-finding-row__title {
+.debloater-finding-row__title {
 	font-size: 15px !important;
 	font-weight: 600;
 	text-align: left;
@@ -350,12 +350,12 @@
 	padding: 0 !important;
 }
 
-.wpdebloat-finding-row__summary {
+.debloater-finding-row__summary {
 	margin: 2px 0 0;
-	color: var(--wpdebloat-muted);
+	color: var(--debloater-muted);
 }
 
-.wpdebloat-finding-row__meta {
+.debloater-finding-row__meta {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 6px;
@@ -364,7 +364,7 @@
 
 /* Finding detail ---------------------------------------------------------- */
 
-.wpdebloat-finding__header {
+.debloater-finding__header {
 	margin-bottom: 8px;
 
 	h2 {
@@ -373,46 +373,46 @@
 	}
 }
 
-.wpdebloat-finding__badges {
+.debloater-finding__badges {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 8px;
 	align-items: center;
 }
 
-.wpdebloat-field {
+.debloater-field {
 	padding: 16px 0;
-	border-top: 1px solid var(--wpdebloat-line);
+	border-top: 1px solid var(--debloater-line);
 }
 
-.wpdebloat-field__label {
+.debloater-field__label {
 	margin: 0 0 6px;
 	font-size: 12px;
 	font-weight: 700;
 	text-transform: uppercase;
 	letter-spacing: 0.08em;
-	color: var(--wpdebloat-muted);
+	color: var(--debloater-muted);
 }
 
-.wpdebloat-field__sublabel {
+.debloater-field__sublabel {
 	margin: 12px 0 4px;
 	font-weight: 600;
 }
 
-.wpdebloat-field__body p {
+.debloater-field__body p {
 	margin: 0 0 8px;
 }
 
-.wpdebloat-field__empty {
-	color: var(--wpdebloat-muted);
+.debloater-field__empty {
+	color: var(--debloater-muted);
 	font-style: italic;
 }
 
-.wpdebloat-field__caveat {
-	color: var(--wpdebloat-muted);
+.debloater-field__caveat {
+	color: var(--debloater-muted);
 }
 
-.wpdebloat-evidence {
+.debloater-evidence {
 	width: 100%;
 	border-collapse: collapse;
 
@@ -420,7 +420,7 @@
 	td {
 		padding: 6px 10px;
 		text-align: left;
-		border-bottom: 1px solid var(--wpdebloat-line);
+		border-bottom: 1px solid var(--debloater-line);
 		vertical-align: top;
 	}
 
@@ -428,99 +428,99 @@
 		font-size: 12px;
 		text-transform: uppercase;
 		letter-spacing: 0.06em;
-		color: var(--wpdebloat-muted);
+		color: var(--debloater-muted);
 	}
 }
 
-.wpdebloat-evidence__fact {
-	color: var(--wpdebloat-muted);
+.debloater-evidence__fact {
+	color: var(--debloater-muted);
 }
 
-.wpdebloat-list {
+.debloater-list {
 	margin: 0 0 8px;
 	padding-left: 18px;
 }
 
-.wpdebloat-list--change li::marker {
-	color: var(--wpdebloat-accent);
+.debloater-list--change li::marker {
+	color: var(--debloater-accent);
 }
 
-.wpdebloat-list--nochange {
-	color: var(--wpdebloat-muted);
+.debloater-list--nochange {
+	color: var(--debloater-muted);
 }
 
 /* Runs and snapshots ------------------------------------------------------ */
 
-.wpdebloat-runs section + section {
+.debloater-runs section + section {
 	margin-top: 32px;
 }
 
-.wpdebloat-runs__list {
+.debloater-runs__list {
 	margin: 0;
 	padding: 0;
 	list-style: none;
 }
 
-.wpdebloat-run {
+.debloater-run {
 	margin: 0 0 8px;
 	padding: 12px 16px;
-	border: 1px solid var(--wpdebloat-line);
+	border: 1px solid var(--debloater-line);
 	border-left-width: 4px;
 	border-radius: 8px;
-	background: var(--wpdebloat-surface);
+	background: var(--debloater-surface);
 
 	&.is-committed {
-		border-left-color: var(--wpdebloat-good);
+		border-left-color: var(--debloater-good);
 	}
 
 	&.is-rolled_back {
-		border-left-color: var(--wpdebloat-fair);
+		border-left-color: var(--debloater-fair);
 	}
 
 	&.is-aborted,
 	&.is-interrupted {
-		border-left-color: var(--wpdebloat-poor);
+		border-left-color: var(--debloater-poor);
 	}
 }
 
-.wpdebloat-run__head {
+.debloater-run__head {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 12px;
 	align-items: baseline;
 }
 
-.wpdebloat-run__id {
+.debloater-run__id {
 	font-weight: 700;
 }
 
-.wpdebloat-run__status {
+.debloater-run__status {
 	font-size: 12px;
 	letter-spacing: 0.06em;
 }
 
-.wpdebloat-run__when,
-.wpdebloat-run__actor,
-.wpdebloat-run__applied {
-	color: var(--wpdebloat-muted);
+.debloater-run__when,
+.debloater-run__actor,
+.debloater-run__applied {
+	color: var(--debloater-muted);
 }
 
-.wpdebloat-run__applied {
+.debloater-run__applied {
 	margin: 6px 0 0;
 	font-size: 13px;
 }
 
-.wpdebloat-run__warning {
+.debloater-run__warning {
 	margin: 6px 0 0;
-	color: var(--wpdebloat-fair);
+	color: var(--debloater-fair);
 }
 
-.wpdebloat-run__error {
+.debloater-run__error {
 	margin: 6px 0 0;
-	color: var(--wpdebloat-poor);
+	color: var(--debloater-poor);
 }
 
-.wpdebloat-snapshots {
+.debloater-snapshots {
 	width: 100%;
 	border-collapse: collapse;
 
@@ -528,7 +528,7 @@
 	td {
 		padding: 8px 10px;
 		text-align: left;
-		border-bottom: 1px solid var(--wpdebloat-line);
+		border-bottom: 1px solid var(--debloater-line);
 		vertical-align: middle;
 	}
 
@@ -536,34 +536,34 @@
 		font-size: 12px;
 		text-transform: uppercase;
 		letter-spacing: 0.06em;
-		color: var(--wpdebloat-muted);
+		color: var(--debloater-muted);
 	}
 }
 
-.wpdebloat-snapshots__refusal {
-	color: var(--wpdebloat-muted);
+.debloater-snapshots__refusal {
+	color: var(--debloater-muted);
 	font-size: 13px;
 }
 
-.wpdebloat-dialog__reassurance {
+.debloater-dialog__reassurance {
 	padding: 10px 14px;
 	border-radius: 8px;
-	background: var(--wpdebloat-raise);
+	background: var(--debloater-raise);
 }
 
 /* The run, live and afterwards ------------------------------------------- */
 
-.wpdebloat-run-live {
+.debloater-run-live {
 	padding: 20px 24px;
-	border: 1px solid var(--wpdebloat-line);
+	border: 1px solid var(--debloater-line);
 	border-radius: 10px;
-	background: var(--wpdebloat-surface);
+	background: var(--debloater-surface);
 }
 
-.wpdebloat-progress {
+.debloater-progress {
 	margin: 12px 0 0;
 	padding: 0 0 0 18px;
-	color: var(--wpdebloat-muted);
+	color: var(--debloater-muted);
 	font-variant-numeric: tabular-nums;
 
 	li + li {
@@ -571,17 +571,17 @@
 	}
 }
 
-.wpdebloat-progress__step.is-current {
-	color: var(--wpdebloat-ink);
+.debloater-progress__step.is-current {
+	color: var(--debloater-ink);
 	font-weight: 600;
 }
 
-.wpdebloat-report {
+.debloater-report {
 	padding: 20px 24px;
-	border: 1px solid var(--wpdebloat-line);
-	border-left: 4px solid var(--wpdebloat-good);
+	border: 1px solid var(--debloater-line);
+	border-left: 4px solid var(--debloater-good);
 	border-radius: 10px;
-	background: var(--wpdebloat-surface);
+	background: var(--debloater-surface);
 
 	h2 {
 		margin: 0 0 8px;
@@ -593,29 +593,29 @@
 		font-size: 13px;
 		text-transform: uppercase;
 		letter-spacing: 0.08em;
-		color: var(--wpdebloat-muted);
+		color: var(--debloater-muted);
 	}
 
 	&.is-rolled-back {
-		border-left-color: var(--wpdebloat-fair);
+		border-left-color: var(--debloater-fair);
 	}
 }
 
-.wpdebloat-report__score {
+.debloater-report__score {
 	margin: 0 0 4px;
 	font-size: 16px;
 }
 
-.wpdebloat-report__note,
-.wpdebloat-report__reassurance {
+.debloater-report__note,
+.debloater-report__reassurance {
 	margin: 16px 0;
 	padding: 10px 14px;
 	border-radius: 8px;
-	background: var(--wpdebloat-raise);
-	color: var(--wpdebloat-muted);
+	background: var(--debloater-raise);
+	color: var(--debloater-muted);
 }
 
-.wpdebloat-deltas {
+.debloater-deltas {
 	width: 100%;
 	border-collapse: collapse;
 	font-variant-numeric: tabular-nums;
@@ -624,14 +624,14 @@
 	td {
 		padding: 6px 10px;
 		text-align: left;
-		border-bottom: 1px solid var(--wpdebloat-line);
+		border-bottom: 1px solid var(--debloater-line);
 	}
 
 	thead th {
 		font-size: 12px;
 		text-transform: uppercase;
 		letter-spacing: 0.06em;
-		color: var(--wpdebloat-muted);
+		color: var(--debloater-muted);
 	}
 
 	tbody th {
@@ -639,24 +639,24 @@
 	}
 
 	tr.is-down td:last-child {
-		color: var(--wpdebloat-good);
+		color: var(--debloater-good);
 	}
 
 	tr.is-up td:last-child {
-		color: var(--wpdebloat-fair);
+		color: var(--debloater-fair);
 	}
 }
 
-.wpdebloat-deltas__percent {
-	color: var(--wpdebloat-muted);
+.debloater-deltas__percent {
+	color: var(--debloater-muted);
 }
 
-.wpdebloat-deltas__unknown {
-	color: var(--wpdebloat-muted);
+.debloater-deltas__unknown {
+	color: var(--debloater-muted);
 	font-style: italic;
 }
 
-.wpdebloat-modal {
+.debloater-modal {
 	max-width: 44rem;
 
 	h3 {
@@ -665,11 +665,11 @@
 		font-weight: 700;
 		text-transform: uppercase;
 		letter-spacing: 0.08em;
-		color: var(--wpdebloat-muted);
+		color: var(--debloater-muted);
 	}
 }
 
-.wpdebloat-modal__count {
+.debloater-modal__count {
 	margin: 16px 0 0;
 	font-size: 15px;
 	font-weight: 600;
@@ -677,16 +677,16 @@
 
 /* The destructive confirmation ------------------------------------------- */
 
-.wpdebloat-dialog__destructive {
+.debloater-dialog__destructive {
 	margin: 16px 0;
 	padding: 14px 16px;
 	border: 1px solid #eabec0;
-	border-left: 4px solid var(--wpdebloat-poor);
+	border-left: 4px solid var(--debloater-poor);
 	border-radius: 8px;
 	background: #fdeff0;
 }
 
-.wpdebloat-dialog__warning {
+.debloater-dialog__warning {
 	margin: 0 0 12px;
 	font-weight: 600;
 }

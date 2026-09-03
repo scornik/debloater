@@ -9,13 +9,13 @@
 import { __, sprintf } from '@wordpress/i18n';
 
 const CATEGORY_LABELS = {
-	wordpress: __( 'WordPress', 'wp-debloat' ),
-	configuration: __( 'Configuration', 'wp-debloat' ),
-	database: __( 'Database', 'wp-debloat' ),
-	plugins: __( 'Plugins', 'wp-debloat' ),
-	maintenance: __( 'Maintenance', 'wp-debloat' ),
-	admin: __( 'Admin', 'wp-debloat' ),
-	assets: __( 'Assets', 'wp-debloat' ),
+	wordpress: __( 'WordPress', 'debloater' ),
+	configuration: __( 'Configuration', 'debloater' ),
+	database: __( 'Database', 'debloater' ),
+	plugins: __( 'Plugins', 'debloater' ),
+	maintenance: __( 'Maintenance', 'debloater' ),
+	admin: __( 'Admin', 'debloater' ),
+	assets: __( 'Assets', 'debloater' ),
 };
 
 const band = ( value ) => {
@@ -31,19 +31,19 @@ const band = ( value ) => {
 };
 
 export const SubScore = ( { category, value } ) => (
-	<li className="wpdebloat-subscore">
-		<span className="wpdebloat-subscore__label">
+	<li className="debloater-subscore">
+		<span className="debloater-subscore__label">
 			{ CATEGORY_LABELS[ category ] || category }
 		</span>
-		<span className="wpdebloat-subscore__track" aria-hidden="true">
+		<span className="debloater-subscore__track" aria-hidden="true">
 			<span
-				className={ `wpdebloat-subscore__fill is-${ band( value ) }` }
+				className={ `debloater-subscore__fill is-${ band( value ) }` }
 				style={ {
 					width: `${ Math.max( 0, Math.min( 100, value ) ) }%`,
 				} }
 			/>
 		</span>
-		<span className="wpdebloat-subscore__value">{ value }</span>
+		<span className="debloater-subscore__value">{ value }</span>
 	</li>
 );
 
@@ -57,37 +57,37 @@ export const Score = ( { score } ) => {
 
 	return (
 		<section
-			className="wpdebloat-score"
-			aria-labelledby="wpdebloat-score-heading"
+			className="debloater-score"
+			aria-labelledby="debloater-score-heading"
 		>
 			<div
-				className={ `wpdebloat-score__headline is-${ band(
+				className={ `debloater-score__headline is-${ band(
 					score.headline
 				) }` }
 			>
 				<h2
-					id="wpdebloat-score-heading"
-					className="wpdebloat-score__title"
+					id="debloater-score-heading"
+					className="debloater-score__title"
 				>
-					{ __( 'Debloat score', 'wp-debloat' ) }
+					{ __( 'Debloat score', 'debloater' ) }
 				</h2>
-				<p className="wpdebloat-score__number">
+				<p className="debloater-score__number">
 					<strong>{ score.headline }</strong>
-					<span className="wpdebloat-score__outof">
-						{ __( '/ 100', 'wp-debloat' ) }
+					<span className="debloater-score__outof">
+						{ __( '/ 100', 'debloater' ) }
 					</span>
 				</p>
-				<p className="wpdebloat-score__meta">
+				<p className="debloater-score__meta">
 					{ sprintf(
 						/* translators: %d: number of findings. */
-						__( 'From %d findings in this scan.', 'wp-debloat' ),
+						__( 'From %d findings in this scan.', 'debloater' ),
 						score.findings_total || 0
 					) }
 				</p>
 			</div>
 
 			{ subScores.length > 0 && (
-				<ul className="wpdebloat-score__breakdown">
+				<ul className="debloater-score__breakdown">
 					{ subScores.map( ( [ category, value ] ) => (
 						<SubScore
 							key={ category }
@@ -99,12 +99,12 @@ export const Score = ( { score } ) => {
 			) }
 
 			{ unscored.length > 0 && (
-				<p className="wpdebloat-score__unscored">
+				<p className="debloater-score__unscored">
 					{ sprintf(
 						/* translators: %s: comma-separated category names. */
 						__(
 							'Not scored, because nothing was found to judge: %s',
-							'wp-debloat'
+							'debloater'
 						),
 						unscored
 							.map( ( c ) => CATEGORY_LABELS[ c ] || c )

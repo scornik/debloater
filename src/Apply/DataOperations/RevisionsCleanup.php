@@ -2,14 +2,14 @@
 /**
  * Older versions of a post, once there are enough newer ones.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Apply\DataOperations;
+namespace Debloater\Apply\DataOperations;
 
-use WPDebloat\Contracts\TweakParams;
+use Debloater\Contracts\TweakParams;
 
 /**
  * Keeps the most recent revisions of each post and deletes the rest.

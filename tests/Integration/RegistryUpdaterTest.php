@@ -2,19 +2,19 @@
 /**
  * The registry update check, against a real HTTP layer.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Tests\Integration;
+namespace Debloater\Tests\Integration;
 
 use RuntimeException;
-use WPDebloat\Update\Manifest;
-use WPDebloat\Update\RegistryOrigin;
-use WPDebloat\Update\RegistryUpdater;
-use WPDebloat\Update\SignatureVerifier;
-use WPDebloat\Update\UpdateCheck;
+use Debloater\Update\Manifest;
+use Debloater\Update\RegistryOrigin;
+use Debloater\Update\RegistryUpdater;
+use Debloater\Update\SignatureVerifier;
+use Debloater\Update\UpdateCheck;
 
 /**
  * BUILD-SPEC §13 rule 9, §17 Phase 17.
@@ -341,7 +341,7 @@ final class RegistryUpdaterTest extends IntegrationTestCase {
 			$hashes[ $path ] = hash( 'sha256', $contents );
 		}
 
-		return new Manifest( 1, 'wp-debloat', $tag, '2026-01-01T00:00:00Z', $hashes );
+		return new Manifest( 1, 'debloater', $tag, '2026-01-01T00:00:00Z', $hashes );
 	}
 
 	/**

@@ -2,20 +2,20 @@
 /**
  * Tests for dependency resolution.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Tests\Unit\Recommend;
+namespace Debloater\Tests\Unit\Recommend;
 
 use PHPUnit\Framework\TestCase;
-use WPDebloat\Contracts\Category;
-use WPDebloat\Contracts\Risk;
-use WPDebloat\Contracts\TweakKind;
-use WPDebloat\Recommend\DependencyResolver;
-use WPDebloat\Registry\Registry;
-use WPDebloat\Registry\TweakDefinition;
+use Debloater\Contracts\Category;
+use Debloater\Contracts\Risk;
+use Debloater\Contracts\TweakKind;
+use Debloater\Recommend\DependencyResolver;
+use Debloater\Registry\Registry;
+use Debloater\Registry\TweakDefinition;
 
 /**
  * The resolver is where BUILD-SPEC §7.4's "two tweaks that conflict are never in
@@ -198,7 +198,7 @@ final class DependencyResolverTest extends TestCase {
 	 * @return void
 	 */
 	public function test_no_shipped_tweak_conflicts_with_another(): void {
-		$registry   = ( new \WPDebloat\Registry\Loader( WPDEBLOAT_TESTS_ROOT . '/registry' ) )->load();
+		$registry   = ( new \Debloater\Registry\Loader( DEBLOATER_TESTS_ROOT . '/registry' ) )->load();
 		$resolution = ( new DependencyResolver( $registry ) )->resolve( $registry->ids() );
 
 		foreach ( $resolution->rejected as $tweak_id => $reason ) {
@@ -221,10 +221,10 @@ final class DependencyResolverTest extends TestCase {
 	 * @return void
 	 */
 	public function test_a_fact_gated_tweak_resolves_once_the_facts_are_there(): void {
-		$registry = ( new \WPDebloat\Registry\Loader( WPDEBLOAT_TESTS_ROOT . '/registry' ) )->load();
+		$registry = ( new \Debloater\Registry\Loader( DEBLOATER_TESTS_ROOT . '/registry' ) )->load();
 
-		$facts = \WPDebloat\Tests\Unit\Support\Facts::busyStore(
-			array( 'plugins.detected' => \WPDebloat\Tests\Unit\Support\Facts::detections( array( 'elementor' ) ) )
+		$facts = \Debloater\Tests\Unit\Support\Facts::busyStore(
+			array( 'plugins.detected' => \Debloater\Tests\Unit\Support\Facts::detections( array( 'elementor' ) ) )
 		);
 
 		$resolution = ( new DependencyResolver( $registry, $facts ) )->resolve( $registry->ids() );
@@ -239,9 +239,9 @@ final class DependencyResolverTest extends TestCase {
 	 * @return void
 	 */
 	public function test_a_fact_gated_tweak_is_held_back_when_the_fact_is_false(): void {
-		$registry = ( new \WPDebloat\Registry\Loader( WPDEBLOAT_TESTS_ROOT . '/registry' ) )->load();
+		$registry = ( new \Debloater\Registry\Loader( DEBLOATER_TESTS_ROOT . '/registry' ) )->load();
 
-		$resolution = ( new DependencyResolver( $registry, \WPDebloat\Tests\Unit\Support\Facts::freshInstall() ) )
+		$resolution = ( new DependencyResolver( $registry, \Debloater\Tests\Unit\Support\Facts::freshInstall() ) )
 			->resolve( $registry->ids() );
 
 		$this->assertNotContains( 'elementor.disable_google_fonts', $resolution->accepted );

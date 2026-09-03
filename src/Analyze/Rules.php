@@ -2,51 +2,51 @@
 /**
  * The rule set.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Analyze;
+namespace Debloater\Analyze;
 
-use WPDebloat\Analyze\Rules\AbandonedPluginsRule;
-use WPDebloat\Analyze\Rules\AutoDraftsRule;
-use WPDebloat\Analyze\Rules\AutoloadRule;
-use WPDebloat\Analyze\Rules\CartFragmentsRule;
-use WPDebloat\Analyze\Rules\Cf7AssetsRule;
-use WPDebloat\Analyze\Rules\DashboardWidgetsRule;
-use WPDebloat\Analyze\Rules\DashiconsFrontendRule;
-use WPDebloat\Analyze\Rules\DuplicateFunctionalityRule;
-use WPDebloat\Analyze\Rules\ElementorAuditRule;
-use WPDebloat\Analyze\Rules\EmbedsRule;
-use WPDebloat\Analyze\Rules\EmojiScriptRule;
-use WPDebloat\Analyze\Rules\ExpiredTransientsRule;
-use WPDebloat\Analyze\Rules\FileEditorRule;
-use WPDebloat\Analyze\Rules\GeneratorTagRule;
-use WPDebloat\Analyze\Rules\HeartbeatIntervalRule;
-use WPDebloat\Analyze\Rules\HostOptimizerRule;
-use WPDebloat\Analyze\Rules\InactivePluginsRule;
-use WPDebloat\Analyze\Rules\JqueryMigrateRule;
-use WPDebloat\Analyze\Rules\NewsWidgetRule;
-use WPDebloat\Analyze\Rules\OrphanMetaRule;
-use WPDebloat\Analyze\Rules\PluginNoticesRule;
-use WPDebloat\Analyze\Rules\RevisionsUnlimitedRule;
-use WPDebloat\Analyze\Rules\RsdLinkRule;
-use WPDebloat\Analyze\Rules\SelfPingbackRule;
-use WPDebloat\Analyze\Rules\ShortlinkRule;
-use WPDebloat\Analyze\Rules\SpamCommentsRule;
-use WPDebloat\Analyze\Rules\StoredRevisionsRule;
-use WPDebloat\Analyze\Rules\TrashRule;
-use WPDebloat\Analyze\Rules\UpdateNagRule;
-use WPDebloat\Analyze\Rules\WelcomePanelRule;
-use WPDebloat\Analyze\Rules\WooAnalyticsRule;
-use WPDebloat\Analyze\Rules\WooBlockStylesRule;
-use WPDebloat\Analyze\Rules\WooMarketplaceRule;
-use WPDebloat\Analyze\Rules\XmlRpcRule;
-use WPDebloat\Contracts\AnalyzerRuleInterface;
+use Debloater\Analyze\Rules\AbandonedPluginsRule;
+use Debloater\Analyze\Rules\AutoDraftsRule;
+use Debloater\Analyze\Rules\AutoloadRule;
+use Debloater\Analyze\Rules\CartFragmentsRule;
+use Debloater\Analyze\Rules\Cf7AssetsRule;
+use Debloater\Analyze\Rules\DashboardWidgetsRule;
+use Debloater\Analyze\Rules\DashiconsFrontendRule;
+use Debloater\Analyze\Rules\DuplicateFunctionalityRule;
+use Debloater\Analyze\Rules\ElementorAuditRule;
+use Debloater\Analyze\Rules\EmbedsRule;
+use Debloater\Analyze\Rules\EmojiScriptRule;
+use Debloater\Analyze\Rules\ExpiredTransientsRule;
+use Debloater\Analyze\Rules\FileEditorRule;
+use Debloater\Analyze\Rules\GeneratorTagRule;
+use Debloater\Analyze\Rules\HeartbeatIntervalRule;
+use Debloater\Analyze\Rules\HostOptimizerRule;
+use Debloater\Analyze\Rules\InactivePluginsRule;
+use Debloater\Analyze\Rules\JqueryMigrateRule;
+use Debloater\Analyze\Rules\NewsWidgetRule;
+use Debloater\Analyze\Rules\OrphanMetaRule;
+use Debloater\Analyze\Rules\PluginNoticesRule;
+use Debloater\Analyze\Rules\RevisionsUnlimitedRule;
+use Debloater\Analyze\Rules\RsdLinkRule;
+use Debloater\Analyze\Rules\SelfPingbackRule;
+use Debloater\Analyze\Rules\ShortlinkRule;
+use Debloater\Analyze\Rules\SpamCommentsRule;
+use Debloater\Analyze\Rules\StoredRevisionsRule;
+use Debloater\Analyze\Rules\TrashRule;
+use Debloater\Analyze\Rules\UpdateNagRule;
+use Debloater\Analyze\Rules\WelcomePanelRule;
+use Debloater\Analyze\Rules\WooAnalyticsRule;
+use Debloater\Analyze\Rules\WooBlockStylesRule;
+use Debloater\Analyze\Rules\WooMarketplaceRule;
+use Debloater\Analyze\Rules\XmlRpcRule;
+use Debloater\Contracts\AnalyzerRuleInterface;
 
 /**
- * Every rule WP Debloat knows about, in one list.
+ * Every rule Debloater knows about, in one list.
  *
  * A single place to look at what the product actually checks for. The order is
  * fixed so a scan is reproducible; nothing depends on it otherwise, since rules

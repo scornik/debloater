@@ -2,12 +2,12 @@
 /**
  * The set of changes a run would make, shown before anything happens.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Contracts;
+namespace Debloater\Contracts;
 
 /**
  * A preview plan (BUILD-SPEC §17 Phase 4).

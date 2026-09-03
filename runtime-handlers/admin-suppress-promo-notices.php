@@ -4,12 +4,12 @@
  *
  * See core-remove-generator.php for the rules every runtime handler follows.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 defined( 'ABSPATH' ) || exit;
 
-if ( ! class_exists( 'WPDebloat_Handler_Admin_Suppress_Promo_Notices', false ) ) {
+if ( ! class_exists( 'Debloater_Handler_Admin_Suppress_Promo_Notices', false ) ) {
 
 	/**
 	 * Hides admin notices printed by the plugins the site owner chose.
@@ -29,7 +29,7 @@ if ( ! class_exists( 'WPDebloat_Handler_Admin_Suppress_Promo_Notices', false ) )
 	 * - Nothing is uninstalled, disabled or written to. The notice is not shown
 	 *   on this request; unselecting the change brings it back on the next one.
 	 */
-	final class WPDebloat_Handler_Admin_Suppress_Promo_Notices {
+	final class Debloater_Handler_Admin_Suppress_Promo_Notices {
 
 		/**
 		 * Hooks a notice can be printed from.

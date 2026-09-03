@@ -17,7 +17,7 @@
  * should fail loudly in a test rather than be quietly stubbed, because it means
  * code that should not depend on WordPress has started to.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
@@ -26,14 +26,14 @@ if ( ! defined( 'DAY_IN_SECONDS' ) ) {
 	define( 'DAY_IN_SECONDS', 24 * 60 * 60 );
 }
 
-if ( ! function_exists( 'wpdebloat_polyfill_note' ) ) {
+if ( ! function_exists( 'debloater_polyfill_note' ) ) {
 
 	/**
 	 * Marker so a test can assert it is running against the stand-ins.
 	 *
 	 * @return bool
 	 */
-	function wpdebloat_polyfill_note(): bool {
+	function debloater_polyfill_note(): bool {
 		return true;
 	}
 }

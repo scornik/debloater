@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://wp-debloat.hakeemify.com/schemas/detector.schema.json",
+  "$id": "https://debloater.hakeemify.com/schemas/detector.schema.json",
   "title": "Detector",
   "description": "Recognises a plugin, theme or host from cheap, local signals and writes the result into the facts. Detectors observe only: a detector never names a tweak and never makes a network request.",
   "type": "object",

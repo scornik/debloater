@@ -10,33 +10,33 @@
 import { __ } from '@wordpress/i18n';
 
 const RISK_LABELS = {
-	low: __( 'Low risk', 'wp-debloat' ),
-	medium: __( 'Medium risk', 'wp-debloat' ),
-	high: __( 'High risk', 'wp-debloat' ),
+	low: __( 'Low risk', 'debloater' ),
+	medium: __( 'Medium risk', 'debloater' ),
+	high: __( 'High risk', 'debloater' ),
 };
 
 const SEVERITY_LABELS = {
-	info: __( 'Info', 'wp-debloat' ),
-	low: __( 'Low', 'wp-debloat' ),
-	medium: __( 'Medium', 'wp-debloat' ),
-	high: __( 'High', 'wp-debloat' ),
+	info: __( 'Info', 'debloater' ),
+	low: __( 'Low', 'debloater' ),
+	medium: __( 'Medium', 'debloater' ),
+	high: __( 'High', 'debloater' ),
 };
 
 const DECISION_LABELS = {
-	recommend: __( 'Recommended', 'wp-debloat' ),
-	dont_touch: __( 'Leave alone', 'wp-debloat' ),
-	info: __( 'No action recommended', 'wp-debloat' ),
+	recommend: __( 'Recommended', 'debloater' ),
+	dont_touch: __( 'Leave alone', 'debloater' ),
+	info: __( 'No action recommended', 'debloater' ),
 };
 
 export const RiskBadge = ( { risk } ) => (
-	<span className={ `wpdebloat-badge wpdebloat-badge--risk is-${ risk }` }>
+	<span className={ `debloater-badge debloater-badge--risk is-${ risk }` }>
 		{ RISK_LABELS[ risk ] || risk }
 	</span>
 );
 
 export const SeverityBadge = ( { severity } ) => (
 	<span
-		className={ `wpdebloat-badge wpdebloat-badge--severity is-${ severity }` }
+		className={ `debloater-badge debloater-badge--severity is-${ severity }` }
 	>
 		{ SEVERITY_LABELS[ severity ] || severity }
 	</span>
@@ -44,7 +44,7 @@ export const SeverityBadge = ( { severity } ) => (
 
 export const DecisionBadge = ( { decision } ) => (
 	<span
-		className={ `wpdebloat-badge wpdebloat-badge--decision is-${ decision }` }
+		className={ `debloater-badge debloater-badge--decision is-${ decision }` }
 	>
 		{ DECISION_LABELS[ decision ] || decision }
 	</span>
@@ -54,9 +54,9 @@ export const Confidence = ( { value } ) => {
 	const percent = Math.round( ( Number( value ) || 0 ) * 100 );
 
 	return (
-		<span className="wpdebloat-confidence">
+		<span className="debloater-confidence">
 			{ /* translators: %d: confidence as a percentage. */ }
-			{ __( 'Confidence', 'wp-debloat' ) } <strong>{ percent }%</strong>
+			{ __( 'Confidence', 'debloater' ) } <strong>{ percent }%</strong>
 		</span>
 	);
 };

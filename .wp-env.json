@@ -3,7 +3,7 @@
   "core": null,
   "plugins": [],
   "mappings": {
-    "wp-content/plugins/wp-debloat": "."
+    "wp-content/plugins/debloater": "."
   },
   "config": {
     "WP_DEBUG": true,
@@ -15,7 +15,7 @@
   "env": {
     "tests": {
       "mappings": {
-        "wp-content/plugins/wp-debloat": "."
+        "wp-content/plugins/debloater": "."
       },
       "config": {
         "WP_DEBUG": true,

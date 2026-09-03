@@ -2,16 +2,16 @@
 /**
  * A registry detector.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Registry;
+namespace Debloater\Registry;
 
-use WPDebloat\Contracts\Assert;
-use WPDebloat\Contracts\ContractViolation;
-use WPDebloat\Contracts\Identifier;
+use Debloater\Contracts\Assert;
+use Debloater\Contracts\ContractViolation;
+use Debloater\Contracts\Identifier;
 
 /**
  * Recognises a plugin, theme or component from local signals (BUILD-SPEC §7.5).

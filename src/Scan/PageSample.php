@@ -2,12 +2,12 @@
 /**
  * Which pages to look at.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Scan;
+namespace Debloater\Scan;
 
 /**
  * Chooses a small, representative set of URLs to fetch (BUILD-SPEC §17

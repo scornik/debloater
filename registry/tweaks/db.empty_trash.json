@@ -8,7 +8,7 @@
   "base_confidence": 0.92,
   "reversible": true,
   "destructive": true,
-  "handler": "WPDebloat\\Apply\\DataOperations\\TrashCleanup",
+  "handler": "Debloater\\Apply\\DataOperations\\TrashCleanup",
   "params": {
     "older_than_days": {
       "type": "integer",

@@ -2,12 +2,12 @@
 /**
  * The outcome of one verification probe.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Contracts;
+namespace Debloater\Contracts;
 
 /**
  * Probe result (BUILD-SPEC §11).

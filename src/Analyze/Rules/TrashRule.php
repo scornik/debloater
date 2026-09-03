@@ -2,18 +2,18 @@
 /**
  * Analyzer rule: db.trash.pending.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Analyze\Rules;
+namespace Debloater\Analyze\Rules;
 
-use WPDebloat\Contracts\Category;
-use WPDebloat\Contracts\FactSet;
-use WPDebloat\Contracts\Finding;
-use WPDebloat\Contracts\Risk;
-use WPDebloat\Contracts\Severity;
+use Debloater\Contracts\Category;
+use Debloater\Contracts\FactSet;
+use Debloater\Contracts\Finding;
+use Debloater\Contracts\Risk;
+use Debloater\Contracts\Severity;
 
 /**
  * Fires when content has been sitting in the trash.
@@ -78,18 +78,18 @@ final class TrashRule extends AbstractRule {
 				'category' => Category::DATABASE,
 				'severity' => Severity::LOW,
 				'risk'     => Risk::MEDIUM,
-				'title'    => __( 'Content is waiting in the trash', 'wp-debloat' ),
+				'title'    => __( 'Content is waiting in the trash', 'debloater' ),
 				'summary'  => sprintf(
 					/* translators: %s: number of trashed items. */
-					__( '%s items are in the trash.', 'wp-debloat' ),
+					__( '%s items are in the trash.', 'debloater' ),
 					number_format_i18n( $trashed )
 				),
 				'why'      => __(
 					'Trashed content is still in the posts table, with its metadata and its terms, until something empties the trash. WordPress does that itself after thirty days when its scheduled task runs. Emptying it deletes the content permanently, so only items that have been there a while are touched — something trashed this morning is very often something about to be untrashed.',
-					'wp-debloat'
+					'debloater'
 				),
 				'evidence' => $this->evidence( $facts )
-					->fact( __( 'Items in the trash', 'wp-debloat' ), 'db.trash.count' )
+					->fact( __( 'Items in the trash', 'debloater' ), 'db.trash.count' )
 					->build(),
 				'impact'   => $this->estimated( 'rows', (float) $trashed, 'rows' ),
 				'tweak_id' => 'db.empty_trash',

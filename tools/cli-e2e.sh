@@ -65,28 +65,28 @@ say 'Starting from a clean slate'
 # The fixture site keeps its state between runs, so the plugin may or may not
 # already be active and there may or may not be anything to undo. Neither is a
 # failure; both have to be true before the loop starts.
-$WP plugin activate wp-debloat >/dev/null 2>&1 || true
-$WP debloat rollback --yes >/dev/null 2>&1 || true
+$WP plugin activate debloater >/dev/null 2>&1 || true
+$WP debloater rollback --yes >/dev/null 2>&1 || true
 
 say 'scan'
-expect_json 'scan --json' $WP debloat scan --json
+expect_json 'scan --json' $WP debloater scan --json
 
 say 'findings'
-expect_json 'findings --json' $WP debloat findings --json
-expect_code 1 $WP debloat findings --risk=nonsense
+expect_json 'findings --json' $WP debloater findings --json
+expect_code 1 $WP debloater findings --risk=nonsense
 
 say 'preview'
-expect_json 'preview --json' $WP debloat preview --profile=safe --json
-expect_code 1 $WP debloat preview --tweaks=core.not_a_real_tweak
+expect_json 'preview --json' $WP debloater preview --profile=safe --json
+expect_code 1 $WP debloater preview --tweaks=core.not_a_real_tweak
 
 say 'apply requires confirmation'
-expect_code 1 $WP debloat apply --profile=safe
+expect_code 1 $WP debloater apply --profile=safe
 
 say 'apply'
 # 0 when the site verifies cleanly, 3 when the checks could not all run. Both
 # mean the change is in place; 2 would mean it was undone.
 set +e
-$WP debloat apply --profile=safe --yes
+$WP debloater apply --profile=safe --yes
 APPLY_CODE=$?
 set -e
 
@@ -96,7 +96,7 @@ case "$APPLY_CODE" in
 esac
 
 say 'status after applying'
-STATUS=$( $WP debloat status --json )
+STATUS=$( $WP debloater status --json )
 
 if printf '%s' "$STATUS" | grep -q '"present": true'; then
 	printf '  ok   runtime is in place\n'
@@ -107,7 +107,7 @@ fi
 
 say 'verify'
 set +e
-$WP debloat verify >/dev/null 2>&1
+$WP debloater verify >/dev/null 2>&1
 VERIFY_CODE=$?
 set -e
 
@@ -117,21 +117,21 @@ case "$VERIFY_CODE" in
 esac
 
 say 'snapshots'
-expect_json 'snapshots list --json' $WP debloat snapshots list --json
+expect_json 'snapshots list --json' $WP debloater snapshots list --json
 
 say 'export and import'
-EXPORT_FILE=/tmp/wpdebloat-e2e.json
-expect_code 0 $WP debloat export --file="$EXPORT_FILE"
-expect_code 0 $WP debloat import "$EXPORT_FILE"
-expect_code 1 $WP debloat import /tmp/definitely-not-here.json
+EXPORT_FILE=/tmp/debloater-e2e.json
+expect_code 0 $WP debloater export --file="$EXPORT_FILE"
+expect_code 0 $WP debloater import "$EXPORT_FILE"
+expect_code 1 $WP debloater import /tmp/definitely-not-here.json
 
 say 'rollback requires confirmation'
-expect_code 1 $WP debloat rollback
+expect_code 1 $WP debloater rollback
 
 say 'rollback'
-expect_code 0 $WP debloat rollback --yes
+expect_code 0 $WP debloater rollback --yes
 
-STATUS=$( $WP debloat status --json )
+STATUS=$( $WP debloater status --json )
 
 if printf '%s' "$STATUS" | grep -q '"selection_count": 0'; then
 	printf '  ok   the site is back to nothing selected\n'

@@ -2,12 +2,12 @@
 /**
  * A plugin whose admin notices a site owner may choose to hide.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Registry;
+namespace Debloater\Registry;
 
 use RuntimeException;
 
@@ -15,12 +15,12 @@ use RuntimeException;
  * One entry of the admin-notice allowlist (BUILD-SPEC §17 Phase 12).
  *
  * The list is an allowlist and not a convenience. A plugin absent from it
- * cannot have its notices hidden by WP Debloat whatever a user types, because
+ * cannot have its notices hidden by Debloater whatever a user types, because
  * the tweak's parameter schema accepts only the directory slugs these entries
  * name — which is what stops a selection screen from turning into a way to
  * silence arbitrary code.
  *
- * `notes` is the part that matters most. WP Debloat cannot tell a vendor's
+ * `notes` is the part that matters most. Debloater cannot tell a vendor's
  * marketing apart from its warnings: they come from the same hook, and on these
  * plugins they genuinely do. So every entry says what selecting it silences,
  * including what a person might miss, and that sentence is shown on the tweak

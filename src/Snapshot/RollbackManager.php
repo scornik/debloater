@@ -2,26 +2,26 @@
 /**
  * Puts the site back.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Snapshot;
+namespace Debloater\Snapshot;
 
 use RuntimeException;
-use WPDebloat\Apply\Compiler;
-use WPDebloat\Apply\RuntimeLoader;
-use WPDebloat\Apply\RuntimeWriter;
-use WPDebloat\Contracts\Context;
-use WPDebloat\Contracts\DataOperationInterface;
-use WPDebloat\Contracts\Snapshot;
-use WPDebloat\Contracts\SnapshotItem;
-use WPDebloat\Contracts\SnapshotLevel;
-use WPDebloat\Contracts\SnapshotStatus;
-use WPDebloat\Registry\Registry;
-use WPDebloat\Storage\Repositories\SnapshotRepository;
-use WPDebloat\Storage\State;
+use Debloater\Apply\Compiler;
+use Debloater\Apply\RuntimeLoader;
+use Debloater\Apply\RuntimeWriter;
+use Debloater\Contracts\Context;
+use Debloater\Contracts\DataOperationInterface;
+use Debloater\Contracts\Snapshot;
+use Debloater\Contracts\SnapshotItem;
+use Debloater\Contracts\SnapshotLevel;
+use Debloater\Contracts\SnapshotStatus;
+use Debloater\Registry\Registry;
+use Debloater\Storage\Repositories\SnapshotRepository;
+use Debloater\Storage\State;
 
 /**
  * Restores a recovery point (BUILD-SPEC §17 Phase 5).
@@ -170,7 +170,7 @@ final class RollbackManager {
 				throw new RuntimeException(
 					sprintf(
 						/* translators: 1: snapshot id, 2: why it cannot be restored. */
-						__( 'Recovery point %1$d could not be restored, so the rollback stopped: %2$s', 'wp-debloat' ),
+						__( 'Recovery point %1$d could not be restored, so the rollback stopped: %2$s', 'debloater' ),
 						(int) $snapshot->id,
 						$refusal
 					)
@@ -193,18 +193,18 @@ final class RollbackManager {
 		if ( ! hash_equals( $snapshot->site_hash, $this->context->siteHash() ) ) {
 			return __(
 				'This recovery point was taken on a different site. Restoring it here would write another site\'s settings over this one.',
-				'wp-debloat'
+				'debloater'
 			);
 		}
 
 		if ( SnapshotStatus::CORRUPT === $snapshot->status ) {
-			return __( 'This recovery point did not verify, so it will not be restored.', 'wp-debloat' );
+			return __( 'This recovery point did not verify, so it will not be restored.', 'debloater' );
 		}
 
 		if ( ! $snapshot->status->isRestorable() ) {
 			return sprintf(
 				/* translators: %s: snapshot status. */
-				__( 'This recovery point is %s, so there is nothing to restore from it.', 'wp-debloat' ),
+				__( 'This recovery point is %s, so there is nothing to restore from it.', 'debloater' ),
 				$snapshot->status->value
 			);
 		}

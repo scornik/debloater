@@ -1,21 +1,21 @@
 <?php
 /**
- * GET wpdebloat/v1/snapshots.
+ * GET debloater/v1/snapshots.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Rest\Routes;
+namespace Debloater\Rest\Routes;
 
 use WP_REST_Request;
 use WP_REST_Response;
-use WPDebloat\Contracts\Run;
-use WPDebloat\Contracts\RunType;
-use WPDebloat\Contracts\Snapshot;
-use WPDebloat\Plugin;
-use WPDebloat\Rest\ConfirmationToken;
+use Debloater\Contracts\Run;
+use Debloater\Contracts\RunType;
+use Debloater\Contracts\Snapshot;
+use Debloater\Plugin;
+use Debloater\Rest\ConfirmationToken;
 
 /**
  * The runs and their recovery points (BUILD-SPEC §17 Phase 8).

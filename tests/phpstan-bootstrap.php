@@ -5,15 +5,15 @@
  * WordPress defines these at runtime, so static analysis has to be told about
  * them. This file is never loaded by the plugin.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-define( 'WPDEBLOAT_DIR', __DIR__ . '/../' );
-define( 'WPDEBLOAT_URL', 'https://example.test/wp-content/plugins/wp-debloat/' );
-define( 'WPDEBLOAT_DISABLE', false );
-define( 'WPDEBLOAT_LOADER_MODE', 'mu-plugin' );
+define( 'DEBLOATER_DIR', __DIR__ . '/../' );
+define( 'DEBLOATER_URL', 'https://example.test/wp-content/plugins/debloater/' );
+define( 'DEBLOATER_DISABLE', false );
+define( 'DEBLOATER_LOADER_MODE', 'mu-plugin' );
 define( 'WP_CLI', false );
 
 // Defined by wp-config.php on every install.

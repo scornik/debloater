@@ -2,21 +2,21 @@
 /**
  * Nothing is deleted without cover.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Tests\Integration;
+namespace Debloater\Tests\Integration;
 
 use WP_REST_Request;
-use WPDebloat\Apply\ApplyManager;
-use WPDebloat\Apply\Lock;
-use WPDebloat\Brand;
-use WPDebloat\Contracts\PreviewPlan;
-use WPDebloat\Contracts\RunState;
-use WPDebloat\Contracts\SnapshotLevel;
-use WPDebloat\Contracts\SnapshotStatus;
+use Debloater\Apply\ApplyManager;
+use Debloater\Apply\Lock;
+use Debloater\Brand;
+use Debloater\Contracts\PreviewPlan;
+use Debloater\Contracts\RunState;
+use Debloater\Contracts\SnapshotLevel;
+use Debloater\Contracts\SnapshotStatus;
 
 /**
  * BUILD-SPEC §12 rule 8 and §17 Phase 10.
@@ -328,11 +328,11 @@ final class DestructiveRefusalTest extends IntegrationTestCase {
 			static function ( $preempt, $args, $url ) use ( $plugin ) {
 				unset( $preempt, $args );
 
-				if ( 0 === strpos( $url, rest_url( 'wpdebloat/v1/status' ) ) ) {
+				if ( 0 === strpos( $url, rest_url( 'debloater/v1/status' ) ) ) {
 					$body = (string) wp_json_encode(
 						array(
 							'runtime' => array( 'hash' => $plugin->state()->runtimeHash() ),
-							'loader'  => array( 'mode' => \WPDebloat\Apply\RuntimeLoader::MODE_MU_PLUGIN ),
+							'loader'  => array( 'mode' => \Debloater\Apply\RuntimeLoader::MODE_MU_PLUGIN ),
 						)
 					);
 				} elseif ( 0 === strpos( $url, rest_url() ) ) {

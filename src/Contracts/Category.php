@@ -2,12 +2,12 @@
 /**
  * Finding and tweak categories.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Contracts;
+namespace Debloater\Contracts;
 
 /**
  * Category of a finding or tweak (BUILD-SPEC §6).

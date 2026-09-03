@@ -2,24 +2,24 @@
 /**
  * What the admin rules will and will not say.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Tests\Unit\Analyze;
+namespace Debloater\Tests\Unit\Analyze;
 
 use PHPUnit\Framework\TestCase;
-use WPDebloat\Analyze\Rules\DashboardWidgetsRule;
-use WPDebloat\Analyze\Rules\NewsWidgetRule;
-use WPDebloat\Analyze\Rules\PluginNoticesRule;
-use WPDebloat\Analyze\Rules\UpdateNagRule;
-use WPDebloat\Analyze\Rules\WelcomePanelRule;
-use WPDebloat\Analyze\Score;
-use WPDebloat\Contracts\Category;
-use WPDebloat\Contracts\Decision;
-use WPDebloat\Contracts\Risk;
-use WPDebloat\Tests\Unit\Support\Facts;
+use Debloater\Analyze\Rules\DashboardWidgetsRule;
+use Debloater\Analyze\Rules\NewsWidgetRule;
+use Debloater\Analyze\Rules\PluginNoticesRule;
+use Debloater\Analyze\Rules\UpdateNagRule;
+use Debloater\Analyze\Rules\WelcomePanelRule;
+use Debloater\Analyze\Score;
+use Debloater\Contracts\Category;
+use Debloater\Contracts\Decision;
+use Debloater\Contracts\Risk;
+use Debloater\Tests\Unit\Support\Facts;
 
 /**
  * BUILD-SPEC §17 Phase 12.

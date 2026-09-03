@@ -2,19 +2,19 @@
 /**
  * Facts about installed plugins.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Scan\Scanners;
+namespace Debloater\Scan\Scanners;
 
-use WPDebloat\Contracts\Context;
-use WPDebloat\Registry\Detector;
-use WPDebloat\Registry\HostOptimizer;
-use WPDebloat\Registry\Registry;
-use WPDebloat\Scan\HostVendor;
-use WPDebloat\Scan\WpOrgUpdates;
+use Debloater\Contracts\Context;
+use Debloater\Registry\Detector;
+use Debloater\Registry\HostOptimizer;
+use Debloater\Registry\Registry;
+use Debloater\Scan\HostVendor;
+use Debloater\Scan\WpOrgUpdates;
 
 /**
  * Collects the `plugins.*` facts and applies the registry detectors
@@ -316,7 +316,7 @@ final class PluginScanner extends AbstractScanner {
 				return $value === $stylesheet || $value === $template;
 
 			case 'option':
-				$sentinel = '__wpdebloat_absent__';
+				$sentinel = '__debloater_absent__';
 				$stored   = get_option( $value, $sentinel );
 
 				return $sentinel !== $stored;

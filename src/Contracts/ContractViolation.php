@@ -2,12 +2,12 @@
 /**
  * Thrown when a contract value object is given data it cannot represent.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Contracts;
+namespace Debloater\Contracts;
 
 use InvalidArgumentException;
 

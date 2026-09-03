@@ -2,12 +2,12 @@
 /**
  * What a page actually asks the browser to fetch.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Meter;
+namespace Debloater\Meter;
 
 /**
  * Counts taken from a rendered page (BUILD-SPEC §12).

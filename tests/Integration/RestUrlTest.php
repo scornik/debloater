@@ -2,15 +2,15 @@
 /**
  * The URLs the admin screen actually asks for.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Tests\Integration;
+namespace Debloater\Tests\Integration;
 
 use WP_REST_Request;
-use WPDebloat\Rest\Controller;
+use Debloater\Rest\Controller;
 
 /**
  * BUILD-SPEC §17 Phase 8, docs/DECISIONS.md D-0041.
@@ -22,7 +22,7 @@ use WPDebloat\Rest\Controller;
  *
  * Plain permalinks are WordPress's default. `rest_url()` returns
  * `…/index.php?rest_route=/` there rather than `…/wp-json/`, and a client that
- * joins a namespaced root onto a path produces `…/wpdebloat/v1//status`, which
+ * joins a namespaced root onto a path produces `…/debloater/v1//status`, which
  * matches no route. Every screen showed "No route was found matching the URL",
  * and the first thing to catch it was a browser opening the page.
  *
@@ -199,13 +199,13 @@ final class RestUrlTest extends IntegrationTestCase {
 	 * @return array<string,mixed>
 	 */
 	private function bootstrap(): array {
-		$screen = new \ReflectionClass( \WPDebloat\Admin\Screen::class );
+		$screen = new \ReflectionClass( \Debloater\Admin\Screen::class );
 		$method = $screen->getMethod( 'bootstrapData' );
 
 		$method->setAccessible( true );
 
 		/** @var array<string,mixed> $data */
-		$data = $method->invoke( new \WPDebloat\Admin\Screen( $this->plugin ) );
+		$data = $method->invoke( new \Debloater\Admin\Screen( $this->plugin ) );
 
 		return $data;
 	}

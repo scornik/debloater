@@ -2,12 +2,12 @@
 /**
  * The estimated effect of acting on a finding.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Contracts;
+namespace Debloater\Contracts;
 
 /**
  * Potential impact of a finding (BUILD-SPEC §6).

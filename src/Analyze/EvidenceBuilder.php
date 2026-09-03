@@ -2,16 +2,16 @@
 /**
  * Builds the evidence behind a finding.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Analyze;
+namespace Debloater\Analyze;
 
 use RuntimeException;
-use WPDebloat\Contracts\Evidence;
-use WPDebloat\Contracts\FactSet;
+use Debloater\Contracts\Evidence;
+use Debloater\Contracts\FactSet;
 
 /**
  * Turns facts into the evidence a finding shows (BUILD-SPEC §6, decision #5).
@@ -23,7 +23,7 @@ use WPDebloat\Contracts\FactSet;
  * That matters because evidence is what the whole product asks the user to
  * trust. "Heartbeat polls every 15 s" is only worth showing if it came from
  * `wp.heartbeat_interval` on this site, this scan. Anything else is a plausible
- * sentence, and plausible sentences are what WP Debloat exists not to produce.
+ * sentence, and plausible sentences are what Debloater exists not to produce.
  */
 final class EvidenceBuilder {
 

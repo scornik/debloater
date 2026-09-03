@@ -2,12 +2,12 @@
 /**
  * The shape every runtime handler must have.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Contracts;
+namespace Debloater\Contracts;
 
 /**
  * Runtime handler contract (BUILD-SPEC §10).

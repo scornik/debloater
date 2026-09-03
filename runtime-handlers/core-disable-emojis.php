@@ -4,12 +4,12 @@
  *
  * See core-remove-generator.php for the rules every runtime handler follows.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 defined( 'ABSPATH' ) || exit;
 
-if ( ! class_exists( 'WPDebloat_Handler_Core_Disable_Emojis', false ) ) {
+if ( ! class_exists( 'Debloater_Handler_Core_Disable_Emojis', false ) ) {
 
 	/**
 	 * Removes the emoji detection script, its styles, and its DNS prefetch.
@@ -23,7 +23,7 @@ if ( ! class_exists( 'WPDebloat_Handler_Core_Disable_Emojis', false ) ) {
 	 * Emoji characters still display; only the polyfill that rewrites them into
 	 * images on browsers that do not need it stops loading.
 	 */
-	final class WPDebloat_Handler_Core_Disable_Emojis {
+	final class Debloater_Handler_Core_Disable_Emojis {
 
 		/**
 		 * Priority WordPress registers print_emoji_detection_script at in wp_head.

@@ -2,22 +2,23 @@
 /**
  * What a registry release says it contains.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Update;
+namespace Debloater\Update;
 
 use RuntimeException;
-use WPDebloat\Contracts\Json;
+use Debloater\Brand;
+use Debloater\Contracts\Json;
 
 /**
  * A signed list of every file in a registry release, with its hash
  * (BUILD-SPEC §17 Phase 17).
  *
  * The registry is data the plugin reads and acts on. Anything that can change
- * it can change what WP Debloat does to a site, which makes "where did this
+ * it can change what Debloater does to a site, which makes "where did this
  * file come from" a security question rather than a packaging one.
  *
  * So a release is a manifest: a tag, a time, and a SHA-256 for every file. The
@@ -44,7 +45,7 @@ final class Manifest {
 	 * product's registry, and swapping one for the other must not be possible
 	 * just because the same key signed both.
 	 */
-	public const PRODUCT = 'wp-debloat';
+	public const PRODUCT = Brand::SLUG;
 
 	/**
 	 * Format version.

@@ -2,18 +2,18 @@
 /**
  * Analyzer rule: admin.welcome_panel.visible.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Analyze\Rules;
+namespace Debloater\Analyze\Rules;
 
-use WPDebloat\Contracts\Category;
-use WPDebloat\Contracts\FactSet;
-use WPDebloat\Contracts\Finding;
-use WPDebloat\Contracts\Risk;
-use WPDebloat\Contracts\Severity;
+use Debloater\Contracts\Category;
+use Debloater\Contracts\FactSet;
+use Debloater\Contracts\Finding;
+use Debloater\Contracts\Risk;
+use Debloater\Contracts\Severity;
 
 /**
  * The dashboard welcome panel is still being printed.
@@ -73,14 +73,14 @@ final class WelcomePanelRule extends AbstractRule {
 				'severity' => Severity::LOW,
 				'risk'     => Risk::SAFE,
 				'tweak_id' => 'admin.remove_welcome_panel',
-				'title'    => __( 'The dashboard welcome panel is still being shown', 'wp-debloat' ),
-				'summary'  => __( 'WordPress is still printing the "Welcome to WordPress!" panel on the dashboard.', 'wp-debloat' ),
+				'title'    => __( 'The dashboard welcome panel is still being shown', 'debloater' ),
+				'summary'  => __( 'WordPress is still printing the "Welcome to WordPress!" panel on the dashboard.', 'debloater' ),
 				'why'      => __(
 					'Everyone can dismiss this for themselves, but the dismissal is stored per person, so on a site with several people each of them has to do it — and every new colleague meets it again on their first day. Removing it changes nobody\'s stored preference, so putting it back leaves everyone exactly where they were.',
-					'wp-debloat'
+					'debloater'
 				),
 				'evidence' => $this->evidence( $facts )
-					->fact( __( 'Welcome panel', 'wp-debloat' ), 'admin.welcome_panel' )
+					->fact( __( 'Welcome panel', 'debloater' ), 'admin.welcome_panel' )
 					->build(),
 			)
 		);

@@ -2,14 +2,14 @@
 /**
  * Fact-set builders for analyzer tests.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Tests\Unit\Support;
+namespace Debloater\Tests\Unit\Support;
 
-use WPDebloat\Contracts\FactSet;
+use Debloater\Contracts\FactSet;
 
 /**
  * Realistic fact sets, so a rule test reads like a description of a site.

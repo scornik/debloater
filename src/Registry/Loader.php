@@ -2,12 +2,12 @@
 /**
  * Loads registry documents from disk.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Registry;
+namespace Debloater\Registry;
 
 use RuntimeException;
 

@@ -2,22 +2,22 @@
 /**
  * Deleting rows, and putting them back exactly.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Tests\Integration;
+namespace Debloater\Tests\Integration;
 
-use WPDebloat\Apply\DataOperations\AutoDraftsCleanup;
-use WPDebloat\Apply\DataOperations\AutoloadReview;
-use WPDebloat\Apply\DataOperations\OrphanMetaCleanup;
-use WPDebloat\Apply\DataOperations\RevisionsCleanup;
-use WPDebloat\Apply\DataOperations\SpamCommentsCleanup;
-use WPDebloat\Apply\DataOperations\TrashCleanup;
-use WPDebloat\Contracts\DataOperationInterface;
-use WPDebloat\Contracts\SnapshotItem;
-use WPDebloat\Contracts\TweakParams;
+use Debloater\Apply\DataOperations\AutoDraftsCleanup;
+use Debloater\Apply\DataOperations\AutoloadReview;
+use Debloater\Apply\DataOperations\OrphanMetaCleanup;
+use Debloater\Apply\DataOperations\RevisionsCleanup;
+use Debloater\Apply\DataOperations\SpamCommentsCleanup;
+use Debloater\Apply\DataOperations\TrashCleanup;
+use Debloater\Contracts\DataOperationInterface;
+use Debloater\Contracts\SnapshotItem;
+use Debloater\Contracts\TweakParams;
 
 /**
  * BUILD-SPEC §17 Phase 10: "for every destructive operation, collect → execute

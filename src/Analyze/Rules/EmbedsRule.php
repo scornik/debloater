@@ -2,17 +2,17 @@
 /**
  * Analyzer rule: wp.embeds.enabled.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Analyze\Rules;
+namespace Debloater\Analyze\Rules;
 
-use WPDebloat\Contracts\Category;
-use WPDebloat\Contracts\Impact;
-use WPDebloat\Contracts\Risk;
-use WPDebloat\Contracts\Severity;
+use Debloater\Contracts\Category;
+use Debloater\Contracts\Impact;
+use Debloater\Contracts\Risk;
+use Debloater\Contracts\Severity;
 
 /**
  * Fires when oEmbed discovery links are still attached to wp_head.
@@ -101,7 +101,7 @@ final class EmbedsRule extends CoreFeatureRule {
 	 * @return string
 	 */
 	protected function title(): string {
-		return __( 'The site offers its own posts for embedding on other sites', 'wp-debloat' );
+		return __( 'The site offers its own posts for embedding on other sites', 'debloater' );
 	}
 
 	/**
@@ -110,7 +110,7 @@ final class EmbedsRule extends CoreFeatureRule {
 	 * @return string
 	 */
 	protected function summary(): string {
-		return __( 'oEmbed discovery tags are in the page head, and the wp-embed.js script loads with them.', 'wp-debloat' );
+		return __( 'oEmbed discovery tags are in the page head, and the wp-embed.js script loads with them.', 'debloater' );
 	}
 
 	/**
@@ -119,7 +119,7 @@ final class EmbedsRule extends CoreFeatureRule {
 	 * @return string
 	 */
 	protected function why(): string {
-		return __( 'This is the half of oEmbed that lets *other* sites embed *your* posts as a live preview card. Embedding other people\'s content in your own posts is separate and is unaffected. On a site nobody embeds, it is a script and two head tags per page for a feature never used.', 'wp-debloat' );
+		return __( 'This is the half of oEmbed that lets *other* sites embed *your* posts as a live preview card. Embedding other people\'s content in your own posts is separate and is unaffected. On a site nobody embeds, it is a script and two head tags per page for a feature never used.', 'debloater' );
 	}
 
 	/**
@@ -128,6 +128,6 @@ final class EmbedsRule extends CoreFeatureRule {
 	 * @return string
 	 */
 	protected function evidenceLabel(): string {
-		return __( 'oEmbed discovery', 'wp-debloat' );
+		return __( 'oEmbed discovery', 'debloater' );
 	}
 }

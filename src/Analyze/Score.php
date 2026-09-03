@@ -2,22 +2,22 @@
 /**
  * The Debloat Score.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Analyze;
+namespace Debloater\Analyze;
 
-use WPDebloat\Contracts\Category;
-use WPDebloat\Contracts\Decision;
-use WPDebloat\Contracts\Finding;
+use Debloater\Contracts\Category;
+use Debloater\Contracts\Decision;
+use Debloater\Contracts\Finding;
 
 /**
  * A configuration score, not a performance benchmark (BUILD-SPEC §12, locked
  * decision #1).
  *
- * This number says how much of what WP Debloat looked at is in a state it would
+ * This number says how much of what Debloater looked at is in a state it would
  * suggest changing. It says nothing about how fast the site is, and it must
  * never be presented as if it did — that is what the Meter is for, and the Meter
  * reports measured deltas in countable units.
@@ -215,7 +215,7 @@ final class Score {
 	public function countsByRisk(): array {
 		$counts = array();
 
-		foreach ( \WPDebloat\Contracts\Risk::cases() as $risk ) {
+		foreach ( \Debloater\Contracts\Risk::cases() as $risk ) {
 			$counts[ $risk->value ] = 0;
 		}
 

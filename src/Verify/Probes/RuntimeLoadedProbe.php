@@ -2,21 +2,21 @@
 /**
  * Is the runtime we generated the one the site is running.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Verify\Probes;
+namespace Debloater\Verify\Probes;
 
-use WPDebloat\Apply\RuntimeLoader;
-use WPDebloat\Contracts\Context;
-use WPDebloat\Contracts\ProbeResult;
-use WPDebloat\Contracts\ProbeStatus;
-use WPDebloat\Storage\State;
+use Debloater\Apply\RuntimeLoader;
+use Debloater\Contracts\Context;
+use Debloater\Contracts\ProbeResult;
+use Debloater\Contracts\ProbeStatus;
+use Debloater\Storage\State;
 
 /**
- * GET `/wp-json/wpdebloat/v1/status` (BUILD-SPEC §11).
+ * GET `/wp-json/debloater/v1/status` (BUILD-SPEC §11).
  *
  * Every other probe asks whether the site survived. This one asks whether the
  * change actually happened — over HTTP, in a real request, rather than by
@@ -39,10 +39,10 @@ final class RuntimeLoadedProbe extends AbstractHttpProbe {
 	/**
 	 * Constructor.
 	 *
-	 * @param \WPDebloat\Verify\HttpClient $http  The HTTP client.
+	 * @param \Debloater\Verify\HttpClient $http  The HTTP client.
 	 * @param State                        $state Plugin state.
 	 */
-	public function __construct( \WPDebloat\Verify\HttpClient $http, State $state ) {
+	public function __construct( \Debloater\Verify\HttpClient $http, State $state ) {
 		parent::__construct( $http );
 
 		$this->state = $state;
@@ -73,12 +73,12 @@ final class RuntimeLoadedProbe extends AbstractHttpProbe {
 			return new ProbeResult(
 				$this->name(),
 				ProbeStatus::PASS,
-				__( 'Nothing is selected, so there is no runtime to load — which is exactly what was found.', 'wp-debloat' ),
+				__( 'Nothing is selected, so there is no runtime to load — which is exactly what was found.', 'debloater' ),
 				array( 'selection_count' => 0 )
 			);
 		}
 
-		$response = $this->http->getAsActor( rest_url( 'wpdebloat/v1/status' ) );
+		$response = $this->http->getAsActor( rest_url( 'debloater/v1/status' ) );
 
 		if ( ! $response->reachable() ) {
 			return $this->unreachable( $response );
@@ -90,7 +90,7 @@ final class RuntimeLoadedProbe extends AbstractHttpProbe {
 				ProbeStatus::UNKNOWN,
 				__(
 					'The status endpoint could not be read as the signed-in user, so it is not known whether the generated runtime is loaded.',
-					'wp-debloat'
+					'debloater'
 				),
 				$response->evidence()
 			);
@@ -104,7 +104,7 @@ final class RuntimeLoadedProbe extends AbstractHttpProbe {
 				ProbeStatus::FAIL,
 				sprintf(
 					/* translators: %d: HTTP status code. */
-					__( 'The status endpoint did not answer with a readable status (HTTP %d).', 'wp-debloat' ),
+					__( 'The status endpoint did not answer with a readable status (HTTP %d).', 'debloater' ),
 					$response->status
 				),
 				$response->evidence()
@@ -129,7 +129,7 @@ final class RuntimeLoadedProbe extends AbstractHttpProbe {
 			return new ProbeResult(
 				$this->name(),
 				ProbeStatus::FAIL,
-				__( 'There is a selection saved, but no runtime file is in place, so none of the selected changes are active.', 'wp-debloat' ),
+				__( 'There is a selection saved, but no runtime file is in place, so none of the selected changes are active.', 'debloater' ),
 				$evidence
 			);
 		}
@@ -138,7 +138,7 @@ final class RuntimeLoadedProbe extends AbstractHttpProbe {
 			return new ProbeResult(
 				$this->name(),
 				ProbeStatus::FAIL,
-				__( 'The runtime file on disk is not the one this change generated, so the site is running something else.', 'wp-debloat' ),
+				__( 'The runtime file on disk is not the one this change generated, so the site is running something else.', 'debloater' ),
 				$evidence
 			);
 		}
@@ -149,7 +149,7 @@ final class RuntimeLoadedProbe extends AbstractHttpProbe {
 				ProbeStatus::WARN,
 				__(
 					'The changes are active, but they load from the plugin rather than an mu-plugin, so they start later in the request than they could.',
-					'wp-debloat'
+					'debloater'
 				),
 				$evidence
 			);
@@ -158,7 +158,7 @@ final class RuntimeLoadedProbe extends AbstractHttpProbe {
 		return new ProbeResult(
 			$this->name(),
 			ProbeStatus::PASS,
-			__( 'The generated runtime is in place and matches what was written.', 'wp-debloat' ),
+			__( 'The generated runtime is in place and matches what was written.', 'debloater' ),
 			$evidence
 		);
 	}
@@ -169,6 +169,6 @@ final class RuntimeLoadedProbe extends AbstractHttpProbe {
 	 * @return string
 	 */
 	protected function describe(): string {
-		return __( 'The status endpoint', 'wp-debloat' );
+		return __( 'The status endpoint', 'debloater' );
 	}
 }

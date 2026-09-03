@@ -2,17 +2,17 @@
 /**
  * Analyzer rule: wp.jquery_migrate.loaded.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Analyze\Rules;
+namespace Debloater\Analyze\Rules;
 
-use WPDebloat\Contracts\Category;
-use WPDebloat\Contracts\Impact;
-use WPDebloat\Contracts\Risk;
-use WPDebloat\Contracts\Severity;
+use Debloater\Contracts\Category;
+use Debloater\Contracts\Impact;
+use Debloater\Contracts\Risk;
+use Debloater\Contracts\Severity;
 
 /**
  * Fires when the jQuery bundle still depends on jquery-migrate.
@@ -102,7 +102,7 @@ final class JqueryMigrateRule extends CoreFeatureRule {
 	 * @return string
 	 */
 	protected function title(): string {
-		return __( 'jQuery Migrate loads alongside jQuery on every page', 'wp-debloat' );
+		return __( 'jQuery Migrate loads alongside jQuery on every page', 'debloater' );
 	}
 
 	/**
@@ -111,7 +111,7 @@ final class JqueryMigrateRule extends CoreFeatureRule {
 	 * @return string
 	 */
 	protected function summary(): string {
-		return __( 'The registered jQuery bundle still includes jquery-migrate, so both scripts load wherever jQuery does.', 'wp-debloat' );
+		return __( 'The registered jQuery bundle still includes jquery-migrate, so both scripts load wherever jQuery does.', 'debloater' );
 	}
 
 	/**
@@ -120,7 +120,7 @@ final class JqueryMigrateRule extends CoreFeatureRule {
 	 * @return string
 	 */
 	protected function why(): string {
-		return __( 'Migrate exists to keep code written for jQuery 1.x working on modern jQuery. A site whose theme and plugins are current does not need it. A site where something still uses the old APIs breaks quietly without it: no error page, just JavaScript that stops running.', 'wp-debloat' );
+		return __( 'Migrate exists to keep code written for jQuery 1.x working on modern jQuery. A site whose theme and plugins are current does not need it. A site where something still uses the old APIs breaks quietly without it: no error page, just JavaScript that stops running.', 'debloater' );
 	}
 
 	/**
@@ -129,6 +129,6 @@ final class JqueryMigrateRule extends CoreFeatureRule {
 	 * @return string
 	 */
 	protected function evidenceLabel(): string {
-		return __( 'jQuery Migrate in the jQuery bundle', 'wp-debloat' );
+		return __( 'jQuery Migrate in the jQuery bundle', 'debloater' );
 	}
 }

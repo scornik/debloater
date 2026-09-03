@@ -2,17 +2,17 @@
 /**
  * Shared behaviour for the WooCommerce probes.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Verify\Probes;
+namespace Debloater\Verify\Probes;
 
-use WPDebloat\Contracts\Context;
-use WPDebloat\Contracts\FactSet;
-use WPDebloat\Contracts\ProbeResult;
-use WPDebloat\Contracts\ProbeStatus;
+use Debloater\Contracts\Context;
+use Debloater\Contracts\FactSet;
+use Debloater\Contracts\ProbeResult;
+use Debloater\Contracts\ProbeStatus;
 
 /**
  * A probe that fetches one of WooCommerce's own pages as a guest
@@ -66,7 +66,7 @@ abstract class AbstractWooProbe extends AbstractHttpProbe {
 				ProbeStatus::NOT_TESTED,
 				sprintf(
 					/* translators: %s: the name of a WooCommerce page. */
-					__( 'This store has no %s page, so there was nothing to check.', 'wp-debloat' ),
+					__( 'This store has no %s page, so there was nothing to check.', 'debloater' ),
 					$this->describe()
 				)
 			);
@@ -94,7 +94,7 @@ abstract class AbstractWooProbe extends AbstractHttpProbe {
 				ProbeStatus::FAIL,
 				sprintf(
 					/* translators: 1: the name of a WooCommerce page, 2: comma-separated markers. */
-					__( '%1$s loaded, but what makes it work is missing from it: %2$s.', 'wp-debloat' ),
+					__( '%1$s loaded, but what makes it work is missing from it: %2$s.', 'debloater' ),
 					$this->describe(),
 					implode( ', ', $missing )
 				),

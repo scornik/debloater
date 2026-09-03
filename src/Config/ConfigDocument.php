@@ -2,20 +2,20 @@
 /**
  * A site's configuration, as a document.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Config;
+namespace Debloater\Config;
 
-use WPDebloat\Contracts\Context;
-use WPDebloat\Contracts\ContractViolation;
-use WPDebloat\Contracts\Identifier;
-use WPDebloat\Contracts\TweakKind;
-use WPDebloat\Recommend\IntentProfile;
-use WPDebloat\Registry\Registry;
-use WPDebloat\Storage\State;
+use Debloater\Contracts\Context;
+use Debloater\Contracts\ContractViolation;
+use Debloater\Contracts\Identifier;
+use Debloater\Contracts\TweakKind;
+use Debloater\Recommend\IntentProfile;
+use Debloater\Registry\Registry;
+use Debloater\Storage\State;
 
 /**
  * Configuration as code (BUILD-SPEC §17 Phase 7).
@@ -225,8 +225,8 @@ final class ConfigDocument {
 		foreach ( $this->selection as $tweak_id => $params ) {
 			if ( ! $registry->has( $tweak_id ) ) {
 				$problems[ $tweak_id ] = __(
-					'This version of WP Debloat does not know that change, so it cannot be applied here.',
-					'wp-debloat'
+					'This version of Debloater does not know that change, so it cannot be applied here.',
+					'debloater'
 				);
 
 				continue;

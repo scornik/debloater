@@ -1,0 +1,2280 @@
+# Copyright (C) 2026 Hakeemify
+# This file is distributed under the GPL-2.0-or-later.
+msgid ""
+msgstr ""
+"Project-Id-Version: Debloater – Scan, Fix & Undo WordPress Bloat 0.1.0\n"
+"Report-Msgid-Bugs-To: https://github.com/scornik/debloater/issues\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-09-03T16:15:16+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: debloater\n"
+
+#. Plugin Name of the plugin
+#: debloater.php
+msgid "Debloater – Scan, Fix & Undo WordPress Bloat"
+msgstr ""
+
+#. Plugin URI of the plugin
+#: debloater.php
+msgid "https://github.com/scornik/debloater"
+msgstr ""
+
+#. Description of the plugin
+#: debloater.php
+msgid "Audits a WordPress site against the facts, then applies only the changes you approve — each with its own risk level, a recovery point taken first, and an automatic rollback if verification fails."
+msgstr ""
+
+#. Author of the plugin
+#: debloater.php
+msgid "Hakeemify"
+msgstr ""
+
+#: src/Admin/Screen.php:156
+#: src/Rest/Controller.php:158
+#: build/index.js:10
+msgid "You do not have permission to manage Debloater on this site."
+msgstr ""
+
+#: src/Admin/Screen.php:162
+msgid "Loading Debloater…"
+msgstr ""
+
+#: src/Analyze/ConfidenceCalculator.php:168
+msgid "This host was not recognised, so we cannot tell what it already optimises."
+msgstr ""
+
+#: src/Analyze/ConfidenceCalculator.php:169
+msgid "A page-cache plugin is active, so what visitors receive may differ from what WordPress generates."
+msgstr ""
+
+#: src/Analyze/ConfidenceCalculator.php:170
+#: src/Recommend/RiskEngine.php:100
+msgid "Something installed on this site depends on what this change would alter."
+msgstr ""
+
+#: src/Analyze/ConfidenceCalculator.php:171
+msgid "This site has custom must-use plugins, which we cannot inspect."
+msgstr ""
+
+#. translators: %s: comma-separated list of plugin or theme slugs.
+#: src/Analyze/DontTouchRules.php:238
+#, php-format
+msgid "%s is installed and depends on this, so changing it would break something you are using."
+msgid_plural "These are installed and depend on this, so changing it would break something you are using: %s."
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %d: number of people who edited content in the last seven days.
+#: src/Analyze/DontTouchRules.php:278
+#, php-format
+msgid "%d people edited content here in the last week and this is a WooCommerce store. Heartbeat is what warns them they are about to overwrite each other, and what keeps a checkout session from expiring mid-order. Slowing it down here would cost more than it saves."
+msgstr ""
+
+#: src/Analyze/DontTouchRules.php:310
+msgid "Something on this site shows a cart away from the shop, so the cart-fragments script is needed on every page to keep it correct. Making it conditional here would leave a cart total that never updates."
+msgstr ""
+
+#. translators: %s: comma-separated page paths showing a cart.
+#: src/Analyze/DontTouchRules.php:318
+#, php-format
+msgid "This page shows a cart away from the shop: %s. The cart-fragments script is what keeps that total correct, so it is needed on every page; making it conditional would leave a number that never updates."
+msgid_plural "These pages show a cart away from the shop: %s. The cart-fragments script is what keeps those totals correct, so it is needed on every page; making it conditional would leave numbers that never update."
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %s: comma-separated names of optimization plugins already on the site.
+#: src/Analyze/HostOptimizerRules.php:179
+#, php-format
+msgid "%s is also on this site and has its own setting for this, so you can change it there instead — one switch is easier to remember than two."
+msgid_plural "These are also on this site and have their own settings for this, so you can change it there instead: %s. One switch is easier to remember than two."
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Analyze/Rules/AbandonedPluginsRule.php:121
+msgid "Where this reading came from"
+msgstr ""
+
+#: src/Analyze/Rules/AbandonedPluginsRule.php:123
+msgid "Plugins with no sign of life"
+msgstr ""
+
+#: src/Analyze/Rules/AbandonedPluginsRule.php:127
+#: src/Analyze/Rules/DuplicateFunctionalityRule.php:161
+#: src/Analyze/Rules/InactivePluginsRule.php:101
+msgid "Active plugins"
+msgstr ""
+
+#. translators: %d: number of active plugins with no recent release.
+#: src/Analyze/Rules/AbandonedPluginsRule.php:214
+#, php-format
+msgid "%d active plugin has had no release in two years"
+msgid_plural "%d active plugins have had no release in two years"
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %d: number of active plugins whose files have not changed in two years.
+#: src/Analyze/Rules/AbandonedPluginsRule.php:226
+#, php-format
+msgid "%d active plugin has not been updated on this server in two years"
+msgid_plural "%d active plugins have not been updated on this server in two years"
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: 1: plugin name, 2: ISO date.
+#: src/Analyze/Rules/AbandonedPluginsRule.php:248
+#, php-format
+msgid "%1$s (%2$s)"
+msgstr ""
+
+#: src/Analyze/Rules/AbandonedPluginsRule.php:265
+msgid "A plugin with no release in two years is one nobody is watching for security advisories, and one that has not been tested against anything WordPress has shipped since. That is worth knowing. It is not automatically a problem: small plugins that do one thing are sometimes simply finished. This is a reason to go and look, not a recommendation, and Debloater will not deactivate or delete anything."
+msgstr ""
+
+#: src/Analyze/Rules/AbandonedPluginsRule.php:271
+msgid "You did not ask Debloater to check wordpress.org on this scan, so nothing left your server and this reading is the weaker one: when each plugin's files last changed here. That is not a release date. Moving a site by copying files resets it, so a genuinely abandoned plugin can look new; and a plugin whose author has shipped releases you never installed looks abandoned when what is actually stale is your copy. Either way it is worth a look. Run the scan with the wordpress.org check if you want the real release dates."
+msgstr ""
+
+#: src/Analyze/Rules/AutoDraftsRule.php:84
+msgid "Abandoned auto-drafts are still stored"
+msgstr ""
+
+#. translators: %s: number of auto-drafts.
+#: src/Analyze/Rules/AutoDraftsRule.php:87
+#, php-format
+msgid "%s auto-drafts were created and never written."
+msgstr ""
+
+#: src/Analyze/Rules/AutoDraftsRule.php:90
+msgid "WordPress creates an auto-draft the moment somebody clicks \"Add New\", whether or not they type anything. It deletes them itself after a week, but only when its scheduled task runs — on a quiet site that can be a long time. These are rows for posts that were never written."
+msgstr ""
+
+#: src/Analyze/Rules/AutoDraftsRule.php:95
+msgid "Auto-drafts stored"
+msgstr ""
+
+#: src/Analyze/Rules/AutoloadRule.php:93
+msgid "Loaded on every request"
+msgstr ""
+
+#: src/Analyze/Rules/AutoloadRule.php:94
+msgid "Largest autoloaded options"
+msgstr ""
+
+#. translators: %s: amount of autoloaded data, already formatted.
+#: src/Analyze/Rules/AutoloadRule.php:99
+#, php-format
+msgid "%s of options are loaded into memory on every request."
+msgstr ""
+
+#: src/Analyze/Rules/AutoloadRule.php:103
+msgid "WordPress reads every option marked to autoload before it does anything else, on every single request, whether or not that request needs them. Most of it belongs to plugins and is genuinely needed early; some of it is cache timeouts and per-visitor session data that is only read when something asks for it."
+msgstr ""
+
+#: src/Analyze/Rules/AutoloadRule.php:116
+#: src/Analyze/Rules/AutoloadRule.php:133
+msgid "A lot is loaded on every request"
+msgstr ""
+
+#: src/Analyze/Rules/AutoloadRule.php:118
+msgid "None of it matches the small set of options Debloater knows to be safe to defer, so there is nothing to propose here — only something to be aware of."
+msgstr ""
+
+#. translators: %d: number of non-shop pages that loaded the script.
+#: src/Analyze/Rules/CartFragmentsRule.php:91
+#, php-format
+msgid "Cart fragments load on %d page that is not part of the shop"
+msgid_plural "Cart fragments load on %d pages that are not part of the shop"
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: 1: comma-separated page paths, 2: number of pages sampled.
+#: src/Analyze/Rules/CartFragmentsRule.php:101
+#, php-format
+msgid "Loaded on: %1$s. Of %2$d pages sampled."
+msgstr ""
+
+#: src/Analyze/Rules/CartFragmentsRule.php:105
+msgid "The cart-fragments script asks the server what is in the cart every time a page loads, and that request cannot be served from a cache because the answer is different for every visitor. On a shop page it is doing its job. On a blog post it is a round trip for a cart the page never shows. This change keeps the script on every WooCommerce page and drops it elsewhere, deciding page by page as each one is built. If anything on your site shows a cart away from the shop — a total in the header, a widget in a sidebar — Debloater will decline this change instead of offering it."
+msgstr ""
+
+#: src/Analyze/Rules/CartFragmentsRule.php:110
+msgid "Non-shop pages loading cart fragments"
+msgstr ""
+
+#: src/Analyze/Rules/CartFragmentsRule.php:111
+#: src/Analyze/Rules/Cf7AssetsRule.php:120
+#: src/Analyze/Rules/WooBlockStylesRule.php:104
+msgid "Pages sampled"
+msgstr ""
+
+#: src/Analyze/Rules/CartFragmentsRule.php:112
+#: src/Analyze/Rules/WooBlockStylesRule.php:103
+msgid "Pages that are part of the shop"
+msgstr ""
+
+#: src/Analyze/Rules/CartFragmentsRule.php:113
+msgid "Pages showing a cart"
+msgstr ""
+
+#. translators: 1: pages that loaded the assets, 2: pages that had a form.
+#: src/Analyze/Rules/Cf7AssetsRule.php:97
+#, php-format
+msgid "Contact Form 7 assets loaded on %1$d pages, forms on %2$d"
+msgstr ""
+
+#. translators: 1: number of pages sampled, 2: pages that loaded the assets, 3: pages with a form.
+#: src/Analyze/Rules/Cf7AssetsRule.php:103
+#, php-format
+msgid "Of %1$d page sampled, %2$d loaded Contact Form 7's script and stylesheet and %3$d actually contained a form."
+msgid_plural "Of %1$d pages sampled, %2$d loaded Contact Form 7's script and stylesheet and %3$d actually contained a form."
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Analyze/Rules/Cf7AssetsRule.php:113
+msgid "Contact Form 7 enqueues its script and stylesheet on every page by default, whether or not the page has a form on it. Contact Form 7 has its own supported setting for this — the WPCF7_LOAD_JS and WPCF7_LOAD_CSS constants — which is a better place to change it than anything Debloater could hook around it. Read the numbers as what they are: this looked at a sample of pages, not at your whole site, and a page nobody sampled was not measured."
+msgstr ""
+
+#: src/Analyze/Rules/Cf7AssetsRule.php:118
+msgid "Pages that loaded the assets"
+msgstr ""
+
+#: src/Analyze/Rules/Cf7AssetsRule.php:119
+msgid "Pages that contained a form"
+msgstr ""
+
+#: src/Analyze/Rules/Cf7AssetsRule.php:121
+msgid "Post types sampled"
+msgstr ""
+
+#: src/Analyze/Rules/CoreFeatureRule.php:143
+msgid "Enabled"
+msgstr ""
+
+#. translators: %d: number of dashboard widgets.
+#: src/Analyze/Rules/DashboardWidgetsRule.php:103
+#, php-format
+msgid "%d widget is registered on the dashboard"
+msgid_plural "%d widgets are registered on the dashboard"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Analyze/Rules/DashboardWidgetsRule.php:112
+msgid "You can take any of these off the dashboard, and put them back just as easily — nothing is uninstalled and no data is touched. Debloater does not choose for you, and nothing here is preselected: which of these is worth reading is not something a plugin can work out, and the ones that look most removable are sometimes the first thing somebody checks every morning."
+msgstr ""
+
+#: src/Analyze/Rules/DashboardWidgetsRule.php:117
+#: src/Analyze/Rules/NewsWidgetRule.php:104
+msgid "Dashboard widgets"
+msgstr ""
+
+#: src/Analyze/Rules/DashboardWidgetsRule.php:118
+#: src/Analyze/Rules/NewsWidgetRule.php:105
+msgid "Dashboard widget count"
+msgstr ""
+
+#. translators: 1: plugin or component name, 2: how many widgets it registers.
+#: src/Analyze/Rules/DashboardWidgetsRule.php:136
+#: src/Analyze/Rules/ElementorAuditRule.php:205
+#, php-format
+msgid "%1$s (%2$d)"
+msgstr ""
+
+#: src/Analyze/Rules/DashiconsFrontendRule.php:106
+msgid "The admin icon font loads for visitors"
+msgstr ""
+
+#: src/Analyze/Rules/DashiconsFrontendRule.php:115
+msgid "Dashicons is being loaded on the front end, where logged-out visitors download the whole icon font."
+msgstr ""
+
+#: src/Analyze/Rules/DashiconsFrontendRule.php:124
+msgid "Dashicons is WordPress's admin icon font. Core loads it on the front end only for the admin bar, which logged-out visitors never see — but themes and plugins often enqueue it for a menu toggle or a search icon, and then every visitor downloads a font for two glyphs."
+msgstr ""
+
+#: src/Analyze/Rules/DashiconsFrontendRule.php:133
+msgid "Dashicons on the front end"
+msgstr ""
+
+#: src/Analyze/Rules/DuplicateFunctionalityRule.php:63
+msgid "Two page caches is the case that genuinely breaks: each caches the other's output, and purging one leaves the other still serving what you just purged."
+msgstr ""
+
+#: src/Analyze/Rules/DuplicateFunctionalityRule.php:67
+msgid "Two SEO plugins write the same titles, canonicals and structured data into the same <head>. Which one wins comes down to hook priority rather than to anything you chose."
+msgstr ""
+
+#: src/Analyze/Rules/DuplicateFunctionalityRule.php:71
+msgid "Two security plugins is rarely broken, but it is two sets of firewall rules, two scan schedules, and two places to look when something legitimate gets blocked."
+msgstr ""
+
+#: src/Analyze/Rules/DuplicateFunctionalityRule.php:75
+msgid "Two image optimizers compress each other's output. That loses quality for nothing, and can leave the media library with two competing sets of derivative files."
+msgstr ""
+
+#: src/Analyze/Rules/DuplicateFunctionalityRule.php:79
+msgid "Several forms plugins is often deliberate — one came bundled with a theme, or an old one still serves a single legacy form. Worth knowing, rarely worth acting on."
+msgstr ""
+
+#: src/Analyze/Rules/DuplicateFunctionalityRule.php:83
+msgid "Two backup plugins means two schedules, two destinations, and a restore that has to pick one. Sometimes that is on purpose."
+msgstr ""
+
+#: src/Analyze/Rules/DuplicateFunctionalityRule.php:87
+msgid "Two analytics plugins usually means two tracking scripts on every page, and often two copies of the same one."
+msgstr ""
+
+#. translators: %d: number of jobs being done by more than one active plugin.
+#: src/Analyze/Rules/DuplicateFunctionalityRule.php:149
+#, php-format
+msgid "%d job on this site is being done by more than one plugin"
+msgid_plural "%d jobs on this site are being done by more than one plugin"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Analyze/Rules/DuplicateFunctionalityRule.php:160
+msgid "Active plugins by category"
+msgstr ""
+
+#. translators: 1: category name, 2: comma-separated plugin slugs.
+#: src/Analyze/Rules/DuplicateFunctionalityRule.php:233
+#, php-format
+msgid "%1$s: %2$s."
+msgstr ""
+
+#: src/Analyze/Rules/DuplicateFunctionalityRule.php:258
+msgid "None of this is automatically a mistake, and Debloater has no way to tell a duplicate from a migration part-way through or an old plugin kept alive for one thing that still needs it. So it says what it sees and leaves the decision with you. Nothing here will deactivate or delete anything."
+msgstr ""
+
+#. translators: 1: number of addon packs, 2: widgets available, 3: widgets seen in use, 4: widgets potentially unused.
+#: src/Analyze/Rules/ElementorAuditRule.php:132
+#, php-format
+msgid "%1$d addon packs, %2$d widgets available, %3$d detected in use, %4$d potentially unused"
+msgstr ""
+
+#: src/Analyze/Rules/ElementorAuditRule.php:141
+msgid "Widgets registered, by plugin"
+msgstr ""
+
+#: src/Analyze/Rules/ElementorAuditRule.php:142
+msgid "Widget types found in your designs"
+msgstr ""
+
+#: src/Analyze/Rules/ElementorAuditRule.php:143
+msgid "Designs read"
+msgstr ""
+
+#: src/Analyze/Rules/ElementorAuditRule.php:144
+msgid "Templates"
+msgstr ""
+
+#: src/Analyze/Rules/ElementorAuditRule.php:145
+msgid "Dynamic tags present"
+msgstr ""
+
+#: src/Analyze/Rules/ElementorAuditRule.php:146
+msgid "Shortcode widgets present"
+msgstr ""
+
+#: src/Analyze/Rules/ElementorAuditRule.php:147
+msgid "Custom code widgets present"
+msgstr ""
+
+#: src/Analyze/Rules/ElementorAuditRule.php:247
+msgid "Every registered widget is code Elementor loads, whether or not anything on your site uses it — which is what makes an addon pack installed for one slider expensive. The word here is \"potentially\": the widgets counted as in use are the ones your saved designs name directly, and there is no supported way to unregister somebody else's widget anyway, so Debloater will not offer to. What this is for is deciding whether a pack is still worth having."
+msgstr ""
+
+#: src/Analyze/Rules/ElementorAuditRule.php:255
+msgid "dynamic tags, which resolve when a page is rendered"
+msgstr ""
+
+#: src/Analyze/Rules/ElementorAuditRule.php:259
+msgid "shortcode widgets, whose contents belong to another plugin"
+msgstr ""
+
+#: src/Analyze/Rules/ElementorAuditRule.php:263
+msgid "HTML or custom code widgets, which can contain anything"
+msgstr ""
+
+#: src/Analyze/Rules/ElementorAuditRule.php:267
+msgid "theme-builder templates, which are documents nothing links to directly"
+msgstr ""
+
+#. translators: %s: comma-separated list of things that hide a widget from the count.
+#: src/Analyze/Rules/ElementorAuditRule.php:276
+#, php-format
+msgid "This site also has %s, so treat the \"in use\" figure as a floor rather than a total. That is why this finding is not more confident than it is."
+msgstr ""
+
+#: src/Analyze/Rules/EmbedsRule.php:104
+msgid "The site offers its own posts for embedding on other sites"
+msgstr ""
+
+#: src/Analyze/Rules/EmbedsRule.php:113
+msgid "oEmbed discovery tags are in the page head, and the wp-embed.js script loads with them."
+msgstr ""
+
+#: src/Analyze/Rules/EmbedsRule.php:122
+msgid "This is the half of oEmbed that lets *other* sites embed *your* posts as a live preview card. Embedding other people's content in your own posts is separate and is unaffected. On a site nobody embeds, it is a script and two head tags per page for a feature never used."
+msgstr ""
+
+#: src/Analyze/Rules/EmbedsRule.php:131
+msgid "oEmbed discovery"
+msgstr ""
+
+#: src/Analyze/Rules/EmojiScriptRule.php:105
+msgid "A compatibility script for emoji loads on every page"
+msgstr ""
+
+#: src/Analyze/Rules/EmojiScriptRule.php:114
+msgid "The emoji detection script, its inline styles and a DNS prefetch to s.w.org load on every page of the site."
+msgstr ""
+
+#: src/Analyze/Rules/EmojiScriptRule.php:123
+msgid "The script exists to replace emoji characters with images on browsers that cannot display them. Every browser still receiving updates can display them natively, so on almost every site this is a script, a stylesheet and a third-party DNS lookup spent on a problem that no longer exists."
+msgstr ""
+
+#: src/Analyze/Rules/EmojiScriptRule.php:132
+msgid "Emoji detection script"
+msgstr ""
+
+#: src/Analyze/Rules/ExpiredTransientsRule.php:92
+msgid "Expired transients are sitting in the options table"
+msgstr ""
+
+#. translators: %s: number of expired transients.
+#: src/Analyze/Rules/ExpiredTransientsRule.php:95
+#, php-format
+msgid "%s transients have passed their expiry time and are still stored."
+msgstr ""
+
+#: src/Analyze/Rules/ExpiredTransientsRule.php:98
+msgid "A transient is a cached value with an expiry date. WordPress deletes an expired one the next time something asks for it — which means the ones still here are the ones nothing will ask for again. They stay in the options table until something removes them, taking up space in every backup and every scan of that table."
+msgstr ""
+
+#: src/Analyze/Rules/ExpiredTransientsRule.php:103
+#: build/index.js:8
+msgid "Expired transients"
+msgstr ""
+
+#: src/Analyze/Rules/ExpiredTransientsRule.php:104
+msgid "Transients in total"
+msgstr ""
+
+#: src/Analyze/Rules/FileEditorRule.php:76
+msgid "Theme and plugin files can be edited from the dashboard"
+msgstr ""
+
+#: src/Analyze/Rules/FileEditorRule.php:77
+msgid "The built-in file editor is available under Appearance and Plugins."
+msgstr ""
+
+#: src/Analyze/Rules/FileEditorRule.php:78
+msgid "The file editor lets anyone with administrator access rewrite PHP that runs on every request. That is convenient once and dangerous every other day: it turns a stolen administrator password into the ability to run code, and it makes it easy to break the site with a typo and no way back. Adding define( 'DISALLOW_FILE_EDIT', true ); to wp-config.php removes it. Debloater does not edit wp-config.php — a plugin that rewrites the file every request depends on can take a site offline by getting one line wrong."
+msgstr ""
+
+#: src/Analyze/Rules/FileEditorRule.php:83
+msgid "File editor"
+msgstr ""
+
+#: src/Analyze/Rules/FileEditorRule.php:83
+msgid "Available"
+msgstr ""
+
+#: src/Analyze/Rules/FileEditorRule.php:84
+#: src/Analyze/Rules/HeartbeatIntervalRule.php:114
+#: src/Analyze/Rules/UpdateNagRule.php:99
+msgid "Administrators"
+msgstr ""
+
+#: src/Analyze/Rules/GeneratorTagRule.php:103
+msgid "The exact WordPress version is published on every page"
+msgstr ""
+
+#: src/Analyze/Rules/GeneratorTagRule.php:112
+msgid "Every page and every feed carries a meta tag naming the WordPress version this site runs."
+msgstr ""
+
+#: src/Analyze/Rules/GeneratorTagRule.php:121
+msgid "Knowing the version does not let anyone in, but it does let an automated scanner skip straight to the exploits that work against it. Removing the tag costs nothing and removes the site from that shortlist."
+msgstr ""
+
+#: src/Analyze/Rules/GeneratorTagRule.php:130
+msgid "Generator tag"
+msgstr ""
+
+#: src/Analyze/Rules/HeartbeatIntervalRule.php:106
+msgid "Current interval"
+msgstr ""
+
+#. translators: %d: number of seconds.
+#: src/Analyze/Rules/HeartbeatIntervalRule.php:109
+#, php-format
+msgid "%d s"
+msgstr ""
+
+#: src/Analyze/Rules/HeartbeatIntervalRule.php:115
+msgid "Edited content in the last week"
+msgstr ""
+
+#: src/Analyze/Rules/HeartbeatIntervalRule.php:118
+msgid "WooCommerce active"
+msgstr ""
+
+#: src/Analyze/Rules/HeartbeatIntervalRule.php:126
+msgid "Heartbeat polls more often than this site needs"
+msgstr ""
+
+#. translators: 1: current interval in seconds, 2: proposed interval in seconds.
+#: src/Analyze/Rules/HeartbeatIntervalRule.php:129
+#, php-format
+msgid "Heartbeat polls every %1$d s. Nothing about how this site is used needs it that often; %2$d s is enough."
+msgstr ""
+
+#: src/Analyze/Rules/HeartbeatIntervalRule.php:133
+msgid "Heartbeat sends a background request on a timer to autosave drafts, warn when two people open the same post, and notice an expired login. Every open admin tab does it. On a busy site that is useful; on a quiet one it is a steady stream of admin-ajax requests for events that are not happening."
+msgstr ""
+
+#. translators: %s: comma-separated optimizer names.
+#: src/Analyze/Rules/HostOptimizerRule.php:112
+#, php-format
+msgid "%s has settings of its own for some of this"
+msgid_plural "These have settings of their own for some of this: %s"
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %s: comma-separated optimizer names.
+#: src/Analyze/Rules/HostOptimizerRule.php:122
+#, php-format
+msgid "%s is on this site and offers some of the same settings Debloater does. Each finding it overlaps with says so, and says where to find it."
+msgid_plural "These are on this site and offer some of the same settings Debloater does: %s. Each finding they overlap with says so, and says where to find it."
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Analyze/Rules/HostOptimizerRule.php:130
+msgid "Where something else on this site offers a setting for the same thing, Debloater says so on the finding itself, so you can choose which one to use rather than ending up with both. This does not mean the other tool has that setting turned on: Debloater cannot read another plugin's settings and will not guess, and where you are seeing a finding at all, the scan has just observed that whatever it is about is still happening."
+msgstr ""
+
+#: src/Analyze/Rules/HostOptimizerRule.php:135
+msgid "Other optimizers on this site"
+msgstr ""
+
+#: src/Analyze/Rules/HostOptimizerRule.php:136
+msgid "Host"
+msgstr ""
+
+#. translators: %d: number of deactivated plugins.
+#: src/Analyze/Rules/InactivePluginsRule.php:87
+#, php-format
+msgid "%d deactivated plugin is still installed"
+msgid_plural "%d deactivated plugins are still installed"
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %s: comma-separated list of plugin files.
+#: src/Analyze/Rules/InactivePluginsRule.php:92
+#, php-format
+msgid "Installed but not active: %s."
+msgstr ""
+
+#: src/Analyze/Rules/InactivePluginsRule.php:95
+msgid "A deactivated plugin is not loaded, so it costs nothing on any request. Its files are still on the server, though, and still get security advisories nobody is watching for a plugin that stopped being used. Whether to delete it is a decision only you can make, and it is not one this plugin will make for you."
+msgstr ""
+
+#: src/Analyze/Rules/InactivePluginsRule.php:100
+msgid "Deactivated plugins"
+msgstr ""
+
+#: src/Analyze/Rules/JqueryMigrateRule.php:105
+msgid "jQuery Migrate loads alongside jQuery on every page"
+msgstr ""
+
+#: src/Analyze/Rules/JqueryMigrateRule.php:114
+msgid "The registered jQuery bundle still includes jquery-migrate, so both scripts load wherever jQuery does."
+msgstr ""
+
+#: src/Analyze/Rules/JqueryMigrateRule.php:123
+msgid "Migrate exists to keep code written for jQuery 1.x working on modern jQuery. A site whose theme and plugins are current does not need it. A site where something still uses the old APIs breaks quietly without it: no error page, just JavaScript that stops running."
+msgstr ""
+
+#: src/Analyze/Rules/JqueryMigrateRule.php:132
+msgid "jQuery Migrate in the jQuery bundle"
+msgstr ""
+
+#: src/Analyze/Rules/NewsWidgetRule.php:97
+msgid "The Events and News widget is on the dashboard"
+msgstr ""
+
+#: src/Analyze/Rules/NewsWidgetRule.php:98
+msgid "The WordPress Events and News widget is registered on the dashboard."
+msgstr ""
+
+#: src/Analyze/Rules/NewsWidgetRule.php:99
+msgid "This is the one widget on a default dashboard that fetches something over the network while the page is loading — release news and nearby events, from wordpress.org. If you read it, keep it. If you have never read it, it is doing that on every dashboard load for nobody."
+msgstr ""
+
+#: src/Analyze/Rules/OrphanMetaRule.php:88
+msgid "Metadata is left over from content that no longer exists"
+msgstr ""
+
+#. translators: %s: number of orphaned meta rows.
+#: src/Analyze/Rules/OrphanMetaRule.php:91
+#, php-format
+msgid "%s metadata rows belong to a post, term or user that has been deleted."
+msgstr ""
+
+#: src/Analyze/Rules/OrphanMetaRule.php:94
+msgid "Deleting content does not always delete everything attached to it. Rows left behind are unreachable through WordPress but still in the database, in every backup and every query against those tables. What counts as orphaned here is deliberately narrow: a row is only included when the table WordPress itself looks in has no matching owner."
+msgstr ""
+
+#: src/Analyze/Rules/OrphanMetaRule.php:99
+msgid "Orphaned post metadata"
+msgstr ""
+
+#: src/Analyze/Rules/OrphanMetaRule.php:100
+msgid "Orphaned term metadata"
+msgstr ""
+
+#: src/Analyze/Rules/OrphanMetaRule.php:101
+msgid "Orphaned user metadata"
+msgstr ""
+
+#. translators: %d: number of notice callbacks from plugins on the allowlist.
+#: src/Analyze/Rules/PluginNoticesRule.php:130
+#, php-format
+msgid "%d admin notice comes from a plugin whose notices you can hide"
+msgid_plural "%d admin notices come from plugins whose notices you can hide"
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %s: comma-separated plugin names.
+#: src/Analyze/Rules/PluginNoticesRule.php:140
+#, php-format
+msgid "From: %s."
+msgstr ""
+
+#: src/Analyze/Rules/PluginNoticesRule.php:143
+msgid "These plugins print into the admin notice area on every screen. Hiding them is offered because the interruption is real — but read this first: it hides everything they say there, not only the marketing. These plugins send upgrade prompts and warnings about pending database updates or expiring licences down the same channel, and nothing reliably tells them apart. Nothing is uninstalled or switched off, and unselecting this brings the notices straight back."
+msgstr ""
+
+#: src/Analyze/Rules/PluginNoticesRule.php:148
+msgid "Notices by source"
+msgstr ""
+
+#: src/Analyze/Rules/PluginNoticesRule.php:149
+msgid "Plugins whose notices can be hidden"
+msgstr ""
+
+#: src/Analyze/Rules/PluginNoticesRule.php:150
+msgid "Total notice callbacks"
+msgstr ""
+
+#: src/Analyze/Rules/RevisionsUnlimitedRule.php:104
+msgid "Every revision of every post is kept forever"
+msgstr ""
+
+#. translators: 1: number of revisions, 2: revisions to keep per post.
+#: src/Analyze/Rules/RevisionsUnlimitedRule.php:107
+#, php-format
+msgid "WordPress is keeping every revision, and there are now %1$s of them. Keeping the most recent %2$d per post would stop the number growing."
+msgstr ""
+
+#: src/Analyze/Rules/RevisionsUnlimitedRule.php:111
+msgid "Each revision is a full copy of the post in the posts table, with its own meta. On a site edited regularly they outnumber the real content several times over, which makes every backup larger and every query over the posts table slower. Capping the number changes what happens from now on: nothing is deleted, and WordPress prunes the oldest revisions of a post the next time that post is saved."
+msgstr ""
+
+#: src/Analyze/Rules/RevisionsUnlimitedRule.php:116
+msgid "Revision limit"
+msgstr ""
+
+#: src/Analyze/Rules/RevisionsUnlimitedRule.php:116
+msgid "Unlimited"
+msgstr ""
+
+#: src/Analyze/Rules/RevisionsUnlimitedRule.php:117
+#: src/Analyze/Rules/StoredRevisionsRule.php:102
+msgid "Revisions stored"
+msgstr ""
+
+#: src/Analyze/Rules/RevisionsUnlimitedRule.php:118
+#: src/Analyze/Rules/StoredRevisionsRule.php:103
+msgid "Database size"
+msgstr ""
+
+#: src/Analyze/Rules/RsdLinkRule.php:104
+msgid "The page head advertises the XML-RPC endpoint"
+msgstr ""
+
+#: src/Analyze/Rules/RsdLinkRule.php:113
+msgid "Every page carries a Really Simple Discovery link pointing at xmlrpc.php."
+msgstr ""
+
+#: src/Analyze/Rules/RsdLinkRule.php:122
+msgid "RSD exists so that desktop blogging clients can find the XML-RPC endpoint on their own. Almost nobody uses those clients now, and the link is one more thing pointing at an endpoint that attracts brute-force traffic. Removing the link does not disable XML-RPC; it only stops announcing it."
+msgstr ""
+
+#: src/Analyze/Rules/RsdLinkRule.php:131
+#: src/Analyze/Rules/XmlRpcRule.php:84
+msgid "RSD discovery link"
+msgstr ""
+
+#: src/Analyze/Rules/SelfPingbackRule.php:105
+msgid "The site pings itself whenever a post links internally"
+msgstr ""
+
+#: src/Analyze/Rules/SelfPingbackRule.php:114
+msgid "Nothing is filtering the ping list, so linking from one post to another on this site makes WordPress send itself a pingback and create a comment."
+msgstr ""
+
+#: src/Analyze/Rules/SelfPingbackRule.php:123
+msgid "Each internal link costs an HTTP request from the site to itself at publish time and leaves a pingback comment on the linked post that has to be moderated or deleted. Pingbacks to other sites are a different thing and are unaffected."
+msgstr ""
+
+#: src/Analyze/Rules/SelfPingbackRule.php:132
+msgid "Self-pingbacks"
+msgstr ""
+
+#: src/Analyze/Rules/ShortlinkRule.php:103
+msgid "Every page publishes its numeric URL as well as its real one"
+msgstr ""
+
+#: src/Analyze/Rules/ShortlinkRule.php:112
+msgid "WordPress emits a rel=\"shortlink\" tag in the head and a matching Link: HTTP header, both giving the ?p=<id> form of the page."
+msgstr ""
+
+#: src/Analyze/Rules/ShortlinkRule.php:121
+msgid "The shortlink is a leftover from an era of character limits. It exposes the internal post id of every page, adds a head tag and an HTTP header to every request, and almost nothing consumes it."
+msgstr ""
+
+#: src/Analyze/Rules/ShortlinkRule.php:130
+msgid "Shortlink tag and header"
+msgstr ""
+
+#: src/Analyze/Rules/SpamCommentsRule.php:86
+msgid "Comments marked as spam are still stored"
+msgstr ""
+
+#. translators: %s: number of spam comments.
+#: src/Analyze/Rules/SpamCommentsRule.php:89
+#, php-format
+msgid "%s comments are marked as spam."
+msgstr ""
+
+#: src/Analyze/Rules/SpamCommentsRule.php:92
+msgid "Spam comments stay in the comments table, with their metadata, until something deletes them. Only comments already marked as spam are considered here: anything still awaiting moderation is left exactly where it is, because nobody has judged it yet."
+msgstr ""
+
+#: src/Analyze/Rules/SpamCommentsRule.php:97
+msgid "Comments marked as spam"
+msgstr ""
+
+#: src/Analyze/Rules/StoredRevisionsRule.php:91
+msgid "A lot of old post revisions are stored"
+msgstr ""
+
+#. translators: %s: number of revisions.
+#: src/Analyze/Rules/StoredRevisionsRule.php:94
+#, php-format
+msgid "%s revisions are stored across this site."
+msgstr ""
+
+#: src/Analyze/Rules/StoredRevisionsRule.php:97
+msgid "Every time a post is saved, WordPress keeps the previous version as a revision. They live in the posts table alongside the posts themselves, so they are in every backup, every export and every query that scans that table. Deleting the older ones keeps the recent history and removes the rest — but a revision is somebody's earlier draft, so nothing here is deleted without a full copy being taken first."
+msgstr ""
+
+#: src/Analyze/Rules/TrashRule.php:81
+msgid "Content is waiting in the trash"
+msgstr ""
+
+#. translators: %s: number of trashed items.
+#: src/Analyze/Rules/TrashRule.php:84
+#, php-format
+msgid "%s items are in the trash."
+msgstr ""
+
+#: src/Analyze/Rules/TrashRule.php:87
+msgid "Trashed content is still in the posts table, with its metadata and its terms, until something empties the trash. WordPress does that itself after thirty days when its scheduled task runs. Emptying it deletes the content permanently, so only items that have been there a while are touched — something trashed this morning is very often something about to be untrashed."
+msgstr ""
+
+#: src/Analyze/Rules/TrashRule.php:92
+msgid "Items in the trash"
+msgstr ""
+
+#: src/Analyze/Rules/UpdateNagRule.php:86
+msgid "The core update notice is shown to people who cannot update"
+msgstr ""
+
+#. translators: 1: number of people who edited content recently, 2: number of administrators.
+#: src/Analyze/Rules/UpdateNagRule.php:89
+#, php-format
+msgid "%1$d people edited content here in the last week and %2$d of the accounts are administrators."
+msgstr ""
+
+#: src/Analyze/Rules/UpdateNagRule.php:93
+msgid "\"WordPress x.y is available\" goes to everyone who can open the admin, including authors, editors and shop managers, none of whom can act on it. What they can do is worry about it, or interrupt somebody. Hiding it from them leaves it exactly where it needs to be: anyone who can actually run the update still sees it, every time, and that part is not configurable."
+msgstr ""
+
+#: src/Analyze/Rules/UpdateNagRule.php:98
+msgid "Core update notice registered"
+msgstr ""
+
+#: src/Analyze/Rules/UpdateNagRule.php:100
+msgid "People who edited content in the last week"
+msgstr ""
+
+#: src/Analyze/Rules/WelcomePanelRule.php:76
+msgid "The dashboard welcome panel is still being shown"
+msgstr ""
+
+#: src/Analyze/Rules/WelcomePanelRule.php:77
+msgid "WordPress is still printing the \"Welcome to WordPress!\" panel on the dashboard."
+msgstr ""
+
+#: src/Analyze/Rules/WelcomePanelRule.php:78
+msgid "Everyone can dismiss this for themselves, but the dismissal is stored per person, so on a site with several people each of them has to do it — and every new colleague meets it again on their first day. Removing it changes nobody's stored preference, so putting it back leaves everyone exactly where they were."
+msgstr ""
+
+#: src/Analyze/Rules/WelcomePanelRule.php:83
+msgid "Welcome panel"
+msgstr ""
+
+#: src/Analyze/Rules/WooAnalyticsRule.php:80
+msgid "WooCommerce Analytics is running"
+msgstr ""
+
+#: src/Analyze/Rules/WooAnalyticsRule.php:81
+msgid "The Analytics section of WooCommerce Admin is enabled, with the scheduled imports that keep its tables up to date."
+msgstr ""
+
+#: src/Analyze/Rules/WooAnalyticsRule.php:82
+msgid "WooCommerce Analytics maintains its own set of lookup tables and schedules a job to update them whenever an order changes. If you read those reports, that is simply what the feature costs and this is not worth doing. If you read your numbers somewhere else, it is a background job and a set of tables working for nobody. Turning it off hides the reports and stops the imports; it deletes nothing, and turning it back on restores the section with its history, though WooCommerce will need to catch up on whatever it missed."
+msgstr ""
+
+#: src/Analyze/Rules/WooAnalyticsRule.php:87
+msgid "Analytics enabled"
+msgstr ""
+
+#: src/Analyze/Rules/WooAnalyticsRule.php:88
+msgid "WooCommerce version"
+msgstr ""
+
+#. translators: %d: number of non-shop pages loading the stylesheets.
+#: src/Analyze/Rules/WooBlockStylesRule.php:84
+#, php-format
+msgid "WooCommerce block styles load on %d page with no WooCommerce block on it"
+msgid_plural "WooCommerce block styles load on %d pages with no WooCommerce block on them"
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %s: comma-separated page paths.
+#: src/Analyze/Rules/WooBlockStylesRule.php:94
+#, php-format
+msgid "Loaded on: %s."
+msgstr ""
+
+#: src/Analyze/Rules/WooBlockStylesRule.php:97
+msgid "This change keeps the block stylesheets on every WooCommerce page and on any page whose content contains a WooCommerce block, and drops them elsewhere. It is a stylesheet rather than a request per visitor, so the saving is modest; what earns the medium risk is the other direction, because a block living in a template part or a page builder is not visible from the page markup and would lose its styling."
+msgstr ""
+
+#: src/Analyze/Rules/WooBlockStylesRule.php:102
+msgid "Pages loading the stylesheets"
+msgstr ""
+
+#: src/Analyze/Rules/WooMarketplaceRule.php:81
+msgid "WooCommerce is showing extension suggestions in your admin"
+msgstr ""
+
+#: src/Analyze/Rules/WooMarketplaceRule.php:82
+msgid "Marketplace suggestions appear on the products, orders and settings screens."
+msgstr ""
+
+#: src/Analyze/Rules/WooMarketplaceRule.php:83
+msgid "These are the panels recommending paid extensions. WooCommerce has its own documented switches for them, which is what this change uses, and nothing operational goes through the same channel — notices about your store itself are untouched, so a pending database update or a gateway that needs configuring still reaches you. That is why this one is safe where hiding a plugin's admin notices wholesale is not."
+msgstr ""
+
+#: src/Analyze/Rules/WooMarketplaceRule.php:88
+msgid "Marketplace suggestions enabled"
+msgstr ""
+
+#: src/Analyze/Rules/XmlRpcRule.php:76
+msgid "XML-RPC is answering requests"
+msgstr ""
+
+#: src/Analyze/Rules/XmlRpcRule.php:77
+msgid "The xmlrpc.php endpoint exists and nothing is filtering it, so it accepts requests."
+msgstr ""
+
+#: src/Analyze/Rules/XmlRpcRule.php:78
+msgid "XML-RPC is the old remote-publishing interface. It attracts steady automated login attempts, and its multicall feature lets an attacker try many passwords in one request. It is also what Jetpack, the WordPress mobile apps and several backup plugins use to talk to a site. Whether switching it off is right here depends on whether anything is using it — which is a question this version reports rather than answers."
+msgstr ""
+
+#: src/Analyze/Rules/XmlRpcRule.php:83
+msgid "XML-RPC endpoint"
+msgstr ""
+
+#: src/Analyze/Rules/XmlRpcRule.php:83
+msgid "Reachable"
+msgstr ""
+
+#: src/Apply/ApplyManager.php:211
+msgid "Another change is already in progress on this site. Wait for it to finish and try again."
+msgstr ""
+
+#: src/Apply/ApplyManager.php:324
+msgid "Another change is in progress on this site. Wait for it to finish and try again."
+msgstr ""
+
+#: src/Apply/ApplyManager.php:373
+msgid "Rolled back on request. The previous configuration has been restored."
+msgstr ""
+
+#: src/Apply/ApplyManager.php:452
+msgid "This change was interrupted before it finished and has been rolled back."
+msgstr ""
+
+#. translators: %s: the underlying failure.
+#: src/Apply/ApplyManager.php:462
+#, php-format
+msgid "This change was interrupted and could not be rolled back automatically: %s"
+msgstr ""
+
+#. translators: 1: the original failure, 2: the rollback failure.
+#: src/Apply/ApplyManager.php:763
+#, php-format
+msgid "%1$s The rollback then failed as well: %2$s"
+msgstr ""
+
+#. translators: %s: the failed checks, already sentence-formed.
+#: src/Apply/ApplyManager.php:825
+#, php-format
+msgid "The site did not pass its checks after the change, so it was put back. %s"
+msgstr ""
+
+#. translators: 1: number of facts, 2: number of findings.
+#: src/Cli/Command.php:163
+#, php-format
+msgid "Scanned the site: %1$d facts, %2$d findings."
+msgstr ""
+
+#: src/Cli/Command.php:212
+msgid "There is no scan to read. Run `wp debloater scan` first."
+msgstr ""
+
+#. translators: %s: the value given.
+#: src/Cli/Command.php:227
+#, php-format
+msgid "\"%s\" is not a risk level. Use low, medium or high."
+msgstr ""
+
+#: src/Cli/Command.php:257
+msgid "Nothing to report."
+msgstr ""
+
+#: src/Cli/Command.php:389
+msgid "There is nothing to apply: the plan is empty."
+msgstr ""
+
+#: src/Cli/Command.php:471
+msgid "The end-to-end suite is part of the Debloater repository and is not shipped with the plugin."
+msgstr ""
+
+#: src/Cli/Command.php:473
+msgid "To run it from a checkout:"
+msgstr ""
+
+#: src/Cli/Command.php:482
+msgid "It also runs nightly in CI, and on a pull request labelled \"e2e\"."
+msgstr ""
+
+#: src/Cli/Command.php:484
+msgid "To check this site instead, run `wp debloater verify` with no flag."
+msgstr ""
+
+#. translators: 1: registry tag, 2: number of changes.
+#: src/Cli/Command.php:541
+#, php-format
+msgid "Registry %1$s, %2$d changes."
+msgstr ""
+
+#: src/Cli/Command.php:542
+msgid "unversioned"
+msgstr ""
+
+#: src/Cli/Command.php:678
+msgid "Give the id of the recovery point."
+msgstr ""
+
+#. translators: %s: the id given.
+#: src/Cli/Command.php:689
+#: src/Cli/Command.php:1080
+#, php-format
+msgid "There is no recovery point with the id %s."
+msgstr ""
+
+#. translators: %d: the id deleted.
+#: src/Cli/Command.php:712
+#, php-format
+msgid "Deleted recovery point %d. That change can no longer be undone."
+msgstr ""
+
+#. translators: 1: plugin version, 2: registry hash.
+#: src/Cli/Command.php:757
+#, php-format
+msgid "Debloater %1$s, registry %2$s"
+msgstr ""
+
+#. translators: %d: number of selected changes.
+#: src/Cli/Command.php:766
+#, php-format
+msgid "%d change selected"
+msgid_plural "%d changes selected"
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: 1: runtime hash, 2: loader mode.
+#: src/Cli/Command.php:778
+#, php-format
+msgid "Runtime %1$s, loaded by the %2$s"
+msgstr ""
+
+#: src/Cli/Command.php:782
+msgid "No runtime file: nothing is being changed on the front end."
+msgstr ""
+
+#: src/Cli/Command.php:787
+msgid "The runtime file on disk is not the one Debloater generated."
+msgstr ""
+
+#. translators: %s: file path.
+#: src/Cli/Command.php:835
+#, php-format
+msgid "Could not write to %s."
+msgstr ""
+
+#. translators: 1: number of changes, 2: file path.
+#: src/Cli/Command.php:846
+#, php-format
+msgid "Wrote %1$d changes to %2$s."
+msgstr ""
+
+#. translators: %s: file path.
+#: src/Cli/Command.php:894
+#, php-format
+msgid "Cannot read %s."
+msgstr ""
+
+#. translators: %s: file path.
+#: src/Cli/Command.php:910
+#, php-format
+msgid "%s is not valid JSON."
+msgstr ""
+
+#. translators: 1: file path, 2: the first problem.
+#: src/Cli/Command.php:924
+#, php-format
+msgid "%1$s is not a Debloater configuration file: %2$s"
+msgstr ""
+
+#: src/Cli/Command.php:938
+msgid "This file was written against a different version of the change registry. Check the plan before applying it."
+msgstr ""
+
+#. translators: %d: number of changes.
+#: src/Cli/Command.php:967
+#, php-format
+msgid "The file is valid and carries %d changes. Add --apply --yes to put them in place."
+msgstr ""
+
+#. translators: %s: comma-separated tweak ids.
+#: src/Cli/Command.php:1044
+#, php-format
+msgid "No such change: %s"
+msgstr ""
+
+#: src/Cli/Command.php:1058
+msgid "There is no scan to plan from. Run `wp debloater scan` first."
+msgstr ""
+
+#: src/Cli/Command.php:1094
+msgid "There is nothing to roll back to."
+msgstr ""
+
+#: src/Cli/Command.php:1126
+#: build/index.js:9
+msgid "There are no recovery points yet."
+msgstr ""
+
+#: src/Cli/Command.php:1206
+msgid "Nothing would change."
+msgstr ""
+
+#: src/Cli/Command.php:1208
+msgid "This would change:"
+msgstr ""
+
+#: src/Cli/Command.php:1216
+msgid "This would not change:"
+msgstr ""
+
+#: src/Cli/Command.php:1224
+msgid "This plan deletes data. A full recovery point is taken first."
+msgstr ""
+
+#. translators: %d: number of changes applied.
+#: src/Cli/Command.php:1239
+#, php-format
+msgid "Applied %d change."
+msgid_plural "Applied %d changes."
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Cli/Command.php:1278
+msgid "The site did not pass its checks."
+msgstr ""
+
+#: src/Cli/Command.php:1284
+msgid "Everything checked out."
+msgstr ""
+
+#: src/Cli/Command.php:1289
+msgid "The site works, but some checks could not be completed."
+msgstr ""
+
+#. translators: %s: the score out of 100.
+#: src/Cli/Command.php:1306
+#, php-format
+msgid "Debloat score: %s / 100"
+msgstr ""
+
+#: src/Cli/Command.php:1341
+msgid "This changes the site. Add --yes to confirm."
+msgstr ""
+
+#: src/Config/ConfigDocument.php:227
+msgid "This version of Debloater does not know that change, so it cannot be applied here."
+msgstr ""
+
+#: src/Meter/Comparison.php:188
+msgid "This was not measured before the change."
+msgstr ""
+
+#: src/Meter/Comparison.php:193
+msgid "This was not measured after the change."
+msgstr ""
+
+#: src/Meter/Comparison.php:197
+msgid "This could not be measured after the change."
+msgstr ""
+
+#: src/Meter/Meter.php:220
+msgid "None of the pages could be fetched, so nothing about them was measured."
+msgstr ""
+
+#: src/Meter/Meter.php:376
+msgid "The Heartbeat interval could not be read."
+msgstr ""
+
+#. translators: 1: seconds between beats, 2: number of administrators.
+#: src/Meter/Meter.php:388
+#, php-format
+msgid "every %1$d seconds, %2$d signed-in administrators"
+msgstr ""
+
+#. translators: 1: required tweak id, 2: why that tweak is not in the plan.
+#: src/Recommend/PreviewPlanner.php:173
+#, php-format
+msgid "Requires \"%1$s\", which is not part of this plan: %2$s"
+msgstr ""
+
+#: src/Recommend/PreviewPlanner.php:175
+msgid "it was not selected."
+msgstr ""
+
+#. translators: %s: the reason the change was refused.
+#: src/Recommend/PreviewPlanner.php:263
+#, php-format
+msgid "No action recommended here: %s"
+msgstr ""
+
+#: src/Recommend/PreviewPlanner.php:269
+msgid "This tweak is not in the current registry."
+msgstr ""
+
+#: src/Recommend/PreviewPlanner.php:276
+msgid "Deleting data is never part of Fix Safe Issues."
+msgstr ""
+
+#. translators: %s: risk level.
+#: src/Recommend/PreviewPlanner.php:282
+#, php-format
+msgid "Risk is %s, which needs to be reviewed rather than applied in one click."
+msgstr ""
+
+#. translators: 1: profile title, 2: risk level.
+#: src/Recommend/PreviewPlanner.php:290
+#, php-format
+msgid "The %1$s profile does not include %2$s-risk changes."
+msgstr ""
+
+#. translators: %s: tweak id.
+#: src/Recommend/PreviewPlanner.php:312
+#, php-format
+msgid "Cannot be applied alongside \"%s\", which is already in this plan."
+msgstr ""
+
+#. translators: %s: tweak id.
+#: src/Recommend/PreviewPlanner.php:335
+#, php-format
+msgid "Requires \"%s\", which is not part of this plan."
+msgstr ""
+
+#. translators: %s: fact key.
+#: src/Recommend/PreviewPlanner.php:347
+#, php-format
+msgid "Depends on %s, which the last scan did not observe."
+msgstr ""
+
+#. translators: %s: the condition that was required.
+#: src/Recommend/PreviewPlanner.php:355
+#, php-format
+msgid "Only applies where %s, which is not true of this site."
+msgstr ""
+
+#: src/Recommend/PreviewPlanner.php:404
+msgid "Nothing will be deleted."
+msgstr ""
+
+#: src/Recommend/PreviewPlanner.php:408
+msgid "No content, settings or database rows will be changed — only which hooks WordPress registers."
+msgstr ""
+
+#. translators: %d: number of changes deliberately left alone.
+#: src/Recommend/PreviewPlanner.php:414
+#, php-format
+msgid "%d change was deliberately left alone because something on this site depends on it."
+msgid_plural "%d changes were deliberately left alone because something on this site depends on them."
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %d: number of changes not included in this plan.
+#: src/Recommend/PreviewPlanner.php:429
+#, php-format
+msgid "%d further change is available but not part of this plan."
+msgid_plural "%d further changes are available but not part of this plan."
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Recommend/PreviewPlanner.php:439
+msgid "A recovery point is created before anything is changed, and every change here can be undone."
+msgstr ""
+
+#. translators: %s: tweak id.
+#: src/Recommend/RecommendationEngine.php:220
+#, php-format
+msgid "The tweak \"%s\" is not in this version of the registry."
+msgstr ""
+
+#: src/Recommend/RiskEngine.php:107
+msgid "This host was not recognised, so we cannot tell what it already changes for you."
+msgstr ""
+
+#: src/Rest/Controller.php:134
+msgid "That request could not be verified as coming from this screen. Reload the page and try again."
+msgstr ""
+
+#: src/Rest/Routes/ApplyRoute.php:76
+msgid "Which profile to apply."
+msgstr ""
+
+#: src/Rest/Routes/ApplyRoute.php:82
+msgid "Specific changes to apply, instead of a profile."
+msgstr ""
+
+#: src/Rest/Routes/ApplyRoute.php:88
+msgid "The confirmation token from the preview of this exact plan."
+msgstr ""
+
+#: src/Rest/Routes/ApplyRoute.php:95
+msgid "The user states they have their own external backup. Recorded, and never a substitute for the recovery point Debloater takes itself."
+msgstr ""
+
+#: src/Rest/Routes/ApplyRoute.php:121
+msgid "There is nothing to apply yet. Run a scan first."
+msgstr ""
+
+#: src/Rest/Routes/ApplyRoute.php:129
+msgid "There is nothing to apply: this plan is empty."
+msgstr ""
+
+#: src/Rest/Routes/ApplyRoute.php:139
+msgid "This site has changed since that preview, so the plan is no longer the one you agreed to. Preview it again to see what is different."
+msgstr ""
+
+#: src/Rest/Routes/FindingsRoute.php:78
+msgid "Only findings at this risk level."
+msgstr ""
+
+#: src/Rest/Routes/FindingsRoute.php:84
+msgid "Only findings with this decision."
+msgstr ""
+
+#: src/Rest/Routes/FindingsRoute.php:90
+msgid "Only findings in this category."
+msgstr ""
+
+#: src/Rest/Routes/FindingsRoute.php:96
+msgid "Read a specific scan run instead of the most recent one."
+msgstr ""
+
+#: src/Rest/Routes/FindingsRoute.php:117
+msgid "This site has not been scanned yet."
+msgstr ""
+
+#: src/Rest/Routes/FindingsRoute.php:129
+msgid "That scan was recorded by a different version and cannot be read."
+msgstr ""
+
+#: src/Rest/Routes/PreviewRoute.php:75
+msgid "Which profile to plan with."
+msgstr ""
+
+#: src/Rest/Routes/PreviewRoute.php:81
+msgid "Plan from a specific scan instead of the most recent one."
+msgstr ""
+
+#: src/Rest/Routes/PreviewRoute.php:87
+msgid "Plan these specific changes instead of a profile."
+msgstr ""
+
+#: src/Rest/Routes/PreviewRoute.php:113
+msgid "There is nothing to preview yet. Run a scan first."
+msgstr ""
+
+#: src/Rest/Routes/RollbackRoute.php:76
+msgid "The recovery point to go back to. Defaults to the most recent one."
+msgstr ""
+
+#: src/Rest/Routes/RollbackRoute.php:82
+msgid "The confirmation token for this recovery point."
+msgstr ""
+
+#: src/Rest/Routes/RollbackRoute.php:107
+msgid "There is no recovery point to restore."
+msgstr ""
+
+#: src/Rest/Routes/RollbackRoute.php:115
+msgid "That confirmation does not match this recovery point. Reload the list and try again."
+msgstr ""
+
+#: src/Rest/Routes/RunRoute.php:73
+msgid "The run to read."
+msgstr ""
+
+#: src/Rest/Routes/RunRoute.php:93
+msgid "There is no change with that id."
+msgstr ""
+
+#: src/Rest/Routes/RunRoute.php:130
+msgid "Waiting to start"
+msgstr ""
+
+#: src/Rest/Routes/RunRoute.php:131
+msgid "Working out what to change"
+msgstr ""
+
+#: src/Rest/Routes/RunRoute.php:132
+msgid "Waiting for you to confirm"
+msgstr ""
+
+#: src/Rest/Routes/RunRoute.php:133
+msgid "Holding the site so nothing else changes it"
+msgstr ""
+
+#: src/Rest/Routes/RunRoute.php:134
+#: src/Rest/Routes/RunRoute.php:143
+msgid "Counting what is there now"
+msgstr ""
+
+#: src/Rest/Routes/RunRoute.php:135
+msgid "Taking a recovery point"
+msgstr ""
+
+#: src/Rest/Routes/RunRoute.php:136
+msgid "Applying the changes"
+msgstr ""
+
+#: src/Rest/Routes/RunRoute.php:137
+msgid "Changes applied"
+msgstr ""
+
+#: src/Rest/Routes/RunRoute.php:138
+msgid "Something went wrong while applying"
+msgstr ""
+
+#: src/Rest/Routes/RunRoute.php:139
+msgid "Checking the site still works"
+msgstr ""
+
+#: src/Rest/Routes/RunRoute.php:140
+msgid "The site checked out"
+msgstr ""
+
+#: src/Rest/Routes/RunRoute.php:141
+msgid "The site works, with some checks incomplete"
+msgstr ""
+
+#: src/Rest/Routes/RunRoute.php:142
+msgid "The site did not pass its checks"
+msgstr ""
+
+#: src/Rest/Routes/RunRoute.php:144
+msgid "Done"
+msgstr ""
+
+#: src/Rest/Routes/RunRoute.php:145
+msgid "Putting the site back"
+msgstr ""
+
+#: src/Rest/Routes/RunRoute.php:146
+msgid "Rollback complete"
+msgstr ""
+
+#: src/Rest/Routes/RunRoute.php:147
+msgid "Stopped before anything changed"
+msgstr ""
+
+#: src/Rest/Routes/RunRoute.php:148
+msgid "Interrupted partway through"
+msgstr ""
+
+#: src/Rest/Routes/ScanRoute.php:71
+msgid "Look up plugin release dates at wordpress.org for this scan. This is the only thing Debloater sends off the server, it happens only when this is true, and it is not remembered: the next scan asks again."
+msgstr ""
+
+#. translators: 1: snapshot id, 2: why it cannot be restored.
+#: src/Snapshot/RollbackManager.php:173
+#, php-format
+msgid "Recovery point %1$d could not be restored, so the rollback stopped: %2$s"
+msgstr ""
+
+#: src/Snapshot/RollbackManager.php:194
+msgid "This recovery point was taken on a different site. Restoring it here would write another site's settings over this one."
+msgstr ""
+
+#: src/Snapshot/RollbackManager.php:201
+msgid "This recovery point did not verify, so it will not be restored."
+msgstr ""
+
+#. translators: %s: snapshot status.
+#: src/Snapshot/RollbackManager.php:207
+#, php-format
+msgid "This recovery point is %s, so there is nothing to restore from it."
+msgstr ""
+
+#: src/Update/RegistryUpdater.php:141
+msgid "The registry update check is off, so nothing was requested. Nothing leaves this server unless you ask for it."
+msgstr ""
+
+#: src/Update/RegistryUpdater.php:259
+msgid "The registry release is not signed with the key this plugin trusts. Nothing was installed."
+msgstr ""
+
+#: src/Update/RegistryUpdater.php:271
+msgid "The registry is already the newest release."
+msgstr ""
+
+#. translators: 1: offered tag, 2: current tag.
+#: src/Update/RegistryUpdater.php:281
+#, php-format
+msgid "Registry release %1$s is available and its signature checks out. This site has %2$s."
+msgstr ""
+
+#: src/Update/SignatureVerifier.php:78
+msgid "This server has no libsodium, so a signed registry update cannot be checked. Debloater will not install one it cannot verify."
+msgstr ""
+
+#: src/Update/SignatureVerifier.php:84
+msgid "No registry signing key is pinned in this build, so there is nothing to check a signed update against."
+msgstr ""
+
+#. translators: %s: the underlying connection error.
+#: src/Verify/Probes/AbstractHttpProbe.php:76
+#, php-format
+msgid "This site could not reach itself over HTTP, so this check could not run: %s"
+msgstr ""
+
+#. translators: %s: page description.
+#: src/Verify/Probes/AbstractHttpProbe.php:99
+#, php-format
+msgid "%s redirected in a loop and never arrived anywhere."
+msgstr ""
+
+#. translators: 1: page description, 2: the marker found.
+#: src/Verify/Probes/AbstractHttpProbe.php:117
+#, php-format
+msgid "%1$s returned an error page containing \"%2$s\"."
+msgstr ""
+
+#. translators: 1: page description, 2: HTTP status code.
+#: src/Verify/Probes/AbstractHttpProbe.php:131
+#, php-format
+msgid "%1$s returned HTTP %2$d."
+msgstr ""
+
+#. translators: %s: page description.
+#: src/Verify/Probes/AbstractHttpProbe.php:145
+#, php-format
+msgid "%s returned an empty page."
+msgstr ""
+
+#. translators: 1: page description, 2: comma-separated markers.
+#: src/Verify/Probes/AbstractHttpProbe.php:173
+#, php-format
+msgid "%1$s loaded, but the page looks incomplete: %2$s not found."
+msgstr ""
+
+#. translators: %s: page description.
+#: src/Verify/Probes/AbstractHttpProbe.php:186
+#, php-format
+msgid "%s loaded normally."
+msgstr ""
+
+#. translators: %s: the name of a WooCommerce page.
+#: src/Verify/Probes/AbstractWooProbe.php:69
+#, php-format
+msgid "This store has no %s page, so there was nothing to check."
+msgstr ""
+
+#. translators: 1: the name of a WooCommerce page, 2: comma-separated markers.
+#: src/Verify/Probes/AbstractWooProbe.php:97
+#, php-format
+msgid "%1$s loaded, but what makes it work is missing from it: %2$s."
+msgstr ""
+
+#: src/Verify/Probes/AdminProbe.php:53
+msgid "The dashboard could not be checked, because there was no signed-in user to check it as."
+msgstr ""
+
+#: src/Verify/Probes/AdminProbe.php:71
+msgid "The dashboard answered with the login form, so this check could not confirm whether it renders."
+msgstr ""
+
+#. translators: %s: comma-separated markers.
+#: src/Verify/Probes/AdminProbe.php:87
+#, php-format
+msgid "The dashboard loaded, but parts of it are missing: %s not found."
+msgstr ""
+
+#: src/Verify/Probes/AdminProbe.php:97
+msgid "The dashboard loaded normally."
+msgstr ""
+
+#: src/Verify/Probes/AdminProbe.php:108
+msgid "The dashboard"
+msgstr ""
+
+#: src/Verify/Probes/ContentPageProbe.php:66
+msgid "This site has no published posts or pages, so there was no content page to check."
+msgstr ""
+
+#: src/Verify/Probes/ContentPageProbe.php:81
+msgid "The most recent post or page"
+msgstr ""
+
+#: src/Verify/Probes/HomeProbe.php:52
+msgid "The home page"
+msgstr ""
+
+#: src/Verify/Probes/LoginProbe.php:55
+msgid "The login page answered, but no sign-in form was found on it."
+msgstr ""
+
+#: src/Verify/Probes/LoginProbe.php:63
+msgid "The login page loaded normally."
+msgstr ""
+
+#: src/Verify/Probes/LoginProbe.php:74
+msgid "The login page"
+msgstr ""
+
+#. translators: 1: URL, 2: HTTP status code.
+#: src/Verify/Probes/RestProbe.php:61
+#, php-format
+msgid "The REST API refused an anonymous request to %1$s with HTTP %2$d. If that is deliberate, nothing is wrong."
+msgstr ""
+
+#. translators: 1: URL, 2: HTTP status code.
+#: src/Verify/Probes/RestProbe.php:75
+#, php-format
+msgid "The REST API returned HTTP %2$d for %1$s."
+msgstr ""
+
+#. translators: %s: URL.
+#: src/Verify/Probes/RestProbe.php:89
+#, php-format
+msgid "The REST API answered %s with something that is not valid JSON, which usually means output from somewhere else got into the response."
+msgstr ""
+
+#: src/Verify/Probes/RestProbe.php:103
+msgid "The REST API answered normally."
+msgstr ""
+
+#: src/Verify/Probes/RestProbe.php:114
+msgid "The REST API"
+msgstr ""
+
+#: src/Verify/Probes/RuntimeLoadedProbe.php:76
+msgid "Nothing is selected, so there is no runtime to load — which is exactly what was found."
+msgstr ""
+
+#: src/Verify/Probes/RuntimeLoadedProbe.php:91
+msgid "The status endpoint could not be read as the signed-in user, so it is not known whether the generated runtime is loaded."
+msgstr ""
+
+#. translators: %d: HTTP status code.
+#: src/Verify/Probes/RuntimeLoadedProbe.php:107
+#, php-format
+msgid "The status endpoint did not answer with a readable status (HTTP %d)."
+msgstr ""
+
+#: src/Verify/Probes/RuntimeLoadedProbe.php:132
+msgid "There is a selection saved, but no runtime file is in place, so none of the selected changes are active."
+msgstr ""
+
+#: src/Verify/Probes/RuntimeLoadedProbe.php:141
+msgid "The runtime file on disk is not the one this change generated, so the site is running something else."
+msgstr ""
+
+#: src/Verify/Probes/RuntimeLoadedProbe.php:150
+msgid "The changes are active, but they load from the plugin rather than an mu-plugin, so they start later in the request than they could."
+msgstr ""
+
+#: src/Verify/Probes/RuntimeLoadedProbe.php:161
+msgid "The generated runtime is in place and matches what was written."
+msgstr ""
+
+#: src/Verify/Probes/RuntimeLoadedProbe.php:172
+msgid "The status endpoint"
+msgstr ""
+
+#: src/Verify/Probes/WooAccountProbe.php:54
+msgid "The account page"
+msgstr ""
+
+#: src/Verify/Probes/WooCartProbe.php:55
+msgid "The cart"
+msgstr ""
+
+#: src/Verify/Probes/WooCheckoutProbe.php:58
+msgid "The checkout"
+msgstr ""
+
+#. translators: %s: probe name.
+#: src/Verify/Verifier.php:139
+#, php-format
+msgid "The \"%s\" check does not apply to this site, so it was not run."
+msgstr ""
+
+#. translators: %s: the underlying connection error.
+#: src/Verify/Verifier.php:151
+#, php-format
+msgid "This site cannot make requests to itself, so nothing could be checked over HTTP: %s"
+msgstr ""
+
+#. translators: 1: probe name, 2: the error.
+#: src/Verify/Verifier.php:166
+#, php-format
+msgid "The \"%1$s\" check could not complete: %2$s"
+msgstr ""
+
+#. translators: 1: probe name, 2: constant name.
+#: src/Verify/Verifier.php:196
+#, php-format
+msgid "The \"%1$s\" check was forced to fail by the %2$s constant."
+msgstr ""
+
+#: build/index.js:1
+msgid "The site did not answer. Check that it is reachable and try again."
+msgstr ""
+
+#: build/index.js:1
+msgid "Safe — nothing that could surprise you"
+msgstr ""
+
+#: build/index.js:1
+msgid "Performance — a little further"
+msgstr ""
+
+#: build/index.js:1
+msgid "Maximum — everything this site allows"
+msgstr ""
+
+#: build/index.js:1
+msgid "Configuration, so the change can be undone exactly"
+msgstr ""
+
+#: build/index.js:1
+msgid "Every row that would be removed, stored before anything is"
+msgstr ""
+
+#: build/index.js:1
+msgid "Your own external backup, which you told us about"
+msgstr ""
+
+#: build/index.js:1
+msgid "Review the change"
+msgstr ""
+
+#: build/index.js:1
+msgid "How far to go"
+msgstr ""
+
+#: build/index.js:1
+msgid "Working out what would change…"
+msgstr ""
+
+#. translators: %d: number of changes.
+#: build/index.js:2
+#, js-format
+msgid "%d change would be applied."
+msgid_plural "%d changes would be applied."
+msgstr[0] ""
+msgstr[1] ""
+
+#: build/index.js:2
+#: build/index.js:8
+msgid "What will change"
+msgstr ""
+
+#: build/index.js:2
+msgid "What will not change"
+msgstr ""
+
+#: build/index.js:2
+msgid "Left out, and why"
+msgstr ""
+
+#: build/index.js:2
+msgid "Recovery taken first"
+msgstr ""
+
+#: build/index.js:2
+msgid "This plan deletes data. Every row it removes is copied first, with its id and its dates, and can be put back exactly as it was."
+msgstr ""
+
+#: build/index.js:2
+msgid "I have my own backup of this site"
+msgstr ""
+
+#: build/index.js:2
+msgid "Recorded with the change. It does not skip anything: Debloater takes its own copy either way, and refuses to delete without one."
+msgstr ""
+
+#: build/index.js:2
+msgid "Nothing will be deleted. A recovery point is taken first, and the site is checked afterwards."
+msgstr ""
+
+#: build/index.js:2
+msgid "Create recovery backup & delete"
+msgstr ""
+
+#: build/index.js:2
+msgid "Create snapshot & apply"
+msgstr ""
+
+#: build/index.js:2
+#: build/index.js:10
+msgid "Cancel"
+msgstr ""
+
+#: build/index.js:2
+#: build/index.js:5
+msgid "WordPress"
+msgstr ""
+
+#: build/index.js:2
+#: build/index.js:5
+msgid "Configuration"
+msgstr ""
+
+#: build/index.js:2
+#: build/index.js:5
+msgid "Database"
+msgstr ""
+
+#: build/index.js:2
+#: build/index.js:5
+msgid "Plugins"
+msgstr ""
+
+#: build/index.js:2
+#: build/index.js:5
+msgid "Maintenance"
+msgstr ""
+
+#: build/index.js:2
+#: build/index.js:5
+msgid "Admin"
+msgstr ""
+
+#: build/index.js:2
+#: build/index.js:5
+msgid "Assets"
+msgstr ""
+
+#: build/index.js:2
+#: build/index.js:9
+msgid "Debloat score"
+msgstr ""
+
+#: build/index.js:2
+msgid "/ 100"
+msgstr ""
+
+#. translators: %d: number of findings.
+#: build/index.js:3
+#, js-format
+msgid "From %d findings in this scan."
+msgstr ""
+
+#. translators: %s: comma-separated category names.
+#: build/index.js:4
+#, js-format
+msgid "Not scored, because nothing was found to judge: %s"
+msgstr ""
+
+#: build/index.js:4
+msgid "Low risk"
+msgstr ""
+
+#: build/index.js:4
+msgid "Medium risk"
+msgstr ""
+
+#: build/index.js:4
+msgid "High risk"
+msgstr ""
+
+#: build/index.js:4
+msgid "Info"
+msgstr ""
+
+#: build/index.js:4
+#: build/index.js:5
+msgid "Low"
+msgstr ""
+
+#: build/index.js:4
+#: build/index.js:5
+msgid "Medium"
+msgstr ""
+
+#: build/index.js:4
+#: build/index.js:5
+msgid "High"
+msgstr ""
+
+#: build/index.js:4
+#: build/index.js:5
+msgid "Recommended"
+msgstr ""
+
+#: build/index.js:4
+#: build/index.js:5
+msgid "Leave alone"
+msgstr ""
+
+#: build/index.js:4
+#: build/index.js:5
+msgid "No action recommended"
+msgstr ""
+
+#: build/index.js:4
+#: build/index.js:8
+msgid "Confidence"
+msgstr ""
+
+#: build/index.js:4
+msgid "Reading this site…"
+msgstr ""
+
+#: build/index.js:4
+msgid "Nothing has been looked at yet"
+msgstr ""
+
+#: build/index.js:4
+msgid "A scan reads this site’s configuration and writes down what it finds. It changes nothing."
+msgstr ""
+
+#: build/index.js:4
+msgid "Scanning…"
+msgstr ""
+
+#: build/index.js:4
+msgid "Scan this site"
+msgstr ""
+
+#: build/index.js:4
+msgid "The generated file on disk is not the one Debloater wrote. Something else has changed it."
+msgstr ""
+
+#: build/index.js:4
+msgid "What the scan found"
+msgstr ""
+
+#. translators: %d: number of findings.
+#: build/index.js:5
+#, js-format
+msgid "%d finding, with the facts behind it."
+msgid_plural "%d findings, each with the facts behind it."
+msgstr[0] ""
+msgstr[1] ""
+
+#: build/index.js:5
+msgid "Fix safe issues"
+msgstr ""
+
+#: build/index.js:5
+msgid "Review findings"
+msgstr ""
+
+#: build/index.js:5
+msgid "Scan again"
+msgstr ""
+
+#: build/index.js:5
+msgid "Nothing is recommended on this site right now. That is a result, not a failure to find one."
+msgstr ""
+
+#: build/index.js:5
+msgid "Any risk"
+msgstr ""
+
+#: build/index.js:5
+msgid "Any decision"
+msgstr ""
+
+#: build/index.js:5
+msgid "Any category"
+msgstr ""
+
+#: build/index.js:5
+#: build/index.js:8
+msgid "Risk"
+msgstr ""
+
+#: build/index.js:5
+msgid "Category"
+msgstr ""
+
+#: build/index.js:5
+msgid "Decision"
+msgstr ""
+
+#: build/index.js:5
+msgid "Reading the findings…"
+msgstr ""
+
+#: build/index.js:5
+msgid "No findings match those filters."
+msgstr ""
+
+#. translators: %d: number of findings shown.
+#: build/index.js:6
+#, js-format
+msgid "%d finding"
+msgid_plural "%d findings"
+msgstr[0] ""
+msgstr[1] ""
+
+#: build/index.js:6
+msgid "What was measured"
+msgstr ""
+
+#: build/index.js:6
+msgid "Value"
+msgstr ""
+
+#: build/index.js:6
+msgid "Fact"
+msgstr ""
+
+#: build/index.js:6
+msgid "Working out what this would change…"
+msgstr ""
+
+#. translators: %s: the reason the change was excluded.
+#: build/index.js:7
+#, js-format
+msgid "This change would not be applied on this site: %s"
+msgstr ""
+
+#: build/index.js:7
+msgid "What would not change"
+msgstr ""
+
+#: build/index.js:7
+msgid "← All findings"
+msgstr ""
+
+#: build/index.js:7
+msgid "What we found"
+msgstr ""
+
+#: build/index.js:7
+msgid "Why it matters"
+msgstr ""
+
+#: build/index.js:7
+msgid "Evidence"
+msgstr ""
+
+#: build/index.js:7
+msgid "This finding carries no measurements."
+msgstr ""
+
+#: build/index.js:7
+msgid "Potential impact"
+msgstr ""
+
+#: build/index.js:7
+msgid "No impact has been estimated for this finding."
+msgstr ""
+
+#. translators: 1: estimated amount, 2: unit, 3: what it affects.
+#: build/index.js:8
+#, js-format
+msgid "About %1$s %2$s of %3$s."
+msgstr ""
+
+#: build/index.js:8
+msgid "This one cannot be measured before and after, so it is an estimate and stays an estimate."
+msgstr ""
+
+#: build/index.js:8
+msgid "Recommendation"
+msgstr ""
+
+#: build/index.js:8
+msgid "Nothing is recommended for this finding."
+msgstr ""
+
+#: build/index.js:8
+msgid "Confidence falls when something on this site makes the conclusion less certain."
+msgstr ""
+
+#: build/index.js:8
+msgid "Dependencies"
+msgstr ""
+
+#: build/index.js:8
+msgid "Nothing on this site was detected as depending on this."
+msgstr ""
+
+#: build/index.js:8
+msgid "There is no change to apply for this finding."
+msgstr ""
+
+#: build/index.js:8
+msgid "Undo"
+msgstr ""
+
+#: build/index.js:8
+msgid "No undo has been described for this finding."
+msgstr ""
+
+#: build/index.js:8
+msgid "Requests a page asks for"
+msgstr ""
+
+#: build/index.js:8
+msgid "Scripts"
+msgstr ""
+
+#: build/index.js:8
+msgid "Stylesheets"
+msgstr ""
+
+#: build/index.js:8
+msgid "Bytes in <head>"
+msgstr ""
+
+#: build/index.js:8
+msgid "Other hosts contacted"
+msgstr ""
+
+#: build/index.js:8
+msgid "Autoloaded data"
+msgstr ""
+
+#: build/index.js:8
+msgid "Post revisions"
+msgstr ""
+
+#: build/index.js:8
+msgid "Scheduled events"
+msgstr ""
+
+#: build/index.js:8
+msgid "Admin notices"
+msgstr ""
+
+#: build/index.js:8
+msgid "Admin polling requests per hour"
+msgstr ""
+
+#: build/index.js:8
+msgid "Nothing could be measured before and after, so there are no numbers to report."
+msgstr ""
+
+#: build/index.js:8
+msgid "Measured"
+msgstr ""
+
+#: build/index.js:8
+msgid "Before"
+msgstr ""
+
+#: build/index.js:8
+msgid "After"
+msgstr ""
+
+#: build/index.js:8
+#: build/index.js:9
+msgid "Change"
+msgstr ""
+
+#: build/index.js:8
+msgid "Not measured"
+msgstr ""
+
+#: build/index.js:8
+msgid "The change was undone"
+msgstr ""
+
+#: build/index.js:8
+msgid "Rollback complete."
+msgstr ""
+
+#: build/index.js:8
+msgid "Previous configuration restored."
+msgstr ""
+
+#: build/index.js:8
+#: build/index.js:9
+msgid "Back to the overview"
+msgstr ""
+
+#. translators: %d: number of changes applied.
+#: build/index.js:9
+#, js-format
+msgid "%d optimization applied"
+msgid_plural "%d optimizations applied"
+msgstr[0] ""
+msgstr[1] ""
+
+#: build/index.js:9
+msgid "Measured before and after"
+msgstr ""
+
+#: build/index.js:9
+msgid "These are counts, measured on this site before and after the change. Debloater does not report time, because it cannot measure yours."
+msgstr ""
+
+#: build/index.js:9
+msgid "Starting…"
+msgstr ""
+
+#: build/index.js:9
+msgid "Reading the history…"
+msgstr ""
+
+#: build/index.js:9
+msgid "Changes"
+msgstr ""
+
+#: build/index.js:9
+msgid "Nothing has been applied on this site yet."
+msgstr ""
+
+#: build/index.js:9
+msgid "Recovery points"
+msgstr ""
+
+#: build/index.js:9
+msgid "One is taken before every change. Nothing removes them on a schedule."
+msgstr ""
+
+#: build/index.js:9
+msgid "Id"
+msgstr ""
+
+#: build/index.js:9
+msgid "Level"
+msgstr ""
+
+#: build/index.js:9
+msgid "Rows"
+msgstr ""
+
+#: build/index.js:9
+msgid "Taken"
+msgstr ""
+
+#: build/index.js:9
+msgid "Restore"
+msgstr ""
+
+#: build/index.js:9
+msgid "Restore this recovery point?"
+msgstr ""
+
+#. translators: 1: snapshot id, 2: run id.
+#: build/index.js:10
+#, js-format
+msgid "Recovery point %1$d belongs to change #%2$d. The whole change will be undone — restoring half of one would leave the site in a state nothing has a name for."
+msgstr ""
+
+#: build/index.js:10
+msgid "The configuration this change replaced will be put back, and any rows it removed will be restored exactly as they were."
+msgstr ""
+
+#: build/index.js:10
+msgid "The previous configuration has been restored."
+msgstr ""
+
+#: build/index.js:10
+msgid "The restore did not complete."
+msgstr ""
+
+#: build/index.js:10
+msgid "Restore it"
+msgstr ""
+
+#: build/index.js:10
+msgid "Overview"
+msgstr ""
+
+#: build/index.js:10
+msgid "Findings"
+msgstr ""
+
+#: build/index.js:10
+msgid "Changes & recovery"
+msgstr ""
+
+#: build/index.js:10
+msgid "Debloater"
+msgstr ""
+
+#: build/index.js:10
+msgid "What this site is actually doing, and what can safely stop."
+msgstr ""
+
+#: build/index.js:10
+msgid "Sections"
+msgstr ""

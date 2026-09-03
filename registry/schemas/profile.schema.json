@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://wp-debloat.hakeemify.com/schemas/profile.schema.json",
+  "$id": "https://debloater.hakeemify.com/schemas/profile.schema.json",
   "title": "Profile",
   "description": "A named selection policy. A profile filters what the engine may propose; it never overrides a dont_touch decision and never lifts the destructive exclusion from the safe plan.",
   "type": "object",

@@ -4,12 +4,12 @@
  *
  * See core-remove-generator.php for the rules every runtime handler follows.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 defined( 'ABSPATH' ) || exit;
 
-if ( ! class_exists( 'WPDebloat_Handler_Core_Remove_Shortlink', false ) ) {
+if ( ! class_exists( 'Debloater_Handler_Core_Remove_Shortlink', false ) ) {
 
 	/**
 	 * Removes the rel=shortlink markup and the matching Link: HTTP header.
@@ -18,7 +18,7 @@ if ( ! class_exists( 'WPDebloat_Handler_Core_Remove_Shortlink', false ) ) {
 	 * header advertising the same ?p=123 URL, which is the thing the tweak is
 	 * meant to stop exposing.
 	 */
-	final class WPDebloat_Handler_Core_Remove_Shortlink {
+	final class Debloater_Handler_Core_Remove_Shortlink {
 
 		/**
 		 * Priority WordPress registers wp_shortlink_header at.

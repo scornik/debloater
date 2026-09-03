@@ -2,12 +2,12 @@
 /**
  * An optimization layer that already owns some of this ground.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Registry;
+namespace Debloater\Registry;
 
 use RuntimeException;
 
@@ -15,7 +15,7 @@ use RuntimeException;
  * A host or stack optimizer (BUILD-SPEC §17 Phase 11).
  *
  * Some sites arrive with an optimizer already installed: the host's own plugin,
- * or a cache plugin whose settings screen has the same switches WP Debloat would
+ * or a cache plugin whose settings screen has the same switches Debloater would
  * offer. When that is true, the useful thing is not to add a second switch for
  * the same thing. It is to say so, and leave it to the tool that already owns it.
  *
@@ -24,7 +24,7 @@ use RuntimeException;
  * is on.
  *
  * `covers` is therefore a claim about what the optimizer *offers*, not about
- * what it is currently doing. WP Debloat cannot read another plugin's settings
+ * what it is currently doing. Debloater cannot read another plugin's settings
  * and will not pretend to: saying "already handled" when the switch is off would
  * be exactly the kind of invented claim this product exists not to make. What it
  * says instead is that there is a better place to change this, and where.

@@ -2,15 +2,15 @@
 /**
  * The one admin screen, and its refusal to appear anywhere else.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Tests\Integration;
+namespace Debloater\Tests\Integration;
 
-use WPDebloat\Admin\Screen;
-use WPDebloat\Brand;
+use Debloater\Admin\Screen;
+use Debloater\Brand;
 
 /**
  * BUILD-SPEC §17 Phase 8: one bundle, on our screen, and no admin notices
@@ -92,9 +92,9 @@ final class AdminScreenTest extends IntegrationTestCase {
 			}
 		}
 
-		$this->assertCount( 1, $ours, 'WP Debloat should add exactly one menu item.' );
+		$this->assertCount( 1, $ours, 'Debloater should add exactly one menu item.' );
 		$this->assertSame( Brand::NAME, $ours[0][0] );
-		$this->assertSame( \WPDebloat\Security\Capabilities::MANAGE, $ours[0][1] );
+		$this->assertSame( \Debloater\Security\Capabilities::MANAGE, $ours[0][1] );
 	}
 
 	/**
@@ -129,12 +129,12 @@ final class AdminScreenTest extends IntegrationTestCase {
 
 			$this->assertFalse(
 				wp_script_is( Screen::HANDLE, 'enqueued' ),
-				sprintf( 'The WP Debloat bundle must not be enqueued on %s.', $hook )
+				sprintf( 'The Debloater bundle must not be enqueued on %s.', $hook )
 			);
 
 			$this->assertFalse(
 				wp_style_is( Screen::HANDLE, 'enqueued' ),
-				sprintf( 'The WP Debloat stylesheet must not be enqueued on %s.', $hook )
+				sprintf( 'The Debloater stylesheet must not be enqueued on %s.', $hook )
 			);
 		}
 	}
@@ -151,12 +151,12 @@ final class AdminScreenTest extends IntegrationTestCase {
 
 		$html = (string) ob_get_clean();
 
-		$this->assertStringContainsString( 'id="wpdebloat-root"', $html );
+		$this->assertStringContainsString( 'id="debloater-root"', $html );
 		$this->assertStringContainsString( 'screen-reader-text', $html );
 	}
 
 	/**
-	 * WP Debloat adds no admin notices, on any screen.
+	 * Debloater adds no admin notices, on any screen.
 	 *
 	 * @return void
 	 */
@@ -171,9 +171,9 @@ final class AdminScreenTest extends IntegrationTestCase {
 			foreach ( $wp_filter[ $hook ]->callbacks as $callbacks ) {
 				foreach ( array_keys( $callbacks ) as $identifier ) {
 					$this->assertStringNotContainsStringIgnoringCase(
-						'wpdebloat',
+						'debloater',
 						(string) $identifier,
-						sprintf( 'WP Debloat must not add anything to %s.', $hook )
+						sprintf( 'Debloater must not add anything to %s.', $hook )
 					);
 				}
 			}
@@ -199,7 +199,7 @@ final class AdminScreenTest extends IntegrationTestCase {
 			foreach ( $wp_filter[ $hook ]->callbacks as $callbacks ) {
 				foreach ( array_keys( $callbacks ) as $identifier ) {
 					$this->assertStringNotContainsStringIgnoringCase(
-						'WPDebloat\\Admin',
+						'Debloater\\Admin',
 						(string) $identifier,
 						sprintf( 'The admin screen must not hook %s.', $hook )
 					);

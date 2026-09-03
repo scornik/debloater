@@ -2,19 +2,19 @@
 /**
  * What happens when the site does not pass its checks.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Tests\FailProbe;
+namespace Debloater\Tests\FailProbe;
 
-use WPDebloat\Apply\Lock;
-use WPDebloat\Contracts\PreviewPlan;
-use WPDebloat\Contracts\ProbeStatus;
-use WPDebloat\Contracts\RunState;
-use WPDebloat\Contracts\TweakState;
-use WPDebloat\Verify\Verifier;
+use Debloater\Apply\Lock;
+use Debloater\Contracts\PreviewPlan;
+use Debloater\Contracts\ProbeStatus;
+use Debloater\Contracts\RunState;
+use Debloater\Contracts\TweakState;
+use Debloater\Verify\Verifier;
 
 /**
  * BUILD-SPEC §11 and §9.2: a FAIL rolls the run back, without being asked.
@@ -25,7 +25,7 @@ use WPDebloat\Verify\Verifier;
  * really rolls back, and the assertions compare the runtime bytes and the
  * stored selection against what was there before.
  *
- * The failure is produced by `WPDEBLOAT_TEST_FAIL_PROBE`, defined in this
+ * The failure is produced by `DEBLOATER_TEST_FAIL_PROBE`, defined in this
  * suite's bootstrap. Breaking the site for real would prove the same thing and
  * leave nothing to compare against.
  */

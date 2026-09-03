@@ -2,16 +2,16 @@
 /**
  * The real terminal.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Cli;
+namespace Debloater\Cli;
 
 use WP_CLI;
 use WP_CLI\Utils;
-use WPDebloat\Contracts\Json;
+use Debloater\Contracts\Json;
 
 /**
  * `Io` implemented against WP-CLI.

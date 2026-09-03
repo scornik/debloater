@@ -2,12 +2,12 @@
 /**
  * Something the analyzer concluded from the facts.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Contracts;
+namespace Debloater\Contracts;
 
 /**
  * A finding (BUILD-SPEC §6).

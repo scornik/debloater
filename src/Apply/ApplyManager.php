@@ -2,38 +2,38 @@
 /**
  * Drives a plan through to committed, or back out again.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Apply;
+namespace Debloater\Apply;
 
 use Throwable;
-use WPDebloat\Contracts\ApplyResult;
-use WPDebloat\Contracts\Context;
-use WPDebloat\Contracts\DataOperationInterface;
-use WPDebloat\Contracts\JournalAction;
-use WPDebloat\Contracts\PreviewPlan;
-use WPDebloat\Contracts\Run;
-use WPDebloat\Contracts\RunState;
-use WPDebloat\Contracts\RunType;
-use WPDebloat\Contracts\SnapshotLevel;
-use WPDebloat\Contracts\Tweak;
-use WPDebloat\Contracts\VerificationResult;
-use WPDebloat\Contracts\TweakKind;
-use WPDebloat\Contracts\TweakState;
-use WPDebloat\Journal\Journal;
-use WPDebloat\Meter\Comparison;
-use WPDebloat\Meter\MeasurementSet;
-use WPDebloat\Meter\Meter;
-use WPDebloat\Registry\Registry;
-use WPDebloat\Snapshot\RollbackManager;
-use WPDebloat\Snapshot\SnapshotManager;
-use WPDebloat\Storage\Repositories\RunRepository;
-use WPDebloat\Storage\Repositories\SnapshotRepository;
-use WPDebloat\Storage\State;
-use WPDebloat\Verify\Verifier;
+use Debloater\Contracts\ApplyResult;
+use Debloater\Contracts\Context;
+use Debloater\Contracts\DataOperationInterface;
+use Debloater\Contracts\JournalAction;
+use Debloater\Contracts\PreviewPlan;
+use Debloater\Contracts\Run;
+use Debloater\Contracts\RunState;
+use Debloater\Contracts\RunType;
+use Debloater\Contracts\SnapshotLevel;
+use Debloater\Contracts\Tweak;
+use Debloater\Contracts\VerificationResult;
+use Debloater\Contracts\TweakKind;
+use Debloater\Contracts\TweakState;
+use Debloater\Journal\Journal;
+use Debloater\Meter\Comparison;
+use Debloater\Meter\MeasurementSet;
+use Debloater\Meter\Meter;
+use Debloater\Registry\Registry;
+use Debloater\Snapshot\RollbackManager;
+use Debloater\Snapshot\SnapshotManager;
+use Debloater\Storage\Repositories\RunRepository;
+use Debloater\Storage\Repositories\SnapshotRepository;
+use Debloater\Storage\State;
+use Debloater\Verify\Verifier;
 
 /**
  * The apply run (BUILD-SPEC §9.2).
@@ -208,7 +208,7 @@ final class ApplyManager {
 			return $this->abort(
 				$run,
 				$machine,
-				__( 'Another change is already in progress on this site. Wait for it to finish and try again.', 'wp-debloat' )
+				__( 'Another change is already in progress on this site. Wait for it to finish and try again.', 'debloater' )
 			);
 		}
 
@@ -321,7 +321,7 @@ final class ApplyManager {
 				array(),
 				array(),
 				null,
-				__( 'Another change is in progress on this site. Wait for it to finish and try again.', 'wp-debloat' )
+				__( 'Another change is in progress on this site. Wait for it to finish and try again.', 'debloater' )
 			);
 		}
 
@@ -370,7 +370,7 @@ final class ApplyManager {
 				array(),
 				$ids,
 				null,
-				__( 'Rolled back on request. The previous configuration has been restored.', 'wp-debloat' )
+				__( 'Rolled back on request. The previous configuration has been restored.', 'debloater' )
 			);
 		} finally {
 			$this->lock->release();
@@ -449,7 +449,7 @@ final class ApplyManager {
 					$run->withStatus(
 						RunState::ROLLED_BACK->value,
 						gmdate( 'Y-m-d H:i:s' ),
-						__( 'This change was interrupted before it finished and has been rolled back.', 'wp-debloat' )
+						__( 'This change was interrupted before it finished and has been rolled back.', 'debloater' )
 					)
 				);
 			} catch ( Throwable $error ) {
@@ -459,7 +459,7 @@ final class ApplyManager {
 						gmdate( 'Y-m-d H:i:s' ),
 						sprintf(
 							/* translators: %s: the underlying failure. */
-							__( 'This change was interrupted and could not be rolled back automatically: %s', 'wp-debloat' ),
+							__( 'This change was interrupted and could not be rolled back automatically: %s', 'debloater' ),
 							$this->describe( $error )
 						)
 					)
@@ -760,7 +760,7 @@ final class ApplyManager {
 			// rollback failure is what they need to act on. Both are reported.
 			$message = sprintf(
 				/* translators: 1: the original failure, 2: the rollback failure. */
-				__( '%1$s The rollback then failed as well: %2$s', 'wp-debloat' ),
+				__( '%1$s The rollback then failed as well: %2$s', 'debloater' ),
 				$error,
 				$this->describe( $rollback_error )
 			);
@@ -822,7 +822,7 @@ final class ApplyManager {
 
 		return sprintf(
 			/* translators: %s: the failed checks, already sentence-formed. */
-			__( 'The site did not pass its checks after the change, so it was put back. %s', 'wp-debloat' ),
+			__( 'The site did not pass its checks after the change, so it was put back. %s', 'debloater' ),
 			implode( ' ', $messages )
 		);
 	}

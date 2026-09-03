@@ -4,12 +4,12 @@
  *
  * See core-remove-generator.php for the rules every runtime handler follows.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 defined( 'ABSPATH' ) || exit;
 
-if ( ! class_exists( 'WPDebloat_Handler_Core_Limit_Revisions', false ) ) {
+if ( ! class_exists( 'Debloater_Handler_Core_Limit_Revisions', false ) ) {
 
 	/**
 	 * Caps the number of revisions kept for each post.
@@ -23,7 +23,7 @@ if ( ! class_exists( 'WPDebloat_Handler_Core_Limit_Revisions', false ) ) {
 	 * already exist is a separate, destructive tweak that takes a Level B
 	 * snapshot first (BUILD-SPEC §7.4, Phase 10).
 	 */
-	final class WPDebloat_Handler_Core_Limit_Revisions {
+	final class Debloater_Handler_Core_Limit_Revisions {
 
 		/**
 		 * How many revisions to keep per post.

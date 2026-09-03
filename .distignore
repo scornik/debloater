@@ -1,0 +1,65 @@
+# Everything that is not the plugin.
+#
+# `wp dist-archive` and `wp-scripts plugin-zip` both read this file. What ships
+# is: the entry point, src/, runtime-handlers/, mu-loader/, registry/, schemas/,
+# build/, languages/, readme.txt, uninstall.php, and the Composer autoloader.
+#
+# Anything listed here is development apparatus. The rule of thumb: if removing
+# it from a live site would change nothing, it does not belong in the zip.
+
+# Version control and CI
+.git
+.gitignore
+.gitattributes
+.github
+.distignore
+
+# Source of the built admin UI. The build output ships; the source does not.
+admin-ui
+node_modules
+package.json
+package-lock.json
+webpack.config.js
+
+# Tests and their harness
+tests
+playwright.config.js
+phpunit.xml.dist
+phpunit-wp.xml.dist
+phpunit-wp-fail-probe.xml.dist
+.phpunit.cache
+.phpunit.result.cache
+
+# Static analysis and linting
+phpcs.xml.dist
+phpstan.neon
+.eslintrc.json
+composer.json
+composer.lock
+
+# Local environment
+.wp-env.json
+.wp-env.override.json
+
+# Build and release tooling
+tools
+build/*.map
+
+# Project documentation. The user-facing documentation is readme.txt.
+BUILD-SPEC.md
+CLAUDE.md
+CONVENTIONS.md
+CHANGELOG.md
+docs
+
+README.md
+.editorconfig
+.gitattributes
+
+# Assorted
+*.log
+*.zip
+.DS_Store
+Thumbs.db
+coverage
+dist

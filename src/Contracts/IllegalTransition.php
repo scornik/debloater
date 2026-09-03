@@ -2,12 +2,12 @@
 /**
  * Thrown when a state machine is asked to make a transition that does not exist.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Contracts;
+namespace Debloater\Contracts;
 
 use RuntimeException;
 

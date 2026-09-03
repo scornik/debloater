@@ -2,17 +2,17 @@
 /**
  * Analyzer rule: plugins.inactive_present.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Analyze\Rules;
+namespace Debloater\Analyze\Rules;
 
-use WPDebloat\Contracts\Category;
-use WPDebloat\Contracts\FactSet;
-use WPDebloat\Contracts\Finding;
-use WPDebloat\Contracts\Severity;
+use Debloater\Contracts\Category;
+use Debloater\Contracts\FactSet;
+use Debloater\Contracts\Finding;
+use Debloater\Contracts\Severity;
 
 /**
  * Reports deactivated plugins that are still installed. Info only.
@@ -27,7 +27,7 @@ use WPDebloat\Contracts\Severity;
  *
  * So this proposes nothing. Deleting a plugin is a decision only the person who
  * installed it can make, it is not reversible from here, and there is no
- * plausible reading of "safe" under which WP Debloat should do it. The finding
+ * plausible reading of "safe" under which Debloater should do it. The finding
  * says what is there and stops.
  */
 final class InactivePluginsRule extends AbstractRule {
@@ -84,21 +84,21 @@ final class InactivePluginsRule extends AbstractRule {
 				'severity' => Severity::INFO,
 				'title'    => sprintf(
 					/* translators: %d: number of deactivated plugins. */
-					_n( '%d deactivated plugin is still installed', '%d deactivated plugins are still installed', $count, 'wp-debloat' ),
+					_n( '%d deactivated plugin is still installed', '%d deactivated plugins are still installed', $count, 'debloater' ),
 					$count
 				),
 				'summary'  => sprintf(
 					/* translators: %s: comma-separated list of plugin files. */
-					__( 'Installed but not active: %s.', 'wp-debloat' ),
+					__( 'Installed but not active: %s.', 'debloater' ),
 					implode( ', ', array_slice( $inactive, 0, 10 ) )
 				),
 				'why'      => __(
 					'A deactivated plugin is not loaded, so it costs nothing on any request. Its files are still on the server, though, and still get security advisories nobody is watching for a plugin that stopped being used. Whether to delete it is a decision only you can make, and it is not one this plugin will make for you.',
-					'wp-debloat'
+					'debloater'
 				),
 				'evidence' => $this->evidence( $facts )
-					->fact( __( 'Deactivated plugins', 'wp-debloat' ), 'plugins.inactive' )
-					->optional( __( 'Active plugins', 'wp-debloat' ), 'plugins.active' )
+					->fact( __( 'Deactivated plugins', 'debloater' ), 'plugins.inactive' )
+					->optional( __( 'Active plugins', 'debloater' ), 'plugins.active' )
 					->build(),
 			)
 		);

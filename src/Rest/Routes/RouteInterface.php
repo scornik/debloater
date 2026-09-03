@@ -2,12 +2,12 @@
 /**
  * Contract for a REST route.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Rest\Routes;
+namespace Debloater\Rest\Routes;
 
 use WP_REST_Request;
 

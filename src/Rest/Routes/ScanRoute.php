@@ -1,17 +1,17 @@
 <?php
 /**
- * POST wpdebloat/v1/scan.
+ * POST debloater/v1/scan.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Rest\Routes;
+namespace Debloater\Rest\Routes;
 
 use WP_REST_Request;
 use WP_REST_Response;
-use WPDebloat\Plugin;
+use Debloater\Plugin;
 
 /**
  * Runs a scan and returns its findings (BUILD-SPEC §17 Phase 3).
@@ -69,8 +69,8 @@ final class ScanRoute implements RouteInterface {
 		return array(
 			'check_plugin_updates' => array(
 				'description' => __(
-					'Look up plugin release dates at wordpress.org for this scan. This is the only thing WP Debloat sends off the server, it happens only when this is true, and it is not remembered: the next scan asks again.',
-					'wp-debloat'
+					'Look up plugin release dates at wordpress.org for this scan. This is the only thing Debloater sends off the server, it happens only when this is true, and it is not remembered: the next scan asks again.',
+					'debloater'
 				),
 				'type'        => 'boolean',
 				'required'    => false,

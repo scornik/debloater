@@ -2,30 +2,30 @@
 /**
  * The recommendation engine, intent, risk and the worked examples.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Tests\Unit\Recommend;
+namespace Debloater\Tests\Unit\Recommend;
 
 use PHPUnit\Framework\TestCase;
-use WPDebloat\Analyze\Analyzer;
-use WPDebloat\Analyze\Rules;
-use WPDebloat\Contracts\ContractViolation;
-use WPDebloat\Contracts\Decision;
-use WPDebloat\Contracts\FactSet;
-use WPDebloat\Contracts\Risk;
-use WPDebloat\Recommend\CompatibilityResolver;
-use WPDebloat\Recommend\FactPredicate;
-use WPDebloat\Recommend\IntentProfile;
-use WPDebloat\Recommend\PreviewPlanner;
-use WPDebloat\Recommend\RecommendationEngine;
-use WPDebloat\Recommend\RiskEngine;
-use WPDebloat\Registry\Loader;
-use WPDebloat\Registry\Profile;
-use WPDebloat\Registry\Registry;
-use WPDebloat\Tests\Unit\Support\Facts;
+use Debloater\Analyze\Analyzer;
+use Debloater\Analyze\Rules;
+use Debloater\Contracts\ContractViolation;
+use Debloater\Contracts\Decision;
+use Debloater\Contracts\FactSet;
+use Debloater\Contracts\Risk;
+use Debloater\Recommend\CompatibilityResolver;
+use Debloater\Recommend\FactPredicate;
+use Debloater\Recommend\IntentProfile;
+use Debloater\Recommend\PreviewPlanner;
+use Debloater\Recommend\RecommendationEngine;
+use Debloater\Recommend\RiskEngine;
+use Debloater\Registry\Loader;
+use Debloater\Registry\Profile;
+use Debloater\Registry\Registry;
+use Debloater\Tests\Unit\Support\Facts;
 
 /**
  * BUILD-SPEC §17 Phase 4, including the two worked Heartbeat examples.
@@ -209,7 +209,7 @@ final class RecommendationEngineTest extends TestCase {
 	 * @return void
 	 */
 	public function test_no_profile_admits_a_destructive_tweak(): void {
-		$destructive = \WPDebloat\Tests\Unit\Support\Build::destructiveTweak();
+		$destructive = \Debloater\Tests\Unit\Support\Build::destructiveTweak();
 
 		foreach ( $this->registry()->profiles() as $id => $profile ) {
 			$this->assertFalse( $profile->admits( $destructive ), $id );
@@ -382,9 +382,9 @@ final class RecommendationEngineTest extends TestCase {
 	 *
 	 * @param FactSet $facts    Facts to analyze.
 	 * @param string  $tweak_id Tweak id to look for.
-	 * @return \WPDebloat\Contracts\Tweak|null
+	 * @return \Debloater\Contracts\Tweak|null
 	 */
-	private function recommendedTweak( FactSet $facts, string $tweak_id ): ?\WPDebloat\Contracts\Tweak {
+	private function recommendedTweak( FactSet $facts, string $tweak_id ): ?\Debloater\Contracts\Tweak {
 		$analysis = $this->analyzer()->analyze( $facts );
 		$engine   = new RecommendationEngine( $this->registry(), $facts );
 
@@ -416,6 +416,6 @@ final class RecommendationEngineTest extends TestCase {
 	 * @return Registry
 	 */
 	private function registry(): Registry {
-		return ( new Loader( WPDEBLOAT_TESTS_ROOT . '/registry' ) )->load();
+		return ( new Loader( DEBLOATER_TESTS_ROOT . '/registry' ) )->load();
 	}
 }

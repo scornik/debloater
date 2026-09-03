@@ -2,16 +2,16 @@
 /**
  * Deleting posts, and putting them back exactly.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Apply\DataOperations;
+namespace Debloater\Apply\DataOperations;
 
-use WPDebloat\Contracts\Context;
-use WPDebloat\Contracts\SnapshotItem;
-use WPDebloat\Contracts\TweakParams;
+use Debloater\Contracts\Context;
+use Debloater\Contracts\SnapshotItem;
+use Debloater\Contracts\TweakParams;
 
 /**
  * Three of this phase's operations delete rows from `wp_posts` — revisions,

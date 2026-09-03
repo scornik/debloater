@@ -2,14 +2,14 @@
 /**
  * Drafts nobody ever wrote.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Apply\DataOperations;
+namespace Debloater\Apply\DataOperations;
 
-use WPDebloat\Contracts\TweakParams;
+use Debloater\Contracts\TweakParams;
 
 /**
  * Removes auto-drafts that were opened and abandoned.

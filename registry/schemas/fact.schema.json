@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://wp-debloat.hakeemify.com/schemas/fact.schema.json",
+  "$id": "https://debloater.hakeemify.com/schemas/fact.schema.json",
   "title": "FactSet",
   "description": "One JSON document per scan run. Keys are dot-namespaced; each scanner owns a namespace and may only write into it. Values are scalars, lists, or flat maps. Facts carry no opinions. Unknown keys are rejected: a scanner that wants a new key adds it to this schema in the same change.",
   "type": "object",

@@ -2,33 +2,33 @@
 /**
  * Analyzer rule: plugins.host_optimizer_detected.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Analyze\Rules;
+namespace Debloater\Analyze\Rules;
 
-use WPDebloat\Contracts\Category;
-use WPDebloat\Contracts\FactSet;
-use WPDebloat\Contracts\Finding;
-use WPDebloat\Contracts\Severity;
+use Debloater\Contracts\Category;
+use Debloater\Contracts\FactSet;
+use Debloater\Contracts\Finding;
+use Debloater\Contracts\Severity;
 
 /**
  * Reports an optimization layer that offers settings of its own for some of the
  * same things. Info only.
  *
  * Some sites arrive with an optimizer already installed — the host's own plugin,
- * or a cache plugin whose settings screen has switches WP Debloat also offers.
+ * or a cache plugin whose settings screen has switches Debloater also offers.
  * Knowing that is useful: it means there is more than one place a setting can be
  * changed, and one switch is easier to remember than two.
  *
  * This rule says what is there. The individual findings that land on the same
  * ground gain a sentence naming it, added by
- * {@see \WPDebloat\Analyze\HostOptimizerRules}.
+ * {@see \Debloater\Analyze\HostOptimizerRules}.
  *
  * What is deliberately *not* claimed: that the other tool has the setting turned
- * on, or that it has already dealt with anything. WP Debloat cannot read another
+ * on, or that it has already dealt with anything. Debloater cannot read another
  * plugin's settings and will not pretend to — and where a finding fired at all,
  * the scan has just observed that nothing dealt with it (docs/DECISIONS.md
  * D-0028).
@@ -113,27 +113,27 @@ final class HostOptimizerRule extends AbstractRule {
 						'%s has settings of its own for some of this',
 						'These have settings of their own for some of this: %s',
 						count( $names ),
-						'wp-debloat'
+						'debloater'
 					),
 					implode( ', ', $names )
 				),
 				'summary'  => sprintf(
 					/* translators: %s: comma-separated optimizer names. */
 					_n(
-						'%s is on this site and offers some of the same settings WP Debloat does. Each finding it overlaps with says so, and says where to find it.',
-						'These are on this site and offer some of the same settings WP Debloat does: %s. Each finding they overlap with says so, and says where to find it.',
+						'%s is on this site and offers some of the same settings Debloater does. Each finding it overlaps with says so, and says where to find it.',
+						'These are on this site and offer some of the same settings Debloater does: %s. Each finding they overlap with says so, and says where to find it.',
 						count( $names ),
-						'wp-debloat'
+						'debloater'
 					),
 					implode( ', ', $names )
 				),
 				'why'      => __(
-					'Where something else on this site offers a setting for the same thing, WP Debloat says so on the finding itself, so you can choose which one to use rather than ending up with both. This does not mean the other tool has that setting turned on: WP Debloat cannot read another plugin\'s settings and will not guess, and where you are seeing a finding at all, the scan has just observed that whatever it is about is still happening.',
-					'wp-debloat'
+					'Where something else on this site offers a setting for the same thing, Debloater says so on the finding itself, so you can choose which one to use rather than ending up with both. This does not mean the other tool has that setting turned on: Debloater cannot read another plugin\'s settings and will not guess, and where you are seeing a finding at all, the scan has just observed that whatever it is about is still happening.',
+					'debloater'
 				),
 				'evidence' => $this->evidence( $facts )
-					->fact( __( 'Other optimizers on this site', 'wp-debloat' ), 'plugins.host_optimizers' )
-					->optional( __( 'Host', 'wp-debloat' ), 'env.host_vendor' )
+					->fact( __( 'Other optimizers on this site', 'debloater' ), 'plugins.host_optimizers' )
+					->optional( __( 'Host', 'debloater' ), 'env.host_vendor' )
 					->build(),
 			)
 		);

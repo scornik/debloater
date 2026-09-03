@@ -9,7 +9,7 @@
 import apiFetch from '@wordpress/api-fetch';
 import { __ } from '@wordpress/i18n';
 
-const bootstrap = window.wpDebloat || {};
+const bootstrap = window.debloater || {};
 
 if ( bootstrap.nonce ) {
 	apiFetch.use( apiFetch.createNonceMiddleware( bootstrap.nonce ) );
@@ -33,10 +33,10 @@ if ( bootstrap.root ) {
  * site with plain permalinks — WordPress's default — the REST root is
  * `…/index.php?rest_route=/`, and api-fetch's root middleware knows how to join
  * a path onto that. A root with the namespace already in it does not survive
- * the same join: it produces `…/wpdebloat/v1//status`, which matches no route,
+ * the same join: it produces `…/debloater/v1//status`, which matches no route,
  * and every screen shows "No route was found matching the URL".
  */
-const NAMESPACE = ( bootstrap.namespace || 'wpdebloat/v1' ).replace(
+const NAMESPACE = ( bootstrap.namespace || 'debloater/v1' ).replace(
 	/^\/|\/$/g,
 	''
 );
@@ -50,7 +50,7 @@ const namespaced = ( path ) => `/${ NAMESPACE }${ path }`;
  * sends nothing at all. Both end up here as the same shape.
  */
 export class RequestError extends Error {
-	constructor( message, code = 'wpdebloat_request_failed', status = 0 ) {
+	constructor( message, code = 'debloater_request_failed', status = 0 ) {
 		super( message );
 
 		this.name = 'RequestError';
@@ -75,7 +75,7 @@ const normalise = ( error ) => {
 	return new RequestError(
 		__(
 			'The site did not answer. Check that it is reachable and try again.',
-			'wp-debloat'
+			'debloater'
 		)
 	);
 };

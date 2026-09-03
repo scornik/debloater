@@ -12,7 +12,7 @@ that produced it. Changing anything here means bumping the version.
 ## What the Debloat Score is, and is not
 
 The Debloat Score measures **configuration and maintenance**: how much of what
-WP Debloat looked at is in a state it would suggest changing.
+Debloater looked at is in a state it would suggest changing.
 
 It is **not a performance benchmark**. It says nothing about how fast the site
 is, and it must never be presented as if it did. A site can score 100 and be
@@ -68,7 +68,7 @@ careful there as everywhere else.
   proposes is `medium` risk. Severity is how much this costs the site; risk is
   how much the fix could cost. They are separate axes and this is the case that
   shows why.
-- Nothing in Admin penalises a site for a notice WP Debloat cannot offer to
+- Nothing in Admin penalises a site for a notice Debloater cannot offer to
   hide. Penalising something the user has no way to improve from here would be
   showing a number they cannot move.
 
@@ -101,7 +101,7 @@ Two rules constrain the sum:
 - **Each finding id counts once.** A rule that somehow fires twice cannot double
   its own weight.
 - **A `dont_touch` finding contributes nothing.** This one matters. Penalising a
-  site for a configuration WP Debloat has decided *not* to change would show the
+  site for a configuration Debloater has decided *not* to change would show the
   user a number they cannot improve without ignoring our own advice. A refusal
   is a result, not a debt.
 
@@ -147,7 +147,7 @@ Confidence is rounded to two decimals, so the same site always prints the same
 figure.
 
 Our own mu-plugin loader does not count as custom code: it is ours, we know
-exactly what it does, and penalising confidence for installing WP Debloat would
+exactly what it does, and penalising confidence for installing Debloater would
 be absurd.
 
 ---

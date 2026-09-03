@@ -25,25 +25,25 @@ import { useResource } from '../api/useResource';
 const PROFILES = [
 	{
 		value: 'safe',
-		label: __( 'Safe — nothing that could surprise you', 'wp-debloat' ),
+		label: __( 'Safe — nothing that could surprise you', 'debloater' ),
 	},
 	{
 		value: 'performance',
-		label: __( 'Performance — a little further', 'wp-debloat' ),
+		label: __( 'Performance — a little further', 'debloater' ),
 	},
 	{
 		value: 'maximum',
-		label: __( 'Maximum — everything this site allows', 'wp-debloat' ),
+		label: __( 'Maximum — everything this site allows', 'debloater' ),
 	},
 ];
 
 const SNAPSHOT_LABELS = {
-	A: __( 'Configuration, so the change can be undone exactly', 'wp-debloat' ),
+	A: __( 'Configuration, so the change can be undone exactly', 'debloater' ),
 	B: __(
 		'Every row that would be removed, stored before anything is',
-		'wp-debloat'
+		'debloater'
 	),
-	C: __( 'Your own external backup, which you told us about', 'wp-debloat' ),
+	C: __( 'Your own external backup, which you told us about', 'debloater' ),
 };
 
 /**
@@ -89,12 +89,12 @@ export const ApplyDialog = ( { onClose, onStarted } ) => {
 
 	return (
 		<Modal
-			title={ __( 'Review the change', 'wp-debloat' ) }
+			title={ __( 'Review the change', 'debloater' ) }
 			onRequestClose={ onClose }
-			className="wpdebloat-modal"
+			className="debloater-modal"
 		>
 			<SelectControl
-				label={ __( 'How far to go', 'wp-debloat' ) }
+				label={ __( 'How far to go', 'debloater' ) }
 				value={ profile }
 				options={ PROFILES }
 				onChange={ setProfile }
@@ -103,9 +103,9 @@ export const ApplyDialog = ( { onClose, onStarted } ) => {
 			/>
 
 			{ preview.status === 'loading' && (
-				<p className="wpdebloat-loading">
+				<p className="debloater-loading">
 					<Spinner />{ ' ' }
-					{ __( 'Working out what would change…', 'wp-debloat' ) }
+					{ __( 'Working out what would change…', 'debloater' ) }
 				</p>
 			) }
 
@@ -117,14 +117,14 @@ export const ApplyDialog = ( { onClose, onStarted } ) => {
 
 			{ plan && (
 				<>
-					<p className="wpdebloat-modal__count">
+					<p className="debloater-modal__count">
 						{ sprintf(
 							/* translators: %d: number of changes. */
 							_n(
 								'%d change would be applied.',
 								'%d changes would be applied.',
 								count,
-								'wp-debloat'
+								'debloater'
 							),
 							count
 						) }
@@ -132,8 +132,8 @@ export const ApplyDialog = ( { onClose, onStarted } ) => {
 
 					{ plan.will_change?.length > 0 && (
 						<>
-							<h3>{ __( 'What will change', 'wp-debloat' ) }</h3>
-							<ul className="wpdebloat-list wpdebloat-list--change">
+							<h3>{ __( 'What will change', 'debloater' ) }</h3>
+							<ul className="debloater-list debloater-list--change">
 								{ plan.will_change.map( ( line ) => (
 									<li key={ line }>{ line }</li>
 								) ) }
@@ -144,9 +144,9 @@ export const ApplyDialog = ( { onClose, onStarted } ) => {
 					{ plan.will_not?.length > 0 && (
 						<>
 							<h3>
-								{ __( 'What will not change', 'wp-debloat' ) }
+								{ __( 'What will not change', 'debloater' ) }
 							</h3>
-							<ul className="wpdebloat-list wpdebloat-list--nochange">
+							<ul className="debloater-list debloater-list--nochange">
 								{ plan.will_not.map( ( line ) => (
 									<li key={ line }>{ line }</li>
 								) ) }
@@ -156,8 +156,8 @@ export const ApplyDialog = ( { onClose, onStarted } ) => {
 
 					{ excluded.length > 0 && (
 						<>
-							<h3>{ __( 'Left out, and why', 'wp-debloat' ) }</h3>
-							<ul className="wpdebloat-list wpdebloat-list--nochange">
+							<h3>{ __( 'Left out, and why', 'debloater' ) }</h3>
+							<ul className="debloater-list debloater-list--nochange">
 								{ excluded.map( ( [ id, reason ] ) => (
 									<li key={ id }>
 										<code>{ id }</code> — { reason }
@@ -167,8 +167,8 @@ export const ApplyDialog = ( { onClose, onStarted } ) => {
 						</>
 					) }
 
-					<h3>{ __( 'Recovery taken first', 'wp-debloat' ) }</h3>
-					<ul className="wpdebloat-list">
+					<h3>{ __( 'Recovery taken first', 'debloater' ) }</h3>
+					<ul className="debloater-list">
 						{ levels.map( ( level ) => (
 							<li key={ level }>
 								{ SNAPSHOT_LABELS[ level ] || level }
@@ -177,22 +177,22 @@ export const ApplyDialog = ( { onClose, onStarted } ) => {
 					</ul>
 
 					{ preview.data.destructive ? (
-						<div className="wpdebloat-dialog__destructive">
-							<p className="wpdebloat-dialog__warning">
+						<div className="debloater-dialog__destructive">
+							<p className="debloater-dialog__warning">
 								{ __(
 									'This plan deletes data. Every row it removes is copied first, with its id and its dates, and can be put back exactly as it was.',
-									'wp-debloat'
+									'debloater'
 								) }
 							</p>
 
 							<CheckboxControl
 								label={ __(
 									'I have my own backup of this site',
-									'wp-debloat'
+									'debloater'
 								) }
 								help={ __(
-									'Recorded with the change. It does not skip anything: WP Debloat takes its own copy either way, and refuses to delete without one.',
-									'wp-debloat'
+									'Recorded with the change. It does not skip anything: Debloater takes its own copy either way, and refuses to delete without one.',
+									'debloater'
 								) }
 								checked={ attested }
 								onChange={ setAttested }
@@ -201,15 +201,15 @@ export const ApplyDialog = ( { onClose, onStarted } ) => {
 							/>
 						</div>
 					) : (
-						<p className="wpdebloat-dialog__reassurance">
+						<p className="debloater-dialog__reassurance">
 							{ __(
 								'Nothing will be deleted. A recovery point is taken first, and the site is checked afterwards.',
-								'wp-debloat'
+								'debloater'
 							) }
 						</p>
 					) }
 
-					<div className="wpdebloat-actions">
+					<div className="debloater-actions">
 						<Button
 							variant="primary"
 							isBusy={ applying }
@@ -219,19 +219,16 @@ export const ApplyDialog = ( { onClose, onStarted } ) => {
 							{ preview.data.destructive
 								? __(
 										'Create recovery backup & delete',
-										'wp-debloat'
+										'debloater'
 								  )
-								: __(
-										'Create snapshot & apply',
-										'wp-debloat'
-								  ) }
+								: __( 'Create snapshot & apply', 'debloater' ) }
 						</Button>
 						<Button
 							variant="tertiary"
 							onClick={ onClose }
 							disabled={ applying }
 						>
-							{ __( 'Cancel', 'wp-debloat' ) }
+							{ __( 'Cancel', 'debloater' ) }
 						</Button>
 					</div>
 				</>

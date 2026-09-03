@@ -8,7 +8,7 @@
  * answer has to be that the site goes back exactly as it was, and that the
  * person is told so plainly rather than left to work it out.
  *
- * The failure is produced by `WPDEBLOAT_TEST_FAIL_PROBE`, a constant this suite
+ * The failure is produced by `DEBLOATER_TEST_FAIL_PROBE`, a constant this suite
  * writes into the site's config before the run and removes afterwards. A
  * constant rather than a filter on purpose: a rollback path that only fails when
  * a test asks nicely is not the path a real failure takes.
@@ -32,7 +32,7 @@ async function forceProbeFailure( probe ) {
 	await wpCli( [
 		'config',
 		'set',
-		'WPDEBLOAT_TEST_FAIL_PROBE',
+		'DEBLOATER_TEST_FAIL_PROBE',
 		probe,
 		'--type=constant',
 		'--allow-root',
@@ -44,7 +44,7 @@ async function forceProbeFailure( probe ) {
  * Stop forcing it.
  */
 async function stopForcingFailure() {
-	await wpCli( [ 'config', 'delete', 'WPDEBLOAT_TEST_FAIL_PROBE', '--type=constant', '--allow-root', '--skip-themes' ] ).catch(
+	await wpCli( [ 'config', 'delete', 'DEBLOATER_TEST_FAIL_PROBE', '--type=constant', '--allow-root', '--skip-themes' ] ).catch(
 		() => {}
 	);
 }
@@ -52,7 +52,7 @@ async function stopForcingFailure() {
 test.describe( 'When verification fails', () => {
 	test.afterEach( async () => {
 		await stopForcingFailure();
-		await wpCli( [ 'debloat', 'rollback', '--yes', '--allow-root', '--skip-themes' ], APPLY_EXIT_CODES ).catch( () => {} );
+		await wpCli( [ 'debloater', 'rollback', '--yes', '--allow-root', '--skip-themes' ], APPLY_EXIT_CODES ).catch( () => {} );
 	} );
 
 	test( 'the change is undone and the previous runtime hash is restored', async ( { page } ) => {
@@ -66,9 +66,9 @@ test.describe( 'When verification fails', () => {
 		// A first, successful apply, so there is a previous state worth
 		// restoring. Rolling back to nothing proves less than rolling back to
 		// something.
-		await wpCli( [ 'debloat', 'scan', '--allow-root', '--skip-themes' ] );
+		await wpCli( [ 'debloater', 'scan', '--allow-root', '--skip-themes' ] );
 		await wpCli( [
-			'debloat',
+			'debloater',
 			'apply',
 			'--tweaks=core.remove_generator',
 			'--yes',
@@ -89,7 +89,7 @@ test.describe( 'When verification fails', () => {
 		// Now apply something else. Verification will fail, and the run must
 		// roll itself back rather than leave the site half-changed.
 		await wpCli( [
-			'debloat',
+			'debloater',
 			'apply',
 			'--tweaks=core.remove_generator,core.remove_rsd,core.disable_emojis',
 			'--yes',
@@ -113,7 +113,7 @@ test.describe( 'When verification fails', () => {
 
 		await login( page );
 
-		await wpCli( [ 'debloat', 'scan', '--allow-root', '--skip-themes' ] );
+		await wpCli( [ 'debloater', 'scan', '--allow-root', '--skip-themes' ] );
 		await forceProbeFailure( 'rest' );
 
 		await openDebloat( page );
@@ -158,12 +158,12 @@ test.describe( 'When verification fails', () => {
 			page.getByRole( 'heading', { name: 'The change was undone' } )
 		).toBeVisible( { timeout: 90_000 } );
 
-		await expect( page.locator( '.wpdebloat-report' ) ).toContainText(
+		await expect( page.locator( '.debloater-report' ) ).toContainText(
 			'Previous configuration restored.'
 		);
 
 		// And name the probe that failed, so the reason is visible rather than
 		// mysterious.
-		await expect( page.locator( '.wpdebloat-report' ) ).toContainText( 'rest' );
+		await expect( page.locator( '.debloater-report' ) ).toContainText( 'rest' );
 	} );
 } );

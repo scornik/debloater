@@ -2,16 +2,16 @@
 /**
  * Facts about the admin screens.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Scan\Scanners;
+namespace Debloater\Scan\Scanners;
 
-use WPDebloat\Contracts\Context;
-use WPDebloat\Registry\Registry;
-use WPDebloat\Scan\Sources;
+use Debloater\Contracts\Context;
+use Debloater\Registry\Registry;
+use Debloater\Scan\Sources;
 use WP_Hook;
 
 /**
@@ -32,7 +32,7 @@ use WP_Hook;
  * a number that alarms and one that can be acted on. Attribution that failed is
  * reported as `unknown` rather than guessed at.
  *
- * WP Debloat's own callbacks are excluded from nothing. If this plugin ever
+ * Debloater's own callbacks are excluded from nothing. If this plugin ever
  * registers an admin notice, it will appear in its own facts, which is the
  * point: the promise not to nag is easier to keep when breaking it is visible.
  */
@@ -321,7 +321,7 @@ final class AdminScanner extends AbstractScanner {
 	 * A vendor on the allowlist with nothing registered does not appear, and a
 	 * plugin printing notices that is not on the allowlist does not appear
 	 * either — it is still counted in `admin.notices`, it simply cannot be
-	 * silenced by WP Debloat.
+	 * silenced by Debloater.
 	 *
 	 * @param array<int,array<string,string>> $notices Notice rows.
 	 * @return array<int,array<string,string>>

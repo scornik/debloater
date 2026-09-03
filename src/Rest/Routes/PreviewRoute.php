@@ -1,20 +1,20 @@
 <?php
 /**
- * GET wpdebloat/v1/preview.
+ * GET debloater/v1/preview.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Rest\Routes;
+namespace Debloater\Rest\Routes;
 
 use WP_Error;
 use WP_REST_Request;
 use WP_REST_Response;
-use WPDebloat\Plugin;
-use WPDebloat\Registry\Profile;
-use WPDebloat\Rest\ConfirmationToken;
+use Debloater\Plugin;
+use Debloater\Registry\Profile;
+use Debloater\Rest\ConfirmationToken;
 
 /**
  * Shows what a plan would do, without doing any of it
@@ -72,19 +72,19 @@ final class PreviewRoute implements RouteInterface {
 	public function args(): array {
 		return array(
 			'profile' => array(
-				'description' => __( 'Which profile to plan with.', 'wp-debloat' ),
+				'description' => __( 'Which profile to plan with.', 'debloater' ),
 				'type'        => 'string',
 				'enum'        => array_keys( $this->plugin->registry()->profiles() ),
 				'required'    => false,
 			),
 			'run_id'  => array(
-				'description' => __( 'Plan from a specific scan instead of the most recent one.', 'wp-debloat' ),
+				'description' => __( 'Plan from a specific scan instead of the most recent one.', 'debloater' ),
 				'type'        => 'integer',
 				'minimum'     => 1,
 				'required'    => false,
 			),
 			'tweaks'  => array(
-				'description' => __( 'Plan these specific changes instead of a profile.', 'wp-debloat' ),
+				'description' => __( 'Plan these specific changes instead of a profile.', 'debloater' ),
 				'type'        => 'array',
 				'items'       => array( 'type' => 'string' ),
 				'required'    => false,
@@ -109,8 +109,8 @@ final class PreviewRoute implements RouteInterface {
 
 		if ( null === $result ) {
 			return new WP_Error(
-				'wpdebloat_not_scanned',
-				__( 'There is nothing to preview yet. Run a scan first.', 'wp-debloat' ),
+				'debloater_not_scanned',
+				__( 'There is nothing to preview yet. Run a scan first.', 'debloater' ),
 				array( 'status' => 409 )
 			);
 		}

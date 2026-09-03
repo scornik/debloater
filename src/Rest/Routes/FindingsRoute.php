@@ -1,21 +1,21 @@
 <?php
 /**
- * GET wpdebloat/v1/findings.
+ * GET debloater/v1/findings.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Rest\Routes;
+namespace Debloater\Rest\Routes;
 
 use WP_Error;
 use WP_REST_Request;
 use WP_REST_Response;
-use WPDebloat\Contracts\Category;
-use WPDebloat\Contracts\Decision;
-use WPDebloat\Contracts\Risk;
-use WPDebloat\Plugin;
+use Debloater\Contracts\Category;
+use Debloater\Contracts\Decision;
+use Debloater\Contracts\Risk;
+use Debloater\Plugin;
 
 /**
  * Returns the findings from the most recent scan (BUILD-SPEC §17 Phase 3).
@@ -75,25 +75,25 @@ final class FindingsRoute implements RouteInterface {
 	public function args(): array {
 		return array(
 			'risk'     => array(
-				'description' => __( 'Only findings at this risk level.', 'wp-debloat' ),
+				'description' => __( 'Only findings at this risk level.', 'debloater' ),
 				'type'        => 'string',
 				'enum'        => array_map( static fn ( Risk $risk ): string => $risk->value, Risk::cases() ),
 				'required'    => false,
 			),
 			'decision' => array(
-				'description' => __( 'Only findings with this decision.', 'wp-debloat' ),
+				'description' => __( 'Only findings with this decision.', 'debloater' ),
 				'type'        => 'string',
 				'enum'        => array_map( static fn ( Decision $decision ): string => $decision->value, Decision::cases() ),
 				'required'    => false,
 			),
 			'category' => array(
-				'description' => __( 'Only findings in this category.', 'wp-debloat' ),
+				'description' => __( 'Only findings in this category.', 'debloater' ),
 				'type'        => 'string',
 				'enum'        => array_map( static fn ( Category $category ): string => $category->value, Category::cases() ),
 				'required'    => false,
 			),
 			'run_id'   => array(
-				'description' => __( 'Read a specific scan run instead of the most recent one.', 'wp-debloat' ),
+				'description' => __( 'Read a specific scan run instead of the most recent one.', 'debloater' ),
 				'type'        => 'integer',
 				'minimum'     => 1,
 				'required'    => false,
@@ -114,7 +114,7 @@ final class FindingsRoute implements RouteInterface {
 			return new WP_REST_Response(
 				array(
 					'scanned'  => false,
-					'message'  => __( 'This site has not been scanned yet.', 'wp-debloat' ),
+					'message'  => __( 'This site has not been scanned yet.', 'debloater' ),
 					'findings' => array(),
 				),
 				200
@@ -125,8 +125,8 @@ final class FindingsRoute implements RouteInterface {
 
 		if ( ! is_array( $analysis ) ) {
 			return new WP_Error(
-				'wpdebloat_unreadable_run',
-				__( 'That scan was recorded by a different version and cannot be read.', 'wp-debloat' ),
+				'debloater_unreadable_run',
+				__( 'That scan was recorded by a different version and cannot be read.', 'debloater' ),
 				array( 'status' => 409 )
 			);
 		}

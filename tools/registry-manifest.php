@@ -21,7 +21,7 @@
  * inside the working tree, because a signing key that gets committed once is
  * compromised for ever.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
@@ -48,7 +48,7 @@ $check   = array_key_exists( 'check', $options );
  * @param string $registry Absolute path of the registry directory.
  * @return array<int,string>
  */
-function wpdebloat_registry_files( string $registry ): array {
+function debloater_registry_files( string $registry ): array {
 	$found    = array();
 	$iterator = new RecursiveIteratorIterator(
 		new RecursiveDirectoryIterator( $registry, FilesystemIterator::SKIP_DOTS )
@@ -73,7 +73,7 @@ function wpdebloat_registry_files( string $registry ): array {
 	return $found;
 }
 
-$files  = wpdebloat_registry_files( $registry );
+$files  = debloater_registry_files( $registry );
 $hashes = array();
 
 foreach ( $files as $relative ) {
@@ -147,7 +147,7 @@ if ( '' === $tag ) {
 
 $manifest = array(
 	'schema_version' => 1,
-	'product'        => 'wp-debloat',
+	'product'        => 'debloater',
 	'tag'            => $tag,
 	'generated_at'   => gmdate( 'Y-m-d\TH:i:s\Z' ),
 	'files'          => $hashes,
@@ -189,13 +189,13 @@ if ( ! function_exists( 'sodium_crypto_sign_detached' ) ) {
 /**
  * The canonical form of a value: object keys sorted, everywhere.
  *
- * The same rule `WPDebloat\Contracts\Json::canonical()` applies, restated here
+ * The same rule `Debloater\Contracts\Json::canonical()` applies, restated here
  * because this tool runs without the plugin's autoloader.
  *
  * @param mixed $value Value to canonicalise.
  * @return mixed
  */
-function wpdebloat_canonical( $value ) {
+function debloater_canonical( $value ) {
 	if ( ! is_array( $value ) ) {
 		return $value;
 	}
@@ -203,7 +203,7 @@ function wpdebloat_canonical( $value ) {
 	$sorted = array();
 
 	foreach ( $value as $key => $item ) {
-		$sorted[ $key ] = wpdebloat_canonical( $item );
+		$sorted[ $key ] = debloater_canonical( $item );
 	}
 
 	if ( ! array_is_list( $sorted ) ) {
@@ -222,7 +222,7 @@ if ( false === $secret || SODIUM_CRYPTO_SIGN_SECRETKEYBYTES !== strlen( $secret 
 }
 
 $canonical = json_encode(
-	wpdebloat_canonical( $manifest ),
+	debloater_canonical( $manifest ),
 	JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE
 );
 

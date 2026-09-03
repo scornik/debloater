@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://wp-debloat.hakeemify.com/schemas/finding.schema.json",
+  "$id": "https://debloater.hakeemify.com/schemas/finding.schema.json",
   "title": "Finding",
   "description": "A conclusion drawn from facts. Never a change. Severity (how much it matters), risk (how dangerous the change would be) and confidence (how sure we are) are three independent dimensions and must not be collapsed into one.",
   "type": "object",

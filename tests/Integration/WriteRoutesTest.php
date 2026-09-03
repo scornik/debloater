@@ -2,19 +2,19 @@
 /**
  * The two endpoints that can change a site.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Tests\Integration;
+namespace Debloater\Tests\Integration;
 
 use WP_REST_Request;
-use WPDebloat\Apply\Lock;
-use WPDebloat\Apply\RuntimeLoader;
-use WPDebloat\Brand;
-use WPDebloat\Contracts\SnapshotLevel;
-use WPDebloat\Rest\ConfirmationToken;
+use Debloater\Apply\Lock;
+use Debloater\Apply\RuntimeLoader;
+use Debloater\Brand;
+use Debloater\Contracts\SnapshotLevel;
+use Debloater\Rest\ConfirmationToken;
 
 /**
  * BUILD-SPEC §13 rules 1 and 12, and §17 Phase 8.
@@ -120,7 +120,7 @@ final class WriteRoutesTest extends IntegrationTestCase {
 		$response = $this->post( '/apply', array( 'confirm' => str_repeat( 'a', 64 ) ) );
 
 		$this->assertSame( 403, $response->get_status() );
-		$this->assertSame( 'wpdebloat_bad_nonce', $response->get_data()['code'] );
+		$this->assertSame( 'debloater_bad_nonce', $response->get_data()['code'] );
 	}
 
 	/**
@@ -144,7 +144,7 @@ final class WriteRoutesTest extends IntegrationTestCase {
 		);
 
 		$this->assertSame( 409, $response->get_status() );
-		$this->assertSame( 'wpdebloat_stale_confirmation', $response->get_data()['code'] );
+		$this->assertSame( 'debloater_stale_confirmation', $response->get_data()['code'] );
 		$this->assertSame( array(), $this->plugin->state()->selection() );
 		$this->assertFileDoesNotExist( $this->context()->runtimeFile() );
 	}
@@ -336,7 +336,7 @@ final class WriteRoutesTest extends IntegrationTestCase {
 		);
 
 		$this->assertSame( 409, $response->get_status() );
-		$this->assertSame( 'wpdebloat_not_scanned', $response->get_data()['code'] );
+		$this->assertSame( 'debloater_not_scanned', $response->get_data()['code'] );
 		$this->assertSame( 0, $this->plugin->runs()->count() );
 	}
 
@@ -416,7 +416,7 @@ final class WriteRoutesTest extends IntegrationTestCase {
 
 				$body = self::GOOD_HTML;
 
-				if ( 0 === strpos( $url, rest_url( 'wpdebloat/v1/status' ) ) ) {
+				if ( 0 === strpos( $url, rest_url( 'debloater/v1/status' ) ) ) {
 					$body = (string) wp_json_encode(
 						array(
 							'runtime' => array( 'hash' => $plugin->state()->runtimeHash() ),

@@ -2,12 +2,12 @@
 /**
  * How much a finding matters.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Contracts;
+namespace Debloater\Contracts;
 
 /**
  * Finding severity (BUILD-SPEC §6).

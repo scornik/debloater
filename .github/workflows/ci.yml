@@ -1,0 +1,211 @@
+name: CI
+
+# BUILD-SPEC §14, §17 Phase 18.
+#
+# The "every push" column of the testing matrix: unit, integration, registry
+# schema validation, and static analysis. Phases 16 and 17 each shipped a
+# workflow for their own layer and each recorded the same warning — that §14
+# asks for these to run on every push and nothing did. This is that.
+#
+# Deliberately not here: the stack matrix and the end-to-end suite. §14 puts
+# both on "nightly + PR label", and e2e.yml runs them there. A twelve-minute
+# browser suite on every push is a suite people learn to ignore.
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # No WordPress, three PHP versions. This is the cheap, wide job: it holds the
+  # contracts, the registry loader, the resolver, the engine invariants and the
+  # repository-level rules, and it is the one that tells you within a minute
+  # whether a change is worth running anything else against.
+  unit:
+    name: Unit (PHP ${{ matrix.php }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    strategy:
+      fail-fast: false
+      matrix:
+        php: [ '8.1', '8.2', '8.3' ]
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: sodium, json
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --no-interaction --no-progress
+
+      - name: Unit suite
+        run: vendor/bin/phpunit --no-coverage
+
+  # PHPCS, PHPStan and ESLint. One PHP version, because a coding standard that
+  # disagrees between 8.1 and 8.3 is a bug in the standard.
+  static:
+    name: Static analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: sodium, json
+          coverage: none
+
+      - run: composer install --no-interaction --no-progress
+      - run: npm ci
+
+      - name: PHPCS
+        run: vendor/bin/phpcs --standard=phpcs.xml.dist
+
+      - name: PHPStan
+        run: vendor/bin/phpstan analyse --no-progress
+
+      - name: ESLint
+        run: npm run lint:js
+
+      - name: JavaScript unit tests
+        run: npm run test:js
+
+  # Every JSON document in registry/ validates, and the manifest describes what
+  # is actually on disk. registry.yml runs this too, on registry changes only;
+  # here it runs on everything, because a schema change in schemas/ can
+  # invalidate a registry document that nobody touched.
+  registry:
+    name: Registry documents
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: sodium, json
+          coverage: none
+
+      - run: composer install --no-interaction --no-progress
+
+      - name: Every registry document is valid JSON
+        run: |
+          find registry schemas -name '*.json' -print0 \
+            | xargs -0 -n1 -I{} php -r 'json_decode(file_get_contents($argv[1]), true) !== null || exit(fprintf(STDERR, "%s is not valid JSON\n", $argv[1]) && 1);' {}
+
+      - name: The manifest describes the registry on disk
+        run: php tools/registry-manifest.php --check
+
+  # A real WordPress, the plugin's own tables, real files written into
+  # wp-content. Slower than the rest put together, which is why it is one job
+  # on one version rather than a matrix — the versions are covered nightly.
+  integration:
+    name: Integration
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: sodium, json
+          coverage: none
+
+      - run: npm ci
+
+      # The WordPress test suite needs Yoast's PHPUnit Polyfills, a Composer
+      # dev dependency. The plugin directory is mapped into the container as-is,
+      # so a missing vendor/ here is a missing vendor/ there.
+      - run: composer install --no-interaction --no-progress
+
+      # PHPUnit 9 for the WordPress test suite is a phar, downloaded rather than
+      # committed.
+      - run: npm run test:integration:setup
+
+      - run: npx wp-env start --update
+
+      # wp-env activates the plugins listed in .wp-env.json. Debloater is
+      # mapped in rather than listed, so on a fresh runner it is installed and
+      # inactive — and `wp debloater` is then not a registered command.
+      - run: npx wp-env run cli wp plugin activate debloater
+
+      - run: npm run test:integration
+
+      - name: WP-CLI end to end
+        run: npm run test:cli
+
+      - run: npx wp-env stop
+        if: always()
+
+  # The zip has to build, and it has to build from what a release would actually
+  # be built from: a production autoloader and a compiled admin UI. This is the
+  # step that catches a ship list that references a file somebody deleted.
+  package:
+    name: Package
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: sodium, json
+          coverage: none
+
+      - run: npm ci
+      - run: npm run build
+
+      - name: Production autoloader
+        run: composer install --no-interaction --no-progress --no-dev --classmap-authoritative
+
+      - run: npm run plugin-zip
+
+      - name: The zip autoloads the plugin and nothing else
+        run: |
+          cd dist/debloater
+          php -r 'require "vendor/autoload.php";
+            class_exists("Debloater\\Plugin") || exit(fprintf(STDERR, "the zip does not autoload the plugin\n") && 1);
+            class_exists("Debloater\\Tests\\Unit\\ReleaseReadinessTest") && exit(fprintf(STDERR, "the zip autoloads test classes\n") && 1);'
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: debloater-zip
+          path: dist/*.zip
+          retention-days: 14

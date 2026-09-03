@@ -1,15 +1,15 @@
 <?php
 /**
- * Who is allowed to use WP Debloat.
+ * Who is allowed to use Debloater.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Security;
+namespace Debloater\Security;
 
-use WPDebloat\Brand;
+use Debloater\Brand;
 
 /**
  * The single capability check (BUILD-SPEC §13 rule 1).
@@ -23,7 +23,7 @@ use WPDebloat\Brand;
 final class Capabilities {
 
 	/**
-	 * Capability required to manage WP Debloat.
+	 * Capability required to manage Debloater.
 	 */
 	public const MANAGE = Brand::CAPABILITY;
 
@@ -39,7 +39,7 @@ final class Capabilities {
 	}
 
 	/**
-	 * Register the mapping so `current_user_can( 'wpdebloat_manage' )` works.
+	 * Register the mapping so `current_user_can( 'debloater_manage' )` works.
 	 *
 	 * Mapping rather than granting means the capability is never written into
 	 * the roles table, so removing the plugin leaves no trace in user data and
@@ -68,11 +68,11 @@ final class Capabilities {
 		}
 
 		/**
-		 * Filters the capability WP Debloat's own capability maps onto.
+		 * Filters the capability Debloater's own capability maps onto.
 		 *
-		 * @param string $capability Capability required to manage WP Debloat.
+		 * @param string $capability Capability required to manage Debloater.
 		 */
-		$required = (string) apply_filters( 'wpdebloat_required_capability', self::MAPS_TO );
+		$required = (string) apply_filters( 'debloater_required_capability', self::MAPS_TO );
 
 		if ( '' !== $required && ! empty( $allcaps[ $required ] ) ) {
 			$allcaps[ self::MANAGE ] = true;
@@ -82,7 +82,7 @@ final class Capabilities {
 	}
 
 	/**
-	 * Whether the current user may manage WP Debloat.
+	 * Whether the current user may manage Debloater.
 	 *
 	 * @return bool
 	 */

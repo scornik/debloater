@@ -2,12 +2,12 @@
 /**
  * The outcome of an apply run.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Contracts;
+namespace Debloater\Contracts;
 
 /**
  * Apply result (BUILD-SPEC §9.2).

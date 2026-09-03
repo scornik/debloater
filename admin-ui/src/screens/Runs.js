@@ -10,24 +10,24 @@ import { get, post } from '../api/client';
 import { useResource } from '../api/useResource';
 
 const RunRow = ( { run } ) => (
-	<li className={ `wpdebloat-run is-${ run.status.toLowerCase() }` }>
-		<div className="wpdebloat-run__head">
-			<span className="wpdebloat-run__id">#{ run.id }</span>
-			<span className="wpdebloat-run__status">{ run.status }</span>
-			<span className="wpdebloat-run__when">{ run.started_at }</span>
-			<span className="wpdebloat-run__actor">{ run.actor }</span>
+	<li className={ `debloater-run is-${ run.status.toLowerCase() }` }>
+		<div className="debloater-run__head">
+			<span className="debloater-run__id">#{ run.id }</span>
+			<span className="debloater-run__status">{ run.status }</span>
+			<span className="debloater-run__when">{ run.started_at }</span>
+			<span className="debloater-run__actor">{ run.actor }</span>
 		</div>
 		{ run.applied.length > 0 && (
-			<p className="wpdebloat-run__applied">
+			<p className="debloater-run__applied">
 				{ run.applied.join( ', ' ) }
 			</p>
 		) }
 		{ run.warnings.map( ( warning ) => (
-			<p key={ warning } className="wpdebloat-run__warning">
+			<p key={ warning } className="debloater-run__warning">
 				{ warning }
 			</p>
 		) ) }
-		{ run.error && <p className="wpdebloat-run__error">{ run.error }</p> }
+		{ run.error && <p className="debloater-run__error">{ run.error }</p> }
 	</li>
 );
 
@@ -51,10 +51,10 @@ export const Runs = () => {
 				message: result.ok
 					? __(
 							'The previous configuration has been restored.',
-							'wp-debloat'
+							'debloater'
 					  )
 					: result.result?.error ||
-					  __( 'The restore did not complete.', 'wp-debloat' ),
+					  __( 'The restore did not complete.', 'debloater' ),
 			} );
 
 			await data.reload();
@@ -68,8 +68,8 @@ export const Runs = () => {
 
 	if ( data.status === 'loading' ) {
 		return (
-			<p className="wpdebloat-loading">
-				<Spinner /> { __( 'Reading the history…', 'wp-debloat' ) }
+			<p className="debloater-loading">
+				<Spinner /> { __( 'Reading the history…', 'debloater' ) }
 			</p>
 		);
 	}
@@ -86,7 +86,7 @@ export const Runs = () => {
 	const snapshots = data.data?.snapshots || [];
 
 	return (
-		<div className="wpdebloat-runs">
+		<div className="debloater-runs">
 			{ outcome && (
 				<Notice
 					status={ outcome.status }
@@ -96,20 +96,20 @@ export const Runs = () => {
 				</Notice>
 			) }
 
-			<section aria-labelledby="wpdebloat-runs-heading">
-				<h2 id="wpdebloat-runs-heading">
-					{ __( 'Changes', 'wp-debloat' ) }
+			<section aria-labelledby="debloater-runs-heading">
+				<h2 id="debloater-runs-heading">
+					{ __( 'Changes', 'debloater' ) }
 				</h2>
 
 				{ runs.length === 0 ? (
 					<p>
 						{ __(
 							'Nothing has been applied on this site yet.',
-							'wp-debloat'
+							'debloater'
 						) }
 					</p>
 				) : (
-					<ul className="wpdebloat-runs__list">
+					<ul className="debloater-runs__list">
 						{ runs.map( ( run ) => (
 							<RunRow key={ run.id } run={ run } />
 						) ) }
@@ -117,15 +117,15 @@ export const Runs = () => {
 				) }
 			</section>
 
-			<section aria-labelledby="wpdebloat-snapshots-heading">
-				<h2 id="wpdebloat-snapshots-heading">
-					{ __( 'Recovery points', 'wp-debloat' ) }
+			<section aria-labelledby="debloater-snapshots-heading">
+				<h2 id="debloater-snapshots-heading">
+					{ __( 'Recovery points', 'debloater' ) }
 				</h2>
 
-				<p className="wpdebloat-panel__lede">
+				<p className="debloater-panel__lede">
 					{ __(
 						'One is taken before every change. Nothing removes them on a schedule.',
-						'wp-debloat'
+						'debloater'
 					) }
 				</p>
 
@@ -133,30 +133,28 @@ export const Runs = () => {
 					<p>
 						{ __(
 							'There are no recovery points yet.',
-							'wp-debloat'
+							'debloater'
 						) }
 					</p>
 				) : (
-					<table className="wpdebloat-snapshots">
+					<table className="debloater-snapshots">
 						<thead>
 							<tr>
+								<th scope="col">{ __( 'Id', 'debloater' ) }</th>
 								<th scope="col">
-									{ __( 'Id', 'wp-debloat' ) }
+									{ __( 'Change', 'debloater' ) }
 								</th>
 								<th scope="col">
-									{ __( 'Change', 'wp-debloat' ) }
+									{ __( 'Level', 'debloater' ) }
 								</th>
 								<th scope="col">
-									{ __( 'Level', 'wp-debloat' ) }
+									{ __( 'Rows', 'debloater' ) }
 								</th>
 								<th scope="col">
-									{ __( 'Rows', 'wp-debloat' ) }
+									{ __( 'Taken', 'debloater' ) }
 								</th>
 								<th scope="col">
-									{ __( 'Taken', 'wp-debloat' ) }
-								</th>
-								<th scope="col">
-									{ __( 'Restore', 'wp-debloat' ) }
+									{ __( 'Restore', 'debloater' ) }
 								</th>
 							</tr>
 						</thead>
@@ -176,13 +174,10 @@ export const Runs = () => {
 													setConfirming( snapshot )
 												}
 											>
-												{ __(
-													'Restore',
-													'wp-debloat'
-												) }
+												{ __( 'Restore', 'debloater' ) }
 											</Button>
 										) : (
-											<span className="wpdebloat-snapshots__refusal">
+											<span className="debloater-snapshots__refusal">
 												{ snapshot.refusal }
 											</span>
 										) }
@@ -196,7 +191,7 @@ export const Runs = () => {
 
 			{ confirming && (
 				<Modal
-					title={ __( 'Restore this recovery point?', 'wp-debloat' ) }
+					title={ __( 'Restore this recovery point?', 'debloater' ) }
 					onRequestClose={ () => setConfirming( null ) }
 				>
 					<p>
@@ -204,7 +199,7 @@ export const Runs = () => {
 							/* translators: 1: snapshot id, 2: run id. */
 							__(
 								'Recovery point %1$d belongs to change #%2$d. The whole change will be undone — restoring half of one would leave the site in a state nothing has a name for.',
-								'wp-debloat'
+								'debloater'
 							),
 							confirming.id,
 							confirming.run_id
@@ -213,23 +208,23 @@ export const Runs = () => {
 					<p>
 						{ __(
 							'The configuration this change replaced will be put back, and any rows it removed will be restored exactly as they were.',
-							'wp-debloat'
+							'debloater'
 						) }
 					</p>
-					<div className="wpdebloat-actions">
+					<div className="debloater-actions">
 						<Button
 							variant="primary"
 							isBusy={ working }
 							disabled={ working }
 							onClick={ restore }
 						>
-							{ __( 'Restore it', 'wp-debloat' ) }
+							{ __( 'Restore it', 'debloater' ) }
 						</Button>
 						<Button
 							variant="tertiary"
 							onClick={ () => setConfirming( null ) }
 						>
-							{ __( 'Cancel', 'wp-debloat' ) }
+							{ __( 'Cancel', 'debloater' ) }
 						</Button>
 					</div>
 				</Modal>

@@ -2,12 +2,12 @@
 /**
  * A single observed fact about the site.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Contracts;
+namespace Debloater\Contracts;
 
 /**
  * One dot-namespaced observation produced by a scanner (BUILD-SPEC §5).

@@ -2,21 +2,21 @@
 /**
  * A tweak as the registry declares it.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Registry;
+namespace Debloater\Registry;
 
-use WPDebloat\Contracts\Assert;
-use WPDebloat\Contracts\Category;
-use WPDebloat\Contracts\ContractViolation;
-use WPDebloat\Contracts\Identifier;
-use WPDebloat\Contracts\Risk;
-use WPDebloat\Contracts\Tweak;
-use WPDebloat\Contracts\TweakKind;
-use WPDebloat\Contracts\TweakParams;
+use Debloater\Contracts\Assert;
+use Debloater\Contracts\Category;
+use Debloater\Contracts\ContractViolation;
+use Debloater\Contracts\Identifier;
+use Debloater\Contracts\Risk;
+use Debloater\Contracts\Tweak;
+use Debloater\Contracts\TweakKind;
+use Debloater\Contracts\TweakParams;
 
 /**
  * A registry tweak definition (BUILD-SPEC §7.1).

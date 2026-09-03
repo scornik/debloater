@@ -2,12 +2,12 @@
 /**
  * Everything measured in one pass.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Meter;
+namespace Debloater\Meter;
 
 /**
  * One complete reading of a site (BUILD-SPEC §12).

@@ -1,8 +1,8 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://wp-debloat.hakeemify.com/schemas/admin-notices.schema.json",
+  "$id": "https://debloater.hakeemify.com/schemas/admin-notices.schema.json",
   "title": "Admin notice vendors",
-  "description": "The plugins whose admin notices a site owner may choose to hide, and which code directories identify each. An allowlist: a plugin absent from this file cannot have its notices hidden by WP Debloat, no matter what a user types. Each entry says plainly what selecting it silences, because WP Debloat cannot tell a vendor's marketing apart from its warnings and does not pretend to.",
+  "description": "The plugins whose admin notices a site owner may choose to hide, and which code directories identify each. An allowlist: a plugin absent from this file cannot have its notices hidden by Debloater, no matter what a user types. Each entry says plainly what selecting it silences, because Debloater cannot tell a vendor's marketing apart from its warnings and does not pretend to.",
   "type": "object",
   "additionalProperties": false,
   "required": ["vendors"],

@@ -2,14 +2,14 @@
 /**
  * Facts about the active theme.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Scan\Scanners;
+namespace Debloater\Scan\Scanners;
 
-use WPDebloat\Contracts\Context;
+use Debloater\Contracts\Context;
 
 /**
  * Collects the `theme.*` facts (BUILD-SPEC §5).

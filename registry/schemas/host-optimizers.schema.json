@@ -1,8 +1,8 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://wp-debloat.hakeemify.com/schemas/host-optimizers.schema.json",
+  "$id": "https://debloater.hakeemify.com/schemas/host-optimizers.schema.json",
   "title": "Host and stack optimizers",
-  "description": "Optimization layers that offer settings of their own for ground WP Debloat also covers — a host's own optimizer plugin, or a cache plugin with the same switches built in. Each entry names the findings whose subject that layer visibly offers a setting for, so a finding can tell the user there is another place to change it. An entry says what a layer offers, never what it is currently doing: a finding fires because the scan observed the thing still happening, so nothing has been handled by anyone.",
+  "description": "Optimization layers that offer settings of their own for ground Debloater also covers — a host's own optimizer plugin, or a cache plugin with the same switches built in. Each entry names the findings whose subject that layer visibly offers a setting for, so a finding can tell the user there is another place to change it. An entry says what a layer offers, never what it is currently doing: a finding fires because the scan observed the thing still happening, so nothing has been handled by anyone.",
   "type": "object",
   "additionalProperties": false,
   "required": ["optimizers"],

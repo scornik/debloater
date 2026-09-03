@@ -1,16 +1,16 @@
 <?php
 /**
- * Kind of run recorded in wpdebloat_runs.
+ * Kind of run recorded in debloater_runs.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Contracts;
+namespace Debloater\Contracts;
 
 /**
- * Run type (BUILD-SPEC §8, wpdebloat_runs.type).
+ * Run type (BUILD-SPEC §8, debloater_runs.type).
  */
 enum RunType: string {
 

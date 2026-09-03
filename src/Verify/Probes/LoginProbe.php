@@ -2,17 +2,17 @@
 /**
  * Is there still a way back in.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Verify\Probes;
+namespace Debloater\Verify\Probes;
 
-use WPDebloat\Contracts\Context;
-use WPDebloat\Contracts\ProbeResult;
-use WPDebloat\Contracts\ProbeStatus;
-use WPDebloat\Verify\Markers;
+use Debloater\Contracts\Context;
+use Debloater\Contracts\ProbeResult;
+use Debloater\Contracts\ProbeStatus;
+use Debloater\Verify\Markers;
 
 /**
  * GET `/wp-login.php` (BUILD-SPEC §11).
@@ -52,7 +52,7 @@ final class LoginProbe extends AbstractHttpProbe {
 			return new ProbeResult(
 				$this->name(),
 				ProbeStatus::WARN,
-				__( 'The login page answered, but no sign-in form was found on it.', 'wp-debloat' ),
+				__( 'The login page answered, but no sign-in form was found on it.', 'debloater' ),
 				$response->evidence()
 			);
 		}
@@ -60,7 +60,7 @@ final class LoginProbe extends AbstractHttpProbe {
 		return new ProbeResult(
 			$this->name(),
 			ProbeStatus::PASS,
-			__( 'The login page loaded normally.', 'wp-debloat' ),
+			__( 'The login page loaded normally.', 'debloater' ),
 			$response->evidence()
 		);
 	}
@@ -71,6 +71,6 @@ final class LoginProbe extends AbstractHttpProbe {
 	 * @return string
 	 */
 	protected function describe(): string {
-		return __( 'The login page', 'wp-debloat' );
+		return __( 'The login page', 'debloater' );
 	}
 }

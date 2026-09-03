@@ -2,17 +2,17 @@
 /**
  * A widget catalogue standing in for Elementor's.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Tests\Integration\Support;
+namespace Debloater\Tests\Integration\Support;
 
-use WPDebloat\Scan\AssetParser;
-use WPDebloat\Scan\Elementor\WidgetCatalog;
-use WPDebloat\Scan\PageSample;
-use WPDebloat\Scan\Sources;
+use Debloater\Scan\AssetParser;
+use Debloater\Scan\Elementor\WidgetCatalog;
+use Debloater\Scan\PageSample;
+use Debloater\Scan\Sources;
 
 /**
  * Three widget types, from three different files.

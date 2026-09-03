@@ -2,20 +2,20 @@
 /**
  * Every analyzer rule, fixture by fixture.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Tests\Unit\Analyze;
+namespace Debloater\Tests\Unit\Analyze;
 
 use PHPUnit\Framework\TestCase;
-use WPDebloat\Analyze\Rules;
-use WPDebloat\Contracts\AnalyzerRuleInterface;
-use WPDebloat\Contracts\Decision;
-use WPDebloat\Contracts\FactSet;
-use WPDebloat\Registry\Loader;
-use WPDebloat\Tests\Unit\Support\Facts;
+use Debloater\Analyze\Rules;
+use Debloater\Contracts\AnalyzerRuleInterface;
+use Debloater\Contracts\Decision;
+use Debloater\Contracts\FactSet;
+use Debloater\Registry\Loader;
+use Debloater\Tests\Unit\Support\Facts;
 
 /**
  * BUILD-SPEC §17 Phase 3 requires each rule to be tested for firing, not
@@ -142,7 +142,7 @@ final class RulesTest extends TestCase {
 	 * @return void
 	 */
 	public function test_recommended_tweaks_exist( AnalyzerRuleInterface $rule ): void {
-		$registry = ( new Loader( WPDEBLOAT_TESTS_ROOT . '/registry' ) )->load();
+		$registry = ( new Loader( DEBLOATER_TESTS_ROOT . '/registry' ) )->load();
 		$finding  = $rule->analyze( Facts::busyStore() );
 
 		if ( null === $finding || null === $finding->recommendation ) {
@@ -165,7 +165,7 @@ final class RulesTest extends TestCase {
 	 * @return void
 	 */
 	public function test_recommended_parameters_validate( AnalyzerRuleInterface $rule ): void {
-		$registry = ( new Loader( WPDEBLOAT_TESTS_ROOT . '/registry' ) )->load();
+		$registry = ( new Loader( DEBLOATER_TESTS_ROOT . '/registry' ) )->load();
 		$finding  = $rule->analyze( Facts::busyStore() );
 
 		if ( null === $finding || null === $finding->recommendation ) {
@@ -359,7 +359,7 @@ final class RulesTest extends TestCase {
 	/**
 	 * Inactive plugins are reported as information and propose nothing.
 	 *
-	 * Deleting a plugin is not reversible from here and is not WP Debloat's
+	 * Deleting a plugin is not reversible from here and is not Debloater's
 	 * decision to make.
 	 *
 	 * @return void

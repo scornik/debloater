@@ -2,14 +2,14 @@
 /**
  * What a scan produced.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Scan;
+namespace Debloater\Scan;
 
-use WPDebloat\Contracts\FactSet;
+use Debloater\Contracts\FactSet;
 
 /**
  * The facts, plus how the scan went getting them.

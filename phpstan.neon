@@ -4,7 +4,7 @@ includes:
 parameters:
 	level: 6
 	paths:
-		- wp-debloat.php
+		- debloater.php
 		- src
 		- runtime-handlers
 		- mu-loader
@@ -23,8 +23,8 @@ parameters:
 	# Without this, analysis would reason from the placeholder values in the
 	# bootstrap file and report every guard against them as dead code.
 	dynamicConstantNames:
-		- WPDEBLOAT_DISABLE
-		- WPDEBLOAT_LOADER_MODE
+		- DEBLOATER_DISABLE
+		- DEBLOATER_LOADER_MODE
 		- WP_CLI
 		- LOGGED_IN_COOKIE
 	treatPhpDocTypesAsCertain: false

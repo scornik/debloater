@@ -2,19 +2,19 @@
 /**
  * Canonical JSON encoding for hashing and persistence.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Contracts;
+namespace Debloater\Contracts;
 
 use RuntimeException;
 
 /**
  * One way to encode a structure, so hashes are comparable.
  *
- * Several things in WP Debloat are identified by the hash of their content: the
+ * Several things in Debloater are identified by the hash of their content: the
  * registry hash recorded on every run, the runtime hash in runtime.lock, the
  * snapshot checksum that gates a restore. If two encodings of the same data can
  * differ, those hashes stop meaning "the same content" and start meaning "the

@@ -2,18 +2,18 @@
 /**
  * Analyzer rule: db.revisions.unlimited.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Analyze\Rules;
+namespace Debloater\Analyze\Rules;
 
-use WPDebloat\Contracts\Category;
-use WPDebloat\Contracts\FactSet;
-use WPDebloat\Contracts\Finding;
-use WPDebloat\Contracts\Risk;
-use WPDebloat\Contracts\Severity;
+use Debloater\Contracts\Category;
+use Debloater\Contracts\FactSet;
+use Debloater\Contracts\Finding;
+use Debloater\Contracts\Risk;
+use Debloater\Contracts\Severity;
 
 /**
  * Fires when WordPress keeps every revision and the count has grown.
@@ -101,21 +101,21 @@ final class RevisionsUnlimitedRule extends AbstractRule {
 				'category' => Category::DATABASE,
 				'severity' => $count >= self::SUBSTANTIAL_COUNT ? Severity::MEDIUM : Severity::LOW,
 				'risk'     => Risk::LOW,
-				'title'    => __( 'Every revision of every post is kept forever', 'wp-debloat' ),
+				'title'    => __( 'Every revision of every post is kept forever', 'debloater' ),
 				'summary'  => sprintf(
 					/* translators: 1: number of revisions, 2: revisions to keep per post. */
-					__( 'WordPress is keeping every revision, and there are now %1$s of them. Keeping the most recent %2$d per post would stop the number growing.', 'wp-debloat' ),
+					__( 'WordPress is keeping every revision, and there are now %1$s of them. Keeping the most recent %2$d per post would stop the number growing.', 'debloater' ),
 					number_format_i18n( $count ),
 					self::KEEP_PER_POST
 				),
 				'why'      => __(
 					'Each revision is a full copy of the post in the posts table, with its own meta. On a site edited regularly they outnumber the real content several times over, which makes every backup larger and every query over the posts table slower. Capping the number changes what happens from now on: nothing is deleted, and WordPress prunes the oldest revisions of a post the next time that post is saved.',
-					'wp-debloat'
+					'debloater'
 				),
 				'evidence' => $this->evidence( $facts )
-					->formatted( __( 'Revision limit', 'wp-debloat' ), __( 'Unlimited', 'wp-debloat' ), 'wp.revisions_limit' )
-					->fact( __( 'Revisions stored', 'wp-debloat' ), 'db.revisions.count' )
-					->optional( __( 'Database size', 'wp-debloat' ), 'db.size_bytes' )
+					->formatted( __( 'Revision limit', 'debloater' ), __( 'Unlimited', 'debloater' ), 'wp.revisions_limit' )
+					->fact( __( 'Revisions stored', 'debloater' ), 'db.revisions.count' )
+					->optional( __( 'Database size', 'debloater' ), 'db.size_bytes' )
 					->build(),
 				'impact'   => $this->estimated( 'db.revisions', (float) $count, 'rows' ),
 				'tweak_id' => 'core.limit_revisions',

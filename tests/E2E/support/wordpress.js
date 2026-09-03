@@ -54,17 +54,17 @@ async function login( page ) {
 }
 
 /**
- * Open the WP Debloat screen.
+ * Open the Debloater screen.
  *
  * @param {import('@playwright/test').Page} page Page.
  */
 async function openDebloat( page ) {
-	await page.goto( '/wp-admin/admin.php?page=wp-debloat' );
-	await page.waitForSelector( '#wpdebloat-root', { state: 'attached' } );
+	await page.goto( '/wp-admin/admin.php?page=debloater' );
+	await page.waitForSelector( '#debloater-root', { state: 'attached' } );
 }
 
 /**
- * Exit codes `wp debloat apply` may legitimately return.
+ * Exit codes `wp debloater apply` may legitimately return.
  *
  * 0 is applied and verified. 3 is applied but *not* verified — which is what
  * happens whenever the site cannot reach itself over HTTP, and wp-env is
@@ -99,7 +99,7 @@ async function wpCli( args, allowed = [ 0 ] ) {
 				'wp-env',
 				'run',
 				'cli',
-				'--env-cwd=wp-content/plugins/wp-debloat',
+				'--env-cwd=wp-content/plugins/debloater',
 				'wp',
 				...args,
 			],
@@ -167,7 +167,7 @@ function postUrl( id, type = 'post' ) {
  * @return {Promise<Object>} Decoded status.
  */
 async function debloatStatus() {
-	const output = await wpCli( [ 'debloat', 'status', '--format=json', '--allow-root', '--skip-themes' ] );
+	const output = await wpCli( [ 'debloater', 'status', '--format=json', '--allow-root', '--skip-themes' ] );
 
 	return JSON.parse( output );
 }

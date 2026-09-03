@@ -1,6 +1,6 @@
 # CLI.md
 
-`wp debloat` — the whole loop from a terminal.
+`wp debloater` — the whole loop from a terminal.
 
 Every command reads and writes through the same engine the dashboard uses. The
 CLI decides nothing for itself: what to recommend, what may go into a plan, what
@@ -33,17 +33,17 @@ then put back.
 
 ## Commands
 
-### `wp debloat scan [--format=json] [--check-plugin-updates]`
+### `wp debloater scan [--format=json] [--check-plugin-updates]`
 
 Reads the site and analyses what it found. Writes a run; changes nothing else.
 
 ```
-wp debloat scan
-wp debloat scan --json
-wp debloat scan --check-plugin-updates
+wp debloater scan
+wp debloater scan --json
+wp debloater scan --check-plugin-updates
 ```
 
-`--check-plugin-updates` is the only thing in WP Debloat that sends anything off
+`--check-plugin-updates` is the only thing in Debloater that sends anything off
 the server: it asks wordpress.org when each active plugin was last released.
 Without it the scan stays entirely on the machine and reads staleness from file
 dates instead — a weaker answer, reported as one, at a third of the confidence.
@@ -51,12 +51,12 @@ dates instead — a weaker answer, reported as one, at a third of the confidence
 The flag is not remembered. There is no setting that, once ticked, makes future
 scans reach out; the next scan asks again (docs/DECISIONS.md D-0029).
 
-### `wp debloat findings [--risk=<low|medium|high>] [--format=json]`
+### `wp debloater findings [--risk=<low|medium|high>] [--format=json]`
 
 Lists the findings from the most recent scan. Exits `1` if there has not been
 one.
 
-### `wp debloat preview [--profile=<safe|performance|maximum>] [--tweaks=<ids>] [--format=json]`
+### `wp debloater preview [--profile=<safe|performance|maximum>] [--tweaks=<ids>] [--format=json]`
 
 Shows what a change would do. Changes nothing at all — this is the command to
 run first, and the one to run in CI.
@@ -65,7 +65,7 @@ run first, and the one to run in CI.
 Naming a tweak asks for it to be *considered*: the same invariants apply, so one
 the site refuses is still excluded, with the reason given.
 
-### `wp debloat apply [--profile=<profile>] [--tweaks=<ids>] --yes [--format=json]`
+### `wp debloater apply [--profile=<profile>] [--tweaks=<ids>] --yes [--format=json]`
 
 Applies a plan. `--yes` is required.
 
@@ -73,10 +73,10 @@ Takes a recovery point first, applies configuration before data, verifies, and
 rolls back automatically if verification fails.
 
 ```
-wp debloat apply --profile=safe --yes         # 0, 2 or 3
+wp debloater apply --profile=safe --yes         # 0, 2 or 3
 ```
 
-### `wp debloat verify [--format=json]`
+### `wp debloater verify [--format=json]`
 
 Checks the site without changing anything: the home page as a guest, the newest
 post, the dashboard, the REST API, the login page, and whether the generated
@@ -85,7 +85,7 @@ runtime is the one actually loaded.
 Exits `0` when everything passed, `3` when something could not be checked, `2`
 when a check failed.
 
-### `wp debloat rollback [<snapshot-id>] --yes [--format=json]`
+### `wp debloater rollback [<snapshot-id>] --yes [--format=json]`
 
 Undoes a change. With no id, the most recent recovery point. `--yes` is
 required.
@@ -93,7 +93,7 @@ required.
 A recovery point belongs to a run, and the whole run is undone — restoring half
 of one would leave the site in a state nothing has a name for.
 
-### `wp debloat snapshots [list|show <id>|delete <id>] [--yes] [--format=json]`
+### `wp debloater snapshots [list|show <id>|delete <id>] [--yes] [--format=json]`
 
 Lists recovery points, shows one in full, or deletes one. Deleting requires
 `--yes`, because a deleted recovery point means that change can no longer be
@@ -101,18 +101,18 @@ undone.
 
 Nothing expires on its own (see `docs/DECISIONS.md` D-0016).
 
-### `wp debloat status [--format=json]`
+### `wp debloater status [--format=json]`
 
-What WP Debloat is doing on this site: the selection, the runtime and whether it
+What Debloater is doing on this site: the selection, the runtime and whether it
 matches what was generated, the loader mode, the last scan, and whether an apply
 is in progress.
 
-### `wp debloat export [--file=<path>]`
+### `wp debloater export [--file=<path>]`
 
 Writes this site's configuration as JSON — configuration as code. Without
 `--file`, prints to standard output.
 
-### `wp debloat import <file> [--apply --yes] [--format=json]`
+### `wp debloater import <file> [--apply --yes] [--format=json]`
 
 Reads a configuration file. Without `--apply` it validates and reports, changing
 nothing. With `--apply --yes` it plans and applies what the file describes.
@@ -217,10 +217,10 @@ deliberately different, and `NOT_TESTED` never counts towards the aggregate.
 ## A deployment example
 
 ```bash
-wp debloat scan --json > scan.json
-wp debloat preview --profile=safe --json > plan.json
+wp debloater scan --json > scan.json
+wp debloater preview --profile=safe --json > plan.json
 
-wp debloat apply --profile=safe --yes
+wp debloater apply --profile=safe --yes
 case $? in
   0) echo "Applied and verified." ;;
   3) echo "Applied; some checks could not run." ;;
@@ -233,9 +233,9 @@ Configuration promoted from staging to production:
 
 ```bash
 # on staging
-wp debloat export --file=wp-debloat.json
+wp debloater export --file=debloater.json
 
 # on production, in review, then applied
-wp debloat import wp-debloat.json
-wp debloat import wp-debloat.json --apply --yes
+wp debloater import debloater.json
+wp debloater import debloater.json --apply --yes
 ```

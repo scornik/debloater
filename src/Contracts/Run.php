@@ -2,15 +2,15 @@
 /**
  * One recorded run.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Contracts;
+namespace Debloater\Contracts;
 
 /**
- * A row of wpdebloat_runs (BUILD-SPEC §8).
+ * A row of debloater_runs (BUILD-SPEC §8).
  *
  * Every scan, apply, rollback, verification and measurement is a run, and every
  * run records what it was planned against: the plugin version and the registry

@@ -2,12 +2,12 @@
 /**
  * Which host this site is on, if we can tell.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Scan;
+namespace Debloater\Scan;
 
 /**
  * Host identification, in one place (BUILD-SPEC §5).

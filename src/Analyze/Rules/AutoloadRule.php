@@ -2,20 +2,20 @@
 /**
  * Analyzer rule: db.autoload.heavy.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Analyze\Rules;
+namespace Debloater\Analyze\Rules;
 
-use WPDebloat\Contracts\Category;
-use WPDebloat\Contracts\FactSet;
-use WPDebloat\Contracts\Finding;
-use WPDebloat\Contracts\Risk;
-use WPDebloat\Contracts\Severity;
+use Debloater\Contracts\Category;
+use Debloater\Contracts\FactSet;
+use Debloater\Contracts\Finding;
+use Debloater\Contracts\Risk;
+use Debloater\Contracts\Severity;
 
-use WPDebloat\Apply\DataOperations\AutoloadReview;
+use Debloater\Apply\DataOperations\AutoloadReview;
 
 /**
  * Reports what WordPress loads into memory before it does anything else.
@@ -26,7 +26,7 @@ use WPDebloat\Apply\DataOperations\AutoloadReview;
  *
  * This finding names the largest contributors whatever they are, because the
  * user is owed the truth about what is loading. The change it proposes is far
- * narrower: only options whose names match an allowlist WP Debloat maintains.
+ * narrower: only options whose names match an allowlist Debloater maintains.
  * Deciding automatically that some other plugin\'s option is not needed early is
  * exactly the kind of judgement that breaks sites in ways nobody can trace, so
  * the report is wide and the action is narrow.
@@ -90,19 +90,19 @@ final class AutoloadRule extends AbstractRule {
 		$severity = $bytes >= self::SUBSTANTIAL_BYTES ? Severity::MEDIUM : Severity::LOW;
 
 		$evidence = $this->evidence( $facts )
-			->fact( __( 'Loaded on every request', 'wp-debloat' ), 'db.autoload.bytes' )
-			->optional( __( 'Largest autoloaded options', 'wp-debloat' ), 'db.autoload.top' )
+			->fact( __( 'Loaded on every request', 'debloater' ), 'db.autoload.bytes' )
+			->optional( __( 'Largest autoloaded options', 'debloater' ), 'db.autoload.top' )
 			->build();
 
 		$summary = sprintf(
 			/* translators: %s: amount of autoloaded data, already formatted. */
-			__( '%s of options are loaded into memory on every request.', 'wp-debloat' ),
+			__( '%s of options are loaded into memory on every request.', 'debloater' ),
 			size_format( $bytes )
 		);
 
 		$why = __(
 			'WordPress reads every option marked to autoload before it does anything else, on every single request, whether or not that request needs them. Most of it belongs to plugins and is genuinely needed early; some of it is cache timeouts and per-visitor session data that is only read when something asks for it.',
-			'wp-debloat'
+			'debloater'
 		);
 
 		// Only propose the change when there is something on the allowlist to
@@ -113,11 +113,11 @@ final class AutoloadRule extends AbstractRule {
 				array(
 					'category' => Category::DATABASE,
 					'severity' => Severity::INFO,
-					'title'    => __( 'A lot is loaded on every request', 'wp-debloat' ),
+					'title'    => __( 'A lot is loaded on every request', 'debloater' ),
 					'summary'  => $summary,
 					'why'      => $why . ' ' . __(
-						'None of it matches the small set of options WP Debloat knows to be safe to defer, so there is nothing to propose here — only something to be aware of.',
-						'wp-debloat'
+						'None of it matches the small set of options Debloater knows to be safe to defer, so there is nothing to propose here — only something to be aware of.',
+						'debloater'
 					),
 					'evidence' => $evidence,
 					'impact'   => $this->measurable( 'db.autoload_bytes', (float) $bytes, 'bytes' ),
@@ -130,7 +130,7 @@ final class AutoloadRule extends AbstractRule {
 				'category' => Category::DATABASE,
 				'severity' => $severity,
 				'risk'     => Risk::LOW,
-				'title'    => __( 'A lot is loaded on every request', 'wp-debloat' ),
+				'title'    => __( 'A lot is loaded on every request', 'debloater' ),
 				'summary'  => $summary,
 				'why'      => $why,
 				'evidence' => $evidence,

@@ -2,24 +2,24 @@
 /**
  * Tests for the runtime compiler.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Tests\Unit\Apply;
+namespace Debloater\Tests\Unit\Apply;
 
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
-use WPDebloat\Apply\Compiler;
-use WPDebloat\Contracts\Category;
-use WPDebloat\Contracts\Context;
-use WPDebloat\Contracts\Risk;
-use WPDebloat\Contracts\Tweak;
-use WPDebloat\Contracts\TweakKind;
-use WPDebloat\Contracts\TweakParams;
-use WPDebloat\Registry\Loader;
-use WPDebloat\Registry\Registry;
+use Debloater\Apply\Compiler;
+use Debloater\Contracts\Category;
+use Debloater\Contracts\Context;
+use Debloater\Contracts\Risk;
+use Debloater\Contracts\Tweak;
+use Debloater\Contracts\TweakKind;
+use Debloater\Contracts\TweakParams;
+use Debloater\Registry\Loader;
+use Debloater\Registry\Registry;
 
 /**
  * The compiler writes the file that runs on every request to the site, so its
@@ -28,7 +28,7 @@ use WPDebloat\Registry\Registry;
  *
  * Snapshots live in tests/Fixtures/runtime with the plugin directory replaced by
  * a placeholder, since the real path differs on every machine. Regenerate them
- * with WPDEBLOAT_UPDATE_SNAPSHOTS=1 after a deliberate change to the output.
+ * with DEBLOATER_UPDATE_SNAPSHOTS=1 after a deliberate change to the output.
  */
 final class CompilerTest extends TestCase {
 
@@ -65,7 +65,7 @@ final class CompilerTest extends TestCase {
 			false,
 			true,
 			new TweakParams(),
-			'WPDebloat\\Apply\\DataOperations\\ExpiredTransientsCleanup'
+			'Debloater\\Apply\\DataOperations\\ExpiredTransientsCleanup'
 		);
 
 		$this->assertSame( '', $this->compiler()->compile( array( $data ) ) );
@@ -202,9 +202,9 @@ final class CompilerTest extends TestCase {
 	public function test_handler_class_naming(): void {
 		$compiler = $this->compiler();
 
-		$this->assertSame( 'WPDebloat_Handler_Core_Disable_Emojis', $compiler->handlerClass( 'core.disable_emojis' ) );
-		$this->assertSame( 'WPDebloat_Handler_Core_Remove_Rsd', $compiler->handlerClass( 'core.remove_rsd' ) );
-		$this->assertSame( 'WPDebloat_Handler_Woo_Cart_Fragments_Conditional', $compiler->handlerClass( 'woo.cart_fragments_conditional' ) );
+		$this->assertSame( 'Debloater_Handler_Core_Disable_Emojis', $compiler->handlerClass( 'core.disable_emojis' ) );
+		$this->assertSame( 'Debloater_Handler_Core_Remove_Rsd', $compiler->handlerClass( 'core.remove_rsd' ) );
+		$this->assertSame( 'Debloater_Handler_Woo_Cart_Fragments_Conditional', $compiler->handlerClass( 'woo.cart_fragments_conditional' ) );
 	}
 
 	/**
@@ -323,8 +323,8 @@ final class CompilerTest extends TestCase {
 
 		$this->assertStringContainsString( "if ( ! defined( 'ABSPATH' ) ) {", $source );
 		$this->assertStringContainsString( 'runtime-guard.php', $source );
-		$this->assertStringContainsString( 'WPDebloat_Runtime_Guard::disabled()', $source );
-		$this->assertStringContainsString( 'WPDebloat_Runtime_Guard::bypass_allowed()', $source );
+		$this->assertStringContainsString( 'Debloater_Runtime_Guard::disabled()', $source );
+		$this->assertStringContainsString( 'Debloater_Runtime_Guard::bypass_allowed()', $source );
 		$this->assertStringContainsString( 'DO NOT EDIT', $source );
 	}
 
@@ -437,14 +437,14 @@ final class CompilerTest extends TestCase {
 	 * @return void
 	 */
 	private function assertMatchesSnapshot( string $name, string $actual ): void {
-		$path       = WPDEBLOAT_TESTS_ROOT . '/tests/Fixtures/runtime/' . $name;
+		$path       = DEBLOATER_TESTS_ROOT . '/tests/Fixtures/runtime/' . $name;
 		$normalised = str_replace(
-			str_replace( '\\', '/', WPDEBLOAT_TESTS_ROOT ),
+			str_replace( '\\', '/', DEBLOATER_TESTS_ROOT ),
 			self::PLUGIN_DIR_TOKEN,
 			$actual
 		);
 
-		if ( '1' === getenv( 'WPDEBLOAT_UPDATE_SNAPSHOTS' ) ) {
+		if ( '1' === getenv( 'DEBLOATER_UPDATE_SNAPSHOTS' ) ) {
 			if ( ! is_dir( dirname( $path ) ) ) {
 				mkdir( dirname( $path ), 0777, true );
 			}
@@ -454,7 +454,7 @@ final class CompilerTest extends TestCase {
 
 		$this->assertFileExists(
 			$path,
-			'Snapshot missing; regenerate with WPDEBLOAT_UPDATE_SNAPSHOTS=1 vendor/bin/phpunit'
+			'Snapshot missing; regenerate with DEBLOATER_UPDATE_SNAPSHOTS=1 vendor/bin/phpunit'
 		);
 
 		$expected = file_get_contents( $path );
@@ -463,7 +463,7 @@ final class CompilerTest extends TestCase {
 		$this->assertSame(
 			str_replace( "\r\n", "\n", $expected ),
 			$normalised,
-			$name . ' is stale. If the change is deliberate, regenerate with WPDEBLOAT_UPDATE_SNAPSHOTS=1.'
+			$name . ' is stale. If the change is deliberate, regenerate with DEBLOATER_UPDATE_SNAPSHOTS=1.'
 		);
 	}
 
@@ -483,7 +483,7 @@ final class CompilerTest extends TestCase {
 	 * @return Context
 	 */
 	private function context(): Context {
-		$root = str_replace( '\\', '/', WPDEBLOAT_TESTS_ROOT );
+		$root = str_replace( '\\', '/', DEBLOATER_TESTS_ROOT );
 
 		return new Context(
 			'https://example.test',
@@ -503,7 +503,7 @@ final class CompilerTest extends TestCase {
 	 * @return Registry
 	 */
 	private function registry(): Registry {
-		return ( new Loader( WPDEBLOAT_TESTS_ROOT . '/registry' ) )->load();
+		return ( new Loader( DEBLOATER_TESTS_ROOT . '/registry' ) )->load();
 	}
 
 	/**

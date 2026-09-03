@@ -15,7 +15,7 @@
  * with a product in it and that is not something to do to somebody's site by
  * accident.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 /*
@@ -46,7 +46,7 @@ if ( 'local' !== wp_get_environment_type() ) {
  * @param string $type    Post type.
  * @return int
  */
-function wpdebloat_e2e_page( string $slug, string $title, string $content, string $type = 'page' ): int {
+function debloater_e2e_page( string $slug, string $title, string $content, string $type = 'page' ): int {
 	$existing = get_page_by_path( $slug, OBJECT, $type );
 
 	if ( $existing instanceof WP_Post ) {
@@ -91,7 +91,7 @@ if ( class_exists( 'WPCF7_ContactForm' ) ) {
 }
 
 if ( $form_id > 0 ) {
-	wpdebloat_e2e_page(
+	debloater_e2e_page(
 		'contact-form-7',
 		'Contact',
 		sprintf( '[contact-form-7 id="%d"]', $form_id ),
@@ -104,7 +104,7 @@ if ( $form_id > 0 ) {
 }
 
 // --------------------------------------------------------------- An ordinary page
-wpdebloat_e2e_page(
+debloater_e2e_page(
 	'about-this-site',
 	'About this site',
 	'<p>An ordinary page, for the scenarios that need one that is not a shop.</p>',
@@ -170,7 +170,7 @@ if ( class_exists( 'WooCommerce' ) ) {
 
 // --------------------------------------------------------------------- Elementor
 if ( defined( 'ELEMENTOR_VERSION' ) ) {
-	$page_id = wpdebloat_e2e_page(
+	$page_id = debloater_e2e_page(
 		'built-with-elementor',
 		'Built with Elementor',
 		'<p>A page with a saved Elementor design on it.</p>',

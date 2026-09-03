@@ -2,30 +2,30 @@
 /**
  * The §7.4 plan invariants, over generated registries and finding sets.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Tests\Unit\Recommend;
+namespace Debloater\Tests\Unit\Recommend;
 
 use PHPUnit\Framework\TestCase;
-use WPDebloat\Contracts\Category;
-use WPDebloat\Contracts\Decision;
-use WPDebloat\Contracts\Evidence;
-use WPDebloat\Contracts\FactSet;
-use WPDebloat\Contracts\Finding;
-use WPDebloat\Contracts\Recommendation;
-use WPDebloat\Contracts\Risk;
-use WPDebloat\Contracts\Severity;
-use WPDebloat\Contracts\Tweak;
-use WPDebloat\Contracts\TweakKind;
-use WPDebloat\Contracts\TweakParams;
-use WPDebloat\Recommend\PreviewPlanner;
-use WPDebloat\Registry\Profile;
-use WPDebloat\Registry\Registry;
-use WPDebloat\Registry\TweakDefinition;
-use WPDebloat\Tests\Unit\Support\Facts;
+use Debloater\Contracts\Category;
+use Debloater\Contracts\Decision;
+use Debloater\Contracts\Evidence;
+use Debloater\Contracts\FactSet;
+use Debloater\Contracts\Finding;
+use Debloater\Contracts\Recommendation;
+use Debloater\Contracts\Risk;
+use Debloater\Contracts\Severity;
+use Debloater\Contracts\Tweak;
+use Debloater\Contracts\TweakKind;
+use Debloater\Contracts\TweakParams;
+use Debloater\Recommend\PreviewPlanner;
+use Debloater\Registry\Profile;
+use Debloater\Registry\Registry;
+use Debloater\Registry\TweakDefinition;
+use Debloater\Tests\Unit\Support\Facts;
 
 /**
  * BUILD-SPEC §17 Phase 4 asks for these as property tests over generated
@@ -158,7 +158,7 @@ final class PlanInvariantsTest extends TestCase {
 				}
 
 				foreach ( $definition->requiredFactPredicates() as $requirement ) {
-					$predicate = \WPDebloat\Recommend\FactPredicate::parse( $requirement );
+					$predicate = \Debloater\Recommend\FactPredicate::parse( $requirement );
 
 					$this->assertTrue(
 						$predicate->isSatisfiedBy( $case['facts'] ),
@@ -348,7 +348,7 @@ final class PlanInvariantsTest extends TestCase {
 				0.9,
 				true,
 				$destructive,
-				$is_data ? 'WPDebloat\\Apply\\DataOperations\\Generated' : 'runtime-handlers/core-disable-emojis.php',
+				$is_data ? 'Debloater\\Apply\\DataOperations\\Generated' : 'runtime-handlers/core-disable-emojis.php',
 				array(),
 				'A generated tweak.',
 				array(),

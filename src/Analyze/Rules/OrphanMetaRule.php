@@ -2,18 +2,18 @@
 /**
  * Analyzer rule: db.meta.orphaned.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Analyze\Rules;
+namespace Debloater\Analyze\Rules;
 
-use WPDebloat\Contracts\Category;
-use WPDebloat\Contracts\FactSet;
-use WPDebloat\Contracts\Finding;
-use WPDebloat\Contracts\Risk;
-use WPDebloat\Contracts\Severity;
+use Debloater\Contracts\Category;
+use Debloater\Contracts\FactSet;
+use Debloater\Contracts\Finding;
+use Debloater\Contracts\Risk;
+use Debloater\Contracts\Severity;
 
 /**
  * Fires when metadata is left behind by content that no longer exists.
@@ -85,20 +85,20 @@ final class OrphanMetaRule extends AbstractRule {
 				'category' => Category::DATABASE,
 				'severity' => Severity::LOW,
 				'risk'     => Risk::MEDIUM,
-				'title'    => __( 'Metadata is left over from content that no longer exists', 'wp-debloat' ),
+				'title'    => __( 'Metadata is left over from content that no longer exists', 'debloater' ),
 				'summary'  => sprintf(
 					/* translators: %s: number of orphaned meta rows. */
-					__( '%s metadata rows belong to a post, term or user that has been deleted.', 'wp-debloat' ),
+					__( '%s metadata rows belong to a post, term or user that has been deleted.', 'debloater' ),
 					number_format_i18n( $total )
 				),
 				'why'      => __(
 					'Deleting content does not always delete everything attached to it. Rows left behind are unreachable through WordPress but still in the database, in every backup and every query against those tables. What counts as orphaned here is deliberately narrow: a row is only included when the table WordPress itself looks in has no matching owner.',
-					'wp-debloat'
+					'debloater'
 				),
 				'evidence' => $this->evidence( $facts )
-					->fact( __( 'Orphaned post metadata', 'wp-debloat' ), 'db.orphan_postmeta.count' )
-					->optional( __( 'Orphaned term metadata', 'wp-debloat' ), 'db.orphan_termmeta.count' )
-					->optional( __( 'Orphaned user metadata', 'wp-debloat' ), 'db.orphan_usermeta.count' )
+					->fact( __( 'Orphaned post metadata', 'debloater' ), 'db.orphan_postmeta.count' )
+					->optional( __( 'Orphaned term metadata', 'debloater' ), 'db.orphan_termmeta.count' )
+					->optional( __( 'Orphaned user metadata', 'debloater' ), 'db.orphan_usermeta.count' )
 					->build(),
 				'impact'   => $this->estimated( 'rows', (float) $total, 'rows' ),
 				'tweak_id' => 'db.clean_orphan_meta',

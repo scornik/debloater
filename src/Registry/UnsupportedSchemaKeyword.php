@@ -2,12 +2,12 @@
 /**
  * Thrown when a schema uses a keyword the validator does not implement.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Registry;
+namespace Debloater\Registry;
 
 use RuntimeException;
 
@@ -31,7 +31,7 @@ final class UnsupportedSchemaKeyword extends RuntimeException {
 	public function __construct( string $keyword, string $pointer ) {
 		parent::__construct(
 			sprintf(
-				'Schema keyword "%s" at %s is not supported by WPDebloat\Registry\SchemaValidator. '
+				'Schema keyword "%s" at %s is not supported by Debloater\Registry\SchemaValidator. '
 				. 'Add support for it before using it in a registry schema (see docs/DECISIONS.md D-0001).',
 				$keyword,
 				'' === $pointer ? '/' : $pointer

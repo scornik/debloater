@@ -2,17 +2,17 @@
 /**
  * The other half of the MVP acceptance test.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Tests\FailProbe;
+namespace Debloater\Tests\FailProbe;
 
 use WP_REST_Request;
-use WPDebloat\Apply\Lock;
-use WPDebloat\Brand;
-use WPDebloat\Contracts\RunState;
+use Debloater\Apply\Lock;
+use Debloater\Brand;
+use Debloater\Contracts\RunState;
 
 /**
  * BUILD-SPEC §14: "a forced probe failure triggers automatic rollback and

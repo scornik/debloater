@@ -1,7 +1,7 @@
 <?php
 /**
- * Plugin Name:       WP Debloat
- * Plugin URI:        https://github.com/scornik/WPDebloat
+ * Plugin Name:       Debloater – Scan, Fix & Undo WordPress Bloat
+ * Plugin URI:        https://github.com/scornik/debloater
  * Description:       Audits a WordPress site against the facts, then applies only the changes you approve — each with its own risk level, a recovery point taken first, and an automatic rollback if verification fails.
  * Version:           0.1.0
  * Requires at least: 6.5
@@ -9,21 +9,21 @@
  * Author:            Hakeemify
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
- * Text Domain:       wp-debloat
+ * Text Domain:       debloater
  * Domain Path:       /languages
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
 defined( 'ABSPATH' ) || exit;
 
-const WPDEBLOAT_VERSION = '0.1.0';
-const WPDEBLOAT_FILE    = __FILE__;
+const DEBLOATER_VERSION = '0.1.0';
+const DEBLOATER_FILE    = __FILE__;
 
-define( 'WPDEBLOAT_DIR', plugin_dir_path( __FILE__ ) );
-define( 'WPDEBLOAT_URL', plugin_dir_url( __FILE__ ) );
+define( 'DEBLOATER_DIR', plugin_dir_path( __FILE__ ) );
+define( 'DEBLOATER_URL', plugin_dir_url( __FILE__ ) );
 
 /**
  * The plugin needs PHP 8.1. Refuse to boot rather than fatal halfway through.
@@ -36,14 +36,14 @@ if ( version_compare( PHP_VERSION, '8.1', '<' ) ) {
 	return;
 }
 
-$wpdebloat_autoload = __DIR__ . '/vendor/autoload.php';
+$debloater_autoload = __DIR__ . '/vendor/autoload.php';
 
-if ( is_readable( $wpdebloat_autoload ) ) {
-	require_once $wpdebloat_autoload;
+if ( is_readable( $debloater_autoload ) ) {
+	require_once $debloater_autoload;
 } else {
 	spl_autoload_register(
 		/**
-		 * Minimal PSR-4 autoloader for the WPDebloat namespace.
+		 * Minimal PSR-4 autoloader for the Debloater namespace.
 		 *
 		 * The plugin has no runtime Composer dependencies (BUILD-SPEC §3), so a
 		 * distribution build does not need a vendor directory at all. This keeps
@@ -53,11 +53,11 @@ if ( is_readable( $wpdebloat_autoload ) ) {
 		 * @return void
 		 */
 		static function ( $class_name ) {
-			if ( ! str_starts_with( $class_name, 'WPDebloat\\' ) ) {
+			if ( ! str_starts_with( $class_name, 'Debloater\\' ) ) {
 				return;
 			}
 
-			$relative = substr( $class_name, strlen( 'WPDebloat\\' ) );
+			$relative = substr( $class_name, strlen( 'Debloater\\' ) );
 			$path     = __DIR__ . '/src/' . str_replace( '\\', '/', $relative ) . '.php';
 
 			if ( is_readable( $path ) ) {
@@ -67,4 +67,4 @@ if ( is_readable( $wpdebloat_autoload ) ) {
 	);
 }
 
-WPDebloat\Plugin::boot( __FILE__, WPDEBLOAT_VERSION );
+Debloater\Plugin::boot( __FILE__, DEBLOATER_VERSION );

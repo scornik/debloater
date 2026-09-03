@@ -2,16 +2,16 @@
 /**
  * Does the REST API still answer.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Verify\Probes;
+namespace Debloater\Verify\Probes;
 
-use WPDebloat\Contracts\Context;
-use WPDebloat\Contracts\ProbeResult;
-use WPDebloat\Contracts\ProbeStatus;
+use Debloater\Contracts\Context;
+use Debloater\Contracts\ProbeResult;
+use Debloater\Contracts\ProbeStatus;
 
 /**
  * GET `/wp-json/` and `/wp-json/wp/v2/types` (BUILD-SPEC §11).
@@ -58,7 +58,7 @@ final class RestProbe extends AbstractHttpProbe {
 					ProbeStatus::WARN,
 					sprintf(
 						/* translators: 1: URL, 2: HTTP status code. */
-						__( 'The REST API refused an anonymous request to %1$s with HTTP %2$d. If that is deliberate, nothing is wrong.', 'wp-debloat' ),
+						__( 'The REST API refused an anonymous request to %1$s with HTTP %2$d. If that is deliberate, nothing is wrong.', 'debloater' ),
 						$url,
 						$response->status
 					),
@@ -72,7 +72,7 @@ final class RestProbe extends AbstractHttpProbe {
 					ProbeStatus::FAIL,
 					sprintf(
 						/* translators: 1: URL, 2: HTTP status code. */
-						__( 'The REST API returned HTTP %2$d for %1$s.', 'wp-debloat' ),
+						__( 'The REST API returned HTTP %2$d for %1$s.', 'debloater' ),
 						$url,
 						$response->status
 					),
@@ -86,7 +86,7 @@ final class RestProbe extends AbstractHttpProbe {
 					ProbeStatus::FAIL,
 					sprintf(
 						/* translators: %s: URL. */
-						__( 'The REST API answered %s with something that is not valid JSON, which usually means output from somewhere else got into the response.', 'wp-debloat' ),
+						__( 'The REST API answered %s with something that is not valid JSON, which usually means output from somewhere else got into the response.', 'debloater' ),
 						$url
 					),
 					array_merge(
@@ -100,7 +100,7 @@ final class RestProbe extends AbstractHttpProbe {
 		return new ProbeResult(
 			$this->name(),
 			ProbeStatus::PASS,
-			__( 'The REST API answered normally.', 'wp-debloat' ),
+			__( 'The REST API answered normally.', 'debloater' ),
 			array( 'routes_checked' => 2 )
 		);
 	}
@@ -111,6 +111,6 @@ final class RestProbe extends AbstractHttpProbe {
 	 * @return string
 	 */
 	protected function describe(): string {
-		return __( 'The REST API', 'wp-debloat' );
+		return __( 'The REST API', 'debloater' );
 	}
 }

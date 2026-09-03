@@ -2,17 +2,17 @@
 /**
  * Does a real piece of content still work.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Verify\Probes;
+namespace Debloater\Verify\Probes;
 
-use WPDebloat\Contracts\Context;
-use WPDebloat\Contracts\FactSet;
-use WPDebloat\Contracts\ProbeResult;
-use WPDebloat\Contracts\ProbeStatus;
+use Debloater\Contracts\Context;
+use Debloater\Contracts\FactSet;
+use Debloater\Contracts\ProbeResult;
+use Debloater\Contracts\ProbeStatus;
 
 /**
  * GET the newest published post or page (BUILD-SPEC §11).
@@ -63,7 +63,7 @@ final class ContentPageProbe extends AbstractHttpProbe {
 			return new ProbeResult(
 				$this->name(),
 				ProbeStatus::NOT_TESTED,
-				__( 'This site has no published posts or pages, so there was no content page to check.', 'wp-debloat' )
+				__( 'This site has no published posts or pages, so there was no content page to check.', 'debloater' )
 			);
 		}
 
@@ -78,7 +78,7 @@ final class ContentPageProbe extends AbstractHttpProbe {
 	 * @return string
 	 */
 	protected function describe(): string {
-		return __( 'The most recent post or page', 'wp-debloat' );
+		return __( 'The most recent post or page', 'debloater' );
 	}
 
 	/**

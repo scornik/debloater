@@ -2,12 +2,12 @@
 /**
  * Single source of product naming.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat;
+namespace Debloater;
 
 /**
  * Product naming (CONVENTIONS.md, BUILD-SPEC §3).
@@ -25,57 +25,71 @@ final class Brand {
 	/**
 	 * Product name shown to users. Not translated: it is a proper noun.
 	 */
-	public const NAME = 'WP Debloat';
+	public const NAME = 'Debloater';
+
+	/**
+	 * What the product is, in one line.
+	 *
+	 * Separate from the name because the two are read in different places. A
+	 * menu item, an error message and a sentence want "Debloater"; the plugin
+	 * header and the readme title want the whole thing, because that is the
+	 * only text a wordpress.org search result shows.
+	 *
+	 * Not translated, for the same reason the name is not: it is the product's
+	 * listing on an English-language directory, and a translated listing title
+	 * would not match the plugin somebody searched for.
+	 */
+	public const TAGLINE = 'Scan, Fix & Undo WordPress Bloat';
 
 	/**
 	 * Plugin slug, used for the directory, text domain and asset handles.
 	 */
-	public const SLUG = 'wp-debloat';
+	public const SLUG = 'debloater';
 
 	/**
 	 * Text domain for translation.
 	 */
-	public const TEXT_DOMAIN = 'wp-debloat';
+	public const TEXT_DOMAIN = 'debloater';
 
 	/**
 	 * Prefix for options, tables, hooks and functions.
 	 */
-	public const PREFIX = 'wpdebloat';
+	public const PREFIX = 'debloater';
 
 	/**
 	 * Prefix for constants.
 	 */
-	public const CONSTANT_PREFIX = 'WPDEBLOAT';
+	public const CONSTANT_PREFIX = 'DEBLOATER';
 
 	/**
 	 * REST namespace.
 	 */
-	public const REST_NAMESPACE = 'wpdebloat/v1';
+	public const REST_NAMESPACE = 'debloater/v1';
 
 	/**
 	 * WP-CLI top-level command.
 	 */
-	public const CLI_COMMAND = 'debloat';
+	public const CLI_COMMAND = 'debloater';
 
 	/**
 	 * Capability required to manage the plugin.
 	 */
-	public const CAPABILITY = 'wpdebloat_manage';
+	public const CAPABILITY = 'debloater_manage';
 
 	/**
 	 * Admin menu slug.
 	 */
-	public const MENU_SLUG = 'wp-debloat';
+	public const MENU_SLUG = 'debloater';
 
 	/**
 	 * The single option all plugin state lives in.
 	 */
-	public const STATE_OPTION = 'wpdebloat_state';
+	public const STATE_OPTION = 'debloater_state';
 
 	/**
 	 * Transient guarding concurrent apply and rollback runs.
 	 */
-	public const LOCK_TRANSIENT = 'wpdebloat_lock';
+	public const LOCK_TRANSIENT = 'debloater_lock';
 
 	/**
 	 * Not instantiable.
@@ -112,5 +126,18 @@ final class Brand {
 	 */
 	public static function table( string $wpdb_prefix, string $name ): string {
 		return $wpdb_prefix . self::PREFIX . '_' . $name;
+	}
+
+	/**
+	 * Name and tagline, the way wordpress.org reads it.
+	 *
+	 * Composed rather than written out, so the plugin header and the readme
+	 * title cannot drift apart — which is exactly the pair a release check has
+	 * to compare and a person has to remember.
+	 *
+	 * @return string
+	 */
+	public static function fullName(): string {
+		return self::NAME . ' – ' . self::TAGLINE;
 	}
 }

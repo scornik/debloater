@@ -2,14 +2,14 @@
 /**
  * A terminal that remembers instead of printing.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Tests\Integration\Support;
+namespace Debloater\Tests\Integration\Support;
 
-use WPDebloat\Cli\Io;
+use Debloater\Cli\Io;
 
 /**
  * `Io` for tests.

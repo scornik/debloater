@@ -1,17 +1,17 @@
 <?php
 /**
- * Tests for GET wpdebloat/v1/status.
+ * Tests for GET debloater/v1/status.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Tests\Integration;
+namespace Debloater\Tests\Integration;
 
 use WP_REST_Request;
-use WPDebloat\Brand;
-use WPDebloat\Security\Capabilities;
+use Debloater\Brand;
+use Debloater\Security\Capabilities;
 
 /**
  * The status endpoint is what the runtime_loaded probe reads, so it has to

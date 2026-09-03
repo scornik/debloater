@@ -2,12 +2,12 @@
 /**
  * Whether a registry release was signed by us.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Update;
+namespace Debloater\Update;
 
 /**
  * Ed25519 verification against a pinned public key (BUILD-SPEC §13 rule 9,
@@ -76,14 +76,14 @@ final class SignatureVerifier {
 	public function unavailableReason(): string {
 		if ( ! function_exists( 'sodium_crypto_sign_verify_detached' ) ) {
 			return __(
-				'This server has no libsodium, so a signed registry update cannot be checked. WP Debloat will not install one it cannot verify.',
-				'wp-debloat'
+				'This server has no libsodium, so a signed registry update cannot be checked. Debloater will not install one it cannot verify.',
+				'debloater'
 			);
 		}
 
 		return __(
 			'No registry signing key is pinned in this build, so there is nothing to check a signed update against.',
-			'wp-debloat'
+			'debloater'
 		);
 	}
 

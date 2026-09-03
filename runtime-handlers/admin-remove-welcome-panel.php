@@ -4,12 +4,12 @@
  *
  * See core-remove-generator.php for the rules every runtime handler follows.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 defined( 'ABSPATH' ) || exit;
 
-if ( ! class_exists( 'WPDebloat_Handler_Admin_Remove_Welcome_Panel', false ) ) {
+if ( ! class_exists( 'Debloater_Handler_Admin_Remove_Welcome_Panel', false ) ) {
 
 	/**
 	 * Removes the "Welcome to WordPress!" panel from the dashboard.
@@ -20,7 +20,7 @@ if ( ! class_exists( 'WPDebloat_Handler_Admin_Remove_Welcome_Panel', false ) ) {
 	 * preference, so unselecting the change puts each person back exactly where
 	 * they were.
 	 */
-	final class WPDebloat_Handler_Admin_Remove_Welcome_Panel {
+	final class Debloater_Handler_Admin_Remove_Welcome_Panel {
 
 		/**
 		 * Register the handler's hooks.

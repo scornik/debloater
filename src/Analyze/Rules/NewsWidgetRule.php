@@ -2,18 +2,18 @@
 /**
  * Analyzer rule: admin.news_widget.present.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Analyze\Rules;
+namespace Debloater\Analyze\Rules;
 
-use WPDebloat\Contracts\Category;
-use WPDebloat\Contracts\FactSet;
-use WPDebloat\Contracts\Finding;
-use WPDebloat\Contracts\Risk;
-use WPDebloat\Contracts\Severity;
+use Debloater\Contracts\Category;
+use Debloater\Contracts\FactSet;
+use Debloater\Contracts\Finding;
+use Debloater\Contracts\Risk;
+use Debloater\Contracts\Severity;
 
 /**
  * The WordPress Events and News dashboard widget is registered.
@@ -94,15 +94,15 @@ final class NewsWidgetRule extends AbstractRule {
 				'severity' => Severity::LOW,
 				'risk'     => Risk::SAFE,
 				'tweak_id' => 'admin.remove_wp_news_widget',
-				'title'    => __( 'The Events and News widget is on the dashboard', 'wp-debloat' ),
-				'summary'  => __( 'The WordPress Events and News widget is registered on the dashboard.', 'wp-debloat' ),
+				'title'    => __( 'The Events and News widget is on the dashboard', 'debloater' ),
+				'summary'  => __( 'The WordPress Events and News widget is registered on the dashboard.', 'debloater' ),
 				'why'      => __(
 					'This is the one widget on a default dashboard that fetches something over the network while the page is loading — release news and nearby events, from wordpress.org. If you read it, keep it. If you have never read it, it is doing that on every dashboard load for nobody.',
-					'wp-debloat'
+					'debloater'
 				),
 				'evidence' => $this->evidence( $facts )
-					->fact( __( 'Dashboard widgets', 'wp-debloat' ), 'admin.dashboard_widgets' )
-					->optional( __( 'Dashboard widget count', 'wp-debloat' ), 'admin.dashboard_widgets.count' )
+					->fact( __( 'Dashboard widgets', 'debloater' ), 'admin.dashboard_widgets' )
+					->optional( __( 'Dashboard widget count', 'debloater' ), 'admin.dashboard_widgets.count' )
 					->build(),
 			)
 		);

@@ -2,12 +2,12 @@
 /**
  * The outcome of dependency resolution.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Recommend;
+namespace Debloater\Recommend;
 
 /**
  * What survived resolution, and why the rest did not.

@@ -4,12 +4,12 @@
  *
  * See core-remove-generator.php for the rules every runtime handler follows.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 defined( 'ABSPATH' ) || exit;
 
-if ( ! class_exists( 'WPDebloat_Handler_Admin_Remove_Wp_News_Widget', false ) ) {
+if ( ! class_exists( 'Debloater_Handler_Admin_Remove_Wp_News_Widget', false ) ) {
 
 	/**
 	 * Removes the WordPress Events and News widget from the dashboard.
@@ -19,7 +19,7 @@ if ( ! class_exists( 'WPDebloat_Handler_Admin_Remove_Wp_News_Widget', false ) ) 
 	 * "remove these widgets" change: the reason to remove it is not only that it
 	 * takes up room.
 	 */
-	final class WPDebloat_Handler_Admin_Remove_Wp_News_Widget {
+	final class Debloater_Handler_Admin_Remove_Wp_News_Widget {
 
 		/**
 		 * The widget's meta box id.

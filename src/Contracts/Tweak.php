@@ -2,12 +2,12 @@
 /**
  * A resolved tweak, ready to be planned and applied.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Contracts;
+namespace Debloater\Contracts;
 
 /**
  * A tweak resolved for this site (BUILD-SPEC §7.1).

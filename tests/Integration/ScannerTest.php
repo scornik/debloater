@@ -2,17 +2,17 @@
 /**
  * The scanners, against a real WordPress install with seeded data.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Tests\Integration;
+namespace Debloater\Tests\Integration;
 
-use WPDebloat\Contracts\RunType;
-use WPDebloat\Registry\SchemaValidator;
-use WPDebloat\Scan\ScanRunner;
-use WPDebloat\Scan\Scanners\DatabaseScanner;
+use Debloater\Contracts\RunType;
+use Debloater\Registry\SchemaValidator;
+use Debloater\Scan\ScanRunner;
+use Debloater\Scan\Scanners\DatabaseScanner;
 
 /**
  * BUILD-SPEC §5 and §17 Phase 2.
@@ -34,7 +34,7 @@ final class ScannerTest extends IntegrationTestCase {
 	public function test_a_real_scan_validates_against_the_fact_schema(): void {
 		$facts = $this->plugin->scanRunner()->collect( $this->context() )->facts;
 
-		$validator = SchemaValidator::fromFile( WPDEBLOAT_TESTS_ROOT . '/registry/schemas/fact.schema.json' );
+		$validator = SchemaValidator::fromFile( DEBLOATER_TESTS_ROOT . '/registry/schemas/fact.schema.json' );
 
 		$violations = $validator->validate( $facts->toArray() );
 
@@ -73,7 +73,7 @@ final class ScannerTest extends IntegrationTestCase {
 
 		// Plugin and theme names are other people's product names, echoed
 		// verbatim. Searching them for opinion words would say nothing about
-		// whether this plugin graded anything — and "WP Debloat" itself is in
+		// whether this plugin graded anything — and "Debloater" itself is in
 		// the list. The Phase 11 facts are the same case twice over: they carry
 		// plugin slugs, and the products they name include one called an
 		// optimizer, which is what its author calls it rather than a verdict of
@@ -215,7 +215,7 @@ final class ScannerTest extends IntegrationTestCase {
 		$before_total   = $this->facts()->value( 'db.transients.count' );
 		$before_expired = $this->facts()->value( 'db.transients.expired' );
 
-		set_transient( 'wpdebloat_live', 'value', HOUR_IN_SECONDS );
+		set_transient( 'debloater_live', 'value', HOUR_IN_SECONDS );
 
 		// An expired transient has to be written directly: set_transient() will
 		// not accept a timeout in the past, and get_transient() deletes what it
@@ -223,7 +223,7 @@ final class ScannerTest extends IntegrationTestCase {
 		$wpdb->insert(
 			$wpdb->options,
 			array(
-				'option_name'  => '_transient_wpdebloat_stale',
+				'option_name'  => '_transient_debloater_stale',
 				'option_value' => 'value',
 				'autoload'     => 'off',
 			)
@@ -231,7 +231,7 @@ final class ScannerTest extends IntegrationTestCase {
 		$wpdb->insert(
 			$wpdb->options,
 			array(
-				'option_name'  => '_transient_timeout_wpdebloat_stale',
+				'option_name'  => '_transient_timeout_debloater_stale',
 				'option_value' => (string) ( time() - HOUR_IN_SECONDS ),
 				'autoload'     => 'off',
 			)
@@ -258,7 +258,7 @@ final class ScannerTest extends IntegrationTestCase {
 			$wpdb->postmeta,
 			array(
 				'post_id'    => 9999999,
-				'meta_key'   => 'wpdebloat_orphan',
+				'meta_key'   => 'debloater_orphan',
 				'meta_value' => 'x',
 			)
 		);
@@ -277,7 +277,7 @@ final class ScannerTest extends IntegrationTestCase {
 
 		$queries = $this->countQueries(
 			function () use ( $scanner ): void {
-				$scanner->scan( $this->context(), new \WPDebloat\Contracts\FactSet() );
+				$scanner->scan( $this->context(), new \Debloater\Contracts\FactSet() );
 			}
 		);
 
@@ -297,7 +297,7 @@ final class ScannerTest extends IntegrationTestCase {
 		$before = $this->facts()->value( 'db.autoload.bytes' );
 		$value  = str_repeat( 'x', 50000 );
 
-		add_option( 'wpdebloat_big_option', $value, '', true );
+		add_option( 'debloater_big_option', $value, '', true );
 
 		$facts = $this->facts();
 
@@ -305,9 +305,9 @@ final class ScannerTest extends IntegrationTestCase {
 
 		$names = array_column( (array) $facts->value( 'db.autoload.top' ), 'name' );
 
-		$this->assertContains( 'wpdebloat_big_option', $names, 'the largest options list should include it' );
+		$this->assertContains( 'debloater_big_option', $names, 'the largest options list should include it' );
 
-		delete_option( 'wpdebloat_big_option' );
+		delete_option( 'debloater_big_option' );
 	}
 
 	/**
@@ -318,11 +318,11 @@ final class ScannerTest extends IntegrationTestCase {
 	public function test_options_that_do_not_autoload_are_not_counted(): void {
 		$before = $this->facts()->value( 'db.autoload.bytes' );
 
-		add_option( 'wpdebloat_lazy_option', str_repeat( 'x', 50000 ), '', false );
+		add_option( 'debloater_lazy_option', str_repeat( 'x', 50000 ), '', false );
 
 		$this->assertSame( $before, $this->facts()->value( 'db.autoload.bytes' ) );
 
-		delete_option( 'wpdebloat_lazy_option' );
+		delete_option( 'debloater_lazy_option' );
 	}
 
 	/**
@@ -337,7 +337,7 @@ final class ScannerTest extends IntegrationTestCase {
 		add_filter(
 			'cron_schedules', // phpcs:ignore WordPress.WP.CronInterval.ChangeDetected -- The whole point of the fixture is a sub-minute schedule.
 			static function ( $schedules ) {
-				$schedules['wpdebloat_every_30s'] = array(
+				$schedules['debloater_every_30s'] = array(
 					'interval' => 30,
 					'display'  => 'Every 30 seconds',
 				);
@@ -346,7 +346,7 @@ final class ScannerTest extends IntegrationTestCase {
 			}
 		);
 
-		wp_schedule_event( time() + 60, 'wpdebloat_every_30s', 'wpdebloat_fixture_sync' );
+		wp_schedule_event( time() + 60, 'debloater_every_30s', 'debloater_fixture_sync' );
 
 		$facts = $this->facts();
 
@@ -354,9 +354,9 @@ final class ScannerTest extends IntegrationTestCase {
 
 		$hooks = array_column( (array) $facts->value( 'cron.events.subminute' ), 'hook' );
 
-		$this->assertContains( 'wpdebloat_fixture_sync', $hooks );
+		$this->assertContains( 'debloater_fixture_sync', $hooks );
 
-		wp_clear_scheduled_hook( 'wpdebloat_fixture_sync' );
+		wp_clear_scheduled_hook( 'debloater_fixture_sync' );
 	}
 
 	/**
@@ -367,11 +367,11 @@ final class ScannerTest extends IntegrationTestCase {
 	public function test_orphan_cron_events_are_counted(): void {
 		$before = $this->facts()->value( 'cron.orphans.count' );
 
-		wp_schedule_event( time() + 60, 'hourly', 'wpdebloat_nobody_listens' );
+		wp_schedule_event( time() + 60, 'hourly', 'debloater_nobody_listens' );
 
 		$this->assertSame( $before + 1, $this->facts()->value( 'cron.orphans.count' ) );
 
-		wp_clear_scheduled_hook( 'wpdebloat_nobody_listens' );
+		wp_clear_scheduled_hook( 'debloater_nobody_listens' );
 	}
 
 	/**
@@ -542,9 +542,9 @@ final class ScannerTest extends IntegrationTestCase {
 	/**
 	 * Collect facts without recording a run.
 	 *
-	 * @return \WPDebloat\Contracts\FactSet
+	 * @return \Debloater\Contracts\FactSet
 	 */
-	private function facts(): \WPDebloat\Contracts\FactSet {
+	private function facts(): \Debloater\Contracts\FactSet {
 		return $this->plugin->scanRunner()->collect( $this->context() )->facts;
 	}
 }

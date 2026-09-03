@@ -2,15 +2,15 @@
 /**
  * Making a loopback request as the person who asked for the change.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Verify;
+namespace Debloater\Verify;
 
 use WP_Session_Tokens;
-use WPDebloat\Contracts\Context;
+use Debloater\Contracts\Context;
 
 /**
  * The credentials the `admin` and `runtime_loaded` probes need (BUILD-SPEC §11).

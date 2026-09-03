@@ -2,12 +2,12 @@
 /**
  * Contract for a one-shot database operation.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Contracts;
+namespace Debloater\Contracts;
 
 /**
  * A data tweak's operation (BUILD-SPEC §17 Phase 5).

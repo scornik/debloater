@@ -2,17 +2,17 @@
 /**
  * Tests for the per-tweak lifecycle machine.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Tests\Unit\StateMachine;
+namespace Debloater\Tests\Unit\StateMachine;
 
 use PHPUnit\Framework\TestCase;
-use WPDebloat\Apply\TweakStateMachine;
-use WPDebloat\Contracts\IllegalTransition;
-use WPDebloat\Contracts\TweakState;
+use Debloater\Apply\TweakStateMachine;
+use Debloater\Contracts\IllegalTransition;
+use Debloater\Contracts\TweakState;
 
 /**
  * The lifecycle in BUILD-SPEC §9.1, exercised in full.

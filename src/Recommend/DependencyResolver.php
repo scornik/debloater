@@ -2,15 +2,15 @@
 /**
  * Resolves requirements and conflicts between tweaks.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Recommend;
+namespace Debloater\Recommend;
 
-use WPDebloat\Contracts\FactSet;
-use WPDebloat\Registry\Registry;
+use Debloater\Contracts\FactSet;
+use Debloater\Registry\Registry;
 
 /**
  * Decides which tweaks in a candidate set can actually be applied together

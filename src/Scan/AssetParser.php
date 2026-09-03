@@ -2,12 +2,12 @@
 /**
  * What a page actually loaded.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Scan;
+namespace Debloater\Scan;
 
 /**
  * Pulls the enqueued scripts and styles back out of rendered HTML

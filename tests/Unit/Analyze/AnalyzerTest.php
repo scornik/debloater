@@ -2,24 +2,24 @@
 /**
  * The analyzer, confidence, refusals and the score.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Tests\Unit\Analyze;
+namespace Debloater\Tests\Unit\Analyze;
 
 use PHPUnit\Framework\TestCase;
-use WPDebloat\Analyze\Analyzer;
-use WPDebloat\Analyze\ConfidenceCalculator;
-use WPDebloat\Analyze\Rules;
-use WPDebloat\Analyze\Score;
-use WPDebloat\Contracts\Category;
-use WPDebloat\Contracts\Decision;
-use WPDebloat\Contracts\FactSet;
-use WPDebloat\Registry\Loader;
-use WPDebloat\Registry\Registry;
-use WPDebloat\Tests\Unit\Support\Facts;
+use Debloater\Analyze\Analyzer;
+use Debloater\Analyze\ConfidenceCalculator;
+use Debloater\Analyze\Rules;
+use Debloater\Analyze\Score;
+use Debloater\Contracts\Category;
+use Debloater\Contracts\Decision;
+use Debloater\Contracts\FactSet;
+use Debloater\Registry\Loader;
+use Debloater\Registry\Registry;
+use Debloater\Tests\Unit\Support\Facts;
 
 /**
  * BUILD-SPEC §6, §12 and §17 Phase 3.
@@ -248,7 +248,7 @@ final class AnalyzerTest extends TestCase {
 
 		$this->assertSame( array(), $result->findings );
 		$this->assertCount(
-			count( \WPDebloat\Analyze\Rules::all() ),
+			count( \Debloater\Analyze\Rules::all() ),
 			$result->not_evaluated,
 			'with no facts, every rule must report that it could not evaluate'
 		);
@@ -448,7 +448,7 @@ final class AnalyzerTest extends TestCase {
 		$result = $this->analyzer()->analyze( Facts::busyStore() );
 
 		foreach ( $result->toArray()['findings'] as $index => $data ) {
-			$this->assertEquals( $result->findings[ $index ], \WPDebloat\Contracts\Finding::fromArray( $data ) );
+			$this->assertEquals( $result->findings[ $index ], \Debloater\Contracts\Finding::fromArray( $data ) );
 		}
 	}
 
@@ -467,6 +467,6 @@ final class AnalyzerTest extends TestCase {
 	 * @return Registry
 	 */
 	private function registry(): Registry {
-		return ( new Loader( WPDEBLOAT_TESTS_ROOT . '/registry' ) )->load();
+		return ( new Loader( DEBLOATER_TESTS_ROOT . '/registry' ) )->load();
 	}
 }

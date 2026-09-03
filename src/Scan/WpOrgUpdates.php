@@ -1,19 +1,19 @@
 <?php
 /**
- * The one thing WP Debloat cannot learn without asking someone else.
+ * The one thing Debloater cannot learn without asking someone else.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Scan;
+namespace Debloater\Scan;
 
 /**
  * Looks up when a plugin was last released, from wordpress.org (BUILD-SPEC §13
  * rule 9, §17 Phase 11).
  *
- * Everything else WP Debloat knows, it reads off the site itself. This is the
+ * Everything else Debloater knows, it reads off the site itself. This is the
  * exception, and the exception is opt-in, because a plugin that quietly phones
  * home has broken a promise regardless of what it sent.
  *
@@ -136,7 +136,7 @@ final class WpOrgUpdates {
 	 * @return string|null
 	 */
 	private function lookup( string $slug ): ?string {
-		$key    = 'wpdebloat_wporg_' . md5( $slug );
+		$key    = 'debloater_wporg_' . md5( $slug );
 		$cached = get_transient( $key );
 
 		if ( is_string( $cached ) ) {
@@ -159,7 +159,7 @@ final class WpOrgUpdates {
 	 * @return string|null
 	 */
 	private function fetch( string $slug ): ?string {
-		// phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.wp_remote_get_wp_remote_get -- vip_safe_wp_remote_get() exists only on VIP, and WP Debloat ships with zero runtime dependencies and has to work on any host. What that function buys is a bounded timeout and a graceful failure, which this call already has: five seconds, and every failure path returns null so the scan falls back to the local reading.
+		// phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.wp_remote_get_wp_remote_get -- vip_safe_wp_remote_get() exists only on VIP, and Debloater ships with zero runtime dependencies and has to work on any host. What that function buys is a bounded timeout and a graceful failure, which this call already has: five seconds, and every failure path returns null so the scan falls back to the local reading.
 		$response = wp_remote_get(
 			add_query_arg(
 				array(
@@ -171,7 +171,7 @@ final class WpOrgUpdates {
 			),
 			array(
 				'timeout'    => self::TIMEOUT,
-				'user-agent' => 'WP Debloat; ' . home_url( '/' ),
+				'user-agent' => 'Debloater; ' . home_url( '/' ),
 			)
 		);
 

@@ -64,14 +64,14 @@ jobs:
       - name: Build the admin bundle
         run: npm run build
 
-      # wp-env activates the plugins listed in .wp-env.json, but WP Debloat is
+      # wp-env activates the plugins listed in .wp-env.json, but Debloater is
       # mapped into the container rather than listed — so on a fresh runner it
       # is installed and inactive. Locally it looks active because an earlier
       # session activated it and the database persisted, which is exactly the
       # kind of difference a CI run exists to find: without this every scenario
-      # fails on "'debloat' is not a registered wp command".
-      - name: Activate WP Debloat
-        run: npx wp-env run cli wp plugin activate wp-debloat
+      # fails on "'debloater' is not a registered wp command".
+      - name: Activate Debloater
+        run: npx wp-env run cli wp plugin activate debloater
 
       - name: Seed the fixtures
         run: npm run test:e2e:seed

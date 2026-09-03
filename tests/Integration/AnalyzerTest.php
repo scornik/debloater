@@ -2,19 +2,19 @@
 /**
  * The analyzer against a real site, and the two REST routes.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Tests\Integration;
+namespace Debloater\Tests\Integration;
 
 use WP_REST_Request;
-use WPDebloat\Analyze\Score;
-use WPDebloat\Brand;
-use WPDebloat\Contracts\Decision;
-use WPDebloat\Contracts\Finding;
-use WPDebloat\Registry\SchemaValidator;
+use Debloater\Analyze\Score;
+use Debloater\Brand;
+use Debloater\Contracts\Decision;
+use Debloater\Contracts\Finding;
+use Debloater\Registry\SchemaValidator;
 
 /**
  * BUILD-SPEC §17 Phase 3.
@@ -56,7 +56,7 @@ final class AnalyzerTest extends IntegrationTestCase {
 
 		$this->assertNotEmpty( $analysis['findings'] );
 
-		$validator = SchemaValidator::fromFile( WPDEBLOAT_TESTS_ROOT . '/registry/schemas/finding.schema.json' );
+		$validator = SchemaValidator::fromFile( DEBLOATER_TESTS_ROOT . '/registry/schemas/finding.schema.json' );
 
 		foreach ( $analysis['findings'] as $finding ) {
 			$violations = $validator->validate( $finding );
@@ -216,7 +216,7 @@ final class AnalyzerTest extends IntegrationTestCase {
 		$response = $this->post( '/scan', false );
 
 		$this->assertSame( 403, $response->get_status() );
-		$this->assertSame( 'wpdebloat_bad_nonce', $response->get_data()['code'] );
+		$this->assertSame( 'debloater_bad_nonce', $response->get_data()['code'] );
 		$this->assertSame( 0, $this->plugin->runs()->count(), 'A refused scan must not write a run.' );
 	}
 

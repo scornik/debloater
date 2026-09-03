@@ -3,7 +3,7 @@
 How to add or change something in `registry/`, and what has to be true before it
 ships.
 
-The registry is the only part of WP Debloat that decides *what the plugin
+The registry is the only part of Debloater that decides *what the plugin
 offers to do to a site*. The code decides how; the registry decides what. That
 is why it is JSON with schemas and signatures rather than PHP, and why this
 document is longer than the change you are probably about to make.
@@ -16,7 +16,7 @@ document is longer than the change you are probably about to make.
 registry/
 ├── manifest.json          generated — every file with its SHA-256, and the tag
 ├── schemas/               the eight schemas everything else is validated against
-├── tweaks/                one file per change WP Debloat can make
+├── tweaks/                one file per change Debloater can make
 ├── compatibility/         what a plugin or theme depends on
 ├── detectors/             how to tell a plugin or theme is present
 ├── profiles/              which changes each profile selects
@@ -67,7 +67,7 @@ php tools/registry-manifest.php --check
 1. Write `runtime-handlers/<id-with-dashes>.php`. Read
    `core-remove-generator.php` first — it documents the rules every handler
    follows. The class name is derived from the tweak id: `admin.remove_welcome_panel`
-   becomes `WPDebloat_Handler_Admin_Remove_Welcome_Panel`, and a test asserts it.
+   becomes `Debloater_Handler_Admin_Remove_Welcome_Panel`, and a test asserts it.
 2. Write `registry/tweaks/<id>.json` against `schemas/tweak.schema.json`.
 3. Add the id and its risk to the pinned lists in
    `tests/Unit/Registry/LoaderTest.php`. They are pinned deliberately: a new
@@ -162,7 +162,7 @@ another is a registry nobody tested.
 
 ## Splitting this into its own repository
 
-The registry is laid out to move to `scornik/wp-debloat-registry` unchanged:
+The registry is laid out to move to `scornik/debloater-registry` unchanged:
 `registry/` becomes the repository root, `manifest.json` sits beside the
 directories, and `.github/workflows/registry.yml` in this repository is the CI
 that repository needs.

@@ -2,18 +2,18 @@
 /**
  * Analyzer rule: wp.heartbeat.aggressive.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Analyze\Rules;
+namespace Debloater\Analyze\Rules;
 
-use WPDebloat\Contracts\Category;
-use WPDebloat\Contracts\FactSet;
-use WPDebloat\Contracts\Finding;
-use WPDebloat\Contracts\Risk;
-use WPDebloat\Contracts\Severity;
+use Debloater\Contracts\Category;
+use Debloater\Contracts\FactSet;
+use Debloater\Contracts\Finding;
+use Debloater\Contracts\Risk;
+use Debloater\Contracts\Severity;
 
 /**
  * Fires when Heartbeat polls more often than this site needs.
@@ -103,19 +103,19 @@ final class HeartbeatIntervalRule extends AbstractRule {
 
 		$evidence = $this->evidence( $facts )
 			->formatted(
-				__( 'Current interval', 'wp-debloat' ),
+				__( 'Current interval', 'debloater' ),
 				sprintf(
 					/* translators: %d: number of seconds. */
-					__( '%d s', 'wp-debloat' ),
+					__( '%d s', 'debloater' ),
 					$interval
 				),
 				'wp.heartbeat_interval'
 			)
-			->fact( __( 'Administrators', 'wp-debloat' ), 'users.admin_count' )
-			->optional( __( 'Edited content in the last week', 'wp-debloat' ), 'users.recent_editors_7d' );
+			->fact( __( 'Administrators', 'debloater' ), 'users.admin_count' )
+			->optional( __( 'Edited content in the last week', 'debloater' ), 'users.recent_editors_7d' );
 
 		if ( $facts->has( 'plugins.detected' ) ) {
-			$evidence->within( __( 'WooCommerce active', 'wp-debloat' ), 'plugins.detected', 'woocommerce' );
+			$evidence->within( __( 'WooCommerce active', 'debloater' ), 'plugins.detected', 'woocommerce' );
 		}
 
 		return $this->recommend(
@@ -123,16 +123,16 @@ final class HeartbeatIntervalRule extends AbstractRule {
 				'category' => Category::WORDPRESS,
 				'severity' => Severity::LOW,
 				'risk'     => Risk::LOW,
-				'title'    => __( 'Heartbeat polls more often than this site needs', 'wp-debloat' ),
+				'title'    => __( 'Heartbeat polls more often than this site needs', 'debloater' ),
 				'summary'  => sprintf(
 					/* translators: 1: current interval in seconds, 2: proposed interval in seconds. */
-					__( 'Heartbeat polls every %1$d s. Nothing about how this site is used needs it that often; %2$d s is enough.', 'wp-debloat' ),
+					__( 'Heartbeat polls every %1$d s. Nothing about how this site is used needs it that often; %2$d s is enough.', 'debloater' ),
 					$interval,
 					$proposed
 				),
 				'why'      => __(
 					'Heartbeat sends a background request on a timer to autosave drafts, warn when two people open the same post, and notice an expired login. Every open admin tab does it. On a busy site that is useful; on a quiet one it is a steady stream of admin-ajax requests for events that are not happening.',
-					'wp-debloat'
+					'debloater'
 				),
 				'evidence' => $evidence->build(),
 				'impact'   => $this->measurable(

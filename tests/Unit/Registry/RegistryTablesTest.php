@@ -2,20 +2,20 @@
 /**
  * The two registry tables Phase 11 adds.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Tests\Unit\Registry;
+namespace Debloater\Tests\Unit\Registry;
 
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
-use WPDebloat\Analyze\Rules;
-use WPDebloat\Registry\HostOptimizer;
-use WPDebloat\Registry\Loader;
-use WPDebloat\Registry\PluginCategories;
-use WPDebloat\Registry\Registry;
+use Debloater\Analyze\Rules;
+use Debloater\Registry\HostOptimizer;
+use Debloater\Registry\Loader;
+use Debloater\Registry\PluginCategories;
+use Debloater\Registry\Registry;
 
 /**
  * BUILD-SPEC §17 Phase 11.
@@ -284,11 +284,11 @@ final class RegistryTablesTest extends TestCase {
 	 * @return string
 	 */
 	private function emptyRegistry(): string {
-		$directory = sys_get_temp_dir() . '/wpdebloat-tables-' . bin2hex( random_bytes( 6 ) );
+		$directory = sys_get_temp_dir() . '/debloater-tables-' . bin2hex( random_bytes( 6 ) );
 
 		mkdir( $directory . '/schemas', 0777, true );
 
-		$schemas = glob( WPDEBLOAT_TESTS_ROOT . '/registry/schemas/*.json' );
+		$schemas = glob( DEBLOATER_TESTS_ROOT . '/registry/schemas/*.json' );
 
 		foreach ( is_array( $schemas ) ? $schemas : array() as $schema ) {
 			copy( $schema, $directory . '/schemas/' . basename( $schema ) );
@@ -325,6 +325,6 @@ final class RegistryTablesTest extends TestCase {
 	 * @return Registry
 	 */
 	private function registry(): Registry {
-		return ( new Loader( WPDEBLOAT_TESTS_ROOT . '/registry' ) )->load();
+		return ( new Loader( DEBLOATER_TESTS_ROOT . '/registry' ) )->load();
 	}
 }

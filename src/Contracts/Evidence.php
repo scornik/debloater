@@ -2,12 +2,12 @@
 /**
  * One piece of evidence behind a finding.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Contracts;
+namespace Debloater\Contracts;
 
 /**
  * Evidence entry (BUILD-SPEC §6, locked decision #5).

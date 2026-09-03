@@ -2,23 +2,23 @@
 /**
  * Applying a plan, and undoing it exactly.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Tests\Integration;
+namespace Debloater\Tests\Integration;
 
-use WPDebloat\Apply\ApplyManager;
-use WPDebloat\Apply\DataOperations\ExpiredTransientsCleanup;
-use WPDebloat\Apply\Lock;
-use WPDebloat\Contracts\PreviewPlan;
-use WPDebloat\Contracts\RunState;
-use WPDebloat\Contracts\Snapshot;
-use WPDebloat\Contracts\SnapshotLevel;
-use WPDebloat\Contracts\SnapshotStatus;
-use WPDebloat\Contracts\TweakState;
-use WPDebloat\Storage\Schema;
+use Debloater\Apply\ApplyManager;
+use Debloater\Apply\DataOperations\ExpiredTransientsCleanup;
+use Debloater\Apply\Lock;
+use Debloater\Contracts\PreviewPlan;
+use Debloater\Contracts\RunState;
+use Debloater\Contracts\Snapshot;
+use Debloater\Contracts\SnapshotLevel;
+use Debloater\Contracts\SnapshotStatus;
+use Debloater\Contracts\TweakState;
+use Debloater\Storage\Schema;
 
 /**
  * BUILD-SPEC §17 Phase 5.
@@ -64,7 +64,7 @@ final class ApplyRollbackTest extends IntegrationTestCase {
 	public function tear_down(): void {
 		( new Lock() )->forceRelease();
 
-		remove_all_filters( 'wpdebloat_tweak_options' );
+		remove_all_filters( 'debloater_tweak_options' );
 
 		parent::tear_down();
 	}
@@ -80,11 +80,11 @@ final class ApplyRollbackTest extends IntegrationTestCase {
 		// something to restore rather than merely something to delete.
 		$this->selectAndGenerate( array( 'core.remove_jquery_migrate' => array() ) );
 
-		update_option( 'wpdebloat_test_option', array( 'kept' => 'exactly this' ) );
+		update_option( 'debloater_test_option', array( 'kept' => 'exactly this' ) );
 
 		add_filter(
-			'wpdebloat_tweak_options',
-			static fn ( array $options ): array => array_merge( $options, array( 'wpdebloat_test_option' ) )
+			'debloater_tweak_options',
+			static fn ( array $options ): array => array_merge( $options, array( 'debloater_test_option' ) )
 		);
 
 		$runtime  = $this->context()->runtimeFile();
@@ -108,7 +108,7 @@ final class ApplyRollbackTest extends IntegrationTestCase {
 
 		// Something else writes the option in between, so a restore that merely
 		// leaves it alone cannot pass.
-		update_option( 'wpdebloat_test_option', 'clobbered' );
+		update_option( 'debloater_test_option', 'clobbered' );
 
 		$undone = $this->plugin->rollback( $result->run_id );
 
@@ -116,7 +116,7 @@ final class ApplyRollbackTest extends IntegrationTestCase {
 		$this->assertSame( $before, (string) file_get_contents( $runtime ), 'The runtime is not byte-identical.' );
 		$this->assertSame( $hash, $this->plugin->state()->runtimeHash() );
 		$this->assertSame( $selected, $this->plugin->state()->selection() );
-		$this->assertSame( array( 'kept' => 'exactly this' ), get_option( 'wpdebloat_test_option' ) );
+		$this->assertSame( array( 'kept' => 'exactly this' ), get_option( 'debloater_test_option' ) );
 
 		foreach ( self::CONFIG_TWEAKS as $tweak_id ) {
 			$this->assertSame(
@@ -134,23 +134,23 @@ final class ApplyRollbackTest extends IntegrationTestCase {
 	 * @return void
 	 */
 	public function test_rollback_removes_an_option_that_did_not_exist_before(): void {
-		delete_option( 'wpdebloat_absent_option' );
+		delete_option( 'debloater_absent_option' );
 
 		add_filter(
-			'wpdebloat_tweak_options',
-			static fn ( array $options ): array => array_merge( $options, array( 'wpdebloat_absent_option' ) )
+			'debloater_tweak_options',
+			static fn ( array $options ): array => array_merge( $options, array( 'debloater_absent_option' ) )
 		);
 
 		$result = $this->plugin->apply( $this->planOf( array( 'core.remove_generator' ) ) );
 
 		$this->assertSame( RunState::COMMITTED, $result->state, (string) $result->error );
 
-		update_option( 'wpdebloat_absent_option', 'created after the snapshot' );
+		update_option( 'debloater_absent_option', 'created after the snapshot' );
 
 		$this->plugin->rollback( $result->run_id );
 
 		$this->assertFalse(
-			get_option( 'wpdebloat_absent_option', false ),
+			get_option( 'debloater_absent_option', false ),
 			'An option absent at snapshot time must be absent again after the restore.'
 		);
 	}

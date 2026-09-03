@@ -2,41 +2,41 @@
 /**
  * Kill switch for the generated runtime.
  *
- * Loaded by wp-content/wpdebloat/runtime.php before any handler, so it must
+ * Loaded by wp-content/debloater/runtime.php before any handler, so it must
  * follow the same rules as a handler: no namespace, no autoloader, no options,
  * no database, no output.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 defined( 'ABSPATH' ) || exit;
 
-if ( ! class_exists( 'WPDebloat_Runtime_Guard', false ) ) {
+if ( ! class_exists( 'Debloater_Runtime_Guard', false ) ) {
 
 	/**
 	 * Decides whether the generated runtime should register anything at all.
 	 *
 	 * Two ways out exist, and they are deliberately different in strength.
 	 *
-	 * The WPDEBLOAT_DISABLE constant is absolute: someone who can edit wp-config
+	 * The DEBLOATER_DISABLE constant is absolute: someone who can edit wp-config
 	 * can always switch the runtime off, including when the site is too broken
 	 * to reach the admin. It needs no authentication because being able to set it
 	 * already implies full access.
 	 *
-	 * The ?wpdebloat=off query bypass is for logged-in administrators and must be
+	 * The ?debloater=off query bypass is for logged-in administrators and must be
 	 * authenticated. The runtime is loaded from mu-plugins, long before WordPress
 	 * loads pluggable.php, so wp_verify_nonce() and current_user_can() usually do
 	 * not exist yet at that point. Rather than pretend otherwise, the guard records
-	 * the request and returns false; WPDebloat\Apply\RuntimeLoader completes the
+	 * the request and returns false; Debloater\Apply\RuntimeLoader completes the
 	 * check at plugins_loaded and unregisters the handlers if, and only if, the
 	 * request turns out to be authorised (docs/DECISIONS.md D-0007).
 	 */
-	final class WPDebloat_Runtime_Guard {
+	final class Debloater_Runtime_Guard {
 
 		/**
 		 * Query variable that requests a bypass.
 		 */
-		const QUERY_VAR = 'wpdebloat';
+		const QUERY_VAR = 'debloater';
 
 		/**
 		 * Value of the query variable that requests a bypass.
@@ -46,17 +46,17 @@ if ( ! class_exists( 'WPDebloat_Runtime_Guard', false ) ) {
 		/**
 		 * Nonce action the bypass request must be signed with.
 		 */
-		const NONCE_ACTION = 'wpdebloat_bypass';
+		const NONCE_ACTION = 'debloater_bypass';
 
 		/**
 		 * Query variable carrying the nonce.
 		 */
-		const NONCE_VAR = 'wpdebloat_nonce';
+		const NONCE_VAR = 'debloater_nonce';
 
 		/**
 		 * Capability required to bypass the runtime.
 		 */
-		const CAPABILITY = 'wpdebloat_manage';
+		const CAPABILITY = 'debloater_manage';
 
 		/**
 		 * Whether a bypass was requested but could not yet be authorised.
@@ -71,7 +71,7 @@ if ( ! class_exists( 'WPDebloat_Runtime_Guard', false ) ) {
 		 * @return bool
 		 */
 		public static function disabled() {
-			return defined( 'WPDEBLOAT_DISABLE' ) && WPDEBLOAT_DISABLE;
+			return defined( 'DEBLOATER_DISABLE' ) && DEBLOATER_DISABLE;
 		}
 
 		/**

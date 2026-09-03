@@ -2,37 +2,37 @@
 /**
  * Builders for valid contract instances used across the unit tests.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Tests\Unit\Support;
+namespace Debloater\Tests\Unit\Support;
 
-use WPDebloat\Contracts\ApplyResult;
-use WPDebloat\Contracts\Category;
-use WPDebloat\Contracts\Context;
-use WPDebloat\Contracts\Decision;
-use WPDebloat\Contracts\Evidence;
-use WPDebloat\Contracts\Fact;
-use WPDebloat\Contracts\FactSet;
-use WPDebloat\Contracts\Finding;
-use WPDebloat\Contracts\Impact;
-use WPDebloat\Contracts\PreviewPlan;
-use WPDebloat\Contracts\ProbeResult;
-use WPDebloat\Contracts\ProbeStatus;
-use WPDebloat\Contracts\Recommendation;
-use WPDebloat\Contracts\Risk;
-use WPDebloat\Contracts\RunState;
-use WPDebloat\Contracts\Severity;
-use WPDebloat\Contracts\Snapshot;
-use WPDebloat\Contracts\SnapshotItem;
-use WPDebloat\Contracts\SnapshotLevel;
-use WPDebloat\Contracts\SnapshotStatus;
-use WPDebloat\Contracts\Tweak;
-use WPDebloat\Contracts\TweakKind;
-use WPDebloat\Contracts\TweakParams;
-use WPDebloat\Contracts\VerificationResult;
+use Debloater\Contracts\ApplyResult;
+use Debloater\Contracts\Category;
+use Debloater\Contracts\Context;
+use Debloater\Contracts\Decision;
+use Debloater\Contracts\Evidence;
+use Debloater\Contracts\Fact;
+use Debloater\Contracts\FactSet;
+use Debloater\Contracts\Finding;
+use Debloater\Contracts\Impact;
+use Debloater\Contracts\PreviewPlan;
+use Debloater\Contracts\ProbeResult;
+use Debloater\Contracts\ProbeStatus;
+use Debloater\Contracts\Recommendation;
+use Debloater\Contracts\Risk;
+use Debloater\Contracts\RunState;
+use Debloater\Contracts\Severity;
+use Debloater\Contracts\Snapshot;
+use Debloater\Contracts\SnapshotItem;
+use Debloater\Contracts\SnapshotLevel;
+use Debloater\Contracts\SnapshotStatus;
+use Debloater\Contracts\Tweak;
+use Debloater\Contracts\TweakKind;
+use Debloater\Contracts\TweakParams;
+use Debloater\Contracts\VerificationResult;
 
 /**
  * Minimal valid instances, so a test that is about one field does not have to
@@ -166,7 +166,7 @@ final class Build {
 			true,
 			true,
 			new TweakParams( array( 'keep_per_post' => 5 ) ),
-			'WPDebloat\\Apply\\DataOperations\\RevisionsCleanup',
+			'Debloater\\Apply\\DataOperations\\RevisionsCleanup',
 			array(),
 			array(),
 			array( 'home', 'admin' )
@@ -258,9 +258,9 @@ final class Build {
 	public static function snapshotItem(): SnapshotItem {
 		return new SnapshotItem(
 			'transient',
-			'_transient_wpdebloat_demo',
+			'_transient_debloater_demo',
 			array(
-				'option_name'  => '_transient_wpdebloat_demo',
+				'option_name'  => '_transient_debloater_demo',
 				'option_value' => 'cached',
 				'expires_at'   => 1756838040,
 			)
@@ -299,7 +299,7 @@ final class Build {
 			'https://example.test',
 			'/var/www/html/',
 			'/var/www/html/wp-content',
-			'/var/www/html/wp-content/plugins/wp-debloat',
+			'/var/www/html/wp-content/plugins/debloater',
 			'6.8.1',
 			'8.2.19',
 			'0.1.0',

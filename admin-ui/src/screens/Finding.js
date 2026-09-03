@@ -24,10 +24,10 @@ import {
 } from '../components/Badges';
 
 const Field = ( { label, children, empty } ) => (
-	<section className="wpdebloat-field">
-		<h3 className="wpdebloat-field__label">{ label }</h3>
-		<div className="wpdebloat-field__body">
-			{ children || <p className="wpdebloat-field__empty">{ empty }</p> }
+	<section className="debloater-field">
+		<h3 className="debloater-field__label">{ label }</h3>
+		<div className="debloater-field__body">
+			{ children || <p className="debloater-field__empty">{ empty }</p> }
 		</div>
 	</section>
 );
@@ -38,14 +38,14 @@ const Evidence = ( { evidence } ) => {
 	}
 
 	return (
-		<table className="wpdebloat-evidence">
+		<table className="debloater-evidence">
 			<thead>
 				<tr>
 					<th scope="col">
-						{ __( 'What was measured', 'wp-debloat' ) }
+						{ __( 'What was measured', 'debloater' ) }
 					</th>
-					<th scope="col">{ __( 'Value', 'wp-debloat' ) }</th>
-					<th scope="col">{ __( 'Fact', 'wp-debloat' ) }</th>
+					<th scope="col">{ __( 'Value', 'debloater' ) }</th>
+					<th scope="col">{ __( 'Fact', 'debloater' ) }</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -56,7 +56,7 @@ const Evidence = ( { evidence } ) => {
 							<code>{ String( entry.value ) }</code>
 						</td>
 						<td>
-							<code className="wpdebloat-evidence__fact">
+							<code className="debloater-evidence__fact">
 								{ entry.fact }
 							</code>
 						</td>
@@ -82,16 +82,16 @@ const WillChange = ( { tweakId } ) => {
 
 	if ( preview.status === 'loading' ) {
 		return (
-			<p className="wpdebloat-loading">
+			<p className="debloater-loading">
 				<Spinner />{ ' ' }
-				{ __( 'Working out what this would change…', 'wp-debloat' ) }
+				{ __( 'Working out what this would change…', 'debloater' ) }
 			</p>
 		);
 	}
 
 	if ( preview.status === 'error' ) {
 		return (
-			<p className="wpdebloat-field__empty">{ preview.error?.message }</p>
+			<p className="debloater-field__empty">{ preview.error?.message }</p>
 		);
 	}
 
@@ -106,7 +106,7 @@ const WillChange = ( { tweakId } ) => {
 					/* translators: %s: the reason the change was excluded. */
 					__(
 						'This change would not be applied on this site: %s',
-						'wp-debloat'
+						'debloater'
 					),
 					reason
 				) }
@@ -117,7 +117,7 @@ const WillChange = ( { tweakId } ) => {
 	return (
 		<>
 			{ ( plan.will_change || [] ).length > 0 && (
-				<ul className="wpdebloat-list wpdebloat-list--change">
+				<ul className="debloater-list debloater-list--change">
 					{ plan.will_change.map( ( line ) => (
 						<li key={ line }>{ line }</li>
 					) ) }
@@ -125,10 +125,10 @@ const WillChange = ( { tweakId } ) => {
 			) }
 			{ ( plan.will_not || [] ).length > 0 && (
 				<>
-					<p className="wpdebloat-field__sublabel">
-						{ __( 'What would not change', 'wp-debloat' ) }
+					<p className="debloater-field__sublabel">
+						{ __( 'What would not change', 'debloater' ) }
 					</p>
-					<ul className="wpdebloat-list wpdebloat-list--nochange">
+					<ul className="debloater-list debloater-list--nochange">
 						{ plan.will_not.map( ( line ) => (
 							<li key={ line }>{ line }</li>
 						) ) }
@@ -149,18 +149,18 @@ export const Finding = ( { finding, onBack } ) => {
 	const recommendation = finding.recommendation;
 
 	return (
-		<article className="wpdebloat-finding">
+		<article className="debloater-finding">
 			<Button
 				variant="link"
 				onClick={ onBack }
-				className="wpdebloat-finding__back"
+				className="debloater-finding__back"
 			>
-				{ __( '← All findings', 'wp-debloat' ) }
+				{ __( '← All findings', 'debloater' ) }
 			</Button>
 
-			<header className="wpdebloat-finding__header">
+			<header className="debloater-finding__header">
 				<h2>{ finding.title }</h2>
-				<div className="wpdebloat-finding__badges">
+				<div className="debloater-finding__badges">
 					<SeverityBadge severity={ finding.severity } />
 					<RiskBadge risk={ finding.risk } />
 					<DecisionBadge decision={ finding.decision } />
@@ -168,46 +168,46 @@ export const Finding = ( { finding, onBack } ) => {
 				</div>
 			</header>
 
-			<Field label={ __( 'What we found', 'wp-debloat' ) }>
+			<Field label={ __( 'What we found', 'debloater' ) }>
 				<p>{ finding.summary }</p>
 			</Field>
 
-			<Field label={ __( 'Why it matters', 'wp-debloat' ) }>
+			<Field label={ __( 'Why it matters', 'debloater' ) }>
 				<p>{ finding.why }</p>
 			</Field>
 
 			<Field
-				label={ __( 'Evidence', 'wp-debloat' ) }
+				label={ __( 'Evidence', 'debloater' ) }
 				empty={ __(
 					'This finding carries no measurements.',
-					'wp-debloat'
+					'debloater'
 				) }
 			>
 				<Evidence evidence={ finding.evidence } />
 			</Field>
 
 			<Field
-				label={ __( 'Potential impact', 'wp-debloat' ) }
+				label={ __( 'Potential impact', 'debloater' ) }
 				empty={ __(
 					'No impact has been estimated for this finding.',
-					'wp-debloat'
+					'debloater'
 				) }
 			>
 				{ impact && (
 					<p>
 						{ sprintf(
 							/* translators: 1: estimated amount, 2: unit, 3: what it affects. */
-							__( 'About %1$s %2$s of %3$s.', 'wp-debloat' ),
+							__( 'About %1$s %2$s of %3$s.', 'debloater' ),
 							impact.estimate,
 							impact.unit,
 							impact.kind
 						) }
 						{ ! impact.measurable && (
-							<em className="wpdebloat-field__caveat">
+							<em className="debloater-field__caveat">
 								{ ' ' }
 								{ __(
 									'This one cannot be measured before and after, so it is an estimate and stays an estimate.',
-									'wp-debloat'
+									'debloater'
 								) }
 							</em>
 						) }
@@ -216,10 +216,10 @@ export const Finding = ( { finding, onBack } ) => {
 			</Field>
 
 			<Field
-				label={ __( 'Recommendation', 'wp-debloat' ) }
+				label={ __( 'Recommendation', 'debloater' ) }
 				empty={ __(
 					'Nothing is recommended for this finding.',
-					'wp-debloat'
+					'debloater'
 				) }
 			>
 				{ recommendation && (
@@ -232,7 +232,7 @@ export const Finding = ( { finding, onBack } ) => {
 				) }
 			</Field>
 
-			<Field label={ __( 'Risk', 'wp-debloat' ) }>
+			<Field label={ __( 'Risk', 'debloater' ) }>
 				<p>
 					<RiskBadge risk={ finding.risk } />
 					{ finding.decision_reason
@@ -241,25 +241,25 @@ export const Finding = ( { finding, onBack } ) => {
 				</p>
 			</Field>
 
-			<Field label={ __( 'Confidence', 'wp-debloat' ) }>
+			<Field label={ __( 'Confidence', 'debloater' ) }>
 				<p>
 					<Confidence value={ finding.confidence } />{ ' ' }
 					{ __(
 						'Confidence falls when something on this site makes the conclusion less certain.',
-						'wp-debloat'
+						'debloater'
 					) }
 				</p>
 			</Field>
 
 			<Field
-				label={ __( 'Dependencies', 'wp-debloat' ) }
+				label={ __( 'Dependencies', 'debloater' ) }
 				empty={ __(
 					'Nothing on this site was detected as depending on this.',
-					'wp-debloat'
+					'debloater'
 				) }
 			>
 				{ dependencies.length > 0 && (
-					<ul className="wpdebloat-list">
+					<ul className="debloater-list">
 						{ dependencies.map( ( dependency ) => (
 							<li key={ dependency }>{ dependency }</li>
 						) ) }
@@ -268,10 +268,10 @@ export const Finding = ( { finding, onBack } ) => {
 			</Field>
 
 			<Field
-				label={ __( 'What will change', 'wp-debloat' ) }
+				label={ __( 'What will change', 'debloater' ) }
 				empty={ __(
 					'There is no change to apply for this finding.',
-					'wp-debloat'
+					'debloater'
 				) }
 			>
 				{ recommendation && (
@@ -280,10 +280,10 @@ export const Finding = ( { finding, onBack } ) => {
 			</Field>
 
 			<Field
-				label={ __( 'Undo', 'wp-debloat' ) }
+				label={ __( 'Undo', 'debloater' ) }
 				empty={ __(
 					'No undo has been described for this finding.',
-					'wp-debloat'
+					'debloater'
 				) }
 			>
 				{ finding.undo && <p>{ finding.undo }</p> }

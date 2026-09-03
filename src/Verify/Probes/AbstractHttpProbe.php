@@ -2,21 +2,21 @@
 /**
  * Shared behaviour for probes that fetch a page.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Verify\Probes;
+namespace Debloater\Verify\Probes;
 
-use WPDebloat\Contracts\Context;
-use WPDebloat\Contracts\FactSet;
-use WPDebloat\Contracts\ProbeInterface;
-use WPDebloat\Contracts\ProbeResult;
-use WPDebloat\Contracts\ProbeStatus;
-use WPDebloat\Verify\HttpClient;
-use WPDebloat\Verify\Markers;
-use WPDebloat\Verify\Response;
+use Debloater\Contracts\Context;
+use Debloater\Contracts\FactSet;
+use Debloater\Contracts\ProbeInterface;
+use Debloater\Contracts\ProbeResult;
+use Debloater\Contracts\ProbeStatus;
+use Debloater\Verify\HttpClient;
+use Debloater\Verify\Markers;
+use Debloater\Verify\Response;
 
 /**
  * The parts every HTTP probe repeats (BUILD-SPEC §11).
@@ -73,7 +73,7 @@ abstract class AbstractHttpProbe implements ProbeInterface {
 			ProbeStatus::UNKNOWN,
 			sprintf(
 				/* translators: %s: the underlying connection error. */
-				__( 'This site could not reach itself over HTTP, so this check could not run: %s', 'wp-debloat' ),
+				__( 'This site could not reach itself over HTTP, so this check could not run: %s', 'debloater' ),
 				$response->error
 			),
 			array_merge( $response->evidence(), array( 'error' => $response->error ) )
@@ -96,7 +96,7 @@ abstract class AbstractHttpProbe implements ProbeInterface {
 					ProbeStatus::FAIL,
 					sprintf(
 						/* translators: %s: page description. */
-						__( '%s redirected in a loop and never arrived anywhere.', 'wp-debloat' ),
+						__( '%s redirected in a loop and never arrived anywhere.', 'debloater' ),
 						$this->describe()
 					),
 					array_merge( $response->evidence(), array( 'error' => $response->error ) )
@@ -114,7 +114,7 @@ abstract class AbstractHttpProbe implements ProbeInterface {
 				ProbeStatus::FAIL,
 				sprintf(
 					/* translators: 1: page description, 2: the marker found. */
-					__( '%1$s returned an error page containing "%2$s".', 'wp-debloat' ),
+					__( '%1$s returned an error page containing "%2$s".', 'debloater' ),
 					$this->describe(),
 					$fatal
 				),
@@ -128,7 +128,7 @@ abstract class AbstractHttpProbe implements ProbeInterface {
 				ProbeStatus::FAIL,
 				sprintf(
 					/* translators: 1: page description, 2: HTTP status code. */
-					__( '%1$s returned HTTP %2$d.', 'wp-debloat' ),
+					__( '%1$s returned HTTP %2$d.', 'debloater' ),
 					$this->describe(),
 					$response->status
 				),
@@ -142,7 +142,7 @@ abstract class AbstractHttpProbe implements ProbeInterface {
 				ProbeStatus::FAIL,
 				sprintf(
 					/* translators: %s: page description. */
-					__( '%s returned an empty page.', 'wp-debloat' ),
+					__( '%s returned an empty page.', 'debloater' ),
 					$this->describe()
 				),
 				$response->evidence()
@@ -170,7 +170,7 @@ abstract class AbstractHttpProbe implements ProbeInterface {
 				ProbeStatus::WARN,
 				sprintf(
 					/* translators: 1: page description, 2: comma-separated markers. */
-					__( '%1$s loaded, but the page looks incomplete: %2$s not found.', 'wp-debloat' ),
+					__( '%1$s loaded, but the page looks incomplete: %2$s not found.', 'debloater' ),
 					$this->describe(),
 					implode( ', ', $missing )
 				),
@@ -183,7 +183,7 @@ abstract class AbstractHttpProbe implements ProbeInterface {
 			ProbeStatus::PASS,
 			sprintf(
 				/* translators: %s: page description. */
-				__( '%s loaded normally.', 'wp-debloat' ),
+				__( '%s loaded normally.', 'debloater' ),
 				$this->describe()
 			),
 			$response->evidence()

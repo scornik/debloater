@@ -2,15 +2,15 @@
 /**
  * What the site is for, and what its owner wants.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Recommend;
+namespace Debloater\Recommend;
 
-use WPDebloat\Contracts\Assert;
-use WPDebloat\Contracts\ContractViolation;
+use Debloater\Contracts\Assert;
+use Debloater\Contracts\ContractViolation;
 
 /**
  * The user's stated intent (BUILD-SPEC §17 Phase 4).

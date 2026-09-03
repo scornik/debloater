@@ -2,17 +2,17 @@
 /**
  * Analyzer rule: plugins.duplicate_functionality.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Analyze\Rules;
+namespace Debloater\Analyze\Rules;
 
-use WPDebloat\Contracts\Category;
-use WPDebloat\Contracts\FactSet;
-use WPDebloat\Contracts\Finding;
-use WPDebloat\Contracts\Severity;
+use Debloater\Contracts\Category;
+use Debloater\Contracts\FactSet;
+use Debloater\Contracts\Finding;
+use Debloater\Contracts\Severity;
 
 /**
  * Reports two or more active plugins doing the same kind of job. Info only.
@@ -21,7 +21,7 @@ use WPDebloat\Contracts\Severity;
  * the conclusion, so it is worth being clear about what it does and does not
  * say.
  *
- * It says: these plugins are, according to a list WP Debloat maintains, in the
+ * It says: these plugins are, according to a list Debloater maintains, in the
  * same functional category, and they are all switched on. That is checkable and
  * usually interesting — two page caches genuinely do fight, two SEO plugins
  * genuinely do write competing tags into the same `<head>`.
@@ -30,7 +30,7 @@ use WPDebloat\Contracts\Severity;
  * Every one of these situations has a version where it is deliberate: a
  * migration halfway done, an old forms plugin kept alive for one legacy form, a
  * second analytics plugin because the first one is the client's and the second
- * one is yours. WP Debloat cannot tell those apart from a plugin list, and a
+ * one is yours. Debloater cannot tell those apart from a plugin list, and a
  * plugin that deactivates something a person is mid-migration on has done more
  * damage than every millisecond it ever saved.
  *
@@ -62,31 +62,31 @@ final class DuplicateFunctionalityRule extends AbstractRule {
 		return array(
 			'cache'     => __(
 				'Two page caches is the case that genuinely breaks: each caches the other\'s output, and purging one leaves the other still serving what you just purged.',
-				'wp-debloat'
+				'debloater'
 			),
 			'seo'       => __(
 				'Two SEO plugins write the same titles, canonicals and structured data into the same <head>. Which one wins comes down to hook priority rather than to anything you chose.',
-				'wp-debloat'
+				'debloater'
 			),
 			'security'  => __(
 				'Two security plugins is rarely broken, but it is two sets of firewall rules, two scan schedules, and two places to look when something legitimate gets blocked.',
-				'wp-debloat'
+				'debloater'
 			),
 			'image'     => __(
 				'Two image optimizers compress each other\'s output. That loses quality for nothing, and can leave the media library with two competing sets of derivative files.',
-				'wp-debloat'
+				'debloater'
 			),
 			'forms'     => __(
 				'Several forms plugins is often deliberate — one came bundled with a theme, or an old one still serves a single legacy form. Worth knowing, rarely worth acting on.',
-				'wp-debloat'
+				'debloater'
 			),
 			'backup'    => __(
 				'Two backup plugins means two schedules, two destinations, and a restore that has to pick one. Sometimes that is on purpose.',
-				'wp-debloat'
+				'debloater'
 			),
 			'analytics' => __(
 				'Two analytics plugins usually means two tracking scripts on every page, and often two copies of the same one.',
-				'wp-debloat'
+				'debloater'
 			),
 		);
 	}
@@ -150,15 +150,15 @@ final class DuplicateFunctionalityRule extends AbstractRule {
 						'%d job on this site is being done by more than one plugin',
 						'%d jobs on this site are being done by more than one plugin',
 						count( $overlaps ),
-						'wp-debloat'
+						'debloater'
 					),
 					count( $overlaps )
 				),
 				'summary'  => $this->summary( $overlaps ),
 				'why'      => $this->why( $overlaps ),
 				'evidence' => $this->evidence( $facts )
-					->fact( __( 'Active plugins by category', 'wp-debloat' ), 'plugins.categories' )
-					->optional( __( 'Active plugins', 'wp-debloat' ), 'plugins.active' )
+					->fact( __( 'Active plugins by category', 'debloater' ), 'plugins.categories' )
+					->optional( __( 'Active plugins', 'debloater' ), 'plugins.active' )
 					->build(),
 			)
 		);
@@ -230,7 +230,7 @@ final class DuplicateFunctionalityRule extends AbstractRule {
 		foreach ( $overlaps as $overlap ) {
 			$lines[] = sprintf(
 				/* translators: 1: category name, 2: comma-separated plugin slugs. */
-				__( '%1$s: %2$s.', 'wp-debloat' ),
+				__( '%1$s: %2$s.', 'debloater' ),
 				$overlap['label'],
 				implode( ', ', $overlap['plugins'] )
 			);
@@ -256,8 +256,8 @@ final class DuplicateFunctionalityRule extends AbstractRule {
 		}
 
 		$closing = __(
-			'None of this is automatically a mistake, and WP Debloat has no way to tell a duplicate from a migration part-way through or an old plugin kept alive for one thing that still needs it. So it says what it sees and leaves the decision with you. Nothing here will deactivate or delete anything.',
-			'wp-debloat'
+			'None of this is automatically a mistake, and Debloater has no way to tell a duplicate from a migration part-way through or an old plugin kept alive for one thing that still needs it. So it says what it sees and leaves the decision with you. Nothing here will deactivate or delete anything.',
+			'debloater'
 		);
 
 		return array() === $notes ? $closing : implode( ' ', $notes ) . ' ' . $closing;

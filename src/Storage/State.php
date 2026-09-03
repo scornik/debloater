@@ -2,19 +2,19 @@
 /**
  * The plugin's persisted state.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Storage;
+namespace Debloater\Storage;
 
-use WPDebloat\Brand;
-use WPDebloat\Contracts\Json;
-use WPDebloat\Contracts\TweakState;
+use Debloater\Brand;
+use Debloater\Contracts\Json;
+use Debloater\Contracts\TweakState;
 
 /**
- * Reads and writes the single option WP Debloat stores (BUILD-SPEC §8).
+ * Reads and writes the single option Debloater stores (BUILD-SPEC §8).
  *
  * Everything lives in one option, and that option is not autoloaded. A plugin
  * whose job is to reduce what WordPress loads on every request would be a poor

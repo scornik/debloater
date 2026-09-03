@@ -4,12 +4,12 @@
  *
  * See core-remove-generator.php for the rules every runtime handler follows.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 defined( 'ABSPATH' ) || exit;
 
-if ( ! class_exists( 'WPDebloat_Handler_Admin_Remove_Dashboard_Widgets', false ) ) {
+if ( ! class_exists( 'Debloater_Handler_Admin_Remove_Dashboard_Widgets', false ) ) {
 
 	/**
 	 * Removes the dashboard widgets a site owner named.
@@ -22,7 +22,7 @@ if ( ! class_exists( 'WPDebloat_Handler_Admin_Remove_Dashboard_Widgets', false )
 	 * untouched, the plugin that provides it carries on, and unselecting the
 	 * change brings it straight back on the next request.
 	 */
-	final class WPDebloat_Handler_Admin_Remove_Dashboard_Widgets {
+	final class Debloater_Handler_Admin_Remove_Dashboard_Widgets {
 
 		/**
 		 * Widget ids to remove.

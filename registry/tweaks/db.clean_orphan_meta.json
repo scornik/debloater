@@ -8,7 +8,7 @@
   "base_confidence": 0.88,
   "reversible": true,
   "destructive": true,
-  "handler": "WPDebloat\\Apply\\DataOperations\\OrphanMetaCleanup",
+  "handler": "Debloater\\Apply\\DataOperations\\OrphanMetaCleanup",
   "params": {
     "types": {
       "type": "array",

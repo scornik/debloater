@@ -2,15 +2,15 @@
 /**
  * The pages a scan looked at, fetched once.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Scan;
+namespace Debloater\Scan;
 
-use WPDebloat\Contracts\Context;
-use WPDebloat\Verify\HttpClient;
+use Debloater\Contracts\Context;
+use Debloater\Verify\HttpClient;
 
 /**
  * Fetches the page sample once and lends it to whoever needs it

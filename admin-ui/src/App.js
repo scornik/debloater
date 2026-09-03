@@ -19,9 +19,9 @@ import Run from './screens/Run';
 import Runs from './screens/Runs';
 
 const VIEWS = [
-	{ id: 'dashboard', label: __( 'Overview', 'wp-debloat' ) },
-	{ id: 'findings', label: __( 'Findings', 'wp-debloat' ) },
-	{ id: 'runs', label: __( 'Changes & recovery', 'wp-debloat' ) },
+	{ id: 'dashboard', label: __( 'Overview', 'debloater' ) },
+	{ id: 'findings', label: __( 'Findings', 'debloater' ) },
+	{ id: 'runs', label: __( 'Changes & recovery', 'debloater' ) },
 ];
 
 export const App = () => {
@@ -36,8 +36,8 @@ export const App = () => {
 		return (
 			<Notice status="error" isDismissible={ false }>
 				{ __(
-					'You do not have permission to manage WP Debloat on this site.',
-					'wp-debloat'
+					'You do not have permission to manage Debloater on this site.',
+					'debloater'
 				) }
 			</Notice>
 		);
@@ -55,27 +55,27 @@ export const App = () => {
 	};
 
 	return (
-		<div className="wpdebloat-app">
-			<header className="wpdebloat-app__header">
-				<h1 className="wpdebloat-app__title">
-					{ __( 'WP Debloat', 'wp-debloat' ) }
+		<div className="debloater-app">
+			<header className="debloater-app__header">
+				<h1 className="debloater-app__title">
+					{ __( 'Debloater', 'debloater' ) }
 				</h1>
-				<p className="wpdebloat-app__tagline">
+				<p className="debloater-app__tagline">
 					{ __(
 						'What this site is actually doing, and what can safely stop.',
-						'wp-debloat'
+						'debloater'
 					) }
 				</p>
 
 				<nav
-					className="wpdebloat-tabs"
-					aria-label={ __( 'Sections', 'wp-debloat' ) }
+					className="debloater-tabs"
+					aria-label={ __( 'Sections', 'debloater' ) }
 				>
 					{ VIEWS.map( ( item ) => (
 						<Button
 							key={ item.id }
 							variant="tertiary"
-							className={ `wpdebloat-tabs__tab ${
+							className={ `debloater-tabs__tab ${
 								view === item.id ||
 								( view === 'finding' && item.id === 'findings' )
 									? 'is-active'
@@ -96,7 +96,7 @@ export const App = () => {
 				</nav>
 			</header>
 
-			<main className="wpdebloat-app__main" key={ epoch }>
+			<main className="debloater-app__main" key={ epoch }>
 				{ view === 'dashboard' && (
 					<Dashboard
 						onNavigate={ setView }

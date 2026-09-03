@@ -2,18 +2,18 @@
 /**
  * Analyzer rule: woo.analytics.enabled.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Analyze\Rules;
+namespace Debloater\Analyze\Rules;
 
-use WPDebloat\Contracts\Category;
-use WPDebloat\Contracts\FactSet;
-use WPDebloat\Contracts\Finding;
-use WPDebloat\Contracts\Risk;
-use WPDebloat\Contracts\Severity;
+use Debloater\Contracts\Category;
+use Debloater\Contracts\FactSet;
+use Debloater\Contracts\Finding;
+use Debloater\Contracts\Risk;
+use Debloater\Contracts\Severity;
 
 /**
  * WooCommerce Analytics is switched on.
@@ -23,7 +23,7 @@ use WPDebloat\Contracts\Severity;
  * cost; on a quiet one it is nothing much.
  *
  * This is offered rather than urged. Plenty of shops read those numbers every
- * morning, and for them the cost is the price of the feature. What WP Debloat
+ * morning, and for them the cost is the price of the feature. What Debloater
  * can say is that the feature is on and what it costs — not whether anybody
  * looks at it, which it has no way to know.
  */
@@ -77,15 +77,15 @@ final class WooAnalyticsRule extends AbstractRule {
 				'severity' => Severity::LOW,
 				'risk'     => Risk::MEDIUM,
 				'tweak_id' => 'woo.disable_admin_analytics',
-				'title'    => __( 'WooCommerce Analytics is running', 'wp-debloat' ),
-				'summary'  => __( 'The Analytics section of WooCommerce Admin is enabled, with the scheduled imports that keep its tables up to date.', 'wp-debloat' ),
+				'title'    => __( 'WooCommerce Analytics is running', 'debloater' ),
+				'summary'  => __( 'The Analytics section of WooCommerce Admin is enabled, with the scheduled imports that keep its tables up to date.', 'debloater' ),
 				'why'      => __(
 					'WooCommerce Analytics maintains its own set of lookup tables and schedules a job to update them whenever an order changes. If you read those reports, that is simply what the feature costs and this is not worth doing. If you read your numbers somewhere else, it is a background job and a set of tables working for nobody. Turning it off hides the reports and stops the imports; it deletes nothing, and turning it back on restores the section with its history, though WooCommerce will need to catch up on whatever it missed.',
-					'wp-debloat'
+					'debloater'
 				),
 				'evidence' => $this->evidence( $facts )
-					->fact( __( 'Analytics enabled', 'wp-debloat' ), 'woo.admin_analytics' )
-					->optional( __( 'WooCommerce version', 'wp-debloat' ), 'woo.version' )
+					->fact( __( 'Analytics enabled', 'debloater' ), 'woo.admin_analytics' )
+					->optional( __( 'WooCommerce version', 'debloater' ), 'woo.version' )
 					->build(),
 			)
 		);

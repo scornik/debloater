@@ -2,18 +2,18 @@
 /**
  * The MVP acceptance test.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Tests\Integration;
+namespace Debloater\Tests\Integration;
 
-use WPDebloat\Apply\Lock;
-use WPDebloat\Apply\RuntimeLoader;
-use WPDebloat\Brand;
-use WPDebloat\Contracts\RunState;
-use WPDebloat\Contracts\SnapshotLevel;
+use Debloater\Apply\Lock;
+use Debloater\Apply\RuntimeLoader;
+use Debloater\Brand;
+use Debloater\Contracts\RunState;
+use Debloater\Contracts\SnapshotLevel;
 use WP_REST_Request;
 
 /**
@@ -350,7 +350,7 @@ final class AcceptanceTest extends IntegrationTestCase {
 
 				$body = self::PAGE;
 
-				if ( 0 === strpos( $url, rest_url( 'wpdebloat/v1/status' ) ) ) {
+				if ( 0 === strpos( $url, rest_url( 'debloater/v1/status' ) ) ) {
 					$body = (string) wp_json_encode(
 						array(
 							'runtime' => array( 'hash' => $plugin->state()->runtimeHash() ),

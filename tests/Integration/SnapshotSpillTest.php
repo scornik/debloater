@@ -2,26 +2,26 @@
 /**
  * Level B recovery points too large for the database.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Tests\Integration;
+namespace Debloater\Tests\Integration;
 
 use RuntimeException;
-use WPDebloat\Apply\DataOperations\ExpiredTransientsCleanup;
-use WPDebloat\Apply\Lock;
-use WPDebloat\Contracts\PreviewPlan;
-use WPDebloat\Contracts\RunState;
-use WPDebloat\Contracts\SnapshotLevel;
-use WPDebloat\Contracts\SnapshotStatus;
-use WPDebloat\Snapshot\SnapshotManager;
-use WPDebloat\Snapshot\SpillFile;
+use Debloater\Apply\DataOperations\ExpiredTransientsCleanup;
+use Debloater\Apply\Lock;
+use Debloater\Contracts\PreviewPlan;
+use Debloater\Contracts\RunState;
+use Debloater\Contracts\SnapshotLevel;
+use Debloater\Contracts\SnapshotStatus;
+use Debloater\Snapshot\SnapshotManager;
+use Debloater\Snapshot\SpillFile;
 
 /**
  * BUILD-SPEC §4 and §8: above eight megabytes, Level B items go to a gzipped
- * file under wp-content/wpdebloat/backups instead of the snapshot_items table.
+ * file under wp-content/debloater/backups instead of the snapshot_items table.
  *
  * This test writes a genuinely oversized snapshot rather than lowering the
  * threshold for the occasion. The threshold is a real number that real sites
@@ -267,9 +267,9 @@ final class SnapshotSpillTest extends IntegrationTestCase {
 	 * The Level B snapshot of a run.
 	 *
 	 * @param int $run_id Run id.
-	 * @return \WPDebloat\Contracts\Snapshot
+	 * @return \Debloater\Contracts\Snapshot
 	 */
-	private function levelB( int $run_id ): \WPDebloat\Contracts\Snapshot {
+	private function levelB( int $run_id ): \Debloater\Contracts\Snapshot {
 		foreach ( $this->plugin->snapshots()->forRun( $run_id ) as $snapshot ) {
 			if ( SnapshotLevel::B === $snapshot->level ) {
 				return $snapshot;

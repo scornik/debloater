@@ -1,6 +1,6 @@
 <?php
 /**
- * WP Debloat runtime. Generated file: DO NOT EDIT.
+ * Debloater runtime. Generated file: DO NOT EDIT.
  *
  * Editing this file will not change anything for long; it is rewritten
  * from the saved selection whenever the selection changes. Any change
@@ -10,9 +10,9 @@
  * selection f22ef1dfb2dfe687868245350cd86d229c2d1a99379e3bf5359a2a5c4feedf01
  * registry  0000000000000000000000000000000000000000000000000000000000000000
  *
- * To switch the runtime off: define( 'WPDEBLOAT_DISABLE', true ) in wp-config.php.
+ * To switch the runtime off: define( 'DEBLOATER_DISABLE', true ) in wp-config.php.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -21,10 +21,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 require_once '{PLUGIN_DIR}/runtime-handlers/runtime-guard.php';
 
-if ( WPDebloat_Runtime_Guard::disabled() || WPDebloat_Runtime_Guard::bypass_allowed() ) {
+if ( Debloater_Runtime_Guard::disabled() || Debloater_Runtime_Guard::bypass_allowed() ) {
 	return;
 }
 
 // core.disable_emojis
 require_once '{PLUGIN_DIR}/runtime-handlers/core-disable-emojis.php';
-WPDebloat_Handler_Core_Disable_Emojis::register( array() );
+Debloater_Handler_Core_Disable_Emojis::register( array() );

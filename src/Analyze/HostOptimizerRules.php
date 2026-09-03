@@ -2,23 +2,23 @@
 /**
  * Says where else a setting lives.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Analyze;
+namespace Debloater\Analyze;
 
-use WPDebloat\Contracts\Decision;
-use WPDebloat\Contracts\FactSet;
-use WPDebloat\Contracts\Finding;
-use WPDebloat\Registry\Registry;
+use Debloater\Contracts\Decision;
+use Debloater\Contracts\FactSet;
+use Debloater\Contracts\Finding;
+use Debloater\Registry\Registry;
 
 /**
  * Names the other tool that offers the same setting (BUILD-SPEC §17 Phase 11).
  *
  * Some sites arrive with an optimizer already installed: the host's own plugin,
- * or a cache plugin whose settings screen has switches WP Debloat also offers.
+ * or a cache plugin whose settings screen has switches Debloater also offers.
  * When a finding lands on that ground, the user is told so and told where.
  *
  * **What this deliberately does not do, and why.** Phase 11 as written asks for
@@ -36,7 +36,7 @@ use WPDebloat\Registry\Registry;
  * decide. So the finding keeps its severity, keeps its recommendation, and gains
  * a sentence. See docs/DECISIONS.md D-0028.
  *
- * The reverse case — an optimizer WP Debloat would actively fight with, where
+ * The reverse case — an optimizer Debloater would actively fight with, where
  * leaving it alone is right regardless of observation — belongs in the
  * compatibility registry as a refusal, which already exists and already carries
  * its reason.
@@ -180,7 +180,7 @@ final class HostOptimizerRules {
 				'%s is also on this site and has its own setting for this, so you can change it there instead — one switch is easier to remember than two.',
 				'These are also on this site and have their own settings for this, so you can change it there instead: %s. One switch is easier to remember than two.',
 				count( $owners ),
-				'wp-debloat'
+				'debloater'
 			),
 			implode( ', ', $owners )
 		);

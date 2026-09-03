@@ -2,12 +2,12 @@
 /**
  * Everything the CLI says, and how it stops.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Cli;
+namespace Debloater\Cli;
 
 /**
  * The boundary between the commands and WP-CLI itself.

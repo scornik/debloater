@@ -2,20 +2,20 @@
 /**
  * Level B rows too large to keep in the database.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Snapshot;
+namespace Debloater\Snapshot;
 
 use RuntimeException;
-use WPDebloat\Contracts\Context;
-use WPDebloat\Contracts\Json;
-use WPDebloat\Contracts\SnapshotItem;
+use Debloater\Contracts\Context;
+use Debloater\Contracts\Json;
+use Debloater\Contracts\SnapshotItem;
 
 /**
- * Gzipped newline-delimited JSON under wp-content/wpdebloat/backups (§4, §8).
+ * Gzipped newline-delimited JSON under wp-content/debloater/backups (§4, §8).
  *
  * A recovery point for a large deletion can be tens of megabytes. Putting that
  * in `wp_options`-adjacent tables as one row per item works, but a single
@@ -226,7 +226,7 @@ final class SpillFile {
 	private function prepareDirectory(): string {
 		$directory = $this->context->backupsDir();
 
-		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_mkdir -- WP_Filesystem may need credentials we do not have during an apply; the directory is inside wp-content/wpdebloat and nowhere else.
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_mkdir -- WP_Filesystem may need credentials we do not have during an apply; the directory is inside wp-content/debloater and nowhere else.
 		if ( ! is_dir( $directory ) && ! mkdir( $directory, self::DIR_MODE, true ) && ! is_dir( $directory ) ) {
 			throw new RuntimeException( sprintf( 'Could not create the backups directory: %s', $directory ) );
 		}

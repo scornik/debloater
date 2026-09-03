@@ -2,15 +2,15 @@
 /**
  * One stored row that a data operation is about to delete.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Contracts;
+namespace Debloater\Contracts;
 
 /**
- * A Level B snapshot item (BUILD-SPEC §8, wpdebloat_snapshot_items).
+ * A Level B snapshot item (BUILD-SPEC §8, debloater_snapshot_items).
  *
  * The payload holds the original row verbatim, in enough detail to reinsert it
  * with its original identifiers and timestamps. This is what makes a

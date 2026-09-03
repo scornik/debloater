@@ -2,15 +2,15 @@
 /**
  * Facts about the environment the site runs in.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Scan\Scanners;
+namespace Debloater\Scan\Scanners;
 
-use WPDebloat\Contracts\Context;
-use WPDebloat\Scan\HostVendor;
+use Debloater\Contracts\Context;
+use Debloater\Scan\HostVendor;
 
 /**
  * Collects the `env.*` facts (BUILD-SPEC §5).

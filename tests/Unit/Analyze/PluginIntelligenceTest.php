@@ -2,26 +2,26 @@
 /**
  * What the plugin list is allowed to conclude.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Tests\Unit\Analyze;
+namespace Debloater\Tests\Unit\Analyze;
 
 use PHPUnit\Framework\TestCase;
-use WPDebloat\Analyze\Analyzer;
-use WPDebloat\Analyze\HostOptimizerRules;
-use WPDebloat\Analyze\Rules;
-use WPDebloat\Analyze\Rules\AbandonedPluginsRule;
-use WPDebloat\Analyze\Rules\DuplicateFunctionalityRule;
-use WPDebloat\Analyze\Rules\HostOptimizerRule;
-use WPDebloat\Contracts\Decision;
-use WPDebloat\Contracts\FactSet;
-use WPDebloat\Contracts\Severity;
-use WPDebloat\Registry\Loader;
-use WPDebloat\Registry\Registry;
-use WPDebloat\Tests\Unit\Support\Facts;
+use Debloater\Analyze\Analyzer;
+use Debloater\Analyze\HostOptimizerRules;
+use Debloater\Analyze\Rules;
+use Debloater\Analyze\Rules\AbandonedPluginsRule;
+use Debloater\Analyze\Rules\DuplicateFunctionalityRule;
+use Debloater\Analyze\Rules\HostOptimizerRule;
+use Debloater\Contracts\Decision;
+use Debloater\Contracts\FactSet;
+use Debloater\Contracts\Severity;
+use Debloater\Registry\Loader;
+use Debloater\Registry\Registry;
+use Debloater\Tests\Unit\Support\Facts;
 
 /**
  * BUILD-SPEC §17 Phase 11.
@@ -234,7 +234,7 @@ final class PluginIntelligenceTest extends TestCase {
 	 */
 	public function test_an_uncovered_finding_is_left_alone(): void {
 		$rules   = new HostOptimizerRules( $this->registry(), Facts::busyStore() );
-		$finding = \WPDebloat\Tests\Unit\Support\Build::finding( 'wp.shortlink.exposed' );
+		$finding = \Debloater\Tests\Unit\Support\Build::finding( 'wp.shortlink.exposed' );
 
 		$this->assertFalse( $rules->covers( 'wp.shortlink.exposed' ) );
 		$this->assertSame( $finding->why, $rules->apply( $finding )->why );
@@ -247,7 +247,7 @@ final class PluginIntelligenceTest extends TestCase {
 	 */
 	public function test_a_site_with_no_optimizer_is_untouched(): void {
 		$rules   = new HostOptimizerRules( $this->registry(), Facts::freshInstall() );
-		$finding = \WPDebloat\Tests\Unit\Support\Build::finding( 'wp.emojis.loaded' );
+		$finding = \Debloater\Tests\Unit\Support\Build::finding( 'wp.emojis.loaded' );
 
 		$this->assertFalse( $rules->covers( 'wp.emojis.loaded' ) );
 		$this->assertSame( $finding->why, $rules->apply( $finding )->why );
@@ -369,6 +369,6 @@ final class PluginIntelligenceTest extends TestCase {
 	 * @return Registry
 	 */
 	private function registry(): Registry {
-		return ( new Loader( WPDEBLOAT_TESTS_ROOT . '/registry' ) )->load();
+		return ( new Loader( DEBLOATER_TESTS_ROOT . '/registry' ) )->load();
 	}
 }

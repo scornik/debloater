@@ -2,22 +2,22 @@
 /**
  * Tests for the scan runner.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Tests\Unit\Scan;
+namespace Debloater\Tests\Unit\Scan;
 
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
-use WPDebloat\Contracts\Context;
-use WPDebloat\Contracts\Fact;
-use WPDebloat\Contracts\FactSet;
-use WPDebloat\Contracts\ScannerInterface;
-use WPDebloat\Scan\ScanRunner;
-use WPDebloat\Storage\Repositories\RunRepository;
-use WPDebloat\Tests\Unit\Support\Build;
+use Debloater\Contracts\Context;
+use Debloater\Contracts\Fact;
+use Debloater\Contracts\FactSet;
+use Debloater\Contracts\ScannerInterface;
+use Debloater\Scan\ScanRunner;
+use Debloater\Storage\Repositories\RunRepository;
+use Debloater\Tests\Unit\Support\Build;
 
 /**
  * The runner's job is to collect facts without letting one scanner ruin the

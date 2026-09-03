@@ -2,18 +2,18 @@
 /**
  * Analyzer rule: db.autodrafts.abandoned.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Analyze\Rules;
+namespace Debloater\Analyze\Rules;
 
-use WPDebloat\Contracts\Category;
-use WPDebloat\Contracts\FactSet;
-use WPDebloat\Contracts\Finding;
-use WPDebloat\Contracts\Risk;
-use WPDebloat\Contracts\Severity;
+use Debloater\Contracts\Category;
+use Debloater\Contracts\FactSet;
+use Debloater\Contracts\Finding;
+use Debloater\Contracts\Risk;
+use Debloater\Contracts\Severity;
 
 /**
  * Fires when abandoned auto-drafts have accumulated.
@@ -81,18 +81,18 @@ final class AutoDraftsRule extends AbstractRule {
 				'category' => Category::DATABASE,
 				'severity' => Severity::LOW,
 				'risk'     => Risk::LOW,
-				'title'    => __( 'Abandoned auto-drafts are still stored', 'wp-debloat' ),
+				'title'    => __( 'Abandoned auto-drafts are still stored', 'debloater' ),
 				'summary'  => sprintf(
 					/* translators: %s: number of auto-drafts. */
-					__( '%s auto-drafts were created and never written.', 'wp-debloat' ),
+					__( '%s auto-drafts were created and never written.', 'debloater' ),
 					number_format_i18n( $drafts )
 				),
 				'why'      => __(
 					'WordPress creates an auto-draft the moment somebody clicks "Add New", whether or not they type anything. It deletes them itself after a week, but only when its scheduled task runs — on a quiet site that can be a long time. These are rows for posts that were never written.',
-					'wp-debloat'
+					'debloater'
 				),
 				'evidence' => $this->evidence( $facts )
-					->fact( __( 'Auto-drafts stored', 'wp-debloat' ), 'db.autodrafts.count' )
+					->fact( __( 'Auto-drafts stored', 'debloater' ), 'db.autodrafts.count' )
 					->build(),
 				'impact'   => $this->estimated( 'rows', (float) $drafts, 'rows' ),
 				'tweak_id' => 'db.clean_auto_drafts',

@@ -1,4 +1,4 @@
-# CLAUDE.md — WP Debloat
+# CLAUDE.md — Debloater
 
 ## Authoritative specification
 
@@ -46,9 +46,9 @@ Read, in this order, before changing anything:
 |---|---|
 | PHP | 8.1+ (CI 8.1/8.2/8.3) |
 | WordPress | 6.5+ |
-| Namespace | `WPDebloat\` PSR-4 from `src/` |
+| Namespace | `Debloater\` PSR-4 from `src/` |
 | Runtime handlers | `runtime-handlers/`, **not autoloaded**, no namespace, no deps |
-| Prefixes | `wpdebloat_` (functions/hooks/options/tables), `WPDEBLOAT_` (constants), `wpdebloat/v1` (REST), `wp debloat` (CLI) |
+| Prefixes | `debloater_` (functions/hooks/options/tables), `DEBLOATER_` (constants), `debloater/v1` (REST), `wp debloater` (CLI) |
 | Runtime deps | **zero** Composer runtime dependencies |
 | Tests | PHPUnit 10 (unit, no WP), `@wordpress/env` + WP PHPUnit (integration), Playwright (Phase 16) |
 | Static | PHPCS (WordPress-Extra + VIP-Go), PHPStan level 6, ESLint via `wp-scripts` |
@@ -78,5 +78,5 @@ inconvenient test, or mark a phase complete with known failures.
 - Add Composer runtime dependencies.
 - Emit admin notices, dashboard widgets, or any frontend output.
 - Add telemetry, analytics, or AI.
-- Hardcode user-visible strings — everything goes through `WPDebloat\Brand` and `__()`.
+- Hardcode user-visible strings — everything goes through `Debloater\Brand` and `__()`.
 - Introduce frameworks, ORMs, or speculative abstractions.

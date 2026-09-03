@@ -7,7 +7,7 @@
 const { test, expect } = require( '@playwright/test' );
 const { login, openDebloat, debloatStatus } = require( './support/wordpress' );
 
-test.describe( 'The WP Debloat screen', () => {
+test.describe( 'The Debloater screen', () => {
 	test.beforeEach( async ( { page } ) => {
 		await login( page );
 	} );
@@ -32,7 +32,7 @@ test.describe( 'The WP Debloat screen', () => {
 		).toBeVisible( { timeout: 90_000 } );
 
 		// A real site with the full stack on it has things to say about itself.
-		await expect( page.locator( '.wpdebloat-dashboard' ) ).toContainText(
+		await expect( page.locator( '.debloater-dashboard' ) ).toContainText(
 			/finding/
 		);
 	} );
@@ -40,7 +40,7 @@ test.describe( 'The WP Debloat screen', () => {
 	test( 'shows the score and never claims a speed', async ( { page } ) => {
 		await openDebloat( page );
 
-		const body = await page.locator( '#wpdebloat-root' ).innerText();
+		const body = await page.locator( '#debloater-root' ).innerText();
 
 		// BUILD-SPEC §12 and product invariant 14: the score is a configuration
 		// score. A screen that said "faster" would be making a claim nothing
@@ -60,7 +60,7 @@ test.describe( 'The WP Debloat screen', () => {
 		for ( let index = 0; index < ( await notices.count() ); index++ ) {
 			const text = await notices.nth( index ).innerText();
 
-			expect( text ).not.toContain( 'WP Debloat' );
+			expect( text ).not.toContain( 'Debloater' );
 		}
 	} );
 

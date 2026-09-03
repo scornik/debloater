@@ -2,14 +2,14 @@
 /**
  * Works out how sure we are about a finding.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Analyze;
+namespace Debloater\Analyze;
 
-use WPDebloat\Contracts\FactSet;
+use Debloater\Contracts\FactSet;
 
 /**
  * Confidence = base × penalties (BUILD-SPEC §6, docs/SCORING.md).
@@ -165,10 +165,10 @@ final class ConfidenceCalculator {
 
 		foreach ( array_keys( $this->penalties( $dependencies_detected ) ) as $reason ) {
 			$reasons[] = match ( $reason ) {
-				'unknown_host' => __( 'This host was not recognised, so we cannot tell what it already optimises.', 'wp-debloat' ),
-				'cache_plugin' => __( 'A page-cache plugin is active, so what visitors receive may differ from what WordPress generates.', 'wp-debloat' ),
-				'dependents'   => __( 'Something installed on this site depends on what this change would alter.', 'wp-debloat' ),
-				'custom_code'  => __( 'This site has custom must-use plugins, which we cannot inspect.', 'wp-debloat' ),
+				'unknown_host' => __( 'This host was not recognised, so we cannot tell what it already optimises.', 'debloater' ),
+				'cache_plugin' => __( 'A page-cache plugin is active, so what visitors receive may differ from what WordPress generates.', 'debloater' ),
+				'dependents'   => __( 'Something installed on this site depends on what this change would alter.', 'debloater' ),
+				'custom_code'  => __( 'This site has custom must-use plugins, which we cannot inspect.', 'debloater' ),
 				default        => $reason,
 			};
 		}

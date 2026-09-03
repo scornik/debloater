@@ -2,12 +2,12 @@
 /**
  * What Elementor knows how to build.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Scan\Elementor;
+namespace Debloater\Scan\Elementor;
 
 /**
  * The list of widget types Elementor and its addons have registered

@@ -19,14 +19,14 @@ const CountList = ( { counts, label, modifier } ) => {
 	}
 
 	return (
-		<ul className={ `wpdebloat-counts wpdebloat-counts--${ modifier }` }>
+		<ul className={ `debloater-counts debloater-counts--${ modifier }` }>
 			{ entries.map( ( [ key, count ] ) => (
 				<li
 					key={ key }
-					className={ `wpdebloat-counts__item is-${ key }` }
+					className={ `debloater-counts__item is-${ key }` }
 				>
-					<span className="wpdebloat-counts__number">{ count }</span>
-					<span className="wpdebloat-counts__label">
+					<span className="debloater-counts__number">{ count }</span>
+					<span className="debloater-counts__label">
 						{ label( key ) }
 					</span>
 				</li>
@@ -69,8 +69,8 @@ export const Dashboard = ( { onNavigate, onFixSafeIssues, onScore } ) => {
 
 	if ( status.status === 'loading' || findings.status === 'loading' ) {
 		return (
-			<p className="wpdebloat-loading">
-				<Spinner /> { __( 'Reading this site…', 'wp-debloat' ) }
+			<p className="debloater-loading">
+				<Spinner /> { __( 'Reading this site…', 'debloater' ) }
 			</p>
 		);
 	}
@@ -85,14 +85,12 @@ export const Dashboard = ( { onNavigate, onFixSafeIssues, onScore } ) => {
 
 	if ( ! findings.data?.scanned ) {
 		return (
-			<div className="wpdebloat-empty">
-				<h2>
-					{ __( 'Nothing has been looked at yet', 'wp-debloat' ) }
-				</h2>
+			<div className="debloater-empty">
+				<h2>{ __( 'Nothing has been looked at yet', 'debloater' ) }</h2>
 				<p>
 					{ __(
 						'A scan reads this site’s configuration and writes down what it finds. It changes nothing.',
-						'wp-debloat'
+						'debloater'
 					) }
 				</p>
 				{ scanError && (
@@ -107,8 +105,8 @@ export const Dashboard = ( { onNavigate, onFixSafeIssues, onScore } ) => {
 					onClick={ scan }
 				>
 					{ scanning
-						? __( 'Scanning…', 'wp-debloat' )
-						: __( 'Scan this site', 'wp-debloat' ) }
+						? __( 'Scanning…', 'debloater' )
+						: __( 'Scan this site', 'debloater' ) }
 				</Button>
 			</div>
 		);
@@ -120,34 +118,34 @@ export const Dashboard = ( { onNavigate, onFixSafeIssues, onScore } ) => {
 	const runtime = status.data?.runtime || {};
 
 	return (
-		<div className="wpdebloat-dashboard">
+		<div className="debloater-dashboard">
 			<Score score={ score } />
 
 			{ runtime.present && ! runtime.matches_state && (
 				<Notice status="warning" isDismissible={ false }>
 					{ __(
-						'The generated file on disk is not the one WP Debloat wrote. Something else has changed it.',
-						'wp-debloat'
+						'The generated file on disk is not the one Debloater wrote. Something else has changed it.',
+						'debloater'
 					) }
 				</Notice>
 			) }
 
 			<section
-				className="wpdebloat-panel"
-				aria-labelledby="wpdebloat-counts-heading"
+				className="debloater-panel"
+				aria-labelledby="debloater-counts-heading"
 			>
-				<h2 id="wpdebloat-counts-heading">
-					{ __( 'What the scan found', 'wp-debloat' ) }
+				<h2 id="debloater-counts-heading">
+					{ __( 'What the scan found', 'debloater' ) }
 				</h2>
 
-				<p className="wpdebloat-panel__lede">
+				<p className="debloater-panel__lede">
 					{ sprintf(
 						/* translators: %d: number of findings. */
 						_n(
 							'%d finding, with the facts behind it.',
 							'%d findings, each with the facts behind it.',
 							total,
-							'wp-debloat'
+							'debloater'
 						),
 						total
 					) }
@@ -164,19 +162,19 @@ export const Dashboard = ( { onNavigate, onFixSafeIssues, onScore } ) => {
 					modifier="decision"
 				/>
 
-				<div className="wpdebloat-actions">
+				<div className="debloater-actions">
 					<Button
 						variant="primary"
 						disabled={ recommended === 0 }
 						onClick={ onFixSafeIssues }
 					>
-						{ __( 'Fix safe issues', 'wp-debloat' ) }
+						{ __( 'Fix safe issues', 'debloater' ) }
 					</Button>
 					<Button
 						variant="secondary"
 						onClick={ () => onNavigate( 'findings' ) }
 					>
-						{ __( 'Review findings', 'wp-debloat' ) }
+						{ __( 'Review findings', 'debloater' ) }
 					</Button>
 					<Button
 						variant="tertiary"
@@ -184,15 +182,15 @@ export const Dashboard = ( { onNavigate, onFixSafeIssues, onScore } ) => {
 						disabled={ scanning }
 						onClick={ scan }
 					>
-						{ __( 'Scan again', 'wp-debloat' ) }
+						{ __( 'Scan again', 'debloater' ) }
 					</Button>
 				</div>
 
 				{ recommended === 0 && (
-					<p className="wpdebloat-panel__note">
+					<p className="debloater-panel__note">
 						{ __(
 							'Nothing is recommended on this site right now. That is a result, not a failure to find one.',
-							'wp-debloat'
+							'debloater'
 						) }
 					</p>
 				) }

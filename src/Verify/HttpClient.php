@@ -2,22 +2,22 @@
 /**
  * The one place verification talks to the site.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Verify;
+namespace Debloater\Verify;
 
 use WP_Error;
-use WPDebloat\Contracts\Context;
+use Debloater\Contracts\Context;
 
 /**
  * Loopback requests for the probes (BUILD-SPEC §11).
  *
  * Every probe goes through here so that the rules apply once: a fifteen-second
  * timeout, `sslverify` following the site's own setting rather than being
- * disabled for convenience, and an `X-WPDebloat-Verify: 1` header.
+ * disabled for convenience, and an `X-Debloater-Verify: 1` header.
  *
  * That header is for the site owner reading their access log, and for nothing
  * else. Nothing in this plugin reads it, and no handler may behave differently
@@ -38,7 +38,7 @@ final class HttpClient {
 	/**
 	 * The header added to every verification request.
 	 */
-	public const HEADER = 'X-WPDebloat-Verify';
+	public const HEADER = 'X-Debloater-Verify';
 
 	/**
 	 * Redirects followed before giving up.
@@ -167,7 +167,7 @@ final class HttpClient {
 				'redirection' => self::MAX_REDIRECTS,
 				'sslverify'   => $this->sslVerify(),
 				'headers'     => array_merge( array( self::HEADER => '1' ), $headers ),
-				'user-agent'  => 'WPDebloat/' . $this->context->plugin_version . '; verification',
+				'user-agent'  => 'Debloater/' . $this->context->plugin_version . '; verification',
 				// A cached response would tell us about the past, and the whole
 				// question is what the site is doing now.
 				'cookies'     => array(),

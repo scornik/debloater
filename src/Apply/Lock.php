@@ -2,14 +2,14 @@
 /**
  * Stops two runs changing the site at once.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Apply;
+namespace Debloater\Apply;
 
-use WPDebloat\Brand;
+use Debloater\Brand;
 
 /**
  * The apply lock (BUILD-SPEC §8).

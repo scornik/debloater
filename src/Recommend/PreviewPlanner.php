@@ -2,22 +2,22 @@
 /**
  * Builds the plan the user is shown before anything happens.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Recommend;
+namespace Debloater\Recommend;
 
-use WPDebloat\Contracts\Decision;
-use WPDebloat\Contracts\FactSet;
-use WPDebloat\Contracts\Finding;
-use WPDebloat\Contracts\PreviewPlan;
-use WPDebloat\Contracts\SnapshotLevel;
-use WPDebloat\Contracts\Tweak;
-use WPDebloat\Contracts\TweakKind;
-use WPDebloat\Registry\Profile;
-use WPDebloat\Registry\Registry;
+use Debloater\Contracts\Decision;
+use Debloater\Contracts\FactSet;
+use Debloater\Contracts\Finding;
+use Debloater\Contracts\PreviewPlan;
+use Debloater\Contracts\SnapshotLevel;
+use Debloater\Contracts\Tweak;
+use Debloater\Contracts\TweakKind;
+use Debloater\Registry\Profile;
+use Debloater\Registry\Registry;
 
 /**
  * The one place a plan can be built (BUILD-SPEC §7.4, §17 Phase 4).
@@ -170,9 +170,9 @@ final class PreviewPlanner {
 
 					$excluded[ $id ] = sprintf(
 						/* translators: 1: required tweak id, 2: why that tweak is not in the plan. */
-						__( 'Requires "%1$s", which is not part of this plan: %2$s', 'wp-debloat' ),
+						__( 'Requires "%1$s", which is not part of this plan: %2$s', 'debloater' ),
 						$required_id,
-						$excluded[ $required_id ] ?? __( 'it was not selected.', 'wp-debloat' )
+						$excluded[ $required_id ] ?? __( 'it was not selected.', 'debloater' )
 					);
 
 					unset( $accepted[ $id ] );
@@ -260,26 +260,26 @@ final class PreviewPlanner {
 		if ( array_key_exists( $tweak->id, $this->refused ) ) {
 			return sprintf(
 				/* translators: %s: the reason the change was refused. */
-				__( 'No action recommended here: %s', 'wp-debloat' ),
+				__( 'No action recommended here: %s', 'debloater' ),
 				$this->refused[ $tweak->id ]
 			);
 		}
 
 		if ( ! $this->registry->has( $tweak->id ) ) {
-			return __( 'This tweak is not in the current registry.', 'wp-debloat' );
+			return __( 'This tweak is not in the current registry.', 'debloater' );
 		}
 
 		// The safe plan excludes destructive operations outright. Checked here as
 		// well as in the profile, because this is the promise behind a single
 		// button and it should not depend on a JSON file being right.
 		if ( $safe_only && $tweak->destructive ) {
-			return __( 'Deleting data is never part of Fix Safe Issues.', 'wp-debloat' );
+			return __( 'Deleting data is never part of Fix Safe Issues.', 'debloater' );
 		}
 
 		if ( $safe_only && ! $tweak->risk->isSafePlanEligible() ) {
 			return sprintf(
 				/* translators: %s: risk level. */
-				__( 'Risk is %s, which needs to be reviewed rather than applied in one click.', 'wp-debloat' ),
+				__( 'Risk is %s, which needs to be reviewed rather than applied in one click.', 'debloater' ),
 				$tweak->risk->value
 			);
 		}
@@ -287,7 +287,7 @@ final class PreviewPlanner {
 		if ( null !== $profile && ! $profile->admits( $tweak ) ) {
 			return sprintf(
 				/* translators: 1: profile title, 2: risk level. */
-				__( 'The %1$s profile does not include %2$s-risk changes.', 'wp-debloat' ),
+				__( 'The %1$s profile does not include %2$s-risk changes.', 'debloater' ),
 				$profile->title,
 				$tweak->risk->value
 			);
@@ -309,7 +309,7 @@ final class PreviewPlanner {
 			if ( array_key_exists( $conflict_id, $accepted ) ) {
 				return sprintf(
 					/* translators: %s: tweak id. */
-					__( 'Cannot be applied alongside "%s", which is already in this plan.', 'wp-debloat' ),
+					__( 'Cannot be applied alongside "%s", which is already in this plan.', 'debloater' ),
 					$conflict_id
 				);
 			}
@@ -332,7 +332,7 @@ final class PreviewPlanner {
 			if ( ! in_array( $required_id, $planned_ids, true ) ) {
 				return sprintf(
 					/* translators: %s: tweak id. */
-					__( 'Requires "%s", which is not part of this plan.', 'wp-debloat' ),
+					__( 'Requires "%s", which is not part of this plan.', 'debloater' ),
 					$required_id
 				);
 			}
@@ -344,7 +344,7 @@ final class PreviewPlanner {
 			if ( ! $predicate->isObservableIn( $this->facts ) ) {
 				return sprintf(
 					/* translators: %s: fact key. */
-					__( 'Depends on %s, which the last scan did not observe.', 'wp-debloat' ),
+					__( 'Depends on %s, which the last scan did not observe.', 'debloater' ),
 					$predicate->fact
 				);
 			}
@@ -352,7 +352,7 @@ final class PreviewPlanner {
 			if ( ! $predicate->isSatisfiedBy( $this->facts ) ) {
 				return sprintf(
 					/* translators: %s: the condition that was required. */
-					__( 'Only applies where %s, which is not true of this site.', 'wp-debloat' ),
+					__( 'Only applies where %s, which is not true of this site.', 'debloater' ),
 					$predicate->describe()
 				);
 			}
@@ -401,11 +401,11 @@ final class PreviewPlanner {
 		}
 
 		if ( ! $destructive ) {
-			$lines[] = __( 'Nothing will be deleted.', 'wp-debloat' );
+			$lines[] = __( 'Nothing will be deleted.', 'debloater' );
 		}
 
 		if ( ! $data ) {
-			$lines[] = __( 'No content, settings or database rows will be changed — only which hooks WordPress registers.', 'wp-debloat' );
+			$lines[] = __( 'No content, settings or database rows will be changed — only which hooks WordPress registers.', 'debloater' );
 		}
 
 		if ( array() !== $this->refused ) {
@@ -415,7 +415,7 @@ final class PreviewPlanner {
 					'%d change was deliberately left alone because something on this site depends on it.',
 					'%d changes were deliberately left alone because something on this site depends on them.',
 					count( $this->refused ),
-					'wp-debloat'
+					'debloater'
 				),
 				count( $this->refused )
 			);
@@ -430,13 +430,13 @@ final class PreviewPlanner {
 					'%d further change is available but not part of this plan.',
 					'%d further changes are available but not part of this plan.',
 					$other,
-					'wp-debloat'
+					'debloater'
 				),
 				$other
 			);
 		}
 
-		$lines[] = __( 'A recovery point is created before anything is changed, and every change here can be undone.', 'wp-debloat' );
+		$lines[] = __( 'A recovery point is created before anything is changed, and every change here can be undone.', 'debloater' );
 
 		return $lines;
 	}

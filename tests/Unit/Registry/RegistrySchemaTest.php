@@ -3,21 +3,21 @@
  * The registry schemas must accept the specification's own examples and reject
  * documents that break its rules.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Tests\Unit\Registry;
+namespace Debloater\Tests\Unit\Registry;
 
 use PHPUnit\Framework\TestCase;
-use WPDebloat\Contracts\Category;
-use WPDebloat\Contracts\Decision;
-use WPDebloat\Contracts\Identifier;
-use WPDebloat\Contracts\Risk;
-use WPDebloat\Contracts\Severity;
-use WPDebloat\Contracts\TweakKind;
-use WPDebloat\Registry\SchemaValidator;
+use Debloater\Contracts\Category;
+use Debloater\Contracts\Decision;
+use Debloater\Contracts\Identifier;
+use Debloater\Contracts\Risk;
+use Debloater\Contracts\Severity;
+use Debloater\Contracts\TweakKind;
+use Debloater\Registry\SchemaValidator;
 
 /**
  * Two things are checked here: that the shipped schemas behave, and that they
@@ -391,12 +391,12 @@ final class RegistrySchemaTest extends TestCase {
 	 *
 	 * @param string $schema  Schema file name.
 	 * @param string $fixture Fixture path relative to tests/Fixtures.
-	 * @return array<int,\WPDebloat\Registry\SchemaViolation>
+	 * @return array<int,\Debloater\Registry\SchemaViolation>
 	 */
 	private function violationsFor( string $schema, string $fixture ): array {
 		$validator = SchemaValidator::fromFile( self::schemaPath( $schema ) );
 
-		return $validator->validate( $this->decode( WPDEBLOAT_TESTS_ROOT . '/tests/Fixtures/' . $fixture ) );
+		return $validator->validate( $this->decode( DEBLOATER_TESTS_ROOT . '/tests/Fixtures/' . $fixture ) );
 	}
 
 	/**
@@ -440,6 +440,6 @@ final class RegistrySchemaTest extends TestCase {
 	 * @return string
 	 */
 	private static function schemaPath( string $schema ): string {
-		return WPDEBLOAT_TESTS_ROOT . '/registry/schemas/' . $schema;
+		return DEBLOATER_TESTS_ROOT . '/registry/schemas/' . $schema;
 	}
 }

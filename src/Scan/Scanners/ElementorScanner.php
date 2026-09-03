@@ -2,17 +2,17 @@
 /**
  * Facts about an Elementor site.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Scan\Scanners;
+namespace Debloater\Scan\Scanners;
 
-use WPDebloat\Contracts\Context;
-use WPDebloat\Scan\Elementor\LiveWidgetCatalog;
-use WPDebloat\Scan\Elementor\WidgetCatalog;
-use WPDebloat\Scan\Sources;
+use Debloater\Contracts\Context;
+use Debloater\Scan\Elementor\LiveWidgetCatalog;
+use Debloater\Scan\Elementor\WidgetCatalog;
+use Debloater\Scan\Sources;
 
 /**
  * Collects the `elementor.*` facts (BUILD-SPEC §5, §17 Phase 14).

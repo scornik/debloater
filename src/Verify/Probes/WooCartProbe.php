@@ -2,12 +2,12 @@
 /**
  * Does the cart still work.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Verify\Probes;
+namespace Debloater\Verify\Probes;
 
 /**
  * GET the cart page as a guest (BUILD-SPEC §11).
@@ -52,6 +52,6 @@ final class WooCartProbe extends AbstractWooProbe {
 	 * @return string
 	 */
 	protected function describe(): string {
-		return __( 'The cart', 'wp-debloat' );
+		return __( 'The cart', 'debloater' );
 	}
 }

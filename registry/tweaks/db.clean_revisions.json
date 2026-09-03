@@ -8,7 +8,7 @@
   "base_confidence": 0.9,
   "reversible": true,
   "destructive": true,
-  "handler": "WPDebloat\\Apply\\DataOperations\\RevisionsCleanup",
+  "handler": "Debloater\\Apply\\DataOperations\\RevisionsCleanup",
   "params": {
     "keep_per_post": {
       "type": "integer",

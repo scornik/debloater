@@ -2,17 +2,17 @@
 /**
  * Analyzer rule: wp.rsd.exposed.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Analyze\Rules;
+namespace Debloater\Analyze\Rules;
 
-use WPDebloat\Contracts\Category;
-use WPDebloat\Contracts\Impact;
-use WPDebloat\Contracts\Risk;
-use WPDebloat\Contracts\Severity;
+use Debloater\Contracts\Category;
+use Debloater\Contracts\Impact;
+use Debloater\Contracts\Risk;
+use Debloater\Contracts\Severity;
 
 /**
  * Fires when core still prints the RSD link.
@@ -101,7 +101,7 @@ final class RsdLinkRule extends CoreFeatureRule {
 	 * @return string
 	 */
 	protected function title(): string {
-		return __( 'The page head advertises the XML-RPC endpoint', 'wp-debloat' );
+		return __( 'The page head advertises the XML-RPC endpoint', 'debloater' );
 	}
 
 	/**
@@ -110,7 +110,7 @@ final class RsdLinkRule extends CoreFeatureRule {
 	 * @return string
 	 */
 	protected function summary(): string {
-		return __( 'Every page carries a Really Simple Discovery link pointing at xmlrpc.php.', 'wp-debloat' );
+		return __( 'Every page carries a Really Simple Discovery link pointing at xmlrpc.php.', 'debloater' );
 	}
 
 	/**
@@ -119,7 +119,7 @@ final class RsdLinkRule extends CoreFeatureRule {
 	 * @return string
 	 */
 	protected function why(): string {
-		return __( 'RSD exists so that desktop blogging clients can find the XML-RPC endpoint on their own. Almost nobody uses those clients now, and the link is one more thing pointing at an endpoint that attracts brute-force traffic. Removing the link does not disable XML-RPC; it only stops announcing it.', 'wp-debloat' );
+		return __( 'RSD exists so that desktop blogging clients can find the XML-RPC endpoint on their own. Almost nobody uses those clients now, and the link is one more thing pointing at an endpoint that attracts brute-force traffic. Removing the link does not disable XML-RPC; it only stops announcing it.', 'debloater' );
 	}
 
 	/**
@@ -128,6 +128,6 @@ final class RsdLinkRule extends CoreFeatureRule {
 	 * @return string
 	 */
 	protected function evidenceLabel(): string {
-		return __( 'RSD discovery link', 'wp-debloat' );
+		return __( 'RSD discovery link', 'debloater' );
 	}
 }

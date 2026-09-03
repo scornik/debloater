@@ -2,20 +2,20 @@
 /**
  * Tests for the registry loader and the shipped registry itself.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Tests\Unit\Registry;
+namespace Debloater\Tests\Unit\Registry;
 
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
-use WPDebloat\Contracts\Risk;
-use WPDebloat\Contracts\TweakKind;
-use WPDebloat\Registry\Loader;
-use WPDebloat\Registry\Registry;
-use WPDebloat\Registry\TweakDefinition;
+use Debloater\Contracts\Risk;
+use Debloater\Contracts\TweakKind;
+use Debloater\Registry\Loader;
+use Debloater\Registry\Registry;
+use Debloater\Registry\TweakDefinition;
 
 /**
  * The registry is the input to every plan, so a broken one has to fail loudly
@@ -219,7 +219,7 @@ final class LoaderTest extends TestCase {
 			$data[] = $id;
 
 			$this->assertStringStartsWith(
-				'WPDebloat\\Apply\\DataOperations\\',
+				'Debloater\\Apply\\DataOperations\\',
 				$definition->handler,
 				$id . ' must name a data operation class'
 			);
@@ -248,7 +248,7 @@ final class LoaderTest extends TestCase {
 	 */
 	public function test_every_config_handler_file_exists(): void {
 		foreach ( $this->configTweaks() as $id => $definition ) {
-			$this->assertFileExists( WPDEBLOAT_TESTS_ROOT . '/' . $definition->handler, $id );
+			$this->assertFileExists( DEBLOATER_TESTS_ROOT . '/' . $definition->handler, $id );
 		}
 	}
 
@@ -260,7 +260,7 @@ final class LoaderTest extends TestCase {
 	 */
 	public function test_every_config_handler_declares_register_and_unregister(): void {
 		foreach ( $this->configTweaks() as $id => $definition ) {
-			$source = file_get_contents( WPDEBLOAT_TESTS_ROOT . '/' . $definition->handler );
+			$source = file_get_contents( DEBLOATER_TESTS_ROOT . '/' . $definition->handler );
 
 			$this->assertIsString( $source );
 			$this->assertStringContainsString( 'public static function register(', $source, $id );
@@ -283,7 +283,7 @@ final class LoaderTest extends TestCase {
 				continue;
 			}
 
-			$this->assertStringStartsWith( 'WPDebloat\\Apply\\DataOperations\\', $definition->handler, $id );
+			$this->assertStringStartsWith( 'Debloater\\Apply\\DataOperations\\', $definition->handler, $id );
 			$this->assertMatchesRegularExpression(
 				'/^[A-Za-z_\\\\][A-Za-z0-9_\\\\]*$/',
 				$definition->handler,
@@ -318,7 +318,7 @@ final class LoaderTest extends TestCase {
 	public function test_handlers_read_no_options_and_no_database(): void {
 		$forbidden = array( 'get_option(', 'update_option(', 'get_transient(', '$wpdb', 'namespace ', 'vendor/autoload' );
 
-		$handlers = glob( WPDEBLOAT_TESTS_ROOT . '/runtime-handlers/*.php' );
+		$handlers = glob( DEBLOATER_TESTS_ROOT . '/runtime-handlers/*.php' );
 
 		foreach ( false === $handlers ? array() : $handlers as $path ) {
 			$source = file_get_contents( $path );
@@ -546,7 +546,7 @@ final class LoaderTest extends TestCase {
 	public function test_a_missing_registry_directory_is_refused(): void {
 		$this->expectException( RuntimeException::class );
 
-		new Loader( WPDEBLOAT_TESTS_ROOT . '/registry-does-not-exist' );
+		new Loader( DEBLOATER_TESTS_ROOT . '/registry-does-not-exist' );
 	}
 
 	/**
@@ -567,7 +567,7 @@ final class LoaderTest extends TestCase {
 	 * @return void
 	 */
 	public function test_a_config_handler_outside_runtime_handlers_is_refused(): void {
-		$this->expectException( \WPDebloat\Contracts\ContractViolation::class );
+		$this->expectException( \Debloater\Contracts\ContractViolation::class );
 		$this->expectExceptionMessageMatches( '/must live under runtime-handlers/' );
 
 		TweakDefinition::fromArray( $this->definitionDocument( 'core.example', array( 'handler' => 'src/Evil.php' ) ) );
@@ -579,7 +579,7 @@ final class LoaderTest extends TestCase {
 	 * @return Registry
 	 */
 	private function shippedRegistry(): Registry {
-		return ( new Loader( WPDEBLOAT_TESTS_ROOT . '/registry' ) )->load();
+		return ( new Loader( DEBLOATER_TESTS_ROOT . '/registry' ) )->load();
 	}
 
 	/**
@@ -616,12 +616,12 @@ final class LoaderTest extends TestCase {
 	 * @return string The registry directory path.
 	 */
 	private function temporaryRegistry( array $definitions ): string {
-		$directory = sys_get_temp_dir() . '/wpdebloat-registry-' . bin2hex( random_bytes( 6 ) );
+		$directory = sys_get_temp_dir() . '/debloater-registry-' . bin2hex( random_bytes( 6 ) );
 
 		mkdir( $directory . '/tweaks', 0777, true );
 		mkdir( $directory . '/schemas', 0777, true );
 
-		$schemas = glob( WPDEBLOAT_TESTS_ROOT . '/registry/schemas/*.json' );
+		$schemas = glob( DEBLOATER_TESTS_ROOT . '/registry/schemas/*.json' );
 
 		foreach ( false === $schemas ? array() : $schemas as $schema ) {
 			copy( $schema, $directory . '/schemas/' . basename( $schema ) );

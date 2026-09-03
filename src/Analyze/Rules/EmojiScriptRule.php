@@ -2,17 +2,17 @@
 /**
  * Analyzer rule: wp.emojis.loaded.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Analyze\Rules;
+namespace Debloater\Analyze\Rules;
 
-use WPDebloat\Contracts\Category;
-use WPDebloat\Contracts\Impact;
-use WPDebloat\Contracts\Risk;
-use WPDebloat\Contracts\Severity;
+use Debloater\Contracts\Category;
+use Debloater\Contracts\Impact;
+use Debloater\Contracts\Risk;
+use Debloater\Contracts\Severity;
 
 /**
  * Fires when the emoji detection script is still attached to wp_head.
@@ -102,7 +102,7 @@ final class EmojiScriptRule extends CoreFeatureRule {
 	 * @return string
 	 */
 	protected function title(): string {
-		return __( 'A compatibility script for emoji loads on every page', 'wp-debloat' );
+		return __( 'A compatibility script for emoji loads on every page', 'debloater' );
 	}
 
 	/**
@@ -111,7 +111,7 @@ final class EmojiScriptRule extends CoreFeatureRule {
 	 * @return string
 	 */
 	protected function summary(): string {
-		return __( 'The emoji detection script, its inline styles and a DNS prefetch to s.w.org load on every page of the site.', 'wp-debloat' );
+		return __( 'The emoji detection script, its inline styles and a DNS prefetch to s.w.org load on every page of the site.', 'debloater' );
 	}
 
 	/**
@@ -120,7 +120,7 @@ final class EmojiScriptRule extends CoreFeatureRule {
 	 * @return string
 	 */
 	protected function why(): string {
-		return __( 'The script exists to replace emoji characters with images on browsers that cannot display them. Every browser still receiving updates can display them natively, so on almost every site this is a script, a stylesheet and a third-party DNS lookup spent on a problem that no longer exists.', 'wp-debloat' );
+		return __( 'The script exists to replace emoji characters with images on browsers that cannot display them. Every browser still receiving updates can display them natively, so on almost every site this is a script, a stylesheet and a third-party DNS lookup spent on a problem that no longer exists.', 'debloater' );
 	}
 
 	/**
@@ -129,6 +129,6 @@ final class EmojiScriptRule extends CoreFeatureRule {
 	 * @return string
 	 */
 	protected function evidenceLabel(): string {
-		return __( 'Emoji detection script', 'wp-debloat' );
+		return __( 'Emoji detection script', 'debloater' );
 	}
 }

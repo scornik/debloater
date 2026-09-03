@@ -2,21 +2,21 @@
 /**
  * Reads and writes recovery points.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Storage\Repositories;
+namespace Debloater\Storage\Repositories;
 
 use RuntimeException;
-use WPDebloat\Contracts\ContractViolation;
-use WPDebloat\Contracts\Json;
-use WPDebloat\Contracts\Snapshot;
-use WPDebloat\Contracts\SnapshotItem;
-use WPDebloat\Contracts\SnapshotLevel;
-use WPDebloat\Contracts\SnapshotStatus;
-use WPDebloat\Storage\Schema;
+use Debloater\Contracts\ContractViolation;
+use Debloater\Contracts\Json;
+use Debloater\Contracts\Snapshot;
+use Debloater\Contracts\SnapshotItem;
+use Debloater\Contracts\SnapshotLevel;
+use Debloater\Contracts\SnapshotStatus;
+use Debloater\Storage\Schema;
 
 /**
  * Persistence for snapshots and their items (BUILD-SPEC §8).

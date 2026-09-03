@@ -2,15 +2,15 @@
 /**
  * Action recorded in the journal.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Contracts;
+namespace Debloater\Contracts;
 
 /**
- * Journal action (BUILD-SPEC §8, wpdebloat_journal.action).
+ * Journal action (BUILD-SPEC §8, debloater_journal.action).
  */
 enum JournalAction: string {
 

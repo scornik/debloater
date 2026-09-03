@@ -4,18 +4,18 @@
  *
  * See core-remove-generator.php for the rules every runtime handler follows.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 defined( 'ABSPATH' ) || exit;
 
-if ( ! class_exists( 'WPDebloat_Handler_Elementor_Disable_Google_Fonts', false ) ) {
+if ( ! class_exists( 'Debloater_Handler_Elementor_Disable_Google_Fonts', false ) ) {
 
 	/**
 	 * Turns off Elementor's Google Fonts loading through its own filter.
 	 *
 	 * `elementor/frontend/print_google_fonts` is a filter Elementor documents and
-	 * supports, which is the only reason this tweak exists at all. WP Debloat
+	 * supports, which is the only reason this tweak exists at all. Debloater
 	 * does not reach into another plugin's internals: where a supported switch
 	 * exists it uses it, and where one does not, the answer is a finding rather
 	 * than a change.
@@ -25,7 +25,7 @@ if ( ! class_exists( 'WPDebloat_Handler_Elementor_Disable_Google_Fonts', false )
 	 * depends on a particular typeface that is visible, which is why the tweak is
 	 * medium risk and says so.
 	 */
-	final class WPDebloat_Handler_Elementor_Disable_Google_Fonts {
+	final class Debloater_Handler_Elementor_Disable_Google_Fonts {
 
 		/**
 		 * Register the handler's hooks.

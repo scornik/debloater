@@ -2,17 +2,17 @@
 /**
  * Decides which findings must not be acted on.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Analyze;
+namespace Debloater\Analyze;
 
-use WPDebloat\Contracts\Decision;
-use WPDebloat\Contracts\FactSet;
-use WPDebloat\Contracts\Finding;
-use WPDebloat\Registry\Registry;
+use Debloater\Contracts\Decision;
+use Debloater\Contracts\FactSet;
+use Debloater\Contracts\Finding;
+use Debloater\Registry\Registry;
 
 /**
  * Turns a recommendation into a refusal (BUILD-SPEC §6, locked decision #6).
@@ -20,7 +20,7 @@ use WPDebloat\Registry\Registry;
  * "Don't touch" is a first-class outcome, not the absence of one. A site where
  * Contact Form 7 depends on the public REST API should not be shown a greyed-out
  * suggestion to restrict it, and should certainly not be shown an enabled one:
- * it should be told, in plain words, that this is one of the things WP Debloat
+ * it should be told, in plain words, that this is one of the things Debloater
  * looked at and decided to leave alone, and why.
  *
  * Two sources feed the decision:
@@ -164,7 +164,7 @@ final class DontTouchRules {
 	 * confidence. Only the removal set refuses.
 	 *
 	 * @param string $finding_id Finding id.
-	 * @return array<int,\WPDebloat\Registry\CompatRule>
+	 * @return array<int,\Debloater\Registry\CompatRule>
 	 */
 	public function dependents( string $finding_id ): array {
 		$capability = self::REMOVES_CAPABILITY[ $finding_id ] ?? ( self::AFFECTS_CAPABILITY[ $finding_id ] ?? null );
@@ -176,7 +176,7 @@ final class DontTouchRules {
 	 * The dependents that amount to a refusal.
 	 *
 	 * @param string $finding_id Finding id.
-	 * @return array<int,\WPDebloat\Registry\CompatRule>
+	 * @return array<int,\Debloater\Registry\CompatRule>
 	 */
 	public function blockingDependents( string $finding_id ): array {
 		return $this->dependentsOnCapability( self::REMOVES_CAPABILITY[ $finding_id ] ?? null );
@@ -187,7 +187,7 @@ final class DontTouchRules {
 	 * capability to depend on.
 	 *
 	 * @param string|null $capability Capability name.
-	 * @return array<int,\WPDebloat\Registry\CompatRule>
+	 * @return array<int,\Debloater\Registry\CompatRule>
 	 */
 	private function dependentsOnCapability( ?string $capability ): array {
 		if ( null === $capability ) {
@@ -239,7 +239,7 @@ final class DontTouchRules {
 				'%s is installed and depends on this, so changing it would break something you are using.',
 				'These are installed and depend on this, so changing it would break something you are using: %s.',
 				count( $names ),
-				'wp-debloat'
+				'debloater'
 			),
 			implode( ', ', $names )
 		);
@@ -277,7 +277,7 @@ final class DontTouchRules {
 			/* translators: %d: number of people who edited content in the last seven days. */
 			__(
 				'%d people edited content here in the last week and this is a WooCommerce store. Heartbeat is what warns them they are about to overwrite each other, and what keeps a checkout session from expiring mid-order. Slowing it down here would cost more than it saves.',
-				'wp-debloat'
+				'debloater'
 			),
 			$editors
 		);
@@ -286,7 +286,7 @@ final class DontTouchRules {
 	/**
 	 * A refusal because something on this site shows a cart away from the shop.
 	 *
-	 * The cart-fragments change is the one where WP Debloat is most likely to be
+	 * The cart-fragments change is the one where Debloater is most likely to be
 	 * confidently wrong. Most shop themes put a cart total in the header, and on
 	 * such a site the fragments are needed on every page — that is what keeps the
 	 * total correct. Making them conditional there leaves a number that never
@@ -309,7 +309,7 @@ final class DontTouchRules {
 		if ( array() === $pages ) {
 			return __(
 				'Something on this site shows a cart away from the shop, so the cart-fragments script is needed on every page to keep it correct. Making it conditional here would leave a cart total that never updates.',
-				'wp-debloat'
+				'debloater'
 			);
 		}
 
@@ -319,7 +319,7 @@ final class DontTouchRules {
 				'This page shows a cart away from the shop: %s. The cart-fragments script is what keeps that total correct, so it is needed on every page; making it conditional would leave a number that never updates.',
 				'These pages show a cart away from the shop: %s. The cart-fragments script is what keeps those totals correct, so it is needed on every page; making it conditional would leave numbers that never update.',
 				count( $pages ),
-				'wp-debloat'
+				'debloater'
 			),
 			implode( ', ', array_slice( $pages, 0, 5 ) )
 		);

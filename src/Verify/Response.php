@@ -2,12 +2,12 @@
 /**
  * What a verification request came back with.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Verify;
+namespace Debloater\Verify;
 
 /**
  * One HTTP response, reduced to what a probe needs to judge it.

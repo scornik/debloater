@@ -12,7 +12,7 @@ import App from './App';
 import './style.scss';
 
 domReady( () => {
-	const root = document.getElementById( 'wpdebloat-root' );
+	const root = document.getElementById( 'debloater-root' );
 
 	if ( ! root ) {
 		return;

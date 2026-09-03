@@ -4,12 +4,12 @@
  *
  * See core-remove-generator.php for the rules every runtime handler follows.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 defined( 'ABSPATH' ) || exit;
 
-if ( ! class_exists( 'WPDebloat_Handler_Core_Remove_Jquery_Migrate', false ) ) {
+if ( ! class_exists( 'Debloater_Handler_Core_Remove_Jquery_Migrate', false ) ) {
 
 	/**
 	 * Removes jQuery Migrate from the jQuery bundle on the front end.
@@ -23,7 +23,7 @@ if ( ! class_exists( 'WPDebloat_Handler_Core_Remove_Jquery_Migrate', false ) ) {
 	 * The admin is left alone. Plenty of plugins ship admin scripts that still
 	 * need Migrate, and the admin is not where page weight matters.
 	 */
-	final class WPDebloat_Handler_Core_Remove_Jquery_Migrate {
+	final class Debloater_Handler_Core_Remove_Jquery_Migrate {
 
 		/**
 		 * Register the handler's hooks.

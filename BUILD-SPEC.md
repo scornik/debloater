@@ -1,8 +1,8 @@
-# WP Debloat v0.4 — Claude Code Build Specification
+# Debloater v0.4 — Claude Code Build Specification
 
 **Supersedes:** Spec v0.3 + autonomous-build hardening review. Where they differ, this document wins.
 **Owner:** Ashik / Hakeemify · **Date:** 2026-09-02 · **Status:** Ready for autonomous Phase 0→20 execution
-**Repo (proposed):** `github.com/scornik/wp-debloat` (private until Phase 18)
+**Repo (proposed):** `github.com/scornik/debloater` (private until Phase 18)
 
 ---
 
@@ -36,7 +36,7 @@ Autonomous protocol (Claude Code follows for every phase):
 |---|---|---|
 | 1 | Score is a **Debloat Score** (configuration/maintenance), not a performance benchmark | No "Performance" sub-score in v1. Claims are always measurable ("requests −31%"), never "faster". §12 |
 | 2 | **Scanner → Facts → Analyzer → Findings → Engine → Tweaks** is separate from **Meter → before/after** | Two pipelines, two modules, two tables. §2, §12 |
-| 3 | **Three recovery levels** (A config, B data-operation backup, C external backup attestation) | `snapshots` + `snapshot_items` tables; destructive tweaks require Level B. Level C is an optional user attestation, not a WP Debloat snapshot. §8, §9 |
+| 3 | **Three recovery levels** (A config, B data-operation backup, C external backup attestation) | `snapshots` + `snapshot_items` tables; destructive tweaks require Level B. Level C is an optional user attestation, not a Debloater snapshot. §8, §9 |
 | 4 | **Safe ≠ cannot break.** Risk and **Confidence** are separate dimensions | `risk` enum + `confidence` float on every Finding. §6 |
 | 5 | Every Finding carries **Evidence** | `evidence[]` with fact-key provenance. §6 |
 | 6 | **Don't Touch** is a first-class decision | `decision: dont_touch` + reason. §6 |
@@ -52,7 +52,7 @@ Autonomous protocol (Claude Code follows for every phase):
 ## 2. Final architecture
 
 ```
-                             WP DEBLOAT
+                             DEBLOATER
                                  │
                     ┌────────────┴────────────┐
                     │                         │
@@ -120,9 +120,9 @@ Cross-cutting: Journal, Locks, Security, CLI, REST, Admin UI
 |---|---|
 | PHP | 8.1+ (CI: 8.1, 8.2, 8.3) |
 | WordPress | 6.5+ (CI: latest, latest−1) |
-| Namespace | `WPDebloat\` PSR-4 from `src/`. Runtime handlers in `runtime-handlers/` are **not** autoloaded (see §10) |
-| Prefix | functions/hooks `wpdebloat_`, options `wpdebloat_`, tables `{$wpdb->prefix}wpdebloat_`, REST `wpdebloat/v1`, CLI `wp debloat`, constants `WPDEBLOAT_` |
-| Brand | `WPDebloat\Brand::NAME` etc. from one `Brand` class; text domain `wp-debloat` |
+| Namespace | `Debloater\` PSR-4 from `src/`. Runtime handlers in `runtime-handlers/` are **not** autoloaded (see §10) |
+| Prefix | functions/hooks `debloater_`, options `debloater_`, tables `{$wpdb->prefix}debloater_`, REST `debloater/v1`, CLI `wp debloater`, constants `DEBLOATER_` |
+| Brand | `Debloater\Brand::NAME` etc. from one `Brand` class; text domain `debloater` |
 | Build | Composer (dev deps only; no runtime deps), `@wordpress/scripts` for the admin bundle |
 | Tests | PHPUnit 10 (unit, no WP), `@wordpress/env` + WP PHPUnit for integration, Playwright (Phase 16) |
 | Lint | PHPCS with WordPress-Extra + WordPress-VIP-Go-lite, PHPStan level 6, ESLint via wp-scripts |
@@ -133,8 +133,8 @@ Cross-cutting: Journal, Locks, Security, CLI, REST, Admin UI
 ## 4. Exact folder structure
 
 ```
-wp-debloat/
-├── wp-debloat.php                     # bootstrap: constants, autoload, Plugin::boot()
+debloater/
+├── debloater.php                     # bootstrap: constants, autoload, Plugin::boot()
 ├── uninstall.php                      # removes tables/options/runtime file only if opt-in set
 ├── composer.json  package.json  phpunit.xml.dist  phpunit-wp.xml.dist  phpcs.xml.dist  phpstan.neon
 ├── .wp-env.json                       # WP latest + Woo + Elementor + CF7 + Rank Math + LiteSpeed for tests
@@ -206,7 +206,7 @@ wp-debloat/
 │   └── detectors/ woocommerce.json elementor.json contact-form-7.json litespeed.json …
 ├── admin-ui/                          # React source → build/admin.js (single bundle)
 │   └── src/ (App, screens/Dashboard, screens/Findings, screens/Finding, screens/Preview, screens/Run, api/)
-├── mu-loader/ wp-debloat-loader.php   # copied to mu-plugins on activation (see §10)
+├── mu-loader/ debloater-loader.php   # copied to mu-plugins on activation (see §10)
 └── tests/
     ├── Unit/        (no WP; contracts, registry, resolver, compiler, engine, state machine)
     ├── Integration/ (wp-env; scanners, apply, snapshot, verify, CLI)
@@ -216,10 +216,10 @@ wp-debloat/
 
 Generated at runtime (never committed):
 ```
-wp-content/wpdebloat/runtime.php       # compiled runtime (0644, atomic write)
-wp-content/wpdebloat/runtime.lock      # sha256 of runtime.php + selection hash
-wp-content/wpdebloat/backups/          # Level B overflow files (gz JSON) when > 8 MB
-wp-content/mu-plugins/wp-debloat-loader.php
+wp-content/debloater/runtime.php       # compiled runtime (0644, atomic write)
+wp-content/debloater/runtime.lock      # sha256 of runtime.php + selection hash
+wp-content/debloater/backups/          # Level B overflow files (gz JSON) when > 8 MB
+wp-content/mu-plugins/debloater-loader.php
 ```
 
 ---
@@ -319,7 +319,7 @@ Rules:
   "base_confidence": 0.95,
   "reversible": true,
   "destructive": false,                     // true only for data tweaks that delete rows
-  "handler": "runtime-handlers/core-heartbeat-interval.php",   // config: file; data: "WPDebloat\\Apply\\DataOperations\\X"
+  "handler": "runtime-handlers/core-heartbeat-interval.php",   // config: file; data: "Debloater\\Apply\\DataOperations\\X"
   "params": { "interval": { "type": "integer", "minimum": 15, "maximum": 120, "default": 60 } },
   "description": "Changes the interval WordPress uses for Heartbeat polling in admin and frontend.",
   "breaks": ["Post-lock notifications become slower with many concurrent editors"],
@@ -359,10 +359,10 @@ Rules:
 
 ## 8. Database tables & storage
 
-All via `dbDelta` in `Storage\Schema`, versioned by `wpdebloat_state.schema_version`.
+All via `dbDelta` in `Storage\Schema`, versioned by `debloater_state.schema_version`.
 
 ```sql
-{prefix}wpdebloat_runs (
+{prefix}debloater_runs (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   type ENUM('scan','apply','rollback','verify','measure') NOT NULL,
   status VARCHAR(32) NOT NULL,              -- state machine state (§9)
@@ -374,7 +374,7 @@ All via `dbDelta` in `Storage\Schema`, versioned by `wpdebloat_state.schema_vers
   KEY type_status (type, status), KEY started_at (started_at)
 )
 
-{prefix}wpdebloat_snapshots (
+{prefix}debloater_snapshots (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   run_id BIGINT UNSIGNED NOT NULL,
   level ENUM('A','B') NOT NULL,             -- A config | B data backup; Level C is external attestation only
@@ -389,7 +389,7 @@ All via `dbDelta` in `Storage\Schema`, versioned by `wpdebloat_state.schema_vers
   KEY run_id (run_id), KEY status_created (status, created_at)
 )
 
-{prefix}wpdebloat_snapshot_items (         -- Level B rows; exactly what will be deleted
+{prefix}debloater_snapshot_items (         -- Level B rows; exactly what will be deleted
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   snapshot_id BIGINT UNSIGNED NOT NULL,
   object_type VARCHAR(32) NOT NULL,         -- revision | postmeta | comment | commentmeta | transient | cron | option
@@ -399,7 +399,7 @@ All via `dbDelta` in `Storage\Schema`, versioned by `wpdebloat_state.schema_vers
   KEY snapshot_id (snapshot_id), KEY snapshot_type (snapshot_id, object_type)
 )
 
-{prefix}wpdebloat_journal (
+{prefix}debloater_journal (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   run_id BIGINT UNSIGNED NOT NULL,
   tweak_id VARCHAR(100) NOT NULL,
@@ -409,7 +409,7 @@ All via `dbDelta` in `Storage\Schema`, versioned by `wpdebloat_state.schema_vers
   KEY run_id (run_id), KEY tweak_id (tweak_id)
 )
 
-{prefix}wpdebloat_measurements (
+{prefix}debloater_measurements (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   run_id BIGINT UNSIGNED NOT NULL,
   phase ENUM('before','after') NOT NULL,
@@ -421,7 +421,7 @@ All via `dbDelta` in `Storage\Schema`, versioned by `wpdebloat_state.schema_vers
 
 Options (exactly one, `autoload = 'no'`):
 ```json
-"wpdebloat_state": {
+"debloater_state": {
   "schema_version": 1,
   "selection": { "core.disable_emojis": {}, "core.heartbeat_interval": { "interval": 60 } },
   "tweak_states": { "core.disable_emojis": "COMMITTED" },
@@ -429,7 +429,7 @@ Options (exactly one, `autoload = 'no'`):
   "last_scan_run_id": 41, "runtime_hash": "…", "installed_at": "…", "uninstall_cleanup": false
 }
 ```
-Transient `wpdebloat_lock` (60 s TTL, refreshed during runs) guarantees one apply/rollback at a time.
+Transient `debloater_lock` (60 s TTL, refreshed during runs) guarantees one apply/rollback at a time.
 
 Retention: snapshots older than 30 days with status `complete` → `expired` and items purged (daily cron, opt-out). The most recent 3 snapshots are always kept.
 
@@ -444,7 +444,7 @@ DISCOVERED → ELIGIBLE → RECOMMENDED → SELECTED → PREVIEWED → SNAPSHOTT
                                                                         └→ APPLY_FAILED → ROLLED_BACK
 COMMITTED → REVERT_REQUESTED → ROLLED_BACK   (manual undo)
 ```
-Stored per tweak in `wpdebloat_state.tweak_states`; every transition writes a journal row.
+Stored per tweak in `debloater_state.tweak_states`; every transition writes a journal row.
 
 ### 9.2 Apply run (`RunStateMachine`)
 ```
@@ -470,22 +470,22 @@ Transition table lives in `docs/STATE-MACHINE.md`, generated from the enum by a 
 
 ## 10. Runtime v1 (simple by design)
 
-**Generated file** `wp-content/wpdebloat/runtime.php`:
+**Generated file** `wp-content/debloater/runtime.php`:
 ```php
 <?php
-/* WP Debloat runtime — generated 2026-09-02T18:34:00Z — selection a1b2c3… — DO NOT EDIT */
-if ( ! defined( 'ABSPATH' ) || defined( 'WPDEBLOAT_DISABLE' ) ) { return; }
-if ( isset( $_GET['wpdebloat'] ) && $_GET['wpdebloat'] === 'off' && \WPDebloat_Runtime_Guard::bypass_allowed() ) { return; }
-require_once '/abs/path/wp-debloat/runtime-handlers/core-disable-emojis.php';
-WPDebloat_Handler_Core_Disable_Emojis::register( array() );
-require_once '/abs/path/wp-debloat/runtime-handlers/core-heartbeat-interval.php';
-WPDebloat_Handler_Core_Heartbeat_Interval::register( array( 'interval' => 60 ) );
+/* Debloater runtime — generated 2026-09-02T18:34:00Z — selection a1b2c3… — DO NOT EDIT */
+if ( ! defined( 'ABSPATH' ) || defined( 'DEBLOATER_DISABLE' ) ) { return; }
+if ( isset( $_GET['debloater'] ) && $_GET['debloater'] === 'off' && \Debloater_Runtime_Guard::bypass_allowed() ) { return; }
+require_once '/abs/path/debloater/runtime-handlers/core-disable-emojis.php';
+Debloater_Handler_Core_Disable_Emojis::register( array() );
+require_once '/abs/path/debloater/runtime-handlers/core-heartbeat-interval.php';
+Debloater_Handler_Core_Heartbeat_Interval::register( array( 'interval' => 60 ) );
 ```
 - Handlers are plain, dependency-free static classes with one `register(array $params): void` and one `unregister(): void` (used by tests). No namespaces, no autoloader, no option reads.
 - Params are emitted with `var_export` **after** schema validation; user input never reaches the generated code path unvalidated.
 - `RuntimeWriter` writes to a temp file, `php -l`-equivalent validates via `token_get_all` + a syntax check subprocess when available, then atomic `rename`. `runtime.lock` holds sha256; `RuntimeLoadedProbe` compares via REST status.
-- **Loader**: on activation copy `mu-loader/wp-debloat-loader.php` to `mu-plugins` (loads `runtime.php` if present and hash matches). If `mu-plugins` isn't writable → fallback: main plugin includes `runtime.php` at `plugins_loaded` priority −999 and `RuntimeLoadedProbe` reports `WARN: fallback loader`. Recorded in `DECISIONS.md` (Phase 1).
-- Bypass: `?wpdebloat=off` requires a valid nonce for logged-in users with the capability; the constant works for everyone.
+- **Loader**: on activation copy `mu-loader/debloater-loader.php` to `mu-plugins` (loads `runtime.php` if present and hash matches). If `mu-plugins` isn't writable → fallback: main plugin includes `runtime.php` at `plugins_loaded` priority −999 and `RuntimeLoadedProbe` reports `WARN: fallback loader`. Recorded in `DECISIONS.md` (Phase 1).
+- Bypass: `?debloater=off` requires a valid nonce for logged-in users with the capability; the constant works for everyone.
 - Empty selection → runtime file removed, loader is a no-op. Test asserts zero hooks registered.
 
 ---
@@ -501,10 +501,10 @@ Each probe returns `ProbeResult { probe, status: PASS|WARN|FAIL|UNKNOWN|NOT_TEST
 | `admin` | GET `/wp-admin/` with cookie of actor | non-2xx/redirect loop, fatal markers | dashboard markers missing |
 | `rest` | GET `/wp-json/` and `/wp-json/wp/v2/types` | non-2xx or invalid JSON | 401 when `rest:public` expected |
 | `login` | GET `/wp-login.php` | non-2xx | — |
-| `runtime_loaded` | GET `/wp-json/wpdebloat/v1/status` | hash mismatch or not loaded when selection non-empty | fallback loader in use |
+| `runtime_loaded` | GET `/wp-json/debloater/v1/status` | hash mismatch or not loaded when selection non-empty | fallback loader in use |
 | later | `woo_cart`, `woo_checkout`, `woo_account`, `cf7_form`, `elementor_editor` | — | — |
 
-Aggregate: FAIL if any FAIL; else WARN if any WARN/UNKNOWN; else PASS. Probes not applicable to the stack report `NOT_TESTED` and are shown ("Checkout: not tested") so confidence is never overstated. HTTP via `wp_remote_get` with `sslverify` honoring site setting, 15 s timeout, `X-WPDebloat-Verify: 1` header (never used to change behavior, only for logs). Loopback failure → all HTTP probes `UNKNOWN`, run ends `VERIFIED_WITH_WARNINGS`, user is told loopback is blocked.
+Aggregate: FAIL if any FAIL; else WARN if any WARN/UNKNOWN; else PASS. Probes not applicable to the stack report `NOT_TESTED` and are shown ("Checkout: not tested") so confidence is never overstated. HTTP via `wp_remote_get` with `sslverify` honoring site setting, 15 s timeout, `X-Debloater-Verify: 1` header (never used to change behavior, only for logs). Loopback failure → all HTTP probes `UNKNOWN`, run ends `VERIFIED_WITH_WARNINGS`, user is told loopback is blocked.
 
 ---
 
@@ -521,12 +521,12 @@ Aggregate: FAIL if any FAIL; else WARN if any WARN/UNKNOWN; else PASS. Probes no
 
 ## 13. Security rules (enforced, tested in Phase 18)
 
-1. Capability `wpdebloat_manage` mapped to `manage_options` (filterable). Every REST route, admin action, and AJAX handler checks it in `permission_callback`.
+1. Capability `debloater_manage` mapped to `manage_options` (filterable). Every REST route, admin action, and AJAX handler checks it in `permission_callback`.
 2. Nonces on every state-changing request; REST uses cookie auth + `X-WP-Nonce`.
 3. All inbound params validated against JSON schema (`Sanitizer`), then sanitized; unknown keys rejected.
 4. Output escaped at the edge (`esc_html`, `esc_attr`, `wp_json_encode`).
 5. Generated code: only registry-declared handler paths (resolved and realpath-checked inside plugin dir); params via `var_export` of validated values only.
-6. Filesystem: writes only under `wp-content/wpdebloat/` and `mu-plugins/`; atomic writes; 0644; no user-controlled paths.
+6. Filesystem: writes only under `wp-content/debloater/` and `mu-plugins/`; atomic writes; 0644; no user-controlled paths.
 7. Snapshots: checksum verified before restore; restore refuses on `corrupt`; site_hash must match.
 8. Rollback/apply require an explicit confirmation token (UI) or `--yes` (CLI). Destructive data ops additionally require Level B snapshot `complete`.
 9. No outbound HTTP except loopback verification; registry fetch (Phase 17) is opt-in.
@@ -535,17 +535,17 @@ Aggregate: FAIL if any FAIL; else WARN if any WARN/UNKNOWN; else PASS. Probes no
 12. No PII in journal beyond actor id.
 13. **Licensing is provider-agnostic.** Pro entitlement is obtained through an
     `EntitlementProvider` interface; the first implementation targets a
-    third-party licensing platform (Freemius). WP Debloat operates no license
+    third-party licensing platform (Freemius). Debloater operates no license
     server of its own, and no Hakeemify host is a prerequisite for Pro.
 14. **Hakeemify Cloud is optional.** If a cloud service is used it is reachable
     at exactly one host, `cloud.hakeemify.com`, under versioned, product-scoped
-    paths (`https://cloud.hakeemify.com/v1/wp-debloat/...`). It exists for
+    paths (`https://cloud.hakeemify.com/v1/debloater/...`). It exists for
     substantive server-backed functionality only; a cloud endpoint whose real
     purpose is license validation is prohibited. No separate `license.`, `api.`,
     `registry.` or `app.` host is required infrastructure.
 15. **Nothing secret ships.** No private signing key, payment-provider secret,
     or global API secret appears in any distributed package. A public
-    verification key may be embedded. Free WP Debloat is fully functional with
+    verification key may be embedded. Free Debloater is fully functional with
     no Pro, no licensing platform and no cloud; a service outage never causes
     destructive behaviour; and security fixes are never license-gated.
 
@@ -564,7 +564,7 @@ Aggregate: FAIL if any FAIL; else WARN if any WARN/UNKNOWN; else PASS. Probes no
 | Static | PHPCS, PHPStan L6, ESLint | every push | — |
 | Performance | integration | nightly | runtime overhead: hooks registered with empty selection = 0; runtime.php parse time; no queries added on frontend |
 
-**The MVP acceptance test (Phase 9 exit, automated in Integration):** on the wp-env "full" stack with seeded revisions/transients/cron/autoload: scan reports ≥ 12 findings including ≥ 1 `dont_touch`; `Fix Safe Issues` creates a snapshot, applies, verifies PASS, produces a before/after report; a forced probe failure (`WPDEBLOAT_TEST_FAIL_PROBE=rest`) triggers automatic rollback and restores the prior selection and runtime hash exactly.
+**The MVP acceptance test (Phase 9 exit, automated in Integration):** on the wp-env "full" stack with seeded revisions/transients/cron/autoload: scan reports ≥ 12 findings including ≥ 1 `dont_touch`; `Fix Safe Issues` creates a snapshot, applies, verifies PASS, produces a before/after report; a forced probe failure (`DEBLOATER_TEST_FAIL_PROBE=rest`) triggers automatic rollback and restores the prior selection and runtime hash exactly.
 
 ---
 
@@ -598,7 +598,7 @@ Every prompt assumes the session protocol in §0. `[CC]` blocks are copy-paste p
 ### PHASE 0 — Architecture & contracts
 **Goal:** Freeze contracts. No WordPress UI.
 **Tasks**
-1. Scaffold repo per §4 (empty dirs with `.gitkeep`), `composer.json` (PSR-4 `WPDebloat\` → `src/`, dev: phpunit, phpcs, phpstan), `phpunit.xml.dist`, `.editorconfig`, `CLAUDE.md`, `CONVENTIONS.md` (copy from Hakeemify), `docs/DECISIONS.md`, `docs/BUILD-SPEC.md` (this file).
+1. Scaffold repo per §4 (empty dirs with `.gitkeep`), `composer.json` (PSR-4 `Debloater\` → `src/`, dev: phpunit, phpcs, phpstan), `phpunit.xml.dist`, `.editorconfig`, `CLAUDE.md`, `CONVENTIONS.md` (copy from Hakeemify), `docs/DECISIONS.md`, `docs/BUILD-SPEC.md` (this file).
 2. Implement `src/Contracts/*` as final, immutable value objects (constructor promotion, `readonly`), with `fromArray()`/`toArray()` and validation throwing `ContractViolation`.
 3. Write `registry/schemas/*.schema.json` for Fact, Finding, Tweak, Compat, Profile, Detector matching §5–§7 exactly.
 4. `Registry\SchemaValidator` using `justinrainbow/json-schema` (dev+runtime? → **no runtime deps**: vendor a minimal validator or implement the subset we use; record decision).
@@ -610,7 +610,7 @@ Every prompt assumes the session protocol in §0. `[CC]` blocks are copy-paste p
 ```
 [CC] Phase 0 — Architecture & contracts
 Read CLAUDE.md, docs/BUILD-SPEC.md sections 0–4, 5–9, and docs/DECISIONS.md. Restate the Phase 0 goal and exit criteria, then implement Phase 0 as the current phase.
-Scaffold the repository exactly as in BUILD-SPEC §4 (create directories with .gitkeep). Create composer.json with PSR-4 "WPDebloat\\" => "src/", dev dependencies for PHPUnit 10, PHPCS (WordPress standards), PHPStan; there must be zero runtime Composer dependencies. Implement every class in src/Contracts as final readonly value objects with fromArray()/toArray() and strict validation that throws WPDebloat\Contracts\ContractViolation. Write registry/schemas/*.schema.json matching BUILD-SPEC §5, §6, §7 field-for-field. Implement TweakState and RunState enums and RunStateMachine with the exact transitions in §9; illegal transitions throw IllegalTransition. Add a test that renders the transition table to docs/STATE-MACHINE.md and fails if the committed file is stale. Decide how to validate JSON schema without a runtime dependency (vendored minimal validator vs. hand-written subset) and record the choice in docs/DECISIONS.md before implementing.
+Scaffold the repository exactly as in BUILD-SPEC §4 (create directories with .gitkeep). Create composer.json with PSR-4 "Debloater\\" => "src/", dev dependencies for PHPUnit 10, PHPCS (WordPress standards), PHPStan; there must be zero runtime Composer dependencies. Implement every class in src/Contracts as final readonly value objects with fromArray()/toArray() and strict validation that throws Debloater\Contracts\ContractViolation. Write registry/schemas/*.schema.json matching BUILD-SPEC §5, §6, §7 field-for-field. Implement TweakState and RunState enums and RunStateMachine with the exact transitions in §9; illegal transitions throw IllegalTransition. Add a test that renders the transition table to docs/STATE-MACHINE.md and fails if the committed file is stale. Decide how to validate JSON schema without a runtime dependency (vendored minimal validator vs. hand-written subset) and record the choice in docs/DECISIONS.md before implementing.
 Do not write any WordPress-dependent code in this phase. Run the full test suite, commit as "phase-0: contracts, schemas, state machine", and report the exit checklist: composer test green; zero runtime deps; all contracts have valid+invalid tests; STATE-MACHINE.md generated.
 ```
 
@@ -620,16 +620,16 @@ Do not write any WordPress-dependent code in this phase. Run the full test suite
 1. `Registry\Loader` + `Registry` (loads `registry/tweaks/*.json`, validates, indexes by id; computes `registry_hash`).
 2. Five tweak JSONs + five handlers: `core.remove_generator`, `core.remove_rsd`, `core.remove_shortlink`, `core.disable_self_pingbacks`, `core.disable_emojis` (plain static classes per §10).
 3. `Recommend\DependencyResolver` v1: conflicts + `requires` on tweak ids only (no fact predicates yet).
-4. `Apply\Compiler` (selection → PHP source string, deterministic ordering by id), `RuntimeWriter` (atomic write, syntax check, `runtime.lock`), `RuntimeLoader` + `mu-loader/wp-debloat-loader.php` with fallback; activation hook installs loader.
-5. `Storage\State` for `wpdebloat_state` (autoload no).
-6. `Rest\Routes\StatusRoute` (`GET wpdebloat/v1/status` → runtime loaded?, hash, loader mode).
-**Tests:** unit: compiler output snapshot tests for 0/1/3 tweaks, determinism, param escaping; integration (wp-env): with empty selection `has_action`/`has_filter` for all handler hooks is false and no `wpdebloat` query runs on a frontend request; with 1 tweak only its hooks exist; regenerating twice yields byte-identical file.
+4. `Apply\Compiler` (selection → PHP source string, deterministic ordering by id), `RuntimeWriter` (atomic write, syntax check, `runtime.lock`), `RuntimeLoader` + `mu-loader/debloater-loader.php` with fallback; activation hook installs loader.
+5. `Storage\State` for `debloater_state` (autoload no).
+6. `Rest\Routes\StatusRoute` (`GET debloater/v1/status` → runtime loaded?, hash, loader mode).
+**Tests:** unit: compiler output snapshot tests for 0/1/3 tweaks, determinism, param escaping; integration (wp-env): with empty selection `has_action`/`has_filter` for all handler hooks is false and no `debloater` query runs on a frontend request; with 1 tweak only its hooks exist; regenerating twice yields byte-identical file.
 **Exit:** overhead test passes; loader fallback documented in DECISIONS.md.
 
 ```
 [CC] Phase 1 — Minimal runtime engine
 Read CLAUDE.md, docs/BUILD-SPEC.md §7.1, §10, §14 and docs/DECISIONS.md. Restate goal and exit criteria, then implement Phase 1 as the current phase.
-Implement Registry\Loader and Registry (validate every registry/tweaks/*.json against the schema, index by id, compute a stable registry_hash). Author exactly five tweaks and their handlers: core.remove_generator, core.remove_rsd, core.remove_shortlink, core.disable_self_pingbacks, core.disable_emojis. Handlers live in runtime-handlers/ as dependency-free static classes named WPDebloat_Handler_<Id> with register(array $params): void and unregister(): void; they must not read options or touch the database. Implement Apply\Compiler (deterministic, sorted by id, params via var_export after schema validation), Apply\RuntimeWriter (temp file + syntax check + atomic rename + runtime.lock sha256), Apply\RuntimeLoader and mu-loader/wp-debloat-loader.php with the plugins_loaded fallback described in §10; record the loader decision in docs/DECISIONS.md. Implement Storage\State (single option wpdebloat_state, autoload no) and the REST route GET wpdebloat/v1/status.
+Implement Registry\Loader and Registry (validate every registry/tweaks/*.json against the schema, index by id, compute a stable registry_hash). Author exactly five tweaks and their handlers: core.remove_generator, core.remove_rsd, core.remove_shortlink, core.disable_self_pingbacks, core.disable_emojis. Handlers live in runtime-handlers/ as dependency-free static classes named Debloater_Handler_<Id> with register(array $params): void and unregister(): void; they must not read options or touch the database. Implement Apply\Compiler (deterministic, sorted by id, params via var_export after schema validation), Apply\RuntimeWriter (temp file + syntax check + atomic rename + runtime.lock sha256), Apply\RuntimeLoader and mu-loader/debloater-loader.php with the plugins_loaded fallback described in §10; record the loader decision in docs/DECISIONS.md. Implement Storage\State (single option debloater_state, autoload no) and the REST route GET debloater/v1/status.
 Set up .wp-env.json and the integration test harness. Tests required: compiler snapshot tests for 0, 1 and 3 selected tweaks; byte-identical output on regeneration; integration proof that an empty selection registers zero hooks and adds zero DB queries to a frontend request; with one tweak selected only that tweak's hooks exist. Commit as "phase-1: registry, compiler, runtime, loader" and report the exit checklist.
 ```
 
@@ -645,7 +645,7 @@ Set up .wp-env.json and the integration test harness. Tests required: compiler s
 ```
 [CC] Phase 2 — Scanner
 Read CLAUDE.md, docs/BUILD-SPEC.md §5, §7.5 and DECISIONS.md. Restate goal and exit criteria, then implement Phase 2 as the current phase.
-Implement FactSet with namespace ownership (a scanner may only write keys in its declared namespace; violations throw). Implement the scanners listed in §4 under src/Scan/Scanners producing exactly the keys enumerated in registry/schemas/fact.schema.json (extend the schema in the same commit if you add a key). Scanners emit facts only — no recommendations, no adjectives. DatabaseScanner must use bounded, indexed queries (COUNT with WHERE on post_type/status, transient expiry via option_name prefix; autoload top-N via ORDER BY LENGTH(option_value) LIMIT 20) and must document its query count in a test. Implement registry/detectors/*.json for woocommerce, elementor, elementor-pro, contact-form-7, rank-math, yoast, litespeed-cache, wp-rocket, wp-super-cache, wordfence, and apply them in PluginScanner. Implement Scan\ScanRunner that applies a 2 s soft budget per scanner, records an over-budget diagnostic fact, and persists a run of type=scan with the FactSet JSON as payload (create the wpdebloat_runs table via Storage\Schema/dbDelta now).
+Implement FactSet with namespace ownership (a scanner may only write keys in its declared namespace; violations throw). Implement the scanners listed in §4 under src/Scan/Scanners producing exactly the keys enumerated in registry/schemas/fact.schema.json (extend the schema in the same commit if you add a key). Scanners emit facts only — no recommendations, no adjectives. DatabaseScanner must use bounded, indexed queries (COUNT with WHERE on post_type/status, transient expiry via option_name prefix; autoload top-N via ORDER BY LENGTH(option_value) LIMIT 20) and must document its query count in a test. Implement registry/detectors/*.json for woocommerce, elementor, elementor-pro, contact-form-7, rank-math, yoast, litespeed-cache, wp-rocket, wp-super-cache, wordfence, and apply them in PluginScanner. Implement Scan\ScanRunner that applies a 2 s soft budget per scanner, records an over-budget diagnostic fact, and persists a run of type=scan with the FactSet JSON as payload (create the debloater_runs table via Storage\Schema/dbDelta now).
 Add wp-env seeding scripts for the integration fixture site (revisions, expired transients, orphan postmeta, cron events, large autoloaded option). Tests: schema validation of produced facts; expected counts on the seeded site; query-count bound for DatabaseScanner. Commit as "phase-2: scanners and facts" and report the exit checklist.
 ```
 
@@ -662,7 +662,7 @@ Add wp-env seeding scripts for the integration fixture site (revisions, expired 
 ```
 [CC] Phase 3 — Analyzer, Findings, Don't Touch, Score
 Read CLAUDE.md, docs/BUILD-SPEC.md §6, §12, §15 and DECISIONS.md. Restate goal and exit criteria, then implement Phase 3 as the current phase.
-Implement AnalyzerRuleInterface and one rule class per finding for the MVP tweak set in §15 plus three info-only findings (inactive plugins present, file editor enabled, XML-RPC enabled). Every Finding must carry evidence entries with a fact key, a severity, an independent risk, and a confidence computed by ConfidenceCalculator (base confidence from the rule × penalties for: unknown host, cache plugin present, dependencies_detected > 0, custom mu-plugins present). Implement DontTouchRules so that REST becomes dont_touch when any detected plugin has a compatibility rule requiring rest:public, and Heartbeat becomes dont_touch when recent_editors_7d ≥ 2 and WooCommerce is active; dont_touch findings must include decision_reason. Implement Analyze\Score exactly per §12 and write docs/SCORING.md v1 with the penalty table, confidence penalties and weights; record the chosen numbers in DECISIONS.md. Persist findings in the scan run payload and expose POST wpdebloat/v1/scan and GET wpdebloat/v1/findings with capability checks.
+Implement AnalyzerRuleInterface and one rule class per finding for the MVP tweak set in §15 plus three info-only findings (inactive plugins present, file editor enabled, XML-RPC enabled). Every Finding must carry evidence entries with a fact key, a severity, an independent risk, and a confidence computed by ConfidenceCalculator (base confidence from the rule × penalties for: unknown host, cache plugin present, dependencies_detected > 0, custom mu-plugins present). Implement DontTouchRules so that REST becomes dont_touch when any detected plugin has a compatibility rule requiring rest:public, and Heartbeat becomes dont_touch when recent_editors_7d ≥ 2 and WooCommerce is active; dont_touch findings must include decision_reason. Implement Analyze\Score exactly per §12 and write docs/SCORING.md v1 with the penalty table, confidence penalties and weights; record the chosen numbers in DECISIONS.md. Persist findings in the scan run payload and expose POST debloater/v1/scan and GET debloater/v1/findings with capability checks.
 Tests: fixture-driven tests per rule (fires, does not fire, dont_touch); the Heartbeat example in §6 must be reproduced field-for-field from its facts; score is deterministic and unchanged when a dont_touch finding is added. Integration: the seeded full-stack site yields at least 12 findings including at least one dont_touch. Commit as "phase-3: analyzer, findings, score" and report the exit checklist.
 ```
 
@@ -675,12 +675,12 @@ Tests: fixture-driven tests per rule (fires, does not fire, dont_touch); the Hea
 5. `DependencyResolver` v2: fact predicates in `requires`.
 6. `PreviewPlanner` → `PreviewPlan { tweaks[], will_change[], will_not[], destructive:false, snapshot_levels[] }` enforcing §7.4 invariants.
 **Tests:** invariants as property tests (random registries/findings → never destructive in safe plan, never conflicting pair, never dont_touch); worked examples from spec.
-**Exit:** `wp debloat preview` equivalent produces the §17 Phase 9 preview text from the seeded site.
+**Exit:** `wp debloater preview` equivalent produces the §17 Phase 9 preview text from the seeded site.
 
 ```
 [CC] Phase 4 — Recommendation engine
 Read CLAUDE.md, docs/BUILD-SPEC.md §7.2–§7.4 and DECISIONS.md. Restate goal and exit criteria, then implement Phase 4 as the current phase.
-Implement IntentProfile (site_type, priority; persisted in wpdebloat_state), CompatibilityResolver over registry/compatibility/*.json (author rules for contact-form-7→rest:public, elementor→jquery, woocommerce→heartbeat and jquery, litespeed-cache→none), RecommendationEngine (Findings + IntentProfile + compatibility + Registry → Tweaks with parameters; implement the Heartbeat parameterization: 120 s for blog with ≤1 admin and no WooCommerce, 60 s otherwise), RiskEngine (final risk = tweak risk raised one level when dependencies_detected > 0 or host is unknown), DependencyResolver v2 with fact predicates ("fact:plugins.detected.woocommerce=true"), and PreviewPlanner producing PreviewPlan with will_change/will_not lists and the required snapshot levels.
+Implement IntentProfile (site_type, priority; persisted in debloater_state), CompatibilityResolver over registry/compatibility/*.json (author rules for contact-form-7→rest:public, elementor→jquery, woocommerce→heartbeat and jquery, litespeed-cache→none), RecommendationEngine (Findings + IntentProfile + compatibility + Registry → Tweaks with parameters; implement the Heartbeat parameterization: 120 s for blog with ≤1 admin and no WooCommerce, 60 s otherwise), RiskEngine (final risk = tweak risk raised one level when dependencies_detected > 0 or host is unknown), DependencyResolver v2 with fact predicates ("fact:plugins.detected.woocommerce=true"), and PreviewPlanner producing PreviewPlan with will_change/will_not lists and the required snapshot levels.
 The §7.4 invariants must be enforced in PreviewPlanner and covered by property-style tests over generated registries and finding sets: a safe plan never contains a destructive tweak, never contains two conflicting tweaks, never contains a tweak named by an active dont_touch finding, and never contains a tweak with unresolved requires. Add worked-example tests for the blog and store Heartbeat cases. Commit as "phase-4: recommendation engine and preview planning" and report the exit checklist.
 ```
 
@@ -698,31 +698,31 @@ The §7.4 invariants must be enforced in PreviewPlanner and covered by property-
 ```
 [CC] Phase 5 — Snapshot, apply, rollback
 Read CLAUDE.md, docs/BUILD-SPEC.md §8, §9, §10 and DECISIONS.md. Restate goal and exit criteria, then implement Phase 5 as the current phase. This is the most important engineering phase; correctness over speed.
-Create the wpdebloat_snapshots, wpdebloat_snapshot_items and wpdebloat_journal tables via Storage\Schema. Implement SnapshotManager with Level A (previous selection, runtime hash, and the current values of every wp_options key a selected tweak touches) and Level B (DataSnapshot that stores the exact rows a DataOperationInterface::collect() yields, with checksum and spill-to-gz-file above a threshold you record in DECISIONS.md). Implement ApplyManager as a driver of RunStateMachine with the wpdebloat_lock transient, Journal rows on every transition, and crash recovery on boot for runs left in APPLYING/VERIFYING (mark INTERRUPTED, auto-rollback). Implement RollbackManager for both levels, restoring data rows through native WordPress APIs where they exist and preserving original IDs and timestamps. Implement the first DataOperation, ExpiredTransientsCleanup (db.clean_expired_transients), with collect()/execute()/restore() in batches of 500.
+Create the debloater_snapshots, debloater_snapshot_items and debloater_journal tables via Storage\Schema. Implement SnapshotManager with Level A (previous selection, runtime hash, and the current values of every wp_options key a selected tweak touches) and Level B (DataSnapshot that stores the exact rows a DataOperationInterface::collect() yields, with checksum and spill-to-gz-file above a threshold you record in DECISIONS.md). Implement ApplyManager as a driver of RunStateMachine with the debloater_lock transient, Journal rows on every transition, and crash recovery on boot for runs left in APPLYING/VERIFYING (mark INTERRUPTED, auto-rollback). Implement RollbackManager for both levels, restoring data rows through native WordPress APIs where they exist and preserving original IDs and timestamps. Implement the first DataOperation, ExpiredTransientsCleanup (db.clean_expired_transients), with collect()/execute()/restore() in batches of 500.
 Integration tests required: apply five config tweaks then rollback yields a byte-identical runtime.php and identical option values; transient cleanup round-trip restores rows and timeouts exactly; a corrupt checksum refuses restore; a second apply while locked is rejected; a simulated crash in APPLYING is rolled back on next boot. Commit as "phase-5: snapshots, apply, rollback" and report the exit checklist.
 ```
 
 ### PHASE 6 — Verification engine
-**Tasks:** `Verify\HttpClient` (loopback, admin cookie via `wp_generate_auth_cookie` for actor, timeouts), probes per §11 (`home`, `content_page`, `admin`, `rest`, `login`, `runtime_loaded`), `Verifier` aggregate, wiring into `RunStateMachine` (FAIL → rollback), test hook `WPDEBLOAT_TEST_FAIL_PROBE`.
+**Tasks:** `Verify\HttpClient` (loopback, admin cookie via `wp_generate_auth_cookie` for actor, timeouts), probes per §11 (`home`, `content_page`, `admin`, `rest`, `login`, `runtime_loaded`), `Verifier` aggregate, wiring into `RunStateMachine` (FAIL → rollback), test hook `DEBLOATER_TEST_FAIL_PROBE`.
 **Tests:** each probe against wp-env (PASS), fixture HTML for fatal markers (FAIL), missing markers (WARN), loopback blocked (UNKNOWN→VERIFIED_WITH_WARNINGS); forced failure → automatic rollback with identical restore.
 **Exit:** the §14 forced-failure acceptance passes.
 
 ```
 [CC] Phase 6 — Verification engine
 Read CLAUDE.md, docs/BUILD-SPEC.md §11, §9.2 and DECISIONS.md. Restate goal and exit criteria, then implement Phase 6 as the current phase.
-Implement Verify\HttpClient over wp_remote_get with a 15 s timeout, honoring the site's SSL setting, adding the X-WPDebloat-Verify header, and able to send an auth cookie for the acting user so admin pages can be fetched. Implement the probes home, content_page, admin, rest, login and runtime_loaded exactly as specified in §11, each returning ProbeResult with status PASS/WARN/FAIL/UNKNOWN/NOT_TESTED and evidence. Implement Verifier aggregation (FAIL if any FAIL; WARN if any WARN or UNKNOWN; NOT_TESTED probes listed but not counted) and wire it into RunStateMachine so FAIL transitions to VERIFICATION_FAILED → ROLLING_BACK → ROLLED_BACK and WARN transitions to VERIFIED_WITH_WARNINGS. Add the WPDEBLOAT_TEST_FAIL_PROBE constant for tests. Decide and record in DECISIONS.md which HTML markers prove home and admin rendered, and the policy when loopback is blocked.
-Tests: each probe PASS on wp-env; fixture responses with fatal markers produce FAIL; missing markers produce WARN; blocked loopback produces UNKNOWN and a VERIFIED_WITH_WARNINGS run; with WPDEBLOAT_TEST_FAIL_PROBE=rest an apply of the safe plan is rolled back automatically and the prior selection and runtime hash are restored exactly. Commit as "phase-6: verification engine" and report the exit checklist.
+Implement Verify\HttpClient over wp_remote_get with a 15 s timeout, honoring the site's SSL setting, adding the X-Debloater-Verify header, and able to send an auth cookie for the acting user so admin pages can be fetched. Implement the probes home, content_page, admin, rest, login and runtime_loaded exactly as specified in §11, each returning ProbeResult with status PASS/WARN/FAIL/UNKNOWN/NOT_TESTED and evidence. Implement Verifier aggregation (FAIL if any FAIL; WARN if any WARN or UNKNOWN; NOT_TESTED probes listed but not counted) and wire it into RunStateMachine so FAIL transitions to VERIFICATION_FAILED → ROLLING_BACK → ROLLED_BACK and WARN transitions to VERIFIED_WITH_WARNINGS. Add the DEBLOATER_TEST_FAIL_PROBE constant for tests. Decide and record in DECISIONS.md which HTML markers prove home and admin rendered, and the policy when loopback is blocked.
+Tests: each probe PASS on wp-env; fixture responses with fatal markers produce FAIL; missing markers produce WARN; blocked loopback produces UNKNOWN and a VERIFIED_WITH_WARNINGS run; with DEBLOATER_TEST_FAIL_PROBE=rest an apply of the safe plan is rolled back automatically and the prior selection and runtime hash are restored exactly. Commit as "phase-6: verification engine" and report the exit checklist.
 ```
 
 ### PHASE 7 — WP-CLI
-**Commands:** `wp debloat scan [--json]`, `findings [--risk=] [--json]`, `preview [--profile=safe|performance|maximum] [--tweaks=a,b]`, `apply [--profile] [--tweaks] --yes`, `verify`, `rollback [<snapshot-id>] --yes`, `snapshots [list|show <id>|delete <id>]`, `status`, `export [--file]`, `import <file> [--apply --yes]`. Actor `cli`; exit codes: 0 ok, 1 error, 2 verification FAIL/rolled back, 3 verification WARN.
+**Commands:** `wp debloater scan [--json]`, `findings [--risk=] [--json]`, `preview [--profile=safe|performance|maximum] [--tweaks=a,b]`, `apply [--profile] [--tweaks] --yes`, `verify`, `rollback [<snapshot-id>] --yes`, `snapshots [list|show <id>|delete <id>]`, `status`, `export [--file]`, `import <file> [--apply --yes]`. Actor `cli`; exit codes: 0 ok, 1 error, 2 verification FAIL/rolled back, 3 verification WARN.
 **Tests:** integration via `wp-env run cli`; JSON outputs validate against schemas.
 **Exit:** whole MVP loop runnable from CLI on the fixture site.
 
 ```
 [CC] Phase 7 — WP-CLI
 Read CLAUDE.md, docs/BUILD-SPEC.md §17 Phase 7 and §13. Restate goal and exit criteria, then implement Phase 7 as the current phase.
-Implement src/Cli/Command.php registering `wp debloat` with subcommands scan, findings, preview, apply, verify, rollback, snapshots, status, export, import as specified, using the existing engine classes only (no logic in the CLI layer). apply and rollback require --yes; import --apply requires --yes. Respect exit codes: 0 success, 1 error, 2 verification failed and rolled back, 3 verified with warnings. All --json outputs must validate against the registry schemas or a documented CLI schema. Actor is "cli" in runs and journal. Export produces the config-as-code JSON (selection + intent profile + params) and import validates it before use.
+Implement src/Cli/Command.php registering `wp debloater` with subcommands scan, findings, preview, apply, verify, rollback, snapshots, status, export, import as specified, using the existing engine classes only (no logic in the CLI layer). apply and rollback require --yes; import --apply requires --yes. Respect exit codes: 0 success, 1 error, 2 verification failed and rolled back, 3 verified with warnings. All --json outputs must validate against the registry schemas or a documented CLI schema. Actor is "cli" in runs and journal. Export produces the config-as-code JSON (selection + intent profile + params) and import validates it before use.
 Integration tests run the full loop through the CLI on the fixture site: scan → findings → preview --profile=safe → apply --yes → status → rollback --yes, plus the forced-failure case returning exit code 2. Update README with CLI usage. Commit as "phase-7: wp-cli" and report the exit checklist.
 ```
 
@@ -734,7 +734,7 @@ Integration tests run the full loop through the CLI on the fixture site: scan �
 ```
 [CC] Phase 8 — React dashboard
 Read CLAUDE.md, docs/BUILD-SPEC.md §4 (admin-ui), §6, §12, §13 and /mnt/skills/public/frontend-design/SKILL.md if available. Restate goal and exit criteria, then implement Phase 8 as the current phase.
-Set up admin-ui/ with @wordpress/scripts producing one bundle enqueued exclusively on the WP Debloat admin screen (test that no other admin page enqueues it). Build screens: Dashboard (Debloat Score with sub-scores, counts by risk including "No action recommended", buttons Fix Safe Issues and Review findings), Findings list with filters by risk, category and decision, Finding detail showing all ten fields from §17 Phase 8 (what we found, why it matters, evidence with fact keys, potential impact, recommendation, risk, confidence, dependencies, what will change, undo), and Runs & Snapshots with a Restore action that requires an explicit confirmation token. Add REST routes for preview, apply, rollback with permission_callback on wpdebloat_manage and nonce verification; the UI must not perform any state change without the confirmation step. Record the state-management choice in DECISIONS.md. Do not add admin notices, dashboard widgets, or any frontend output. Keep the design intentional and not generic; use @wordpress/components for accessibility.
+Set up admin-ui/ with @wordpress/scripts producing one bundle enqueued exclusively on the Debloater admin screen (test that no other admin page enqueues it). Build screens: Dashboard (Debloat Score with sub-scores, counts by risk including "No action recommended", buttons Fix Safe Issues and Review findings), Findings list with filters by risk, category and decision, Finding detail showing all ten fields from §17 Phase 8 (what we found, why it matters, evidence with fact keys, potential impact, recommendation, risk, confidence, dependencies, what will change, undo), and Runs & Snapshots with a Restore action that requires an explicit confirmation token. Add REST routes for preview, apply, rollback with permission_callback on debloater_manage and nonce verification; the UI must not perform any state change without the confirmation step. Record the state-management choice in DECISIONS.md. Do not add admin notices, dashboard widgets, or any frontend output. Keep the design intentional and not generic; use @wordpress/components for accessibility.
 Tests: REST permission tests (401/403 for unauthorized), Jest tests for score and finding rendering, bundle size under 250 KB gzipped, and an integration assertion that the bundle is not enqueued outside our screen. Commit as "phase-8: admin dashboard" and report the exit checklist.
 ```
 
@@ -746,8 +746,8 @@ Tests: REST permission tests (401/403 for unauthorized), Jest tests for score an
 ```
 [CC] Phase 9 — Preview and Fix Safe Issues
 Read CLAUDE.md, docs/BUILD-SPEC.md §12, §14 (acceptance test) and §17 Phase 9. Restate goal and exit criteria, then implement Phase 9 as the current phase.
-Implement Meter with the v1 metrics listed in §12 (measured on home, content_page and /wp-admin/) and Comparison producing deltas with units; wire MEASURING_BEFORE and MEASURING_AFTER into the run. Build the Preview modal from PreviewPlan (will change, will not, "Nothing will be deleted" when no destructive tweak, snapshot levels), the Create snapshot & apply confirmation, the live Run screen polling GET wpdebloat/v1/runs/<id> and rendering each state transition, and the result report: score before → after, metric deltas with units and percentages, "N optimizations applied", or on failure the failing probe, "Rollback complete", "Previous configuration restored". Copy must never claim time saved or use the word "faster".
-Automate the MVP acceptance test from §14 as an integration test: on the seeded full stack, Fix Safe Issues creates a snapshot, applies, verifies PASS and produces a report; with WPDEBLOAT_TEST_FAIL_PROBE=rest the same flow rolls back and restores selection and runtime hash exactly. Tag v0.1.0. Commit as "phase-9: preview, fix safe issues, before/after" and report the exit checklist.
+Implement Meter with the v1 metrics listed in §12 (measured on home, content_page and /wp-admin/) and Comparison producing deltas with units; wire MEASURING_BEFORE and MEASURING_AFTER into the run. Build the Preview modal from PreviewPlan (will change, will not, "Nothing will be deleted" when no destructive tweak, snapshot levels), the Create snapshot & apply confirmation, the live Run screen polling GET debloater/v1/runs/<id> and rendering each state transition, and the result report: score before → after, metric deltas with units and percentages, "N optimizations applied", or on failure the failing probe, "Rollback complete", "Previous configuration restored". Copy must never claim time saved or use the word "faster".
+Automate the MVP acceptance test from §14 as an integration test: on the seeded full stack, Fix Safe Issues creates a snapshot, applies, verifies PASS and produces a report; with DEBLOATER_TEST_FAIL_PROBE=rest the same flow rolls back and restores selection and runtime hash exactly. Tag v0.1.0. Commit as "phase-9: preview, fix safe issues, before/after" and report the exit checklist.
 ```
 
 ### PHASE 10 — Database intelligence (destructive ops with Level B)
@@ -817,24 +817,24 @@ Tests: classification accuracy ≥ 95% on the fixture; with all Woo tweaks appli
 ```
 
 ### PHASE 16 — Headless verification (Playwright, CI only)
-**Tasks:** `tests/E2E` Playwright suite against wp-env: dashboard + real scan, Fix Safe Issues flow, forced rollback, Woo add-to-cart → checkout, CF7 submit, Elementor editor loads. Not shipped in the plugin; no infrastructure. `wp debloat verify --e2e` stub prints local-run instructions.
+**Tasks:** `tests/E2E` Playwright suite against wp-env: dashboard + real scan, Fix Safe Issues flow, forced rollback, Woo add-to-cart → checkout, CF7 submit, Elementor editor loads. Not shipped in the plugin; no infrastructure. `wp debloater verify --e2e` stub prints local-run instructions.
 **Exit:** nightly E2E green on the full stack matrix.
 
 ```
 [CC] Phase 16 — Headless verification (CI only)
 Read CLAUDE.md, docs/BUILD-SPEC.md §14 and §17 Phase 16. Restate goal and exit criteria, then implement Phase 16 as the current phase.
-Add a Playwright suite under tests/E2E running against wp-env in GitHub Actions nightly and on an "e2e" PR label. Scenarios: dashboard loads with a real scan; Fix Safe Issues completes with a report; forced probe failure shows the rollback report and the prior runtime hash is restored; on the Woo fixture, add a product to cart and reach checkout with all Woo tweaks applied; submit a Contact Form 7 form; open the Elementor editor for a page. Nothing from this phase ships inside the plugin and no hosted service is introduced. Add a `wp debloat verify --e2e` stub that prints instructions for running the suite locally.
+Add a Playwright suite under tests/E2E running against wp-env in GitHub Actions nightly and on an "e2e" PR label. Scenarios: dashboard loads with a real scan; Fix Safe Issues completes with a report; forced probe failure shows the rollback report and the prior runtime hash is restored; on the Woo fixture, add a product to cart and reach checkout with all Woo tweaks applied; submit a Contact Form 7 form; open the Elementor editor for a page. Nothing from this phase ships inside the plugin and no hosted service is introduced. Add a `wp debloater verify --e2e` stub that prints instructions for running the suite locally.
 Exit: nightly workflow green on the full stack matrix. Commit as "phase-16: e2e verification" and report the exit checklist.
 ```
 
 ### PHASE 17 — Registry ecosystem
-**Tasks:** split `registry/` into public `scornik/wp-debloat-registry` (`tweaks/ compatibility/ detectors/ profiles/ schemas/ tests/`) with CI (JSON → schema → compat tests → WP matrix → Woo → Elementor); plugin vendors a pinned snapshot; opt-in update check fetching a cryptographically signed manifest (Ed25519 signature over a canonical manifest containing sha256 per file) from a single pinned origin — either the public registry repository's raw URL or `https://cloud.hakeemify.com/v1/wp-debloat/registry/manifest` and `.../registry/files` — JSON only, never executable; `docs/REGISTRY.md` authoring guide, PR template, "new WP release" checklist.
+**Tasks:** split `registry/` into public `scornik/debloater-registry` (`tweaks/ compatibility/ detectors/ profiles/ schemas/ tests/`) with CI (JSON → schema → compat tests → WP matrix → Woo → Elementor); plugin vendors a pinned snapshot; opt-in update check fetching a cryptographically signed manifest (Ed25519 signature over a canonical manifest containing sha256 per file) from a single pinned origin — either the public registry repository's raw URL or `https://cloud.hakeemify.com/v1/debloater/registry/manifest` and `.../registry/files` — JSON only, never executable; `docs/REGISTRY.md` authoring guide, PR template, "new WP release" checklist.
 **Exit:** plugin builds from a pinned tag; bad-hash/signature manifest rejected; no network unless opt-in; remote publication is not required for local phase completion.
 
 ```
 [CC] Phase 17 — Registry ecosystem
 Read CLAUDE.md, docs/BUILD-SPEC.md §7, §13 rule 9 and §17 Phase 17. Restate goal and exit criteria, then implement Phase 17 as the current phase.
-Prepare registry/ as a separate repository layout (scornik/wp-debloat-registry); create/publish the remote repository only when GitHub credentials and explicit publication authorization are available with tweaks/, compatibility/, detectors/, profiles/, schemas/ and tests/, and a CI workflow that validates JSON, validates against schemas, runs compatibility-rule tests, and runs the plugin's WP/Woo/Elementor integration matrix against the registry. In the plugin, vendor a pinned registry snapshot with its tag recorded in a manifest, and implement an opt-in "check for registry updates" flow that fetches a cryptographically signed manifest (Ed25519 signature over a canonical manifest containing sha256 per file) from a single pinned origin resolved through one endpoint resolver (the registry repository's raw URL, or the optional cloud service at `https://cloud.hakeemify.com/v1/wp-debloat/registry/*`), verifies every file hash before activation, and never executes anything from the registry (JSON only; handlers stay in the plugin). Write docs/REGISTRY.md as an authoring guide with a PR template and a "new WordPress release" checklist.
+Prepare registry/ as a separate repository layout (scornik/debloater-registry); create/publish the remote repository only when GitHub credentials and explicit publication authorization are available with tweaks/, compatibility/, detectors/, profiles/, schemas/ and tests/, and a CI workflow that validates JSON, validates against schemas, runs compatibility-rule tests, and runs the plugin's WP/Woo/Elementor integration matrix against the registry. In the plugin, vendor a pinned registry snapshot with its tag recorded in a manifest, and implement an opt-in "check for registry updates" flow that fetches a cryptographically signed manifest (Ed25519 signature over a canonical manifest containing sha256 per file) from a single pinned origin resolved through one endpoint resolver (the registry repository's raw URL, or the optional cloud service at `https://cloud.hakeemify.com/v1/debloater/registry/*`), verifies every file hash before activation, and never executes anything from the registry (JSON only; handlers stay in the plugin). Write docs/REGISTRY.md as an authoring guide with a PR template and a "new WordPress release" checklist.
 Tests: plugin builds from the pinned tag; fixtures with a bad hash or invalid Ed25519 signature are rejected; no network call happens unless opt-in is enabled. Commit as "phase-17: registry ecosystem" and report the exit checklist.
 ```
 
@@ -850,7 +850,7 @@ Exit: all §13 tests green, PCP clean, matrix green, zip builds. Commit as "phas
 ```
 
 ### PHASE 19 — Pro (workflow only, never safety)
-**Tasks:** separate `wp-debloat-pro` extending the free plugin through documented, tested hooks: scheduled scans + drift detection (diff of findings between runs; surfaced on our screen; optional email), white-label before/after report (print-CSS HTML first; server PDF only if bundled lib size is acceptable), bulk apply of a saved profile, registry priority-update channel; multisite groundwork behind a feature flag (network defaults + per-site overrides for selection and intent profile only).
+**Tasks:** separate `debloater-pro` extending the free plugin through documented, tested hooks: scheduled scans + drift detection (diff of findings between runs; surfaced on our screen; optional email), white-label before/after report (print-CSS HTML first; server PDF only if bundled lib size is acceptable), bulk apply of a saved profile, registry priority-update channel; multisite groundwork behind a feature flag (network defaults + per-site overrides for selection and intent profile only).
 
 **Licensing (§13 rule 13).** Entitlement is read through an `EntitlementProvider`
 interface with a `FreemiusEntitlementProvider` as the first implementation. No
@@ -862,7 +862,7 @@ credentials are never required to build or test.
 **Cloud (§13 rule 14).** Any server-backed feature goes through a
 `CloudServiceClient` interface with a `HakeemifyCloudClient` implementation
 resolving every path from one canonical base, `https://cloud.hakeemify.com`,
-under `/v1/wp-debloat/...`. It is optional: with the cloud unreachable, Pro
+under `/v1/debloater/...`. It is optional: with the cloud unreachable, Pro
 degrades to its local features and the site is untouched. Licensing and cloud are
 separate concerns and neither is implemented in terms of the other.
 
@@ -874,7 +874,7 @@ endpoint resolver.
 ```
 [CC] Phase 19 — Pro plugin
 Read CLAUDE.md, docs/BUILD-SPEC.md §17 Phase 19 and the Free/Pro table in the v0.2 spec. Restate goal and exit criteria, then implement Phase 19 as the current phase.
-Create a separate plugin wp-debloat-pro that depends on the free plugin and extends it only through documented hooks (add and document them in the free plugin as needed, with tests). Implement scheduled scans with drift detection (diff findings between the last two runs, surface on our screen, optional email), a white-label before/after report (print-CSS HTML first; add server-side PDF only if the bundled library stays under a size you record in DECISIONS.md), bulk apply of a saved profile, and a registry priority-update channel. Read entitlement through an EntitlementProvider interface implemented by a FreemiusEntitlementProvider, with cached, offline-tolerant results and a fixture provider for tests; keep every Freemius symbol inside that adapter. Put any server-backed feature behind a CloudServiceClient interface whose HakeemifyCloudClient resolves paths from the single base https://cloud.hakeemify.com under /v1/wp-debloat/, and treat the cloud as optional. Begin multisite support behind a feature flag: network defaults and per-site overrides for selection and intent profile only.
+Create a separate plugin debloater-pro that depends on the free plugin and extends it only through documented hooks (add and document them in the free plugin as needed, with tests). Implement scheduled scans with drift detection (diff findings between the last two runs, surface on our screen, optional email), a white-label before/after report (print-CSS HTML first; add server-side PDF only if the bundled library stays under a size you record in DECISIONS.md), bulk apply of a saved profile, and a registry priority-update channel. Read entitlement through an EntitlementProvider interface implemented by a FreemiusEntitlementProvider, with cached, offline-tolerant results and a fixture provider for tests; keep every Freemius symbol inside that adapter. Put any server-backed feature behind a CloudServiceClient interface whose HakeemifyCloudClient resolves paths from the single base https://cloud.hakeemify.com under /v1/debloater/, and treat the cloud as optional. Begin multisite support behind a feature flag: network defaults and per-site overrides for selection and intent profile only.
 Tests: the free plugin passes its full suite with Pro absent, with no licensing SDK present and with no cloud reachable; with Pro active no new tweaks or safety features appear (invariant test); a missing or invalid entitlement fails safe and never destructively; a cloud outage degrades Pro to local features and changes nothing on the site; no endpoint can cause PHP or JS from a remote to execute on the site; drift detection reports added and resolved findings. Commit as "phase-19: pro workflow features" and report the exit checklist.
 ```
 

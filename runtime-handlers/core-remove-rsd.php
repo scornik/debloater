@@ -4,12 +4,12 @@
  *
  * See core-remove-generator.php for the rules every runtime handler follows.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 defined( 'ABSPATH' ) || exit;
 
-if ( ! class_exists( 'WPDebloat_Handler_Core_Remove_Rsd', false ) ) {
+if ( ! class_exists( 'Debloater_Handler_Core_Remove_Rsd', false ) ) {
 
 	/**
 	 * Removes the RSD link from wp_head.
@@ -17,7 +17,7 @@ if ( ! class_exists( 'WPDebloat_Handler_Core_Remove_Rsd', false ) ) {
 	 * RSD advertises the XML-RPC endpoint to blog clients. Removing the link does
 	 * not disable XML-RPC; it only stops announcing it.
 	 */
-	final class WPDebloat_Handler_Core_Remove_Rsd {
+	final class Debloater_Handler_Core_Remove_Rsd {
 
 		/**
 		 * Register the handler's hooks.

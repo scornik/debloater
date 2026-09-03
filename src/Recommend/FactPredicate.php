@@ -2,16 +2,16 @@
 /**
  * A requirement expressed as a condition on the facts.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Recommend;
+namespace Debloater\Recommend;
 
-use WPDebloat\Contracts\ContractViolation;
-use WPDebloat\Contracts\FactSet;
-use WPDebloat\Contracts\Identifier;
+use Debloater\Contracts\ContractViolation;
+use Debloater\Contracts\FactSet;
+use Debloater\Contracts\Identifier;
 
 /**
  * `fact:<key>=<value>` from a tweak's `requires` list (BUILD-SPEC §7.1).

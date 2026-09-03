@@ -2,12 +2,12 @@
 /**
  * What an update check found.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 declare( strict_types = 1 );
 
-namespace WPDebloat\Update;
+namespace Debloater\Update;
 
 /**
  * The result of asking whether a newer registry exists (BUILD-SPEC §17

@@ -4,12 +4,12 @@
  *
  * See core-remove-generator.php for the rules every runtime handler follows.
  *
- * @package WPDebloat
+ * @package Debloater
  */
 
 defined( 'ABSPATH' ) || exit;
 
-if ( ! class_exists( 'WPDebloat_Handler_Core_Heartbeat_Interval', false ) ) {
+if ( ! class_exists( 'Debloater_Handler_Core_Heartbeat_Interval', false ) ) {
 
 	/**
 	 * Sets the interval WordPress uses for Heartbeat polling.
@@ -23,7 +23,7 @@ if ( ! class_exists( 'WPDebloat_Handler_Core_Heartbeat_Interval', false ) ) {
 	 * declared bounds before it reaches the generated code. This handler applies
 	 * it and asserts nothing about whether it is a good idea.
 	 */
-	final class WPDebloat_Handler_Core_Heartbeat_Interval {
+	final class Debloater_Handler_Core_Heartbeat_Interval {
 
 		/**
 		 * The interval to apply, in seconds.
