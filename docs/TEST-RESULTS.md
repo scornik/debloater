@@ -1267,3 +1267,90 @@ instead of by measurement: one loopback check before anything else, five seconds
 per page, eight seconds across the whole asset scan, and `pages_sampled` records
 how many pages the budget actually allowed — so a slow site produces a smaller
 sample rather than a slower scan, and the smaller sample is visible.
+
+---
+
+## Phase 14 — Elementor intelligence
+
+### Run 1 — the compiler names the class, the registry names the risk
+
+Four unit failures, all invariants doing their job on a new tweak:
+
+| Failure | Fix |
+|---|---|
+| `LoaderTest` — the pinned tweak set and the pinned risks | Added `elementor.disable_google_fonts` at `medium`, with the reason in the test. |
+| `DependencyResolverTest::test_the_shipped_registry_resolves_completely` | See below. |
+| `AnalyzerTest::test_a_complete_fact_set_evaluates_every_rule` | The audit rule required facts that only exist on an Elementor site, so every ordinary site reported it unevaluated. Corrected the rule instead: it requires `elementor.present` only, because "we looked and there is no Elementor" is an answer, not a failure to look. |
+
+### Run 2 — the first fact-gated tweak
+
+`elementor.disable_google_fonts` carries `fact:plugins.detected.elementor=true`,
+which makes it the first shipped tweak the resolver cannot accept without a
+scan. §7.4 is explicit that no tweak with unresolved requires enters a plan, so
+the resolver was right and the test's premise — "the shipped tweaks all resolve
+together" — had expired.
+
+Replaced with the property that is actually worth defending: **no shipped tweak
+conflicts with another**, and anything held back is held back for an unchecked
+fact rather than a conflict. Two further tests assert the predicate works in both
+directions: given an Elementor site the tweak resolves, and given a site without
+one it does not.
+
+### Run 3 — a test that changed the world for its neighbours
+
+```
+npm run test:integration:main
+```
+
+**Result:** 230 tests, **1 failure** — in `ScannerTest`, which had nothing to do
+with this phase:
+
+```
+test_a_detector_fires_for_an_active_plugin
+an unrelated detector must not fire
+```
+
+`ElementorScanTest::set_up()` had defined `ELEMENTOR_VERSION` so the scanner
+would see Elementor. A constant is process-global and cannot be undone, so the
+Elementor detector fired for every test that ran afterwards.
+
+Replaced with the `active_plugins` option, which the test database rolls back
+between tests. A test that changes the world for its neighbours is worse than no
+test, and this one was quietly making a detector assertion elsewhere meaningless.
+
+### Run 4 — static analysis
+
+| Finding | Fix |
+|---|---|
+| `$print` as a parameter name | Reserved word. Renamed. |
+| Two classes in one test file | The fake catalogues moved to `tests/Integration/Support/`, which is also where they belong. |
+| `elementor/frontend/print_google_fonts` hook naming | Elementor's hook, spelled Elementor's way. Ignored on the line with that reason. |
+| `count()` in a loop condition, then Yoda | Both fixed. |
+
+### Run 5 — full regression
+
+| Gate | Result |
+|---|---|
+| Unit | ✅ 1 120 tests, 11 029 assertions |
+| Integration | ✅ 230 tests, 1 498 assertions |
+| Forced-failure suite | ✅ 9 tests, 102 assertions |
+| CLI end-to-end (real `wp` binary) | ✅ |
+| Jest | ✅ 12 tests |
+| Bundle | ✅ 10.6 KB of 250 KB |
+| PHPCS | ✅ 0 errors, 0 warnings, 268 files |
+| PHPStan level 6 | ✅ no errors |
+| ESLint | ✅ clean |
+
+### Service architecture
+
+Committed separately, ahead of this phase. `ServiceArchitectureTest` adds six
+assertions: no shipped code depends on a superseded host, no cloud host is
+hard-coded, the free plugin reaches no licensing platform, nothing matching a
+private-key or API-secret shape is in the package, every cloud path the
+specification names is versioned and product-scoped, and the schema validator
+resolves `$id`s from disk rather than fetching them.
+
+The last one is worth its place: every registry schema carries a
+`wp-debloat.hakeemify.com` `$id`, and it would be easy to read those as a host
+dependency. They are names, and the assertion proves the validator never treats
+them as addresses.

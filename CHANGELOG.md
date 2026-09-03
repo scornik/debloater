@@ -227,6 +227,23 @@ All notable changes to WP Debloat are recorded here. The format follows
 
 ### Added since 0.1.0
 
+- **Phase 14 — Elementor.**
+  - WP Debloat now counts the Elementor widgets your site has registered, which
+    plugin registered each one, and how many of them your saved designs actually
+    use. On a site with a few addon packs the gap is usually large.
+  - It says "potentially unused", and means it. A widget can reach a page through
+    a dynamic tag, a shortcode, a theme-builder template or a custom code block
+    without the saved design ever naming it, so where WP Debloat sees any of
+    those it says so and lowers its own confidence.
+  - It will never switch a widget off. Elementor has no supported way to remove
+    another plugin's widget, and doing it unsupported loses the content on every
+    page already built with one. What this is for is deciding whether a pack is
+    still worth having — a decision only you can make.
+  - One change is offered: stop Elementor fetching Google Fonts, using
+    Elementor's own supported setting. Your text will fall back to the visitor's
+    own fonts, which is visible, so it is marked medium risk and says why.
+
+
 - **Phase 13 — what your pages actually load.**
   - WP Debloat now fetches a few of your own pages — the home page and one of
     each kind of content, up to ten — and reads the scripts and stylesheets back

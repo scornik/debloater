@@ -78,6 +78,7 @@ final class LoaderTest extends TestCase {
 				'db.clean_revisions',
 				'db.delete_spam_comments',
 				'db.empty_trash',
+				'elementor.disable_google_fonts',
 			),
 			$this->shippedRegistry()->ids()
 		);
@@ -125,6 +126,10 @@ final class LoaderTest extends TestCase {
 			'admin.remove_wp_news_widget'       => Risk::SAFE,
 			'admin.hide_update_nags_non_admins' => Risk::SAFE,
 			'admin.suppress_promo_notices'      => Risk::MEDIUM,
+
+			// Phase 14. Elementor's own supported filter, and still medium: the
+			// site's typeface visibly changes.
+			'elementor.disable_google_fonts'    => Risk::MEDIUM,
 		);
 
 		foreach ( $this->shippedRegistry()->all() as $id => $definition ) {

@@ -182,16 +182,70 @@ final class DependencyResolverTest extends TestCase {
 	}
 
 	/**
-	 * The five shipped tweaks have no conflicts, so they all resolve together.
+	 * No shipped tweak conflicts with another, so the only thing that can hold
+	 * one back without a scan is a requirement about the site.
+	 *
+	 * Phase 14 added the first tweak with a fact predicate —
+	 * `elementor.disable_google_fonts` requires Elementor to actually be there —
+	 * so "everything resolves" stopped being the right assertion. What is still
+	 * true, and is the property worth defending, is that nothing is rejected for
+	 * a *conflict*: two shipped tweaks must never be mutually exclusive.
+	 *
+	 * A tweak held back for an unchecked fact is the documented behaviour
+	 * (§7.4: no tweak with unresolved requires enters a plan), so it is asserted
+	 * as such rather than worked around.
 	 *
 	 * @return void
 	 */
-	public function test_the_shipped_registry_resolves_completely(): void {
+	public function test_no_shipped_tweak_conflicts_with_another(): void {
 		$registry   = ( new \WPDebloat\Registry\Loader( WPDEBLOAT_TESTS_ROOT . '/registry' ) )->load();
 		$resolution = ( new DependencyResolver( $registry ) )->resolve( $registry->ids() );
 
-		$this->assertTrue( $resolution->isComplete(), 'shipped tweaks must be applicable together' );
-		$this->assertSame( $registry->ids(), $resolution->accepted );
+		foreach ( $resolution->rejected as $tweak_id => $reason ) {
+			$this->assertStringNotContainsString(
+				'Conflicts with',
+				$reason,
+				$tweak_id . ' conflicts with another shipped tweak'
+			);
+			$this->assertStringContainsString(
+				'cannot be checked without a scan',
+				$reason,
+				$tweak_id . ' was held back for a reason other than an unchecked fact'
+			);
+		}
+	}
+
+	/**
+	 * Given the facts, a fact-gated tweak resolves like any other.
+	 *
+	 * @return void
+	 */
+	public function test_a_fact_gated_tweak_resolves_once_the_facts_are_there(): void {
+		$registry = ( new \WPDebloat\Registry\Loader( WPDEBLOAT_TESTS_ROOT . '/registry' ) )->load();
+
+		$facts = \WPDebloat\Tests\Unit\Support\Facts::busyStore(
+			array( 'plugins.detected' => \WPDebloat\Tests\Unit\Support\Facts::detections( array( 'elementor' ) ) )
+		);
+
+		$resolution = ( new DependencyResolver( $registry, $facts ) )->resolve( $registry->ids() );
+
+		$this->assertContains( 'elementor.disable_google_fonts', $resolution->accepted );
+	}
+
+	/**
+	 * And is held back on a site without Elementor, which is the point of the
+	 * predicate.
+	 *
+	 * @return void
+	 */
+	public function test_a_fact_gated_tweak_is_held_back_when_the_fact_is_false(): void {
+		$registry = ( new \WPDebloat\Registry\Loader( WPDEBLOAT_TESTS_ROOT . '/registry' ) )->load();
+
+		$resolution = ( new DependencyResolver( $registry, \WPDebloat\Tests\Unit\Support\Facts::freshInstall() ) )
+			->resolve( $registry->ids() );
+
+		$this->assertNotContains( 'elementor.disable_google_fonts', $resolution->accepted );
+		$this->assertArrayHasKey( 'elementor.disable_google_fonts', $resolution->rejected );
 	}
 
 	/**

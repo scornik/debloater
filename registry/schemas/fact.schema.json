@@ -362,6 +362,80 @@
       "minimum": 0
     },
 
+    "elementor.present": {
+      "description": "Whether Elementor is active. False is the only fact in this namespace on a site without it: zeroes for the rest would read as an Elementor site with nothing on it.",
+      "type": "boolean"
+    },
+    "elementor.pro": { "type": "boolean" },
+    "elementor.version": { "type": ["string", "null"] },
+    "elementor.widgets_available": {
+      "description": "How many widget types are registered. Absent when the catalogue could not be read, which is not the same as zero.",
+      "type": "integer",
+      "minimum": 0
+    },
+    "elementor.widgets": {
+      "description": "One row per registered widget type and the plugin whose code defines it, found by asking where the widget's class lives rather than from a list of addons anybody maintains.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "source"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "source": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "elementor.packs": {
+      "description": "How many widgets each plugin registers, most first.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["source", "count"],
+        "properties": {
+          "source": { "type": "string", "minLength": 1 },
+          "count": { "type": "integer", "minimum": 1 }
+        }
+      }
+    },
+    "elementor.widgets_in_use": {
+      "description": "Widget types named directly by a saved design. A floor rather than a total: a widget placed through a dynamic tag, a shortcode, a template or a custom code block does not appear here as itself, which is why the other facts in this namespace record whether those are present.",
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "elementor.documents": {
+      "description": "How many posts, pages and templates hold a saved Elementor design.",
+      "type": "integer",
+      "minimum": 0
+    },
+    "elementor.templates": {
+      "description": "How many Elementor library templates exist. Counted separately because a template is a document nothing links to directly, which is exactly the case that makes \"unused\" an unsafe word.",
+      "type": "integer",
+      "minimum": 0
+    },
+    "elementor.dynamic_tags": { "type": "boolean" },
+    "elementor.shortcodes": { "type": "boolean" },
+    "elementor.custom_code": { "type": "boolean" },
+    "elementor.fonts": {
+      "description": "Font families the saved designs refer to.",
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "elementor.experiments": {
+      "description": "Elementor experiments switched on or off explicitly. An experiment left at its default has no option row and is absent here rather than reported as its default, which is Elementor's business and changes between versions.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["feature", "state"],
+        "properties": {
+          "feature": { "type": "string", "minLength": 1 },
+          "state": { "type": "string" }
+        }
+      }
+    },
+
     "scan.elapsed_ms": {
       "description": "Total milliseconds the scan took.",
       "type": "integer",

@@ -56,6 +56,7 @@ use WPDebloat\Scan\ScanRunner;
 use WPDebloat\Scan\WpOrgUpdates;
 use WPDebloat\Scan\Scanners\AdminScanner;
 use WPDebloat\Scan\Scanners\AssetScanner;
+use WPDebloat\Scan\Scanners\ElementorScanner;
 use WPDebloat\Scan\Scanners\AutoloadScanner;
 use WPDebloat\Scan\Scanners\CoreFeatureScanner;
 use WPDebloat\Scan\Scanners\CronScanner;
@@ -387,6 +388,7 @@ final class Plugin {
 					new CronScanner(),
 					new AdminScanner( $this->registry() ),
 					new AssetScanner(),
+					new ElementorScanner(),
 				),
 				$this->runs()
 			)

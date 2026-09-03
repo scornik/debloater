@@ -16,6 +16,7 @@ use WPDebloat\Analyze\Rules\Cf7AssetsRule;
 use WPDebloat\Analyze\Rules\DashboardWidgetsRule;
 use WPDebloat\Analyze\Rules\DashiconsFrontendRule;
 use WPDebloat\Analyze\Rules\DuplicateFunctionalityRule;
+use WPDebloat\Analyze\Rules\ElementorAuditRule;
 use WPDebloat\Analyze\Rules\EmbedsRule;
 use WPDebloat\Analyze\Rules\EmojiScriptRule;
 use WPDebloat\Analyze\Rules\ExpiredTransientsRule;
@@ -95,6 +96,10 @@ final class Rules {
 			new JqueryMigrateRule(),
 			new DashiconsFrontendRule(),
 			new Cf7AssetsRule(),
+
+			// Page builders: a lot of registered code, and a great deal of care
+			// about what the counts can honestly be said to mean.
+			new ElementorAuditRule(),
 
 			// Informational: worth knowing, proposes nothing.
 			new InactivePluginsRule(),

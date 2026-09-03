@@ -133,9 +133,9 @@ final class ServiceArchitectureTest extends TestCase {
 	 */
 	public function test_no_private_key_or_api_secret_is_in_the_package(): void {
 		$patterns = array(
-			'/-----BEGIN [A-Z ]*PRIVATE KEY-----/'          => 'a private key block',
-			'/\\bsk_(live|test)_[A-Za-z0-9]{16,}/'           => 'a secret API key',
-			'/\\bghp_[A-Za-z0-9]{20,}/'                      => 'a GitHub token',
+			'/-----BEGIN [A-Z ]*PRIVATE KEY-----/' => 'a private key block',
+			'/\\bsk_(live|test)_[A-Za-z0-9]{16,}/' => 'a secret API key',
+			'/\\bghp_[A-Za-z0-9]{20,}/'            => 'a GitHub token',
 			'/[\'"](?:api_secret|client_secret|webhook_secret|signing_key)[\'"]\\s*=>\\s*[\'"][^\'"]{8,}[\'"]/i' => 'an embedded secret',
 		);
 

@@ -1158,3 +1158,103 @@ the rule they were meant to defend. They now assert what the promise actually is
 ### Next
 
 Phase 14 — Elementor intelligence.
+
+---
+
+## Phase 14 — Elementor intelligence
+
+**Status:** complete · 2026-09-03
+
+The phase where the honest number and the impressive number are furthest apart.
+
+### What exists now
+
+- **`ElementorScanner`.** Which widget types are registered and which plugin
+  defines each; which types the saved `_elementor_data` actually names; how many
+  documents and library templates exist; which font families the designs refer
+  to; which experiments are explicitly on or off.
+- **`WidgetCatalog`** — an interface with a `LiveWidgetCatalog` that is the only
+  file in WP Debloat naming an Elementor class. Everything else reads the
+  database and needs no third-party code loaded at all.
+- **`elementor.widgets.audit`**, info: "*N* addon packs, *N* widgets available,
+  *N* detected in use, *N* **potentially** unused".
+- **`elementor.disable_google_fonts`**, medium risk, using Elementor's own
+  supported filter.
+
+### What the audit will not say
+
+The word is "potentially", and a test asserts that "unused" never appears
+without it. Four things put a widget on a page without naming it in the saved
+design — a dynamic tag, a shortcode widget, a theme-builder template, a custom
+code block — so each is recorded as a fact and each takes 0.15 off the finding's
+confidence, down to a floor of 0.3.
+
+Nothing disables a widget. Elementor has no supported way to unregister another
+plugin's widget type, and doing it unsupported loses the content on every page
+already built with one (D-0037).
+
+### Attribution without a list
+
+§17 asks for addon packs to be detected from registry detectors. There are
+hundreds of Elementor addon packs and new ones monthly; a list would cover a
+dozen and silently misattribute the rest. Instead a widget belongs to whichever
+plugin directory its class lives in, through the `Sources` helper Phases 12 and
+13 already needed. This covers every addon that exists and needs no maintenance
+(D-0036).
+
+### Exit checklist (§17 Phase 14)
+
+| Criterion | Result |
+|---|---|
+| Detect Elementor, Pro and addons | ✅ Elementor and Pro from detectors; addons by reflection rather than a list (D-0036) |
+| Enumerate registered widgets per addon | ✅ through the `WidgetCatalog` interface |
+| Scan `_elementor_data` across posts, pages, templates and popups | ✅ every row of that meta key, batched |
+| Fonts (families) | ✅ read from the saved designs |
+| Experiments | ✅ only those explicitly set; a default has no option row and is absent rather than guessed |
+| Audit finding, info, with evidence | ✅ |
+| **Wording uses "potentially"** | ✅ and a test refuses "unused" without it |
+| Confidence penalised for dynamic tags, shortcodes, templates, custom code | ✅ 0.15 each, floor 0.3, and the reasoning names which ones this site has |
+| Supported-filter config tweaks only, medium risk | ✅ one: `elementor/frontend/print_google_fonts` |
+| **Never disable widgets automatically** | ✅ the audit has no recommendation and cannot acquire one |
+| **Audit reproducible on fixture** | ✅ exact counts on a three-pack fixture |
+| Tweak reversible, verification passes | ✅ adds no hook it does not remove |
+| Unit suite | ✅ 1 120 tests, 11 029 assertions |
+| Integration suite | ✅ 230 tests, 1 498 assertions |
+| Forced-failure suite | ✅ 9 tests, 102 assertions |
+| CLI end-to-end | ✅ |
+| Jest | ✅ 12 tests |
+| Bundle | ✅ 10.6 KB of 250 KB |
+| PHPCS | ✅ 0 errors, 0 warnings across 268 files |
+| PHPStan level 6 | ✅ no errors |
+| ESLint | ✅ clean |
+
+### Known warnings
+
+- **Elementor is not installed in the test environment.** `.wp-env.json` puts it
+  in the development environment only, so the widget catalogue comes from a
+  fake. That is the seam the interface exists for, and the safety rules ask for
+  third-party integrations to be built behind a tested adapter with fixtures —
+  but it does mean `LiveWidgetCatalog` itself is exercised by nothing but its own
+  guards. Running the suite against the development environment would close
+  that, and is worth doing before release.
+- Reading `_elementor_data` with a regular expression rather than a JSON decode
+  is a deliberate trade: the documents are large and deeply nested and the only
+  thing wanted is a flat list of type names. It would miss a widget type written
+  with unusual whitespace inside the JSON, which Elementor does not produce.
+- Fonts are read from the saved designs, not from the active kit's typography
+  settings. A font set globally and never overridden in a design will not
+  appear.
+- `ExpiredTransientsCleanup` from Phase 5 still does not use the collection
+  ceiling (carried from Phase 10).
+
+### Architecture note
+
+Between the start and the end of this phase, two service-architecture
+instructions arrived and the second superseded the first. Neither had been
+implemented; the outcome is recorded in D-0035 and committed separately as
+`architecture: provider-agnostic licensing, optional Hakeemify Cloud`, ahead of
+this phase's commit. No Phase 14 work was affected.
+
+### Next
+
+Phase 15 — WooCommerce intelligence.

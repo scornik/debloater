@@ -147,6 +147,8 @@ final class Facts {
 					'assets.cf7_asset_pages'        => 0,
 					'assets.cf7_form_pages'         => 0,
 
+					'elementor.present'             => false,
+
 					'cron.events.count'             => 12,
 					'cron.events.subminute'         => array(),
 					'cron.orphans.count'            => 0,
