@@ -71,6 +71,15 @@ All notable changes to Debloater are recorded here. The format follows
 
 ### Added
 
+- **`docs/CLOUD-DESIGN.md`** — the design for an agency multi-site dashboard.
+  Nothing is built: no infrastructure, no accounts, no code, and
+  `cloud.hakeemify.com` does not resolve.
+
+  The decision it is built around is that reporting flows one way. Sites push
+  reports; nothing sends commands back. A compromised dashboard could show wrong
+  numbers and could not touch a site.
+
+
 - **Debloater Pro**, a separate plugin for people who manage several sites.
   Scans on a schedule, drift detection between them, a printable before/after
   report an agency can put its own name on, applying a saved profile in one

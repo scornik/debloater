@@ -1839,3 +1839,79 @@ them.
 - **`cloud.hakeemify.com` does not exist.** The client, resolver and response
   types are written and tested; no infrastructure was created. The cloud is
   optional by construction, so nothing waits on it.
+
+---
+
+## Phase 20 — Agency / Cloud design
+
+**Status:** complete · 2026-09-04 · design only, nothing deployed
+
+### Exit criteria
+
+| Criterion | Result |
+|---|---|
+| `docs/CLOUD-DESIGN.md` produced | Done — 14 sections |
+| Multi-site dashboard requirements | Done — R1–R6 |
+| Push-only reporting via signed site keys | Done — §2, §4 |
+| Data minimisation and retention | Done — §3, §9 |
+| Reuses the existing run/report JSON | Done — §3, `Run::toArray()` unchanged |
+| Auth model | Done — §4, Ed25519 site keys, magic-link humans |
+| Cost at zero and low scale | Done — §10, from measured payload sizes |
+| One-host routing and isolation | Done — §5 |
+| Licensing / cloud boundary | Done — §6 |
+| Secrets and signing-key ownership | Done — §7 |
+| Key rotation | Done — §8, including the compromise procedure |
+| Backups and monitoring | Done — §9 |
+| Migration to a standalone service | Done — §11 |
+| Explicit deferrals | Done — §12, eleven items with reasons |
+| Nothing deployed | **Confirmed.** No infrastructure, no accounts, no code. `cloud.hakeemify.com` does not resolve. |
+
+### The decision the document is built around
+
+**v1 accepts reports and sends no commands. There is no inbound control path.**
+
+Debloater edits people's sites, and the argument that this is safe rests on a
+person having asked for the change and being there when verification runs. A
+control channel would mean a change originating where the site owner is not,
+watched by nobody, across thirty sites at once — a materially different product
+with a materially different risk.
+
+The concrete consequence is already in the shipped code: `CloudServiceClient`
+has one method, `get()`, returning decoded data with no path to anything
+executable. A compromised Hakeemify Cloud can put wrong numbers on a dashboard.
+It cannot touch a site.
+
+Agencies will ask for remote apply anyway, so the document says what the answer
+is rather than leaving it to be improvised: **the site initiates, always** — an
+agency stages an *intent*, the site collects it on its own schedule, plans,
+snapshots, verifies and rolls back locally, and may refuse. That inverts the
+trust direction and keeps every safety property where it already works. It is
+deferred, and §12 says explicitly that it must not be retrofitted by adding a
+command endpoint to v1.
+
+### Two things the codebase settled rather than the design
+
+**Data minimisation is mostly already true.** A full fact set from the Phase 9
+fixture — 50 facts across WooCommerce, Contact Form 7 and LiteSpeed — contains
+**zero absolute URLs**, because `Scan\Sources` reduces every asset URL to a
+source label before it becomes a fact. That was a consequence of invariant 1,
+not a privacy measure, and it means the transmitted payload needs subtraction
+rather than redesign.
+
+**The cost model is measured, not estimated.** A real scan produces a 30.1 KB
+run payload — 12.1 KB of facts, 17.4 KB of analysis across 16 findings. At
+5 000 sites reporting weekly that is under 1 GB a month and well under one
+request per second, which is what justifies the deliberately boring
+infrastructure: managed Postgres, containers that scale to zero, and no
+Kubernetes, queue broker or data warehouse.
+
+The first draft said 40 KB from estimation. Measuring changed the figure and
+the shape of the argument, and the analysis being the larger half — because
+findings carry their evidence in full sentences — is the kind of thing only a
+measurement tells you.
+
+### Open questions recorded for a person
+
+Four, in §13: whether the dashboard is Pro or a separate subscription, which
+jurisdiction stores the data, whether an agency's client gets access to their
+own site's page, and what the free tier is. None is decidable from the code.

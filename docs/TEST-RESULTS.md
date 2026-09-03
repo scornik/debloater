@@ -1809,3 +1809,35 @@ A weaker version — "no new tweaks appear in the registry" — would pass while
 quietly altered a parameter, a hook priority or the order of two handlers.
 Comparing the artefact rather than the inputs is what makes it an assertion
 about the site rather than about the plan.
+
+---
+
+## Phase 20 — no tests, and why that is the right answer
+
+Design only. Nothing was built, so nothing was tested, and the regression suite
+is unchanged from Phase 19:
+
+```
+Unit (free)          OK  1 185 tests, 12 188 assertions
+Unit (pro)           OK     14 tests,    110 assertions
+Integration          OK    300 tests,  4 566 assertions
+Fail-probe rollback  OK      9 tests,    105 assertions
+```
+
+What this phase did produce is **two measurements**, taken because the document
+needed numbers and estimates would have been invention:
+
+| Measured | Value |
+|---|---|
+| Full run payload, full-stack fixture | 30.1 KB |
+| — facts | 12.1 KB |
+| — analysis, 16 findings | 17.4 KB |
+| Absolute URLs in a full fact set | 0 |
+
+The first corrected the cost model, which had been drafted at 40 KB from
+estimation. The second is the load-bearing claim in the data-minimisation
+section, and it is checkable by anybody: `tests/Fixtures/facts/full-stack.json`
+contains no `http://` or `https://` anywhere.
+
+Neither is a test. Both are the kind of fact a design document should rest on
+rather than assert.
