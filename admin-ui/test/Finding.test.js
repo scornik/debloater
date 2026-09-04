@@ -152,3 +152,50 @@ describe( 'Finding', () => {
 		expect( container ).toBeEmptyDOMElement();
 	} );
 } );
+
+/**
+ * The apply button, and the value that decides whether it appears.
+ *
+ * Written because the first version compared `finding.decision` against
+ * `'recommended'` — the text on the badge — when the value is `'recommend'`,
+ * the enum case. Nothing threw, nothing warned, and the button simply never
+ * appeared on any finding on any site.
+ *
+ * A test per decision value, so the next person who reads the badge instead of
+ * the enum finds out in a second rather than from a screenshot.
+ */
+describe( 'applying a single finding', () => {
+	it( 'offers the change when the engine recommends one', async () => {
+		await renderFinding( { finding } );
+
+		expect(
+			screen.getByRole( 'button', { name: /Apply this change/ } )
+		).toBeInTheDocument();
+	} );
+
+	it( 'offers nothing when no action is recommended', async () => {
+		await renderFinding( { finding: { ...finding, decision: 'info' } } );
+
+		expect(
+			screen.queryByRole( 'button', { name: /Apply this change/ } )
+		).not.toBeInTheDocument();
+	} );
+
+	it( 'offers nothing on a finding the engine says to leave alone', async () => {
+		await renderFinding( {
+			finding: { ...finding, decision: 'dont_touch' },
+		} );
+
+		expect(
+			screen.queryByRole( 'button', { name: /Apply this change/ } )
+		).not.toBeInTheDocument();
+	} );
+
+	it( 'offers nothing when there is no change to make', async () => {
+		await renderFinding( { finding: { ...finding, recommendation: null } } );
+
+		expect(
+			screen.queryByRole( 'button', { name: /Apply this change/ } )
+		).not.toBeInTheDocument();
+	} );
+} );

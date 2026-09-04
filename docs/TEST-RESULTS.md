@@ -1986,3 +1986,32 @@ Two lessons, both about where a test looks rather than what it asserts. Phase 18
 checked entry names through a reader that normalised them. Phase 18b checked
 files on disk instead of asking the program that consumes them. The bug was
 visible from neither vantage point.
+
+---
+
+## The apply button did not appear, and why no test saw it
+
+**2026-09-04 · reported from a live install**
+
+The button added in Phase 18c never rendered. The condition read
+
+```js
+finding.decision === 'recommended'
+```
+
+and the value is `recommend`. The badge on the screen says "Recommended";
+`Decision::RECOMMEND` is `'recommend'`. The label was read instead of the enum.
+
+Nothing threw and nothing warned. A `&&` against a string that never matches is
+a valid expression that renders nothing, so the feature was simply absent on
+every finding on every site, and the build, the lint and every existing test
+passed.
+
+What makes it worth writing down is that `admin-ui/test/Finding.test.js` already
+had a fixture with `decision: 'recommend'` in it. The value was sitting in the
+test file the whole time; there was just no assertion that used it.
+
+There is now one test per decision value — `recommend` shows the button,
+`info` and `dont_touch` do not, and neither does a finding with no
+recommendation. Confirmed to fail on the pre-fix condition before the fix was
+restored.

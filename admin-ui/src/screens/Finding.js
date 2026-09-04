@@ -293,8 +293,14 @@ export const Finding = ( { finding, onBack, onStarted } ) => {
 			 * The button opens the same dialog "Fix safe issues" opens. It is
 			 * not a shortcut past the preview, the recovery point or the
 			 * confirmation — it is the same road with one thing on it.
+			 *
+			 * The value below is `recommend`, not `recommended`. The badge
+			 * reads "Recommended" and the enum case is `Decision::RECOMMEND`;
+			 * the first version of this compared against the label, so nothing
+			 * threw, nothing warned, and the button never appeared on any
+			 * finding on any site. There is a test per decision value now.
 			 */ }
-			{ recommendation && finding.decision === 'recommended' && (
+			{ recommendation && finding.decision === 'recommend' && (
 				<div className="debloater-finding__actions">
 					<Button
 						variant="primary"
