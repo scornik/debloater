@@ -8,6 +8,15 @@ All notable changes to Debloater are recorded here. The format follows
 
 ### Fixed
 
+- **The before/after report showed nothing.** It read the stored measurements
+  in a shape nothing writes, so every report said "nothing was measured" even
+  when plenty had been. It now reads what the apply actually records.
+- **The report opened inside the admin page** instead of as a printable
+  document of its own.
+- **Changes that were aborted or rolled back were offered a report.** They
+  changed nothing, so there was nothing to compare.
+
+
 - **A site could get permanently stuck on "Another change is already in
   progress".** The apply lock could be stored in a form that never expired, and
   crash recovery steps aside while the lock is held, so the one thing that would

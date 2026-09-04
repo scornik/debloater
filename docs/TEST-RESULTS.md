@@ -2046,3 +2046,50 @@ the class writes – and the failure only happens when the stored shape is one
 the class never writes but can still read.
 
 `test_a_malformed_lock_reads_as_free` now walks five of them.
+
+---
+
+## The before/after report showed nothing
+
+**2026-09-04 · reported from a live install**
+
+Every report said *"Nothing was measured for this change"*, including for
+applies that had measured plenty.
+
+`BeforeAfterReport` read `$run->payload['measurements']` as
+`{ label: { before, after } }`. What `ApplyManager` writes there is
+`Comparison::toArray()`:
+
+```
+{ before, after, deltas, changed, unknown }
+```
+
+`deltas` is the list the report wanted all along – one entry per metric with
+its unit, its before and after, the change, a percentage where an honest one
+exists, and a reason where the measurement could not be taken. The reader was
+written against a shape invented at the keyboard rather than the one the
+producer emits, so it matched nothing and the report fell through to its
+"nothing measured" branch every time.
+
+Two more, found in the same screenshot:
+
+**The report rendered inside the admin chrome.** A submenu callback runs after
+WordPress has printed the header, the sidebar and other plugins' notices, so
+echoing a complete `<!doctype html>` document from one nests a second document
+in the first – the report came out under somebody else's "activate your
+licence" banner. It is served from `admin-post.php` now, which runs before any
+of that.
+
+**Aborted runs were offered reports.** `appliedRuns()` returned every run of
+type APPLY regardless of outcome, so runs #6 and #7 – both aborted by the stuck
+lock, both having changed nothing – appeared in the list. Only committed and
+verified runs are listed now.
+
+### Why the existing test did not catch it
+
+`test_the_report_escapes_what_it_prints` asked whether the report escaped its
+output. It did – of an empty table. The assertion was true and useless.
+
+`test_the_report_shows_what_was_measured` now names the producer's shape,
+requires the run to have measured something, and requires every metric it
+measured to appear in the page. Confirmed to fail against the old reader.
