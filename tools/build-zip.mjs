@@ -1,77 +1,106 @@
 #!/usr/bin/env node
 /**
- * Build the distributable zip.
+ * Build a distributable zip, identically on every platform.
  *
- * BUILD-SPEC §17 Phase 18. Staged rather than zipped in place, because what
- * ships and what the repository contains are two different lists and the only
- * way to be sure of the first is to build it explicitly.
+ * BUILD-SPEC §17 Phase 18, and Phase 18b after this shipped a zip that could
+ * not be installed.
  *
- * The staging list is an allow-list, not a deny-list. A `.distignore` is a
- * deny-list, and the failure mode of a deny-list is that anything new ships by
- * default — a scratch file, a key somebody left in the working tree, next
- * phase's half-finished directory. `.distignore` exists too (WordPress tooling
- * reads it), but this is what actually decides.
+ * ## The bug this exists to prevent
  *
- * Two things are checked rather than assumed:
+ * The first version shelled out: `Compress-Archive` on Windows, `zip`
+ * everywhere else. `Compress-Archive` under Windows PowerShell 5.1 writes
+ * entry names with **backslash** separators — `debloater\debloater.php`. That
+ * is legal in the container format and wrong for every consumer: the zip
+ * specification says path separators are forward slashes, and a Windows tool
+ * ignoring that produces an archive only Windows can read.
  *
- *   1. The admin UI is built. A zip with no `build/` is a plugin whose screen
- *      is blank, and that is not something you want to discover after upload.
- *   2. The Composer autoloader was generated with `--no-dev`. Debloater has
- *      zero production dependencies, so the whole of `vendor/` is one generated
- *      autoloader — but if it was generated with dev dependencies installed it
- *      maps test namespaces and points at PHPUnit. That is both dead weight and
- *      a description of files that are not in the zip.
+ * On a Linux host WordPress extracts `debloater\debloater.php` as one flat file
+ * whose *name* contains a backslash. The plugin directory is then empty, and
+ * activation fails with "Plugin file does not exist."
+ *
+ * It is worth recording how this passed a review that thought it had checked.
+ * Python's `zipfile.namelist()` — and most zip readers — normalise backslashes
+ * to forward slashes on read, so the obvious verification reported zero
+ * offending entries on an archive where all 302 were wrong. The check has to
+ * read the central directory bytes, which is what `tests/packaging/` does.
+ *
+ * ## Rules
+ *
+ * - **Never shell out.** No PowerShell, no `zip`, no OS tool. `archiver` writes
+ *   the bytes in-process, so the output does not depend on the machine.
+ * - **Forward slashes, always.** Entry names are joined with `/` literally,
+ *   never with `path.join`, which is `\` on Windows.
+ * - **Explicit directory entries.** Not required by the format, but some
+ *   extractors rely on them, and their absence is the other half of how an
+ *   archive ends up flat.
+ * - **One top-level folder,** named for the slug: that is the directory
+ *   WordPress installs into.
+ * - **An allow-list decides what ships,** not a deny-list. `.distignore` is
+ *   applied on top, for the WordPress tooling that reads it.
  */
 
-import { execFileSync } from 'node:child_process';
+import { ZipArchive } from 'archiver';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import url from 'node:url';
 
 const ROOT = path.resolve( path.dirname( url.fileURLToPath( import.meta.url ) ), '..' );
-const SLUG = 'debloater';
 const DIST = path.join( ROOT, 'dist' );
-const STAGE = path.join( DIST, SLUG );
 
 /**
- * Everything that ships, and nothing else.
+ * The two plugins this repository builds.
  *
- * Directories are copied whole except where a filter says otherwise.
+ * Pro is a separate plugin and a separate zip, never inside the free one.
  */
-const SHIP = [
-	{ from: 'debloater.php' },
-	{ from: 'uninstall.php' },
-	{ from: 'readme.txt' },
-	{ from: 'composer.json' },
-	{ from: 'LICENSE' },
-	{ from: 'src' },
-	{ from: 'runtime-handlers' },
-	{ from: 'mu-loader' },
-	{ from: 'registry' },
-	{ from: 'schemas' },
-	{ from: 'languages' },
+const PLUGINS = {
+	free: {
+		slug: 'debloater',
+		root: ROOT,
+		entry: 'debloater.php',
+		requiresBuild: true,
+		ship: [
+			{ from: 'debloater.php' },
+			{ from: 'uninstall.php' },
+			{ from: 'readme.txt' },
+			{ from: 'composer.json' },
+			{ from: 'LICENSE' },
+			{ from: 'src' },
+			{ from: 'runtime-handlers' },
+			{ from: 'mu-loader' },
+			{ from: 'registry' },
+			{ from: 'schemas' },
+			{ from: 'languages' },
 
-	// The built admin UI, without the source maps: they are a development
-	// convenience and several times the size of the code they describe.
-	{ from: 'build', filter: ( relative ) => ! relative.endsWith( '.map' ) },
+			// The built admin UI, without source maps: a development
+			// convenience several times the size of the code it describes.
+			{ from: 'build', filter: ( rel ) => ! rel.endsWith( '.map' ) },
 
-	// The generated autoloader, and only that.
-	//
-	// Not the whole of `vendor/composer/`: `installed.php`, `installed.json`
-	// and `InstalledVersions.php` are Composer's runtime package inventory,
-	// nothing in this plugin reads them, and shipping them would put a list of
-	// forty dev dependencies into a zip that contains none of them.
-	{ from: 'vendor/autoload.php' },
-	{ from: 'vendor/composer/ClassLoader.php' },
-	{ from: 'vendor/composer/LICENSE' },
-	{ from: 'vendor/composer/autoload_real.php' },
-	{ from: 'vendor/composer/autoload_static.php' },
-	{ from: 'vendor/composer/autoload_classmap.php' },
-	{ from: 'vendor/composer/autoload_namespaces.php' },
-	{ from: 'vendor/composer/autoload_psr4.php' },
-	{ from: 'vendor/composer/platform_check.php' },
-];
+			// The generated autoloader, and only that. Not the whole of
+			// `vendor/composer/`: `installed.php`, `installed.json` and
+			// `InstalledVersions.php` are Composer's package inventory, nothing
+			// here reads them, and shipping them would put a list of forty dev
+			// dependencies into a zip containing none of them.
+			{ from: 'vendor/autoload.php' },
+			{ from: 'vendor/composer/ClassLoader.php' },
+			{ from: 'vendor/composer/LICENSE' },
+			{ from: 'vendor/composer/autoload_real.php' },
+			{ from: 'vendor/composer/autoload_static.php' },
+			{ from: 'vendor/composer/autoload_classmap.php' },
+			{ from: 'vendor/composer/autoload_namespaces.php' },
+			{ from: 'vendor/composer/autoload_psr4.php' },
+			{ from: 'vendor/composer/platform_check.php' },
+		],
+	},
+
+	pro: {
+		slug: 'debloater-pro',
+		root: path.join( ROOT, 'pro' ),
+		entry: 'debloater-pro.php',
+		requiresBuild: false,
+		ship: [ { from: 'debloater-pro.php' }, { from: 'src' } ],
+	},
+};
 
 /**
  * Fail with a message and a way forward.
@@ -91,62 +120,208 @@ function refuse( message, fix ) {
 }
 
 /**
- * The plugin version, read from the one place that defines it.
+ * Patterns from `.distignore`, as plain entries.
  *
+ * WordPress tooling reads this file, so it is honoured here rather than left
+ * to disagree with the allow-list. The allow-list decides; this can only ever
+ * remove.
+ *
+ * @return {string[]} Entries.
+ */
+function distignore() {
+	const file = path.join( ROOT, '.distignore' );
+
+	if ( ! fs.existsSync( file ) ) {
+		return [];
+	}
+
+	return fs
+		.readFileSync( file, 'utf8' )
+		.split( /\r?\n/ )
+		.map( ( line ) => line.trim() )
+		.filter( ( line ) => '' !== line && ! line.startsWith( '#' ) );
+}
+
+/**
+ * Whether `.distignore` excludes a path.
+ *
+ * @param {string[]} patterns Entries from `.distignore`.
+ * @param {string}   relative Forward-slash path relative to the plugin root.
+ * @return {boolean} True when it must not ship.
+ */
+function ignored( patterns, relative ) {
+	return patterns.some( ( pattern ) => {
+		const clean = pattern.replace( /^\/+|\/+$/g, '' );
+
+		if ( '' === clean ) {
+			return false;
+		}
+
+		if ( clean.startsWith( '*' ) ) {
+			return relative.endsWith( clean.slice( 1 ) );
+		}
+
+		return relative === clean || relative.startsWith( `${ clean }/` );
+	} );
+}
+
+/**
+ * Every file under a directory, as forward-slash paths relative to it.
+ *
+ * Sorted, so two builds of the same tree produce the same archive.
+ *
+ * @param {string} directory Absolute path.
+ * @return {string[]} Relative POSIX paths.
+ */
+function walk( directory ) {
+	const found = [];
+
+	for ( const entry of fs.readdirSync( directory, { withFileTypes: true, recursive: true } ) ) {
+		if ( ! entry.isFile() ) {
+			continue;
+		}
+
+		const parent = path.relative( directory, entry.parentPath || entry.path );
+
+		found.push( path.join( parent, entry.name ).split( path.sep ).join( '/' ) );
+	}
+
+	return found.sort();
+}
+
+/**
+ * Resolve one plugin's ship list to POSIX paths relative to its root.
+ *
+ * @param {object}   plugin   Plugin definition.
+ * @param {string[]} patterns `.distignore` entries.
+ * @return {string[]} Relative POSIX paths, sorted.
+ */
+function collect( plugin, patterns ) {
+	const files = new Set();
+
+	for ( const entry of plugin.ship ) {
+		const source = path.join( plugin.root, entry.from );
+
+		if ( ! fs.existsSync( source ) ) {
+			refuse( `${ entry.from } is in the ship list but not in the repository.` );
+		}
+
+		if ( fs.statSync( source ).isFile() ) {
+			files.add( entry.from );
+
+			continue;
+		}
+
+		for ( const relative of walk( source ) ) {
+			// Never a dotfile. `.gitkeep` markers were shipping inside src/,
+			// and wordpress.org rejects hidden files — but the better reason is
+			// that a dotfile in a release is always an accident: it exists to
+			// say something to the repository, not to the site.
+			if ( relative.split( '/' ).some( ( part ) => part.startsWith( '.' ) ) ) {
+				continue;
+			}
+
+			if ( entry.filter && ! entry.filter( relative ) ) {
+				continue;
+			}
+
+			files.add( `${ entry.from }/${ relative }` );
+		}
+	}
+
+	return [ ...files ].filter( ( file ) => ! ignored( patterns, file ) ).sort();
+}
+
+/**
+ * Refuse a file list containing something that must never ship.
+ *
+ * The allow-list makes this close to impossible, which is exactly why it is
+ * worth checking: an assertion that never fires costs nothing, and this is the
+ * last point at which a mistake is still cheap.
+ *
+ * @param {object}   plugin Plugin definition.
+ * @param {string[]} files  Relative POSIX paths.
+ */
+function audit( plugin, files ) {
+	const forbidden = [
+		{ test: ( f ) => f.startsWith( 'tests/' ), why: 'test files' },
+		{ test: ( f ) => f.includes( 'node_modules/' ), why: 'node_modules' },
+		{ test: ( f ) => f.startsWith( '.github' ), why: 'CI configuration' },
+		{ test: ( f ) => f.endsWith( '.map' ), why: 'source maps' },
+		{ test: ( f ) => '.wp-env.json' === f, why: 'the local environment config' },
+		{ test: ( f ) => f.endsWith( '.pem' ) || f.endsWith( '.key' ), why: 'a key file' },
+		{ test: ( f ) => f.split( '/' ).some( ( p ) => p.startsWith( '.' ) ), why: 'a hidden file' },
+	];
+
+	for ( const file of files ) {
+		for ( const rule of forbidden ) {
+			if ( rule.test( file ) ) {
+				refuse( `${ plugin.slug } would ship ${ rule.why }: ${ file }` );
+			}
+		}
+	}
+
+	for ( const file of files ) {
+		if ( ! /\.(php|json|txt|js|pot|po)$/.test( file ) ) {
+			continue;
+		}
+
+		const contents = fs.readFileSync( path.join( plugin.root, file ), 'utf8' );
+
+		if ( /-----BEGIN [A-Z ]*PRIVATE KEY-----/.test( contents ) ) {
+			refuse( `${ file } contains what looks like a private key (§13 rule 15).` );
+		}
+	}
+}
+
+/**
+ * The version from a plugin header, checked against readme.txt where there is one.
+ *
+ * @param {object} plugin Plugin definition.
  * @return {string} Version.
  */
-function version() {
-	const header = fs.readFileSync( path.join( ROOT, 'debloater.php' ), 'utf8' );
+function version( plugin ) {
+	const header = fs.readFileSync( path.join( plugin.root, plugin.entry ), 'utf8' );
 	const matched = /^\s*\*\s*Version:\s*(\S+)/m.exec( header );
 
 	if ( ! matched ) {
-		refuse( 'debloater.php has no Version header.' );
+		refuse( `${ plugin.entry } has no Version header.` );
 	}
 
-	const readme = fs.readFileSync( path.join( ROOT, 'readme.txt' ), 'utf8' );
-	const stable = /^Stable tag:\s*(\S+)/m.exec( readme );
+	const readme = path.join( plugin.root, 'readme.txt' );
 
-	if ( ! stable ) {
-		refuse( 'readme.txt has no Stable tag.' );
-	}
+	if ( fs.existsSync( readme ) ) {
+		const stable = /^Stable tag:\s*(\S+)/m.exec( fs.readFileSync( readme, 'utf8' ) );
 
-	if ( stable[ 1 ] !== matched[ 1 ] ) {
-		refuse(
-			`the plugin header says ${ matched[ 1 ] } and readme.txt says ${ stable[ 1 ] }.`,
-			'These have to agree: wordpress.org serves whichever one it reads first.'
-		);
+		if ( ! stable ) {
+			refuse( 'readme.txt has no Stable tag.' );
+		}
+
+		if ( stable[ 1 ] !== matched[ 1 ] ) {
+			refuse(
+				`the plugin header says ${ matched[ 1 ] } and readme.txt says ${ stable[ 1 ] }.`,
+				'These have to agree: wordpress.org serves whichever one it reads first.'
+			);
+		}
 	}
 
 	return matched[ 1 ];
 }
 
 /**
- * Refuse a zip whose admin UI was never built.
+ * Refuse an autoloader generated with dev dependencies installed.
+ *
+ * @param {object} plugin Plugin definition.
  */
-function requireBuild() {
-	const built = path.join( ROOT, 'build' );
-
-	if ( ! fs.existsSync( built ) || 0 === fs.readdirSync( built ).length ) {
-		refuse( 'build/ is empty, so the admin screen would be blank.', 'npm run build' );
-	}
-}
-
-/**
- * Refuse an autoloader that was generated with dev dependencies installed.
- */
-function requireProductionAutoloader() {
-	const autoload = path.join( ROOT, 'vendor', 'autoload.php' );
+function requireProductionAutoloader( plugin ) {
+	const autoload = path.join( plugin.root, 'vendor', 'autoload.php' );
 
 	if ( ! fs.existsSync( autoload ) ) {
 		refuse( 'vendor/autoload.php is missing.', 'composer install --no-dev' );
 	}
 
-	// Only the maps that ship. `installed.php` is left out of the zip, so what
-	// it says about dev dependencies is not this check's business.
-	const maps = [ 'autoload_psr4.php', 'autoload_static.php', 'autoload_classmap.php' ];
-
-	for ( const file of maps ) {
-		const where = path.join( ROOT, 'vendor', 'composer', file );
+	for ( const file of [ 'autoload_psr4.php', 'autoload_static.php', 'autoload_classmap.php' ] ) {
+		const where = path.join( plugin.root, 'vendor', 'composer', file );
 
 		if ( ! fs.existsSync( where ) ) {
 			continue;
@@ -154,9 +329,6 @@ function requireProductionAutoloader() {
 
 		const contents = fs.readFileSync( where, 'utf8' );
 
-		// Any of these means the autoloader describes files that are not in the
-		// zip. `Debloater\Tests` is our own dev namespace; the rest are the dev
-		// dependencies that would have been mapped alongside it.
 		for ( const marker of [ 'Tests\\\\', 'phpunit', 'PHPUnit', 'PHPCSUtils', 'PHPStan', 'Yoast' ] ) {
 			if ( contents.includes( marker ) ) {
 				refuse(
@@ -170,148 +342,100 @@ function requireProductionAutoloader() {
 }
 
 /**
- * Copy one entry of the ship list into the staging directory.
+ * Write one zip.
  *
- * @param {string}                     from   Path relative to the repository root.
- * @param {(rel: string) => boolean=} filter  Optional per-file predicate.
+ * @param {object}   plugin Plugin definition.
+ * @param {string[]} files  Relative POSIX paths.
+ * @param {string}   tag    Version.
+ * @return {Promise<string>} Path to the archive.
  */
-function stage( from, filter ) {
-	const source = path.join( ROOT, from );
-	const target = path.join( STAGE, from );
+function write( plugin, files, tag ) {
+	const archive = path.join( DIST, `${ plugin.slug }-${ tag }.zip` );
 
-	if ( ! fs.existsSync( source ) ) {
-		refuse( `${ from } is in the ship list but not in the repository.` );
-	}
+	fs.mkdirSync( DIST, { recursive: true } );
+	fs.rmSync( archive, { force: true } );
 
-	if ( fs.statSync( source ).isFile() ) {
-		fs.mkdirSync( path.dirname( target ), { recursive: true } );
-		fs.copyFileSync( source, target );
+	return new Promise( ( resolve, reject ) => {
+		const output = fs.createWriteStream( archive );
+		const zip = new ZipArchive( { zlib: { level: 9 } } );
 
-		return;
-	}
+		output.on( 'close', () => resolve( archive ) );
+		zip.on( 'warning', reject );
+		zip.on( 'error', reject );
+		zip.pipe( output );
 
-	fs.cpSync( source, target, {
-		recursive: true,
-		filter: ( entry ) => {
-			// Never a dotfile. `.gitkeep` markers were shipping inside src/,
-			// and wordpress.org rejects hidden files outright — but the better
-			// reason is that a dotfile in a release is always an accident:
-			// it exists to say something to the repository, not to the site.
-			if ( path.basename( entry ).startsWith( '.' ) ) {
-				return false;
+		// Explicit directory entries, parents before children, so an extractor
+		// that relies on them never meets a file before its folder.
+		const directories = new Set();
+
+		for ( const file of files ) {
+			const parts = file.split( '/' );
+
+			for ( let index = 0; index < parts.length - 1; index++ ) {
+				directories.add( parts.slice( 0, index + 1 ).join( '/' ) );
 			}
+		}
 
-			if ( ! filter ) {
-				return true;
-			}
+		zip.append( null, { name: `${ plugin.slug }/` } );
 
-			const relative = path.relative( source, entry ).split( path.sep ).join( '/' );
+		for ( const directory of [ ...directories ].sort() ) {
+			zip.append( null, { name: `${ plugin.slug }/${ directory }/` } );
+		}
 
-			return '' === relative || fs.statSync( entry ).isDirectory() || filter( relative );
-		},
+		for ( const file of files ) {
+			// Joined with a literal `/`, never `path.join`, which on Windows
+			// produces the backslashes this whole file exists to prevent.
+			zip.file( path.join( plugin.root, file ), { name: `${ plugin.slug }/${ file }` } );
+		}
+
+		zip.finalize();
 	} );
 }
 
 /**
- * Every file under a directory, relative to it, sorted.
+ * Build one plugin's zip.
  *
- * @param {string} directory Directory to walk.
- * @return {string[]} Relative paths.
+ * @param {string} which Key in PLUGINS.
+ * @return {Promise<void>}
  */
-function walk( directory ) {
-	const found = [];
+async function build( which ) {
+	const plugin = PLUGINS[ which ];
 
-	for ( const entry of fs.readdirSync( directory, { withFileTypes: true, recursive: true } ) ) {
-		if ( entry.isFile() ) {
-			const parent = path.relative( directory, entry.parentPath || entry.path );
+	if ( plugin.requiresBuild ) {
+		const built = path.join( plugin.root, 'build' );
 
-			found.push( path.join( parent, entry.name ).split( path.sep ).join( '/' ) );
+		if ( ! fs.existsSync( built ) || 0 === fs.readdirSync( built ).length ) {
+			refuse( 'build/ is empty, so the admin screen would be blank.', 'npm run build' );
 		}
+
+		requireProductionAutoloader( plugin );
 	}
 
-	return found.sort();
-}
+	const tag = version( plugin );
+	const files = collect( plugin, distignore() );
 
-/**
- * Refuse a staged tree that contains something it should not.
- *
- * The allow-list makes this close to impossible, which is exactly why it is
- * worth checking: an assertion that never fires costs nothing, and this is the
- * last point at which a mistake is still cheap.
- */
-function auditStage() {
-	const files = walk( STAGE );
+	audit( plugin, files );
 
-	const forbidden = [
-		{ test: ( f ) => f.startsWith( 'tests/' ), why: 'test files' },
-		{ test: ( f ) => f.endsWith( '.map' ), why: 'source maps' },
-		{ test: ( f ) => f.includes( 'node_modules/' ), why: 'node_modules' },
-		{ test: ( f ) => f.endsWith( '.pem' ) || f.endsWith( '.key' ), why: 'a key file' },
-		{ test: ( f ) => '.env' === f || f.endsWith( '/.env' ), why: 'an environment file' },
-		{ test: ( f ) => f.startsWith( '.git' ), why: 'version-control metadata' },
-	];
+	const archive = await write( plugin, files, tag );
+	const size = fs.statSync( archive ).size;
 
-	for ( const file of files ) {
-		for ( const rule of forbidden ) {
-			if ( rule.test( file ) ) {
-				refuse( `the staged tree contains ${ rule.why }: ${ file }` );
-			}
-		}
-	}
-
-	// And no private key material, wherever it came from.
-	for ( const file of files ) {
-		if ( ! /\.(php|json|txt|js|pot|po)$/.test( file ) ) {
-			continue;
-		}
-
-		const contents = fs.readFileSync( path.join( STAGE, file ), 'utf8' );
-
-		if ( /-----BEGIN [A-Z ]*PRIVATE KEY-----/.test( contents ) ) {
-			refuse( `${ file } contains what looks like a private key (§13 rule 15).` );
-		}
-	}
-
-	return files;
-}
-
-requireBuild();
-requireProductionAutoloader();
-
-const tag = version();
-
-fs.rmSync( STAGE, { recursive: true, force: true } );
-fs.mkdirSync( STAGE, { recursive: true } );
-
-for ( const entry of SHIP ) {
-	stage( entry.from, entry.filter );
-}
-
-const files = auditStage();
-const archive = path.join( DIST, `${ SLUG }-${ tag }.zip` );
-
-fs.rmSync( archive, { force: true } );
-
-// PowerShell's Compress-Archive on Windows, `zip` everywhere else. Both are
-// present on their respective platforms without installing anything, which
-// matters for a step that has to work on a fresh checkout.
-if ( 'win32' === process.platform ) {
-	execFileSync(
-		'powershell',
-		[
-			'-NoProfile',
-			'-Command',
-			`Compress-Archive -Path '${ STAGE }' -DestinationPath '${ archive }' -Force`,
-		],
-		{ stdio: 'inherit' }
+	process.stdout.write(
+		`\n${ path.relative( ROOT, archive ).split( path.sep ).join( '/' ) }\n` +
+			`  ${ files.length } files, ${ ( size / 1024 ).toFixed( 0 ) } KB\n`
 	);
-} else {
-	execFileSync( 'zip', [ '-rq', archive, SLUG ], { cwd: DIST, stdio: 'inherit' } );
 }
 
-const size = fs.statSync( archive ).size;
+const requested = process.argv[ 2 ] ?? 'all';
+const targets = 'all' === requested ? Object.keys( PLUGINS ) : [ requested ];
 
-process.stdout.write(
-	`\n${ path.relative( ROOT, archive ) }\n` +
-		`  ${ files.length } files, ${ ( size / 1024 ).toFixed( 0 ) } KB\n\n`
-);
+for ( const target of targets ) {
+	if ( ! PLUGINS[ target ] ) {
+		refuse( `Unknown plugin "${ target }". Use one of: ${ Object.keys( PLUGINS ).join( ', ' ) }, all.` );
+	}
+}
+
+for ( const target of targets ) {
+	await build( target );
+}
+
+process.stdout.write( '\n' );

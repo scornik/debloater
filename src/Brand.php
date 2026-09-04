@@ -49,6 +49,23 @@ final class Brand {
 	public const TAGLINE = 'Scan, Fix & Undo Site Bloat';
 
 	/**
+	 * Name and tagline, as one string.
+	 *
+	 * A constant rather than a method, because the two places that need it are
+	 * a plugin header and a readme title — both of which are *read as text* by
+	 * wordpress.org's parsers, and neither of which can call a method. A test
+	 * asserts the readme's `=== ... ===` line equals this exactly, so the file
+	 * and the constant cannot drift.
+	 *
+	 * The plugin header does **not** use it. wordpress.org generates the slug
+	 * from `Plugin Name`, so that header says `Debloater` and nothing else; the
+	 * full title lives only in the readme, where it is a display string rather
+	 * than an identifier. Getting that the wrong way round is how a plugin ends
+	 * up with a slug like `debloater-scan-fix-undo-site-bloat`.
+	 */
+	public const FULL_TITLE = self::NAME . ' – ' . self::TAGLINE;
+
+	/**
 	 * Plugin slug, used for the directory, text domain and asset handles.
 	 */
 	public const SLUG = 'debloater';
@@ -145,6 +162,6 @@ final class Brand {
 	 * @return string
 	 */
 	public static function fullName(): string {
-		return self::NAME . ' – ' . self::TAGLINE;
+		return self::FULL_TITLE;
 	}
 }

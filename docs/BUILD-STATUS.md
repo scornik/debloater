@@ -1985,3 +1985,67 @@ the slug, so the mistaken premise cannot come back quietly.
 Verified after the change: unit 1 185, integration 302, fail-probe 9, PHPCS
 clean, PHPStan level 6 clean, Plugin Check clean, and
 `debloater-0.1.0.zip` rebuilt at 301 files / 523 KB.
+
+---
+
+## Phase 18b – portable zip packaging and submission headers
+
+**Status:** complete, with one open naming item · 2026-09-04
+
+### The bug
+
+The shipped zip could not be installed on Linux. Every one of its 302 entries
+used a backslash separator, written by `Compress-Archive` under Windows
+PowerShell 5.1. Full reasoning in `docs/DECISIONS.md` D-0053.
+
+The part worth carrying forward is *why it was reported as verified*. Python's
+`zipfile.namelist()` normalises backslashes on read, so the check that was run
+returned zero offending entries on an archive where all 302 were wrong. The
+assertion now parses the central directory bytes instead.
+
+### What changed
+
+| | |
+|---|---|
+| Build | `archiver`, in-process, no branch on platform, no shell |
+| Entry names | Joined with a literal `/`; explicit directory entries, parents first |
+| Layout | One top-level folder, named for the slug |
+| Scripts | `plugin-zip` builds both; `:free` and `:pro` build one |
+| Free header | `Plugin Name: Debloater` – the slug is derived from it |
+| Pro header | `Requires Plugins: debloater` |
+| `Brand::FULL_TITLE` | New constant; the readme title and the admin page both come from it |
+| readme Tags | `bloat, debloat, performance, cleanup, optimization` |
+| `Tested up to` | 7.1, verified with `wp core check-update` rather than guessed |
+
+### Verification
+
+| Check | Result |
+|---|---|
+| Packaging suite | 15 of 15 |
+| Backslashes in either archive | **0** of 340 and 24 entries |
+| Top-level folders | exactly one each |
+| WordPress extract and activate | both zips, in the Linux container |
+| Unit | 1 186 tests, 12 198 assertions |
+| Integration | 302 tests; fail-probe 9 |
+| PHPCS / PHPStan L6 / ESLint | clean |
+| Plugin Check on the built zip | **0 errors, 1 warning** |
+
+### The open item
+
+Plugin Check reports `mismatched_plugin_name`: the readme title and the header
+differ, which is what this phase was asked to make them do. One warning, no
+errors, and it needs a naming decision rather than an implementation one. Both
+ways to clear it are set out in D-0054.
+
+### A destructive accident, and what now prevents it
+
+The first version of the packaging test ran `wp plugin delete debloater` to
+reach a clean install state. This repository is bind-mounted into wp-env as
+`wp-content/plugins/debloater`, so WP-CLI deleted the working tree through the
+mount, `.git` included. It was restored from the remote; no committed work was
+lost.
+
+The test now installs under a throwaway slug and never calls
+`wp plugin delete` at all, and `assertNotMapped()` reads `.wp-env.json` and
+refuses any operation on a slug that is a mapped directory. That guard has its
+own test, because a rule nobody checks is a comment.

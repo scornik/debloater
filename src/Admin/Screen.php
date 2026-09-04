@@ -81,7 +81,11 @@ final class Screen {
 	 */
 	public function registerMenu(): void {
 		$hook = add_menu_page(
-			Brand::NAME,
+			// The browser tab and the page heading get the full title, because
+			// both are read out of context. The menu item gets the short name,
+			// because a sidebar has about twelve characters before it starts
+			// truncating and "Debloater – Scan, Fi…" helps nobody.
+			Brand::FULL_TITLE,
 			Brand::NAME,
 			Capabilities::MANAGE,
 			Brand::MENU_SLUG,
@@ -245,7 +249,7 @@ final class Screen {
 
 		printf(
 			'<div class="wrap"><h1 class="screen-reader-text">%s</h1><div id="debloater-root">%s</div></div>',
-			esc_html( Brand::NAME ),
+			esc_html( Brand::FULL_TITLE ),
 			esc_html__( 'Loading Debloater…', 'debloater' )
 		);
 	}

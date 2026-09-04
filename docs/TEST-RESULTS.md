@@ -1889,3 +1889,58 @@ which runs E2E in its own job, has been green twice.
 It is contention. The reason it is written down anyway is that "it passes when I
 run it again" is the sentence that hides real flakiness, and the next person
 should be able to see that the distinction was checked.
+
+---
+
+## Phase 18b – packaging
+
+```
+Packaging suite      15 of 15
+  backslash entries   0 of 340 (free), 0 of 24 (pro)
+  top-level folders   exactly one each
+  extract + activate  both, in the Linux container
+
+Unit                 OK  1 186 tests, 12 198 assertions
+Integration          OK    302 tests,  4 572 assertions
+Fail-probe           OK      9 tests,    105 assertions
+PHPCS                clean
+PHPStan level 6      no errors
+ESLint               clean
+Plugin Check         0 errors, 1 warning (mismatched_plugin_name)
+```
+
+### The check that could not see the bug
+
+The Phase 18 verification was, in effect, a list comprehension over
+`zipfile.ZipFile(path).namelist()` looking for a backslash. It returned an empty
+list on an archive where all 302 entries used backslash separators, because
+`namelist()` normalises them on read. The archive was reported as verified and
+could not be installed.
+
+Reading the central directory directly gives the true answer:
+
+```
+entries: 302
+entry names containing a backslash: 302
+```
+
+Every packaging assertion now parses those bytes. A test that reads through the
+same normalisation as the bug cannot see the bug, and this one had to be written
+twice to learn that.
+
+### Three harness bugs found while writing it
+
+**`inflateRawSync` raised `Z_BUF_ERROR`.** The local file header's compressed
+size is zero for archiver's streamed entries; the real figure is in the central
+directory. Sizes and offsets now come from there.
+
+**`shell: true` destroyed the argument boundaries.** Node joins the arguments
+and hands the string to cmd.exe, which re-parses it, so `sh -c "rm -rf a b"`
+arrived as five arguments and `&&` escaped into the outer shell. Naming
+`npx.cmd` with `shell: false` fixed the quoting and then failed with EINVAL,
+because current Node refuses to spawn a `.cmd` without a shell. Running
+wp-env's own JS entry point with `process.execPath` has neither problem.
+
+**A regex that looked exhaustive was not.** `autoload_[a-z]+` does not match
+`autoload_psr4` – the digit. The vendor allow-list is now nine literal
+filenames, which is both correct and readable.

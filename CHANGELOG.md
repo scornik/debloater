@@ -8,6 +8,25 @@ All notable changes to Debloater are recorded here. The format follows
 
 ### Fixed
 
+- **The release zip could not be installed on Linux.** Every entry in it used a
+  backslash path separator, written by a Windows-only zip tool, so WordPress
+  extracted one flat file instead of a plugin directory and activation failed
+  with "Plugin file does not exist."
+
+  The zip is now written in-process by the same code on every platform, with
+  forward slashes and explicit directory entries, and CI builds it on both Linux
+  and Windows and checks the two agree entry for entry.
+
+### Changed
+
+- The plugin header is `Plugin Name: Debloater`. wordpress.org derives the
+  plugin's permanent slug from that header, and the full title belongs in
+  readme.txt where it is a display string rather than an identifier.
+- Debloater Pro declares `Requires Plugins: debloater`, so WordPress will not
+  let it activate without the free plugin.
+- readme tags are now `bloat, debloat, performance, cleanup, optimization`.
+
+
 - **A REST request could take itself down.** `src/Rest/` had no exception
   handling at all, and WordPress does not catch exceptions thrown by a route
   callback — so anything the engine raised became a PHP fatal: an empty body to

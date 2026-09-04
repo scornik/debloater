@@ -24,10 +24,13 @@
     "test:e2e": "playwright test",
     "test:e2e:install": "playwright install --with-deps chromium",
     "test:e2e:seed": "wp-env run cli --env-cwd=wp-content/plugins/debloater wp eval-file tools/seed-e2e.php",
-    "plugin-zip": "node tools/build-zip.mjs",
+    "plugin-zip": "node tools/build-zip.mjs all",
     "i18n:pot": "wp-env run cli --env-cwd=wp-content/plugins/debloater wp i18n make-pot . languages/debloater.pot --slug=debloater --domain=debloater --exclude=tests,tools,node_modules,admin-ui,vendor,docs,dist --headers={\\\"Report-Msgid-Bugs-To\\\":\\\"https://github.com/scornik/debloater/issues\\\",\\\"Last-Translator\\\":\\\"\\\",\\\"Language-Team\\\":\\\"\\\"}",
     "i18n:json": "wp-env run cli --env-cwd=wp-content/plugins/debloater wp i18n make-json languages --no-purge",
-    "plugin-check": "wp-env run cli --env-cwd=wp-content/plugins/debloater wp plugin check debloater --format=table"
+    "plugin-check": "wp-env run cli --env-cwd=wp-content/plugins/debloater wp plugin check debloater --format=table",
+    "plugin-zip:free": "node tools/build-zip.mjs free",
+    "plugin-zip:pro": "node tools/build-zip.mjs pro",
+    "test:packaging": "node --test tests/packaging/zip.test.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1",
@@ -40,6 +43,7 @@
     "@wordpress/element": "^8.6.0",
     "@wordpress/env": "^10.10.0",
     "@wordpress/i18n": "^6.27.0",
-    "@wordpress/scripts": "^34.2.0"
+    "@wordpress/scripts": "^34.2.0",
+    "archiver": "^8.0.0"
   }
 }

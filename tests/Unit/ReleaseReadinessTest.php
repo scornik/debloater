@@ -50,7 +50,7 @@ final class ReleaseReadinessTest extends TestCase {
 		$header = $this->file( 'debloater.php' );
 
 		$expected = array(
-			'Plugin Name'       => Brand::fullName(),
+			'Plugin Name'       => Brand::NAME,
 			'Requires at least' => '6.5',
 			'Requires PHP'      => '8.1',
 			'License'           => 'GPL-2.0-or-later',
@@ -129,10 +129,49 @@ final class ReleaseReadinessTest extends TestCase {
 		// the other and serves translations against it.
 		$this->assertSame( Brand::SLUG, Brand::TEXT_DOMAIN );
 
-		// And the full title is composed, not typed.
+		// And the full title is composed, not typed, in both forms.
+		$this->assertSame( Brand::NAME . ' – ' . Brand::TAGLINE, Brand::FULL_TITLE );
+		$this->assertSame( Brand::FULL_TITLE, Brand::fullName() );
+	}
+
+	/**
+	 * The plugin header is the short name; the full title is the readme's.
+	 *
+	 * These two look like the same fact and are not, which is why they are
+	 * asserted separately and exactly.
+	 *
+	 * wordpress.org **generates the slug from `Plugin Name`**. A header reading
+	 * "Debloater ''' – ''' Scan, Fix & Undo Site Bloat" would produce a slug like
+	 * `debloater-scan-fix-undo-site-bloat` — permanent, unfixable after
+	 * publication, and not the slug D-0047 chose. So the header carries the
+	 * short name and nothing else.
+	 *
+	 * The readme's `=== ... ===` line is a *display* string. That is where the
+	 * full title belongs, and it must equal `Brand::FULL_TITLE` character for
+	 * character, so the constant and the file cannot drift.
+	 *
+	 * @return void
+	 */
+	public function test_the_header_is_the_name_and_the_readme_is_the_title(): void {
+		$header = $this->headerField( $this->file( 'debloater.php' ), 'Plugin Name' );
+
 		$this->assertSame(
-			Brand::NAME . ' – ' . Brand::TAGLINE,
-			Brand::fullName()
+			'Debloater',
+			$header,
+			'wordpress.org derives the slug from this header, so it must be the short name alone.'
+		);
+		$this->assertSame( Brand::NAME, $header );
+
+		// Nothing of the tagline leaks into it.
+		$this->assertStringNotContainsString( Brand::TAGLINE, $header );
+
+		$readme = $this->file( 'readme.txt' );
+		$first  = strtok( $readme, "\n" );
+
+		$this->assertSame(
+			'=== ' . Brand::FULL_TITLE . ' ===',
+			rtrim( (string) $first, "\r" ),
+			'The readme title line must equal Brand::FULL_TITLE exactly.'
 		);
 	}
 
@@ -193,7 +232,7 @@ final class ReleaseReadinessTest extends TestCase {
 	public function test_the_readme_has_the_required_sections(): void {
 		$readme = $this->file( 'readme.txt' );
 
-		$this->assertStringStartsWith( '=== ' . Brand::fullName() . ' ===', $readme );
+		$this->assertStringStartsWith( '=== ' . Brand::FULL_TITLE . ' ===', $readme );
 
 		foreach ( array( 'Contributors', 'Tags', 'Requires at least', 'Requires PHP', 'Stable tag', 'License' ) as $field ) {
 			$this->assertNotSame(

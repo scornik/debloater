@@ -1,6 +1,6 @@
 === Debloater – Scan, Fix & Undo Site Bloat ===
 Contributors: hakeemify
-Tags: performance, optimization, database, cleanup, audit
+Tags: bloat, debloat, performance, cleanup, optimization
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 8.1
