@@ -111,6 +111,10 @@ export const App = () => {
 					<Finding
 						finding={ finding }
 						onBack={ () => setView( 'findings' ) }
+						onStarted={ ( runId ) => {
+							setActiveRun( runId );
+							setView( 'run' );
+						} }
 					/>
 				) }
 				{ view === 'runs' && <Runs /> }

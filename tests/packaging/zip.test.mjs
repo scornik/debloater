@@ -518,6 +518,47 @@ test( 'WordPress extracts and activates each zip', { concurrency: 1 }, async ( t
 			] );
 
 			assert.equal( listed.trim(), plugin.name );
+
+			// Exactly one plugin row, measured the way WordPress measures it.
+			//
+			// `get_plugins()` scans the plugins directory one level deep: for
+			// each plugin folder it lists the `.php` files *directly inside*
+			// it. So `debloater/debloater.php` is a plugin and
+			// `debloater/mu-loader/debloater-loader.php` is not, because it is
+			// one level further down.
+			//
+			// That distinction is the whole of the duplicate-plugins bug. The
+			// broken archive extracted as flat files whose *names* contained
+			// backslashes — `debloater\mu-loader\debloater-loader.php` — and a
+			// flat file sits at exactly the depth that does get scanned. So
+			// WordPress listed the must-use loader as a second installable
+			// plugin, and a site that installed the archive twice ended up with
+			// four phantom rows that could each be activated and deleted.
+			//
+			// Note the scope. Asking `get_plugins( '/<dir>' )` re-roots the
+			// scan and reports the loader every time, which is a true statement
+			// about a directory and a false one about what WordPress lists.
+			// This asks the unscoped question and filters, because that is the
+			// list on the screen the bug appeared on.
+			const rows = JSON.parse(
+				wpEnv( [
+					'run',
+					'cli',
+					'wp',
+					'eval',
+					"require_once ABSPATH . 'wp-admin/includes/plugin.php'; " +
+						'echo wp_json_encode( array_keys( get_plugins() ) );',
+				] ).trim()
+			);
+
+			const mine = rows.filter( ( row ) => row.startsWith( `${ plugin.installAs }/` ) );
+
+			assert.deepEqual(
+				mine,
+				[ `${ plugin.installAs }/${ plugin.entry }` ],
+				'WordPress must list exactly one plugin for this package'
+			);
+
 		} finally {
 			try {
 				wpEnv( [ 'run', 'cli', 'wp', 'plugin', 'deactivate', plugin.installAs ] );

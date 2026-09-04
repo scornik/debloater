@@ -49,19 +49,33 @@ const SNAPSHOT_LABELS = {
 /**
  * The preview and confirmation modal.
  *
+ * Two shapes, one dialog. With no `tweak` it plans a whole profile, which is
+ * what "Fix safe issues" does. With a `tweak` it plans exactly that one change,
+ * which is what the button on a finding does.
+ *
+ * Deliberately the same component rather than a second, simpler one. Everything
+ * that makes an apply safe lives here — the preview you have to read, the
+ * recovery point it names, the destructive refusal, the attestation, and the
+ * confirmation token issued for this exact plan. A "quick apply" written beside
+ * it would start out identical and drift, and the half that drifted would be
+ * the half with no dialog in front of it.
+ *
  * @param {Object}   props           Component props.
+ * @param {string}   [props.tweak]   Apply just this tweak, instead of a profile.
+ * @param {string}   [props.title]   Heading, when the default is not right.
  * @param {Function} props.onClose   Called when the dialog is dismissed.
  * @param {Function} props.onStarted Called with the run id once an apply starts.
  */
-export const ApplyDialog = ( { onClose, onStarted } ) => {
+export const ApplyDialog = ( { tweak, title, onClose, onStarted } ) => {
+	const single = Boolean( tweak );
 	const [ profile, setProfile ] = useState( 'safe' );
 	const [ applying, setApplying ] = useState( false );
 	const [ failure, setFailure ] = useState( null );
 	const [ attested, setAttested ] = useState( false );
 
 	const preview = useResource(
-		() => get( '/preview', { profile } ),
-		[ profile ]
+		() => get( '/preview', single ? { 'tweaks[]': tweak } : { profile } ),
+		[ profile, tweak, single ]
 	);
 
 	const apply = async () => {
@@ -70,7 +84,7 @@ export const ApplyDialog = ( { onClose, onStarted } ) => {
 
 		try {
 			const result = await post( '/apply', {
-				profile,
+				...( single ? { tweaks: [ tweak ] } : { profile } ),
 				confirm: preview.data.confirm,
 				attestation: attested,
 			} );
@@ -89,18 +103,25 @@ export const ApplyDialog = ( { onClose, onStarted } ) => {
 
 	return (
 		<Modal
-			title={ __( 'Review the change', 'debloater' ) }
+			title={ title || __( 'Review the change', 'debloater' ) }
 			onRequestClose={ onClose }
 			className="debloater-modal"
 		>
-			<SelectControl
-				label={ __( 'How far to go', 'debloater' ) }
-				value={ profile }
-				options={ PROFILES }
-				onChange={ setProfile }
-				disabled={ applying }
-				__nextHasNoMarginBottom
-			/>
+			{ /*
+			 * No profile selector when one change was named. "How far to go"
+			 * is a question about a set, and answering it here would silently
+			 * widen what the person asked for.
+			 */ }
+			{ ! single && (
+				<SelectControl
+					label={ __( 'How far to go', 'debloater' ) }
+					value={ profile }
+					options={ PROFILES }
+					onChange={ setProfile }
+					disabled={ applying }
+					__nextHasNoMarginBottom
+				/>
+			) }
 
 			{ preview.status === 'loading' && (
 				<p className="debloater-loading">

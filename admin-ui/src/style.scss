@@ -690,3 +690,20 @@
 	margin: 0 0 12px;
 	font-weight: 600;
 }
+
+// The single-change apply, on a finding.
+//
+// Set apart from the fields above it with a rule, because it is the one thing
+// on this page that does something rather than says something.
+.debloater-finding__actions {
+	margin-top: 24px;
+	padding-top: 20px;
+	border-top: 1px solid #e0e0e0;
+}
+
+.debloater-finding__actions-note {
+	margin: 8px 0 0;
+	color: #666;
+	font-size: 13px;
+	max-width: 60ch;
+}

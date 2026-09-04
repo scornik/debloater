@@ -12,8 +12,10 @@
  */
 
 import { Button, Notice, Spinner } from '@wordpress/components';
+import { useState } from '@wordpress/element';
 import { __, sprintf } from '@wordpress/i18n';
 
+import ApplyDialog from '../components/ApplyDialog';
 import { get } from '../api/client';
 import { useResource } from '../api/useResource';
 import {
@@ -139,7 +141,8 @@ const WillChange = ( { tweakId } ) => {
 	);
 };
 
-export const Finding = ( { finding, onBack } ) => {
+export const Finding = ( { finding, onBack, onStarted } ) => {
+	const [ applying, setApplying ] = useState( false );
 	if ( ! finding ) {
 		return null;
 	}
@@ -278,6 +281,50 @@ export const Finding = ( { finding, onBack } ) => {
 					<WillChange tweakId={ recommendation.tweak_id } />
 				) }
 			</Field>
+
+			{ /*
+			 * Applying one finding, without going through a profile.
+			 *
+			 * Offered only where the engine recommended something. A finding
+			 * marked "no action recommended" has no button, because the
+			 * recommendation is the answer and a button beside it would invite
+			 * somebody to overrule a decision they came here to read.
+			 *
+			 * The button opens the same dialog "Fix safe issues" opens. It is
+			 * not a shortcut past the preview, the recovery point or the
+			 * confirmation — it is the same road with one thing on it.
+			 */ }
+			{ recommendation && finding.decision === 'recommended' && (
+				<div className="debloater-finding__actions">
+					<Button
+						variant="primary"
+						onClick={ () => setApplying( true ) }
+					>
+						{ __( 'Apply this change…', 'debloater' ) }
+					</Button>
+					<p className="debloater-finding__actions-note">
+						{ __(
+							'You will see exactly what it does, and what the recovery point will contain, before anything happens.',
+							'debloater'
+						) }
+					</p>
+				</div>
+			) }
+
+			{ applying && recommendation && (
+				<ApplyDialog
+					tweak={ recommendation.tweak_id }
+					title={ finding.title }
+					onClose={ () => setApplying( false ) }
+					onStarted={ ( runId ) => {
+						setApplying( false );
+
+						if ( onStarted ) {
+							onStarted( runId );
+						}
+					} }
+				/>
+			) }
 
 			<Field
 				label={ __( 'Undo', 'debloater' ) }

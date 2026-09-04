@@ -2049,3 +2049,70 @@ The test now installs under a throwaway slug and never calls
 `wp plugin delete` at all, and `assertNotMapped()` reads `.wp-env.json` and
 refuses any operation on a slug that is a mapped directory. That guard has its
 own test, because a rule nobody checks is a comment.
+
+---
+
+## Phase 18c – applying one finding, and the duplicate plugin rows
+
+**Status:** complete · 2026-09-04 · reported from a live install
+
+### Applying a single finding
+
+The finding page described a change in full and gave you no way to make it. The
+only route to applying anything was "Fix safe issues", which applies a whole
+profile – so somebody who agreed with exactly one finding had to accept
+everything else in the profile, or nothing.
+
+There is now an **Apply this change…** button on any finding the engine
+recommended. It opens the same dialog "Fix safe issues" opens, with the profile
+selector hidden, because "how far to go" is a question about a set and answering
+it there would silently widen what was asked for.
+
+What it is not is a shortcut. The preview, the recovery point, the destructive
+refusal, the attestation and the confirmation token issued for that exact plan
+all happen exactly as before, because it is the same component. A second,
+simpler "quick apply" written beside it would start identical and drift, and the
+half that drifted would be the half with no dialog in front of it.
+
+Findings marked "no action recommended" get no button. The recommendation is the
+answer, and a button beside it would invite somebody to overrule a decision they
+came to the page to read.
+
+### The duplicate plugin rows
+
+A live install showed twelve plugin entries where there should have been two:
+`Debloater` active, plus two inactive `Debloater Loader` rows and two inactive
+`Debloater – Scan, Fix & Undo Site Bloat` rows, at paths like
+`debloater-0.1.0-1/debloater/debloater.php`.
+
+They are artefacts of the **broken archive**, and the mechanism is worth
+recording because it is not obvious.
+
+`get_plugins()` scans the plugins directory one level deep: for each folder it
+lists the `.php` files directly inside it. So in a correct install
+`debloater/debloater.php` is a plugin and
+`debloater/mu-loader/debloater-loader.php` is not, being one level further down.
+
+The broken archive extracted as **flat files whose names contained backslashes**
+– `debloater\mu-loader\debloater-loader.php` – and a flat file sits at exactly
+the depth that does get scanned. WordPress therefore listed the must-use loader
+as a second installable plugin, WordPress named the containing directory after
+the zip file because there was no single top-level folder to collapse, and a
+site that installed it twice got the `-1` suffix and four phantom rows – each
+activatable and deletable on its own.
+
+**The corrected archive cannot do this**, and that is now asserted rather than
+argued: the packaging test asks WordPress, through `get_plugins()`, how many
+plugins it sees for the installed package, and requires exactly one.
+
+The assertion had to be written twice. Asking `get_plugins( '/<dir>' )` re-roots
+the scan and reports the loader every time – a true statement about a directory
+and a false one about what WordPress lists. The unscoped call, filtered, is the
+list on the screen the bug appeared on.
+
+### Cleaning up an affected site
+
+Nothing in the plugin recreates these rows; they are files on disk. Deactivate
+and delete each phantom entry from the plugins screen, or remove the
+`debloater-0.1.0*` directories under `wp-content/plugins/`, then install the
+corrected zip.

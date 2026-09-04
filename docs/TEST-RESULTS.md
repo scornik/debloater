@@ -1944,3 +1944,45 @@ wp-env's own JS entry point with `process.execPath` has neither problem.
 **A regex that looked exhaustive was not.** `autoload_[a-z]+` does not match
 `autoload_psr4` – the digit. The vendor allow-list is now nine literal
 filenames, which is both correct and readable.
+
+---
+
+## Phase 18c – the assertion that reproduced a live bug
+
+```
+Packaging suite      15 of 15
+Unit                 OK  1 186 tests, 12 198 assertions
+Integration          OK    302 tests,  4 572 assertions
+Fail-probe           OK      9 tests,    105 assertions
+PHPCS                clean
+PHPStan level 6      no errors
+ESLint / Jest        clean, 12 tests
+```
+
+### The packaging test was checking the wrong layer
+
+Phase 18b's install test extracted the archive with `unzip` and copied the
+result into place. It proved the bytes were right and never asked WordPress a
+single question – so it passed while a real install produced four plugin rows
+instead of one.
+
+Adding `get_plugins()` to it reproduced the reported symptom immediately:
+
+```
++ actual - expected
+  [
+    'debloater.php',
++   'mu-loader/debloater-loader.php'
+  ]
+```
+
+That first form was itself wrong. `get_plugins( '/<dir>' )` re-roots the scan,
+so it finds the loader in a *correct* install too – a true statement about a
+directory and a false one about the plugins screen. Scoping it the way WordPress
+scopes it, and filtering, gives the assertion that matches the bug: exactly one
+row per installed package.
+
+Two lessons, both about where a test looks rather than what it asserts. Phase 18
+checked entry names through a reader that normalised them. Phase 18b checked
+files on disk instead of asking the program that consumes them. The bug was
+visible from neither vantage point.

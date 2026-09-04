@@ -91,6 +91,12 @@ All notable changes to Debloater are recorded here. The format follows
 
 ### Added
 
+- **Apply a single finding.** A finding the engine recommends now has an
+  "Apply this change…" button. It opens the same review dialog as "Fix safe
+  issues" — same preview, same recovery point, same confirmation — with just
+  that one change in it. Findings marked "no action recommended" have no button.
+
+
 - **`docs/CLOUD-DESIGN.md`** — the design for an agency multi-site dashboard.
   Nothing is built: no infrastructure, no accounts, no code, and
   `cloud.hakeemify.com` does not resolve.
