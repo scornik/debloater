@@ -3,7 +3,7 @@
  * Plugin Name:       Debloater
  * Plugin URI:        https://github.com/scornik/debloater
  * Description:       Audits a WordPress site against the facts, then applies only the changes you approve — each with its own risk level, a recovery point taken first, and an automatic rollback if verification fails.
- * Version:           0.1.0
+ * Version:           0.1.1
  * Requires at least: 6.5
  * Requires PHP:      8.1
  * Author:            Hakeemify
@@ -19,7 +19,7 @@ declare( strict_types = 1 );
 
 defined( 'ABSPATH' ) || exit;
 
-const DEBLOATER_VERSION = '0.1.0';
+const DEBLOATER_VERSION = '0.1.1';
 const DEBLOATER_FILE    = __FILE__;
 
 define( 'DEBLOATER_DIR', plugin_dir_path( __FILE__ ) );

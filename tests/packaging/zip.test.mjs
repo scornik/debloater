@@ -55,6 +55,13 @@ const DIST = path.join( ROOT, 'dist' );
 
 const BACKSLASH = Buffer.from( [ 0x5c ] );
 
+// Read, not written down. A hard-coded version means every release breaks
+// this file, and the obvious fix is a search-and-replace that also rewrites
+// the 0.1.0 in the history above.
+const VERSION = JSON.parse(
+	fs.readFileSync( path.join( ROOT, 'package.json' ), 'utf8' )
+).version;
+
 /**
  * The plugins this repository ships, and what each zip must contain.
  *
@@ -223,21 +230,35 @@ function assertNotMapped( slug ) {
 test( 'the zips build', () => {
 	fs.rmSync( DIST, { recursive: true, force: true } );
 
-	execFileSync( process.execPath, [ path.join( ROOT, 'tools', 'build-zip.mjs' ), 'all' ], {
-		cwd: ROOT,
-		stdio: 'inherit',
-	} );
+	// The build refuses a dev autoloader, on purpose. Surfaced here rather than
+	// left to fail six assertions later as "unzip: can't open ...", which is a
+	// true error message about the wrong thing.
+	try {
+		execFileSync( process.execPath, [ path.join( ROOT, 'tools', 'build-zip.mjs' ), 'all' ], {
+			cwd: ROOT,
+			stdio: 'inherit',
+		} );
+	} catch ( error ) {
+		assert.fail(
+			'The zips did not build. This suite needs a production autoloader, ' +
+				'the same one a release is built from:\n\n' +
+				'  composer install --no-dev --classmap-authoritative\n\n' +
+				'and afterwards, to get the dev one back:\n\n' +
+				'  composer install\n\n' +
+				`Original failure: ${ error.message }`
+		);
+	}
 
 	for ( const plugin of PLUGINS ) {
 		assert.ok(
-			fs.existsSync( path.join( DIST, `${ plugin.slug }-0.1.0.zip` ) ),
+			fs.existsSync( path.join( DIST, `${ plugin.slug }-${ VERSION }.zip` ) ),
 			`${ plugin.slug } did not produce a zip`
 		);
 	}
 } );
 
 for ( const plugin of PLUGINS ) {
-	const archive = () => path.join( DIST, `${ plugin.slug }-0.1.0.zip` );
+	const archive = () => path.join( DIST, `${ plugin.slug }-${ VERSION }.zip` );
 
 	test( `${ plugin.slug }: no entry name contains a backslash`, () => {
 		const names = rawEntryNames( archive() );
@@ -449,7 +470,7 @@ test( 'WordPress extracts and activates each zip', { concurrency: 1 }, async ( t
 		// Nothing below may name a mapped directory.
 		assertNotMapped( plugin.installAs );
 
-		const zip = `${ plugin.slug }-0.1.0.zip`;
+		const zip = `${ plugin.slug }-${ VERSION }.zip`;
 		const source = `${ plugins }/debloater/dist/${ zip }`;
 		const workspace = `/tmp/pkgtest-${ plugin.installAs }`;
 		const target = `${ plugins }/${ plugin.installAs }`;
