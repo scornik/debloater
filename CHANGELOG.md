@@ -8,6 +8,21 @@ All notable changes to Debloater are recorded here. The format follows
 
 ### Fixed
 
+- **A site could get permanently stuck on "Another change is already in
+  progress".** The apply lock could be stored in a form that never expired, and
+  crash recovery steps aside while the lock is held, so the one thing that would
+  have cleared it was the one thing it prevented. The lock now carries its own
+  expiry, and a lock in the old form is treated as free, so an affected site
+  recovers by itself.
+
+### Added
+
+- **A screen for Pro.** Debloater then Pro: scan on a schedule, a saved profile,
+  the name that goes on reports, the full drift report, and a printable
+  before/after page per change. Four of Pro's five features previously had no
+  interface at all.
+
+
 - **The release zip could not be installed on Linux.** Every entry in it used a
   backslash path separator, written by a Windows-only zip tool, so WordPress
   extracted one flat file instead of a plugin directory and activation failed

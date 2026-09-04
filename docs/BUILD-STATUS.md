@@ -2116,3 +2116,61 @@ Nothing in the plugin recreates these rows; they are files on disk. Deactivate
 and delete each phantom entry from the plugins screen, or remove the
 `debloater-0.1.0*` directories under `wp-content/plugins/`, then install the
 corrected zip.
+
+---
+
+## Phase 18d – the Pro screen, and a lock that never let go
+
+**Status:** complete, 2026-09-04, both reported from a live install
+
+### The lock
+
+Every apply refused with "Another change is already in progress on this site",
+twenty-five minutes after the last one finished, against a sixty-second TTL.
+
+A deadlock in two halves: the lock could be stored in a shape that never
+expired, and crash recovery deliberately steps aside while the lock is held –
+so the only thing that could clear it was the one thing it prevented. Full
+reasoning in `docs/DECISIONS.md` D-0055.
+
+The expiry now lives inside the value. A lock in the old shape reads as free, so
+an affected site recovers on its next request without anybody editing the
+database.
+
+### The Pro screen
+
+Also reported: "I don't see any difference between free and Pro." Pro *was*
+working – the drift panel was on the dashboard – but four of its five features
+had no interface at all. Phase 19 built the engines and wired one surface,
+which satisfied the letter of the phase and is not what somebody installing Pro
+needs.
+
+**Debloater to Pro** now exists:
+
+| | |
+|---|---|
+| Scan on a schedule | Off, daily or weekly, with the next run shown |
+| Saved profile | Which profile "apply" means |
+| Name on reports | The agency name for the white-label report |
+| What changed since the last scan | Drift, in full rather than as a summary panel |
+| Before and after | A printable report per apply |
+
+Its own screen, not tabs on the free plugin's. The free plugin's filter accepts
+**text** and nothing else (`docs/HOOKS.md`), which is right: an extension should
+not be able to put controls on somebody else's page. So Pro renders its own and
+is responsible for its own escaping and nonces – and a test asserts that having
+a page did not become a way around that rule.
+
+Plain PHP and a form post rather than React. Four settings and two buttons do
+not need a build step somebody has to maintain forever.
+
+### Verification
+
+| Check | Result |
+|---|---|
+| Lock | 8 tests, all confirmed failing against the old behaviour |
+| Pro screen | 10 tests |
+| Unit | 1 186 tests, 12 201 assertions |
+| Integration | 320 tests, 4 637 assertions |
+| Fail-probe | 9 tests |
+| PHPCS / PHPStan L6 | clean |

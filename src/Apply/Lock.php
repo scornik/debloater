@@ -20,14 +20,37 @@ use Debloater\Brand;
  * better of the two: an apply the user did not see start is not one they should
  * discover has finished.
  *
- * A transient with a TTL rather than a database row, deliberately. A process
+ * A self-expiring lock rather than a database row, deliberately. A process
  * killed mid-run cannot release its lock, and a row would hold the site closed
- * until someone found it and deleted it by hand. A transient expires on its own,
- * so the worst case is a wait rather than a permanently stuck site — and crash
- * recovery deals with the run itself on the next boot.
+ * until someone found it and deleted it by hand. This expires on its own, so
+ * the worst case is a minute's wait rather than a permanently stuck site — and
+ * crash recovery deals with the run itself on the next boot.
  *
  * The TTL is refreshed while a run is in flight, so a slow apply does not lose
  * its own lock partway through.
+ *
+ * ## Why the expiry is inside the value
+ *
+ * This used to be a WordPress transient, and that made the paragraph above
+ * false. A transient is two options: `_transient_x` holding the value and
+ * `_transient_timeout_x` holding the expiry. `acquire()` wrote them with two
+ * separate `add_option()` calls — and `get_transient()` treats a value with no
+ * timeout as one that **never expires**.
+ *
+ * So a request that died between the two writes, or a second `add_option()`
+ * that failed because a stale timeout row was already there, left a lock that
+ * nothing would ever release. And `ApplyManager::recoverInterruptedRuns()`
+ * refuses to run while the lock is held, on the reasoning that a held lock
+ * means a live apply — so the one mechanism that could have cleared it was the
+ * one thing the stuck lock prevented. A site in that state could never apply
+ * anything again, and the only message it gave was "wait for it to finish".
+ *
+ * The token and the expiry now live in one value, written once. There is no
+ * second row to lose, no window between two writes, and expiry is decided by
+ * this class rather than inferred from the presence of another option.
+ *
+ * The option is still named as a transient so that `delete_transient()` in
+ * `uninstall.php` continues to remove it.
  */
 final class Lock {
 
@@ -40,6 +63,15 @@ final class Lock {
 	 * The transient the lock lives in.
 	 */
 	public const KEY = Brand::LOCK_TRANSIENT;
+
+	/**
+	 * The option that actually holds it.
+	 *
+	 * Named as a transient so `delete_transient()` during uninstall still
+	 * removes it, but read and written directly, because the expiry lives in
+	 * the value rather than in a second row.
+	 */
+	public const OPTION = '_transient_' . Brand::LOCK_TRANSIENT;
 
 	/**
 	 * Who holds this lock, when we hold it.
@@ -74,17 +106,27 @@ final class Lock {
 			return $holder === $this->token;
 		}
 
-		// A transient with an expiry stores its timeout as a separate autoloaded
-		// option; add_option on the value gives the atomic claim.
-		$claimed = add_option( '_transient_' . self::KEY, $this->token, '', false );
-
-		if ( ! $claimed ) {
-			return false;
+		// An expired or malformed value is not a holder, and heldBy() has just
+		// said so — but the row may still be sitting there, and add_option()
+		// refuses a name that exists. Clearing it first is what lets a site
+		// recover from a lock the old two-option scheme left behind.
+		if ( false !== get_option( self::OPTION, false ) ) {
+			delete_option( self::OPTION );
 		}
 
-		add_option( '_transient_timeout_' . self::KEY, (string) ( time() + self::TTL ), '', false );
+		// One write. add_option() is a single INSERT that fails on a duplicate
+		// key, which is the atomic claim; reading then writing would leave a
+		// window in which two requests both see the lock free.
+		return (bool) add_option( self::OPTION, $this->value(), '', false );
+	}
 
-		return true;
+	/**
+	 * The stored form: who holds it, and until when.
+	 *
+	 * @return string
+	 */
+	private function value(): string {
+		return $this->token . '|' . ( time() + self::TTL );
 	}
 
 	/**
@@ -97,7 +139,7 @@ final class Lock {
 			return false;
 		}
 
-		update_option( '_transient_timeout_' . self::KEY, (string) ( time() + self::TTL ), false );
+		update_option( self::OPTION, $this->value(), false );
 
 		return true;
 	}
@@ -115,7 +157,7 @@ final class Lock {
 			return false;
 		}
 
-		delete_transient( self::KEY );
+		delete_option( self::OPTION );
 
 		return true;
 	}
@@ -129,7 +171,10 @@ final class Lock {
 	 * @return void
 	 */
 	public function forceRelease(): void {
-		delete_transient( self::KEY );
+		delete_option( self::OPTION );
+
+		// The old scheme's timeout row, if this site still carries one.
+		delete_option( '_transient_timeout_' . self::KEY );
 	}
 
 	/**
@@ -156,9 +201,28 @@ final class Lock {
 	 * @return string|null
 	 */
 	public function heldBy(): ?string {
-		$holder = get_transient( self::KEY );
+		$stored = get_option( self::OPTION, '' );
 
-		return is_string( $holder ) && '' !== $holder ? $holder : null;
+		if ( ! is_string( $stored ) || '' === $stored ) {
+			return null;
+		}
+
+		$parts = explode( '|', $stored, 2 );
+
+		// A value with no expiry is from the two-option scheme this class used
+		// to use, and it is exactly the shape that could never expire. It is
+		// treated as free: a site upgrading with one of these stuck in its
+		// options table starts working again on the next request, which is the
+		// whole point of noticing the shape.
+		if ( 2 !== count( $parts ) || '' === $parts[0] || ! ctype_digit( $parts[1] ) ) {
+			return null;
+		}
+
+		if ( (int) $parts[1] <= time() ) {
+			return null;
+		}
+
+		return $parts[0];
 	}
 
 	/**

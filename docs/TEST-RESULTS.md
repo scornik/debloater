@@ -2015,3 +2015,34 @@ There is now one test per decision value — `recommend` shows the button,
 `info` and `dont_touch` do not, and neither does a finding with no
 recommendation. Confirmed to fail on the pre-fix condition before the fix was
 restored.
+
+---
+
+## Phase 18d – a deadlock, and a feature nobody could find
+
+```
+Unit                 OK  1 186 tests, 12 201 assertions
+Integration          OK    320 tests,  4 637 assertions
+Fail-probe           OK      9 tests,    105 assertions
+PHPCS                clean
+PHPStan level 6      no errors
+```
+
+### The lock tests fail 8 of 8 against the old code
+
+Reverting `heldBy()` to return the stored value unparsed – the old behaviour –
+fails every test in `ApplyLockTest`, including the end-to-end one that walks the
+whole reported failure: a lock in the un-expiring shape, recovery stepping aside
+for it, and an apply refused by a lock nobody holds.
+
+That is the useful shape for a bug report to end in. The symptom was a sentence
+on a screen; the test is that sentence made executable.
+
+### What the tests did not have
+
+Nothing in the suite had ever put a *malformed* value in the lock. Every test
+acquired and released through the class, so the stored shape was always the one
+the class writes – and the failure only happens when the stored shape is one
+the class never writes but can still read.
+
+`test_a_malformed_lock_reads_as_free` now walks five of them.
