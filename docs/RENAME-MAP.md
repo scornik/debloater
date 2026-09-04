@@ -23,8 +23,8 @@ deliberate non-renames are listed at the end.
 | Kind | Old | New |
 |---|---|---|
 | Display name | WP Debloat | Debloater |
-| Full title | — | Debloater – Scan, Fix & Undo WordPress Bloat |
-| Tagline | — | Scan, Fix & Undo WordPress Bloat |
+| Full title | — | Debloater – Scan, Fix & Undo Site Bloat |
+| Tagline | — | Scan, Fix & Undo Site Bloat |
 | Slug | `wp-debloat` | `debloater` |
 | Text domain | `wp-debloat` | `debloater` |
 | Entry file | `wp-debloat.php` | `debloater.php` |

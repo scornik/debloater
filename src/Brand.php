@@ -38,8 +38,15 @@ final class Brand {
 	 * Not translated, for the same reason the name is not: it is the product's
 	 * listing on an English-language directory, and a translated listing title
 	 * would not match the plugin somebody searched for.
+	 *
+	 * "Site" rather than "WordPress". The word was worth having for search and
+	 * turned out not to be available: Plugin Check refuses the term "wordpress"
+	 * anywhere in a plugin name, tagline included, and it is the tool
+	 * wordpress.org runs at review. Reference material that says the term is
+	 * permitted in a display name and forbidden only in a slug is wrong in
+	 * practice (docs/DECISIONS.md D-0052).
 	 */
-	public const TAGLINE = 'Scan, Fix & Undo WordPress Bloat';
+	public const TAGLINE = 'Scan, Fix & Undo Site Bloat';
 
 	/**
 	 * Plugin slug, used for the directory, text domain and asset handles.

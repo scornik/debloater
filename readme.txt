@@ -1,4 +1,4 @@
-=== Debloater – Scan, Fix & Undo WordPress Bloat ===
+=== Debloater – Scan, Fix & Undo Site Bloat ===
 Contributors: hakeemify
 Tags: performance, optimization, database, cleanup, audit
 Requires at least: 6.5

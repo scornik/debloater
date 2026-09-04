@@ -1957,3 +1957,31 @@ tests added, both confirmed failing on the pre-fix code.
 
 Nothing in the specification. What remains needs a person: decide the title,
 generate a signing key, and submit to wordpress.org to reserve the slug.
+
+---
+
+## The tagline, after the audit
+
+**2026-09-04 · closes the last known warning**
+
+The final audit left one warning open and said it belonged to a person: Plugin
+Check refuses the term "wordpress" anywhere in a plugin name, and the display
+title carried it.
+
+The tagline is now **"Scan, Fix & Undo Site Bloat"**, so the title is
+**"Debloater – Scan, Fix & Undo Site Bloat"** (D-0052).
+
+**Plugin Check now reports 0 errors and 0 warnings** against the tree that
+actually ships.
+
+The interesting part is what was wrong underneath. D-0047 chose the original
+title on the stated basis that "WordPress" is permitted in a display name and
+forbidden only in a slug — which is what the reference material says, and is
+not what the tool does. `ReleaseReadinessTest` had encoded that belief as an
+assertion *requiring* the tagline to contain "WordPress". The assertion is now
+inverted: the tagline is held to the same restricted-term rule as the name and
+the slug, so the mistaken premise cannot come back quietly.
+
+Verified after the change: unit 1 185, integration 302, fail-probe 9, PHPCS
+clean, PHPStan level 6 clean, Plugin Check clean, and
+`debloater-0.1.0.zip` rebuilt at 301 files / 523 KB.

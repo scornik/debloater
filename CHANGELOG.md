@@ -41,9 +41,10 @@ All notable changes to Debloater are recorded here. The format follows
   carries it, so that name was never submittable
   (`docs/DECISIONS.md` D-0047).
 
-  The new name is **Debloater – Scan, Fix & Undo WordPress Bloat**, and the
-  slug is `debloater`. "WordPress" is allowed in a display title and not in a
-  slug, so the subtitle carries the word people actually search for.
+  The new name is **Debloater – Scan, Fix & Undo Site Bloat**, and the
+  slug is `debloater`. The subtitle says "Site Bloat" rather than "WordPress
+  Bloat": wordpress.org refuses the term "wordpress" anywhere in a plugin name,
+  tagline included (D-0052).
 
   This is a full identifier rename rather than a display-only one: the
   namespace, constants, hook and option prefixes, database tables, capability,

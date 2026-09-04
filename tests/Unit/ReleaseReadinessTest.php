@@ -109,9 +109,21 @@ final class ReleaseReadinessTest extends TestCase {
 			);
 		}
 
-		// "WordPress" is allowed in a display title, and only there — the
-		// tagline is where this product says what it is for.
-		$this->assertStringContainsString( 'WordPress', Brand::TAGLINE );
+		// And the tagline is held to the same rule as the name.
+		//
+		// This assertion used to say the opposite. It encoded the belief that
+		// "WordPress" was permitted in a display title and forbidden only in a
+		// slug — which is what the reference material says, and is wrong in
+		// practice: Plugin Check refuses the term anywhere in a plugin name,
+		// and Plugin Check is what wordpress.org runs at review. The tagline
+		// now says "Site Bloat" (docs/DECISIONS.md D-0052).
+		foreach ( $restricted as $term ) {
+			$this->assertStringNotContainsString(
+				$term,
+				strtolower( Brand::TAGLINE ),
+				sprintf( 'Plugin Check refuses "%s" anywhere in a plugin name, tagline included.', $term )
+			);
+		}
 
 		// The text domain must equal the slug: wordpress.org derives one from
 		// the other and serves translations against it.
