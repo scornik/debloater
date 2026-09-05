@@ -172,3 +172,82 @@ that needs a person's decision and their credentials, so the layout and the
 workflow are ready and the publishing is not done. Nothing in the plugin depends
 on the split having happened: the vendored snapshot is the source of truth until
 a signed release replaces it.
+
+
+---
+
+## Cutting a signed release
+
+The registry is published at `scornik/debloater-registry`. A release is a tag,
+a manifest, and a detached signature over that manifest.
+
+The private key is **held offline** and has never been in either repository. It
+signs, and nothing else has a copy. If it is lost, the recovery is to generate a
+new pair and ship a plugin release pinning the new public half – which is why
+losing it is inconvenient rather than fatal, and why it is not kept anywhere
+convenient.
+
+### The procedure
+
+1. **Regenerate the manifest** so it describes what is actually on disk:
+
+   ```
+   php tools/registry-manifest.php --write
+   ```
+
+   `manifest.json` records every file, its SHA-256 and the tag being cut.
+
+2. **Sign it**, on the offline machine, over the file exactly as it will be
+   committed:
+
+   ```
+   openssl pkeyutl -sign -rawin -inkey registry-signing.key -in manifest.json -out manifest.sig
+   ```
+
+   `-rawin` is not optional: Ed25519 signs the message itself, and anything that
+   pre-hashes produces a signature this plugin will refuse.
+
+3. **Check it before it leaves the machine**, with the public half:
+
+   ```
+   openssl pkeyutl -verify -rawin -pubin -inkey registry-signing.pub \
+       -in manifest.json -sigfile manifest.sig
+   ```
+
+4. **Commit `manifest.sig` beside `manifest.json`** in the registry repository.
+   CI verifies the committed signature against the same public key, so a
+   manifest edited without re-signing fails there rather than on somebody's
+   site.
+
+5. **Tag** the release with the tag the manifest names. CI checks those agree.
+
+6. **Vendor the snapshot** into the plugin, if the plugin release is meant to
+   carry it, and run the plugin's suite.
+
+### The key
+
+| | |
+|---|---|
+| Algorithm | Ed25519 |
+| Public half | pinned in `SignatureVerifier::PUBLIC_KEY_HEX` |
+| Fingerprint | `a2179aba…8964caa3` (SHA-256 of the 32 raw bytes) |
+| Private half | offline, never committed, never in a package |
+
+The full fingerprint is in `docs/DECISIONS.md` D-0059, and the same value is
+asserted in `PinnedSigningKeyTest`. Two places on purpose: a key changed in one
+and not the other is a key somebody changed without saying so.
+
+### What is signed, and a mismatch to resolve first
+
+`manifest.sig` covers **`manifest.json` as committed**, byte for byte. That is
+what `openssl pkeyutl -sign -rawin` produces, what the registry's CI checks, and
+what anybody auditing a release can check with standard tools.
+
+`RegistryUpdater` currently verifies something else – `Manifest::canonical()`,
+a re-encoding of the parsed manifest that is about six hundred bytes shorter.
+The two byte strings differ, so **no single signature satisfies both**, and the
+v0.1.0 signature is refused by the update path even though it is correct.
+
+This does not affect any site: the fetch is opt-in, off by default, and reached
+only by running a WP-CLI command. It has to be settled before it does. The
+options and the recommendation are in `docs/DECISIONS.md` D-0059.

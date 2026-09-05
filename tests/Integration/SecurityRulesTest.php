@@ -608,10 +608,22 @@ final class SecurityRulesTest extends IntegrationTestCase {
 			);
 		}
 
-		// A public verification key may ship. It is empty until a release is
-		// signed, and empty means the verifier fails closed rather than open.
-		$this->assertSame( '', SignatureVerifier::PUBLIC_KEY_HEX );
-		$this->assertFalse( ( new SignatureVerifier() )->isAvailable() );
+		// A public verification key may ship, and now does. What rule 15
+		// forbids is the private half, so the assertion is about which half
+		// this is: an Ed25519 public key is 32 bytes and a secret key is 64.
+		//
+		// This used to assert the constant was empty, which was true while no
+		// signing key existed and would now be a test asserting the feature is
+		// switched off.
+		$pinned = SignatureVerifier::PUBLIC_KEY_HEX;
+
+		$this->assertMatchesRegularExpression( '/^[0-9a-f]{64}$/', $pinned );
+		$this->assertSame( 32, strlen( (string) sodium_hex2bin( $pinned ) ) );
+		$this->assertTrue( ( new SignatureVerifier() )->isAvailable() );
+
+		// And emptying it still fails closed rather than open, which is the
+		// property the old assertion was really protecting.
+		$this->assertFalse( ( new SignatureVerifier( '' ) )->isAvailable() );
 	}
 
 	/**

@@ -3080,3 +3080,86 @@ arrives as an ordinary 200.
 - The brief asked for this to be recorded against D-0009. D-0009 is about Docker
   DNS on the build machine and has nothing to do with probes; the decisions this
   actually amends are D-0019 and D-0020, and they say so.
+
+---
+
+## D-0059 – the registry signing key is pinned, and what it signs is not settled
+
+- **Phase:** post-19b
+- **Date:** 2026-09-05
+- **Status:** accepted, with one open item
+- **Spec:** §13 rule 9, §17 Phase 17
+- **Relates to:** D-0045 (the registry repository)
+
+### Decision
+
+The Ed25519 public key below is pinned in `SignatureVerifier::PUBLIC_KEY_HEX`.
+The private half is held offline, has never been in either repository, and never
+ships.
+
+```
+public key   c0504cbb47724218570330a31cd175d3b40c0bb58d72c4ce640fdebdacaeab06
+fingerprint  a2179aba16aa74a34b3d0c80a2a86d2adb622a7fcf2043dd93da6f9c8964caa3
+```
+
+The fingerprint is the SHA-256 of the 32 raw key bytes, not of the hex string –
+the distinction matters, because the two differ and only one of them is what
+other tooling prints.
+
+`tests/Fixtures/registry-signature/` holds the v0.1.0 manifest and its real
+detached signature, and `PinnedSigningKeyTest` checks that the signature
+verifies, that a manifest with one byte changed does not, that a well-formed
+signature from another key does not, and that the fixture manifest is the
+vendored registry byte for byte.
+
+Pinning a key changed nothing about when the plugin fetches: the registry update
+is opt-in, off by default, and reachable only through WP-CLI.
+
+### The open item: two different things called "the manifest"
+
+The signature covers `manifest.json` **as committed**. `RegistryUpdater` calls
+`$this->verifier->verify( $manifest->canonical(), $signature )` – a re-encoding
+of the parsed manifest, 5 970 bytes against the file's 6 587. No signature can
+satisfy both, so the v0.1.0 release verifies with `openssl` and in CI and is
+**refused by the update path**.
+
+Two ways out, and they are not equivalent.
+
+**Verify the file** – recommended. Ed25519 over the exact bytes fetched, then
+parse. This is the ordering every signing scheme wants: nothing untrusted
+reaches a parser before its signature has been checked. It is also what makes a
+release auditable with `openssl`, `minisign` or anything else, and it matches
+how the release was actually signed. It costs the property canonical signing was
+introduced for – that re-ordering the JSON keys cannot break a signature –
+which is worth little when the manifest travels as bytes over HTTPS and is never
+re-serialised in transit.
+
+**Sign the canonical form.** Keeps that property, and means the file committed
+beside the signature is not the thing signed. Every external verification then
+needs the plugin's own encoder, and the registry's CI cannot check its own
+release without PHP and the plugin. It also keeps a JSON parser inside the trust
+boundary, before verification.
+
+Not decided here, because changing what a security mechanism verifies is not a
+change to make while doing something else, and both existing paths have tests
+that encode the current contract. Three smaller mismatches travel with it and
+should be fixed together:
+
+- `RegistryOrigin::SIGNATURE` is `manifest.json.sig`; the file committed is
+  `manifest.sig`.
+- `SignatureVerifier::verify()` takes the signature hex-encoded; a detached
+  Ed25519 signature file is 64 raw bytes.
+- `RegistryUpdater` `trim()`s the fetched signature, which is a text operation
+  applied to binary.
+
+Until then the vendored snapshot is the only registry any site will load, which
+is exactly what D-0045 said and is unchanged by this decision.
+
+### Consequences
+
+- A build with an empty pin still refuses everything. That property was asserted
+  through "the constant is empty", which stopped being true today; it is
+  asserted directly now, in `RegistryUpdateTest` and `SecurityRulesTest`.
+- §13 rule 15 is unaffected: what ships is 32 bytes, and an Ed25519 secret key
+  is 64. `SecurityRulesTest` asserts the length rather than the emptiness.
+- The release procedure is in `docs/REGISTRY.md`.

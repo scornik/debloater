@@ -131,24 +131,35 @@ final class RegistryUpdateTest extends TestCase {
 	/**
 	 * With no key pinned, everything is refused.
 	 *
-	 * This is the shipped state until a release is cut, and it has to fail
-	 * closed. "Nothing to check against, so allow it" is how a supply chain
-	 * gets compromised.
+	 * "Nothing to check against, so allow it" is how a supply chain gets
+	 * compromised, so a build without a key has to refuse rather than skip.
+	 *
+	 * This used to assert that `PUBLIC_KEY_HEX` was empty, with a message
+	 * saying that pinning a key should make somebody state the change
+	 * deliberately. A key was pinned on 2026-09-05 and this is that statement:
+	 * the property under test was never "no key is pinned", it was "a build
+	 * with no key refuses", and that is asserted directly now instead of
+	 * through the shipped constant.
+	 *
+	 * `PinnedSigningKeyTest` covers the pinned key against a real signature.
 	 *
 	 * @return void
 	 */
 	public function test_with_no_key_pinned_nothing_verifies(): void {
-		$this->assertSame(
-			'',
-			SignatureVerifier::PUBLIC_KEY_HEX,
-			'no key is pinned yet; when one is, this test states the change deliberately'
-		);
-
-		$verifier = new SignatureVerifier();
+		$verifier = new SignatureVerifier( '' );
 
 		$this->assertFalse( $verifier->isAvailable() );
 		$this->assertNotSame( '', $verifier->unavailableReason() );
 		$this->assertFalse( $verifier->verify( $this->manifest()->canonical(), $this->sign( $this->manifest() ) ) );
+
+		// Nor by any other route into an empty key: whitespace, a truncated
+		// pin, an odd number of digits, something that is not hex at all.
+		foreach ( array( '   ', 'abc', 'zz', str_repeat( 'a', 63 ) ) as $malformed ) {
+			$this->assertFalse(
+				( new SignatureVerifier( $malformed ) )->isAvailable(),
+				sprintf( '"%s" must not read as a usable key.', $malformed )
+			);
+		}
 	}
 
 	/**

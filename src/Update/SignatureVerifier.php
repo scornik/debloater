@@ -24,22 +24,30 @@ namespace Debloater\Update;
  * enters a distributed package, because a private key in a WordPress plugin is
  * public the moment somebody downloads it and cannot be taken back.
  *
- * **Fail closed.** With no key pinned — which is the state until a release is
- * actually cut — verification refuses everything. Not "skip the check because
- * there is nothing to check against": an unverifiable update is exactly the
- * update not to install. The default constant is empty on purpose and this is
- * asserted by a test.
+ * **Fail closed.** A build with no key pinned refuses everything. Not "skip the
+ * check because there is nothing to check against": an unverifiable update is
+ * exactly the update not to install. That was this plugin's state until the
+ * signing key existed, and it is still the behaviour of any build whose
+ * constant is emptied.
  */
 final class SignatureVerifier {
 
 	/**
 	 * The public key releases are signed with, hex-encoded.
 	 *
-	 * Empty until the signing key exists. While it is empty every update check
-	 * refuses, which is the correct behaviour and not a placeholder to be
-	 * quietly worked around.
+	 * Ed25519, 32 bytes, pinned 2026-09-05. Its SHA-256 fingerprint is recorded
+	 * in `docs/DECISIONS.md` D-0059 so that a key substituted here can be
+	 * noticed by comparing one line rather than by reading sixty-four
+	 * characters.
+	 *
+	 * This is the *public* half. The private half is held offline and has never
+	 * been in this repository, which `SecurityRulesTest` asserts for every file
+	 * that ships (§13 rule 15).
+	 *
+	 * Emptying this constant is a supported state, not a broken one: the
+	 * verifier then refuses every update rather than accepting an unsigned one.
 	 */
-	public const PUBLIC_KEY_HEX = '';
+	public const PUBLIC_KEY_HEX = 'c0504cbb47724218570330a31cd175d3b40c0bb58d72c4ce640fdebdacaeab06';
 
 	/**
 	 * The key this instance verifies against, raw bytes.
