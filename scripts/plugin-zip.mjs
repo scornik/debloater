@@ -2,6 +2,10 @@
 /**
  * Build a distributable zip, identically on every platform.
  *
+ * `npm run plugin-zip` (free), `npm run plugin-zip:pro`, `npm run
+ * plugin-zip:all`. Output goes to `dist/<slug>-<version>.zip`, with the version
+ * read from the plugin header.
+ *
  * BUILD-SPEC §17 Phase 18, and Phase 18b after this shipped a zip that could
  * not be installed.
  *
@@ -35,8 +39,26 @@
  *   archive ends up flat.
  * - **One top-level folder,** named for the slug: that is the directory
  *   WordPress installs into.
- * - **An allow-list decides what ships,** not a deny-list. `.distignore` is
- *   applied on top, for the WordPress tooling that reads it.
+ * - **`.distignore` at each plugin root** is the exclusion list, read from that
+ *   plugin's own root rather than the repository's.
+ * - **An allow-list decides what ships,** and `.distignore` can only remove
+ *   from it. The brief for this phase asked for `.distignore` to be the single
+ *   include/exclude source, and this is the one place it is not followed, so
+ *   the reason is written here rather than in a commit message nobody reads
+ *   again.
+ *
+ *   A deny-list ships everything not named. This repository's root holds
+ *   `node_modules/`, a `vendor/` with forty dev packages, `tests/`, `docs/`,
+ *   `admin-ui/` and `dist/` — so a missing line means a release containing
+ *   them, and the failure is silent: the zip installs and works, and only the
+ *   size or a reviewer says otherwise. The free plugin ships nine named files
+ *   out of `vendor/`; expressing "these nine and nothing else" as exclusions
+ *   means listing every package that exists today and every one added later.
+ *
+ *   An allow-list fails the other way. A file that should ship and is not
+ *   listed is missing, and the plugin breaks loudly on the first install. That
+ *   is the direction to fail in, and it is why this shipped a broken zip once
+ *   and has not since.
  */
 
 import { ZipArchive } from 'archiver';
@@ -120,19 +142,30 @@ function refuse( message, fix ) {
 }
 
 /**
- * Patterns from `.distignore`, as plain entries.
+ * Patterns from one plugin's `.distignore`.
  *
- * WordPress tooling reads this file, so it is honoured here rather than left
- * to disagree with the allow-list. The allow-list decides; this can only ever
- * remove.
+ * Read from **that plugin's own root**, which is the fix for a quiet bug: this
+ * used to read the repository's `.distignore` and apply it to both plugins.
+ * Its entries are written relative to the repository, so `src` and `tests`
+ * meant the free plugin's directories — and matching them against paths inside
+ * `pro/` was a comparison of two different things that happened not to collide.
+ * Pro now has its own file, and each plugin is measured against its own root.
  *
+ * WordPress tooling reads this file too, so honouring it here keeps the two
+ * from disagreeing. It can only ever remove: what ships is decided by the ship
+ * list, for reasons set out at the top of this file.
+ *
+ * @param {object} plugin Plugin definition.
  * @return {string[]} Entries.
  */
-function distignore() {
-	const file = path.join( ROOT, '.distignore' );
+function distignore( plugin ) {
+	const file = path.join( plugin.root, '.distignore' );
 
 	if ( ! fs.existsSync( file ) ) {
-		return [];
+		refuse(
+			`${ plugin.slug } has no .distignore at ${ path.relative( ROOT, file ).split( path.sep ).join( '/' ) }.`,
+			'Every plugin root carries one, so what is excluded is written down next to what it excludes.'
+		);
 	}
 
 	return fs
@@ -412,7 +445,7 @@ async function build( which ) {
 	}
 
 	const tag = version( plugin );
-	const files = collect( plugin, distignore() );
+	const files = collect( plugin, distignore( plugin ) );
 
 	audit( plugin, files );
 

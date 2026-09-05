@@ -557,7 +557,7 @@ final class ReleaseReadinessTest extends TestCase {
 	public function test_the_packaging_files_exist(): void {
 		$this->assertFileExists( $this->path( 'uninstall.php' ) );
 		$this->assertFileExists( $this->path( '.distignore' ) );
-		$this->assertFileExists( $this->path( 'tools/build-zip.mjs' ) );
+		$this->assertFileExists( $this->path( 'scripts/plugin-zip.mjs' ) );
 
 		$package = json_decode( $this->file( 'package.json' ), true );
 
@@ -594,7 +594,7 @@ final class ReleaseReadinessTest extends TestCase {
 	 * @return void
 	 */
 	public function test_the_free_zip_carries_no_pro_code(): void {
-		$builder = $this->file( 'tools/build-zip.mjs' );
+		$builder = $this->file( 'scripts/plugin-zip.mjs' );
 
 		$this->assertSame(
 			0,

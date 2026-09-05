@@ -74,6 +74,8 @@ const PLUGINS = [
 		installAs: 'debloater-pkgtest',
 		entry: 'debloater.php',
 		name: 'Debloater',
+		textDomain: 'debloater',
+		requiresPlugins: null,
 		mustContain: [ 'src/Plugin.php', 'readme.txt', 'uninstall.php', 'vendor/autoload.php' ],
 		mustNotContain: [ 'src/Pro.php', 'pro/' ],
 	},
@@ -83,6 +85,12 @@ const PLUGINS = [
 		installAs: 'debloater-pro-pkgtest',
 		entry: 'debloater-pro.php',
 		name: 'Debloater Pro',
+		textDomain: 'debloater-pro',
+
+		// Pro extends the free plugin through documented hooks and does
+		// nothing without it. WordPress 6.5 can enforce that at activation,
+		// and the header is how it is told.
+		requiresPlugins: 'debloater',
 		mustContain: [ 'src/Pro.php', 'src/Entitlement/EntitlementProvider.php' ],
 		mustNotContain: [ 'src/Plugin.php', 'vendor/' ],
 	},
@@ -234,7 +242,7 @@ test( 'the zips build', () => {
 	// left to fail six assertions later as "unzip: can't open ...", which is a
 	// true error message about the wrong thing.
 	try {
-		execFileSync( process.execPath, [ path.join( ROOT, 'tools', 'build-zip.mjs' ), 'all' ], {
+		execFileSync( process.execPath, [ path.join( ROOT, 'scripts', 'plugin-zip.mjs' ), 'all' ], {
 			cwd: ROOT,
 			stdio: 'inherit',
 		} );
@@ -310,6 +318,28 @@ for ( const plugin of PLUGINS ) {
 			plugin.name,
 			'wordpress.org derives the slug from this header, so it must be exact.'
 		);
+
+		// The text domain must equal the slug. wordpress.org serves
+		// translations against the slug, so a domain that differs from it is a
+		// plugin whose translations are never delivered — and nothing about
+		// the plugin looks wrong while that is true.
+		const domain = /^\s*\*\s*Text Domain:\s*(.+?)\s*$/m.exec( header );
+
+		assert.ok( domain, `${ plugin.entry } has no Text Domain header` );
+		assert.equal( domain[ 1 ], plugin.textDomain );
+		assert.equal( domain[ 1 ], plugin.slug, 'the text domain must equal the slug' );
+
+		const requires = /^\s*\*\s*Requires Plugins:\s*(.+?)\s*$/m.exec( header );
+
+		if ( null === plugin.requiresPlugins ) {
+			// The free plugin depends on nothing. A `Requires Plugins` header
+			// here would make Debloater unactivatable without whatever it
+			// named, which is the opposite of what free means.
+			assert.equal( requires, null, 'the free plugin must require no other plugin' );
+		} else {
+			assert.ok( requires, `${ plugin.entry } is missing Requires Plugins` );
+			assert.equal( requires[ 1 ], plugin.requiresPlugins );
+		}
 	} );
 
 	test( `${ plugin.slug }: ships nothing it should not`, () => {
@@ -341,6 +371,43 @@ for ( const plugin of PLUGINS ) {
 				names.some( ( n ) => n.startsWith( `${ plugin.slug }/${ unwanted }` ) ),
 				false,
 				`${ unwanted } should not be in the ${ plugin.slug } zip`
+			);
+		}
+	} );
+
+	test( `${ plugin.slug }: carries no licensing platform`, () => {
+		const names = rawEntryNames( archive() ).map( ( n ) => n.toString( 'utf8' ) );
+
+		if ( 'free' !== plugin.key ) {
+			// Pro is where a licensing SDK belongs, and Part 2 puts one there.
+			// Asserting its absence here would be asserting that Part 2 has not
+			// happened yet, which is a test with a shelf life.
+			return;
+		}
+
+		// BUILD-SPEC §13 rule 15, and the part of it that is easiest to break by
+		// accident: free Debloater is fully functional with no Pro, no
+		// licensing platform and no cloud. A licensing SDK inside the free zip
+		// would contradict that whether or not any code called it — the check
+		// is on the package, because the package is what a reviewer reads.
+		const vendored = names.filter( ( n ) => n.toLowerCase().includes( 'freemius' ) );
+
+		assert.deepEqual( vendored, [], 'the free zip must contain no licensing SDK' );
+
+		// And no call into one, in any file that ships. Read from the archive
+		// rather than the working tree: what is on disk is not what was
+		// packaged, and only one of the two gets installed.
+		for ( const name of names ) {
+			if ( name.endsWith( '/' ) || ! name.endsWith( '.php' ) ) {
+				continue;
+			}
+
+			const contents = read( archive(), name );
+
+			assert.equal(
+				contents.includes( 'fs_dynamic_init' ),
+				false,
+				`${ name } initialises a licensing SDK, in the free plugin`
 			);
 		}
 	} );
@@ -578,6 +645,27 @@ test( 'WordPress extracts and activates each zip', { concurrency: 1 }, async ( t
 				mine,
 				[ `${ plugin.installAs }/${ plugin.entry }` ],
 				'WordPress must list exactly one plugin for this package'
+			);
+
+			// And WordPress's own verdict on the file, which is a different
+			// question from whether it activated: `validate_plugin()` is what
+			// the installer, the updater and the bulk actions all call, and it
+			// answers on the header and the path rather than on whether any
+			// code ran.
+			const validated = wpEnv( [
+				'run',
+				'cli',
+				'wp',
+				'eval',
+				"require_once ABSPATH . 'wp-admin/includes/plugin.php'; " +
+					`$v = validate_plugin( '${ plugin.installAs }/${ plugin.entry }' ); ` +
+					"echo is_wp_error( $v ) ? $v->get_error_message() : 'ok';",
+			] ).trim();
+
+			assert.equal(
+				validated,
+				'ok',
+				`WordPress refused ${ plugin.installAs }: ${ validated }`
 			);
 
 		} finally {

@@ -212,13 +212,43 @@ jobs:
       # the `integration` job is where a real WordPress runs.
       - run: npm run test:packaging
 
+      # The archives are named for the version, so the version is read rather
+      # than written here. It used to be spelled out — `debloater-0.1.0.zip` —
+      # and the release after that bump made every step below open a file that
+      # did not exist. `ZipArchive::open()` returns false rather than throwing,
+      # nothing checked it, and the job failed one step later on a `cd` into a
+      # directory nothing had extracted. Both runners had been red for five
+      # commits with an error message about the wrong thing.
+      - name: Resolve the built archives
+        shell: bash
+        run: |
+          version=$(node -p "require('./package.json').version")
+          free="dist/debloater-${version}.zip"
+          pro="dist/debloater-pro-${version}.zip"
+
+          for archive in "$free" "$pro"; do
+            if [ ! -f "$archive" ]; then
+              echo "The build did not produce $archive. dist/ holds:"
+              ls -la dist
+              exit 1
+            fi
+          done
+
+          echo "FREE_ZIP=$free" >> "$GITHUB_ENV"
+          echo "PRO_ZIP=$pro" >> "$GITHUB_ENV"
+          echo "Free: $free"
+          echo "Pro:  $pro"
+
       - name: The zip autoloads the plugin and nothing else
         shell: bash
         run: |
           php -r '
             $zip = new ZipArchive();
-            $zip->open("dist/debloater-0.1.0.zip");
-            $zip->extractTo("dist/extracted");
+            if ( true !== $zip->open( getenv( "FREE_ZIP" ) ) ) {
+              fwrite( STDERR, "could not open " . getenv( "FREE_ZIP" ) . PHP_EOL );
+              exit( 1 );
+            }
+            $zip->extractTo( "dist/extracted" );
             $zip->close();
           '
           cd dist/extracted/debloater
@@ -239,20 +269,35 @@ jobs:
             exit 1
           fi
 
+      # Both archives, because Pro is a release too and a parity check that
+      # covers one of the two proves half of what it claims.
       - name: Record the entry names for comparison
         shell: bash
         run: |
           php -r '
-            $zip = new ZipArchive();
-            $zip->open("dist/debloater-0.1.0.zip");
-            $names = [];
-            for ( $i = 0; $i < $zip->numFiles; $i++ ) {
-              $names[] = $zip->statIndex( $i )["name"];
+            foreach ( [ "free" => getenv( "FREE_ZIP" ), "pro" => getenv( "PRO_ZIP" ) ] as $which => $path ) {
+              $zip = new ZipArchive();
+
+              if ( true !== $zip->open( $path ) ) {
+                fwrite( STDERR, "could not open $path" . PHP_EOL );
+                exit( 1 );
+              }
+
+              $names = [];
+
+              for ( $i = 0; $i < $zip->numFiles; $i++ ) {
+                $names[] = $zip->statIndex( $i )["name"];
+              }
+
+              $zip->close();
+              sort( $names );
+              file_put_contents( "dist/entries-$which.txt", implode( PHP_EOL, $names ) );
             }
-            sort( $names );
-            file_put_contents( "dist/entries-free.txt", implode( PHP_EOL, $names ) );
           '
+          echo "--- free, first ten ---"
           head -10 dist/entries-free.txt
+          echo "--- pro, first ten ---"
+          head -10 dist/entries-pro.txt
 
       - uses: actions/upload-artifact@v4
         with:
@@ -278,14 +323,16 @@ jobs:
 
       - name: The two platforms agree on every entry name
         run: |
-          ubuntu=artifacts/debloater-zip-ubuntu-latest/entries-free.txt
-          windows=artifacts/debloater-zip-windows-latest/entries-free.txt
+          for which in free pro; do
+            ubuntu="artifacts/debloater-zip-ubuntu-latest/entries-$which.txt"
+            windows="artifacts/debloater-zip-windows-latest/entries-$which.txt"
 
-          if ! diff -u "$ubuntu" "$windows"; then
-            echo
-            echo "The Linux and Windows builds disagree on the archive contents."
-            echo "That is how a zip with backslash separators shipped once already."
-            exit 1
-          fi
+            if ! diff -u "$ubuntu" "$windows"; then
+              echo
+              echo "The Linux and Windows builds disagree on the $which archive."
+              echo "That is how a zip with backslash separators shipped once already."
+              exit 1
+            fi
 
-          echo "Both platforms produced identical entry names."
+            echo "Both platforms produced identical entry names for $which."
+          done

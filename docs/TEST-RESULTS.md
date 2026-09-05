@@ -2151,3 +2151,71 @@ together.
 `test_the_short_description_fits` is new, and covers the line the tagline moved
 to: that it exists, that it is inside 150 characters, and that it is prose
 rather than a header field that has drifted down into the wrong place.
+
+---
+
+## Phase 19b part 1 – packaging
+
+```
+Packaging            OK     17 tests (includes a real install and activation)
+Unit                 OK  1 187 tests, 12 209 assertions
+Integration          OK    322 tests,  4 662 assertions
+Fail-probe           OK      9 tests
+PHPCS                clean
+PHPStan level 6      no errors
+```
+
+### First ten entry names, read from the central directory
+
+Free – 340 entries, 0 containing a backslash:
+
+```
+debloater/
+debloater/build/
+debloater/languages/
+debloater/mu-loader/
+debloater/registry/
+debloater/registry/compatibility/
+debloater/registry/detectors/
+debloater/registry/profiles/
+debloater/registry/schemas/
+debloater/registry/tweaks/
+```
+
+Pro – 26 entries, 0 containing a backslash:
+
+```
+debloater-pro/
+debloater-pro/src/
+debloater-pro/src/Admin/
+debloater-pro/src/Cloud/
+debloater-pro/src/Entitlement/
+debloater-pro/src/Features/
+debloater-pro/src/Multisite/
+debloater-pro/debloater-pro.php
+debloater-pro/src/Admin/Screen.php
+debloater-pro/src/Cloud/CloudResponse.php
+```
+
+Read by parsing the central directory bytes, not through a zip library. A
+library normalises separators on read, which is how 302 wrong entries were once
+reported as clean.
+
+### Every new assertion was fail-probed
+
+| Assertion | Broken by | Result |
+|---|---|---|
+| the free zip carries no licensing SDK | a `fs_dynamic_init` call added to `src/Brand.php` | fails, naming the file |
+| the text domain equals the slug | Pro's domain changed to `debloater-pro-x` | fails, showing both values |
+| Pro declares `Requires Plugins` | the header removed | fails |
+| every plugin root has a `.distignore` | `pro/.distignore` renamed | the build refuses |
+
+`validate_plugin()` is the one new assertion not probed by breaking it: the ways
+to make it fail are a malformed header or a path outside the plugins directory,
+and both are already covered by the assertions either side of it.
+
+### Two unit tests broke, correctly
+
+`test_the_packaging_files_exist` and `test_the_free_zip_carries_no_pro_code`
+named `tools/build-zip.mjs`. Moving the file failed both, which is what a test
+that names a path is for.

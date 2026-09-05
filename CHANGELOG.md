@@ -8,6 +8,11 @@ All notable changes to Debloater are recorded here. The format follows
 
 ### Fixed
 
+- **The packaging job in CI had been failing for five commits.** It opened the
+  release archive by a hard-coded filename that the version bump had changed,
+  and nothing checked whether the file opened. It now reads the version and
+  checks both archives on both operating systems.
+
 - **The plugin name is now the same in both places it is written.** The readme
   title carried the full title while the plugin header carried the short name,
   which wordpress.org's own checker reports as a mismatch. Both say

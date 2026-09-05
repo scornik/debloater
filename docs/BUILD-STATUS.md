@@ -2208,3 +2208,52 @@ not about the world.
 It now asserts what Plugin Check asserts – the two strings are identical – and
 two more things the old test never covered: the short description exists and
 fits inside 150 characters, and it still carries the tagline.
+
+---
+
+## Phase 19b part 1 – portable packaging, and a CI job that had been red for five commits
+
+**Status:** complete, 2026-09-05. Freemius untouched, as the brief required.
+
+### What moved
+
+| | Before | After |
+|---|---|---|
+| Builder | `tools/build-zip.mjs` | `scripts/plugin-zip.mjs` |
+| Packaging tests | `tests/packaging/` | `tests/Packaging/` |
+| `npm run plugin-zip` | built both | builds the free plugin (`:pro`, `:all` alongside) |
+| `.distignore` | one at the repository root, applied to both plugins | one per plugin root, each read against its own |
+
+### What was already there
+
+Most of this brief was built in Phase 18b, after the 0.1.0 zip shipped with
+backslash separators: `archiver` in-process, forward-slash entry names, explicit
+directory entries, one top-level folder, the version read from the header, no
+shelling out to any OS archiver, and the packaging suite that reads the central
+directory bytes rather than trusting a zip reader to normalise them. That work
+is unchanged. This part moved it where the brief asked, gave Pro its own
+exclusion file, and added the assertions the brief named that were missing.
+
+### The bug found on the way
+
+`Package (ubuntu-latest)` and `Package (windows-latest)` had been failing since
+the 0.1.1 version bump – five commits – because the workflow named
+`dist/debloater-0.1.0.zip` literally. `ZipArchive::open()` returns `false`
+rather than throwing, nothing checked it, and the job died one step later on a
+`cd` into a directory nothing had extracted. The error on screen was about an
+uninitialised Zip object, which is true and says nothing about the cause.
+
+Now the version is read from `package.json`, the archives are checked to exist
+before anything opens them, `open()` is checked, and the parity job compares
+**both** archives across the two runners rather than only the free one.
+
+### New assertions
+
+- The text domain equals the slug, per zip, read out of the packaged file.
+- Pro declares `Requires Plugins: debloater`; the free plugin declares no
+  dependency at all.
+- The free zip contains no licensing SDK and no `fs_dynamic_init` call in any
+  PHP file it ships – read from the archive, because what is on disk is not
+  what gets installed (BUILD-SPEC §13 rule 15).
+- `validate_plugin()` returns no error, which is a different question from
+  whether the plugin activated: it is what the installer and the updater call.
