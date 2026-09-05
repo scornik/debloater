@@ -2247,6 +2247,14 @@ Now the version is read from `package.json`, the archives are checked to exist
 before anything opens them, `open()` is checked, and the parity job compares
 **both** archives across the two runners rather than only the free one.
 
+With the package jobs green, the parity job ran for the first time – and
+failed, on every line of both listings. It wrote them with `PHP_EOL`, which is
+CRLF on the Windows runner, so a byte comparison against the Linux listing
+differed everywhere for a reason that had nothing to do with the archives. The
+listings are written with a literal newline now. Worth noting that this job had
+never once executed: it needs both package jobs, and they had been failing since
+before it was written.
+
 ### New assertions
 
 - The text domain equals the slug, per zip, read out of the packaged file.

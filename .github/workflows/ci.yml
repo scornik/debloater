@@ -291,7 +291,11 @@ jobs:
 
               $zip->close();
               sort( $names );
-              file_put_contents( "dist/entries-$which.txt", implode( PHP_EOL, $names ) );
+              // Written with a literal newline, never PHP_EOL: this file is
+              // compared byte for byte against the one the other runner
+              // produced, and PHP_EOL is CRLF on Windows. Every line would
+              // differ, for a reason that has nothing to do with the archive.
+              file_put_contents( "dist/entries-$which.txt", implode( "\n", $names ) . "\n" );
             }
           '
           echo "--- free, first ten ---"
