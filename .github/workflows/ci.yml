@@ -224,9 +224,8 @@ jobs:
         run: |
           version=$(node -p "require('./package.json').version")
           free="dist/debloater-${version}.zip"
-          pro="dist/debloater-pro-${version}.zip"
 
-          for archive in "$free" "$pro"; do
+          for archive in "$free"; do
             if [ ! -f "$archive" ]; then
               echo "The build did not produce $archive. dist/ holds:"
               ls -la dist
@@ -235,9 +234,7 @@ jobs:
           done
 
           echo "FREE_ZIP=$free" >> "$GITHUB_ENV"
-          echo "PRO_ZIP=$pro" >> "$GITHUB_ENV"
           echo "Free: $free"
-          echo "Pro:  $pro"
 
       - name: The zip autoloads the plugin and nothing else
         shell: bash
@@ -269,13 +266,11 @@ jobs:
             exit 1
           fi
 
-      # Both archives, because Pro is a release too and a parity check that
-      # covers one of the two proves half of what it claims.
       - name: Record the entry names for comparison
         shell: bash
         run: |
           php -r '
-            foreach ( [ "free" => getenv( "FREE_ZIP" ), "pro" => getenv( "PRO_ZIP" ) ] as $which => $path ) {
+            foreach ( [ "free" => getenv( "FREE_ZIP" ) ] as $which => $path ) {
               $zip = new ZipArchive();
 
               if ( true !== $zip->open( $path ) ) {
@@ -300,8 +295,6 @@ jobs:
           '
           echo "--- free, first ten ---"
           head -10 dist/entries-free.txt
-          echo "--- pro, first ten ---"
-          head -10 dist/entries-pro.txt
 
       - uses: actions/upload-artifact@v4
         with:
@@ -327,7 +320,7 @@ jobs:
 
       - name: The two platforms agree on every entry name
         run: |
-          for which in free pro; do
+          for which in free; do
             ubuntu="artifacts/debloater-zip-ubuntu-latest/entries-$which.txt"
             windows="artifacts/debloater-zip-windows-latest/entries-$which.txt"
 

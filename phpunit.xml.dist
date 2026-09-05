@@ -14,19 +14,10 @@
         <testsuite name="unit">
             <directory>tests/Unit</directory>
         </testsuite>
-        <!--
-            Pro's WordPress-free tests. Its architecture invariants are greps
-            over source, and its entitlement logic is pure — neither needs
-            WordPress, so neither should pay for it.
-        -->
-        <testsuite name="pro">
-            <directory>tests/Pro</directory>
-        </testsuite>
     </testsuites>
     <source>
         <include>
             <directory>src</directory>
-            <directory>pro/src</directory>
         </include>
     </source>
 </phpunit>

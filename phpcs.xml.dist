@@ -6,7 +6,6 @@
 	<file>src</file>
 	<file>runtime-handlers</file>
 	<file>mu-loader</file>
-	<file>pro</file>
 	<file>tests</file>
 
 	<exclude-pattern>*/vendor/*</exclude-pattern>
@@ -82,15 +81,15 @@
 	<rule ref="WordPress.WP.I18n">
 		<properties>
 			<!--
-				Two plugins, two domains. The free plugin translates against
-				"debloater" and Pro against "debloater-pro", because
-				wordpress.org serves translations per plugin slug and a shared
-				domain would mean one plugin's strings arriving under the
-				other's name.
+				One domain, matching the slug: wordpress.org serves
+				translations per plugin slug, so a string carrying any other
+				domain is a string that never arrives translated.
+
+				Pro has its own repository and its own domain,
+				"debloater-pro", for the same reason.
 			-->
 			<property name="text_domain" type="array">
 				<element value="debloater"/>
-				<element value="debloater-pro"/>
 			</property>
 		</properties>
 	</rule>

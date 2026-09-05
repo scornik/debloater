@@ -93,9 +93,12 @@ const DIST = path.join( ROOT, 'dist' );
 const ENTRY_DATE = new Date( Date.UTC( 2024, 0, 1, 0, 0, 0 ) );
 
 /**
- * The two plugins this repository builds.
+ * The plugin this repository builds.
  *
- * Pro is a separate plugin and a separate zip, never inside the free one.
+ * Pro used to be here too, as a second entry producing a second zip. It lives
+ * in its own repository now, so what is left is a table with one row — kept as
+ * a table rather than flattened, because the shape is what makes "never inside
+ * the free one" structural rather than a rule somebody remembers.
  */
 const PLUGINS = {
 	free: {
@@ -137,13 +140,6 @@ const PLUGINS = {
 		],
 	},
 
-	pro: {
-		slug: 'debloater-pro',
-		root: path.join( ROOT, 'pro' ),
-		entry: 'debloater-pro.php',
-		requiresBuild: false,
-		ship: [ { from: 'debloater-pro.php' }, { from: 'src' } ],
-	},
 };
 
 /**

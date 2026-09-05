@@ -80,21 +80,6 @@ const PLUGINS = [
 		mustContain: [ 'src/Plugin.php', 'readme.txt', 'uninstall.php', 'vendor/autoload.php' ],
 		mustNotContain: [ 'src/Pro.php', 'pro/' ],
 	},
-	{
-		key: 'pro',
-		slug: 'debloater-pro',
-		installAs: 'debloater-pro-pkgtest',
-		entry: 'debloater-pro.php',
-		name: 'Debloater Pro',
-		textDomain: 'debloater-pro',
-
-		// Pro extends the free plugin through documented hooks and does
-		// nothing without it. WordPress 6.5 can enforce that at activation,
-		// and the header is how it is told.
-		requiresPlugins: 'debloater',
-		mustContain: [ 'src/Pro.php', 'src/Entitlement/EntitlementProvider.php' ],
-		mustNotContain: [ 'src/Plugin.php', 'vendor/' ],
-	},
 ];
 
 /**

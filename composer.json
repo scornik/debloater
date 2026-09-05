@@ -1,6 +1,6 @@
 {
     "name": "scornik/debloater",
-    "description": "Debloater — evidence-based WordPress configuration auditing and safe, reversible debloating.",
+    "description": "Debloater \u2014 evidence-based WordPress configuration auditing and safe, reversible debloating.",
     "type": "wordpress-plugin",
     "license": "GPL-2.0-or-later",
     "require": {
@@ -28,9 +28,7 @@
         "psr-4": {
             "Debloater\\Tests\\Unit\\": "tests/Unit/",
             "Debloater\\Tests\\Integration\\": "tests/Integration/",
-            "Debloater\\Tests\\FailProbe\\": "tests/FailProbe/",
-            "Debloater\\Pro\\": "pro/src/",
-            "Debloater\\Tests\\Pro\\": "tests/Pro/"
+            "Debloater\\Tests\\FailProbe\\": "tests/FailProbe/"
         }
     },
     "config": {

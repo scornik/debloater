@@ -121,3 +121,63 @@ the feature fails — safely, and doubly: the fetch 404s, and
 `SignatureVerifier::PUBLIC_KEY_HEX` is empty so an unsigned registry would be
 refused anyway. The disclosure describes a service that is not there yet, which
 is honest about intent and wrong about the present.
+
+## The Pro split, 2026-09-05
+
+Pro moved to `scornik/debloater-pro`, and this repository's history was rewritten
+so that `pro/` never appears in it. The rewrite is why the commit identifiers in
+this file and in `docs/DECISIONS.md` are worth reading carefully.
+
+### The commits this history replaced
+
+| | |
+|---|---|
+| Last commit before the rewrite | `e3b9cbe13b38b59040c3fd878918251fb7230545` |
+| The submission artifact's commit | `699eace` |
+| Where that history still exists | `scornik/debloater-pro`, and a local mirror |
+
+**Every SHA written down before today refers to the old history and cannot be
+resolved in this repository.** `git filter-repo` rewrites every commit that
+follows a removed path, so the identifiers changed even for commits that never
+touched `pro/`. Decision entries naming a commit – D-0053 and D-0056 among them
+– are describing work that happened, at identifiers that no longer exist here.
+
+That is the cost of the rewrite and it was accepted deliberately: a public
+repository that still serves the paid plugin's source to anyone who knows a SHA
+is not private, and a dangling identifier in a document is a smaller problem
+than that.
+
+### What moved
+
+| Path | Where it went |
+|---|---|
+| `pro/` | the root of `scornik/debloater-pro` |
+| `tests/Pro/` | the same, unchanged path |
+| `tests/Integration/ProIntegrationTest.php`, `ProScreenTest.php` | the same |
+| `docs/CLOUD-DESIGN.md`, `docs/FINAL-AUDIT.md` | `docs/` there |
+| `docs/DECISIONS.md` | both – see below |
+
+`docs/DECISIONS.md` was the one judgement call. Fifty-eight decisions, and only
+two of them – D-0035 and D-0050 – are about Pro. Moving the file wholesale, as
+the brief asked, would have taken fifty-six decisions about the free plugin out
+of the free plugin's repository, and left `CLAUDE.md` pointing at a file that
+was not there.
+
+So the file was removed from every commit, as asked, and a free-only edition was
+written fresh: the fifty-six, with a note naming the two that are not here and
+where they live. The complete file, with all fifty-eight, is in the Pro
+repository.
+
+### What the rewrite does not do
+
+**It does not unpublish anything.** This repository was briefly public with
+`pro/` in it. Anyone who cloned or forked it in that window has the paid plugin,
+and GitHub keeps unreachable objects reachable by SHA for a long time – a
+rewritten public repository can still serve an old blob to somebody who knows
+its identifier, until GitHub Support is asked to garbage-collect it.
+
+Rewriting history is how you stop *publishing* something. It is not how you
+un-publish it. If the exposure window matters, the questions to answer are who
+cloned it and whether anything in `pro/` was secret – and the answer to the
+second is no: no key, token or store identifier has ever been committed there,
+which the Pro repository's CI now asserts on every push.
