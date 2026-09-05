@@ -1,6 +1,6 @@
 {
     "name": "scornik/debloater",
-    "description": "Debloater \u2014 evidence-based WordPress configuration auditing and safe, reversible debloating.",
+    "description": "Debloater — evidence-based WordPress configuration auditing and safe, reversible debloating.",
     "type": "wordpress-plugin",
     "license": "GPL-2.0-or-later",
     "require": {
