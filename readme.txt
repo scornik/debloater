@@ -75,11 +75,38 @@ Fonts).
 
 * No admin notices, no dashboard widget, no upsell in your way.
 * No telemetry, no analytics, no AI.
-* No outbound network requests, except to your own site during verification. The
-  one exception is optional and off by default: looking up plugin release dates
-  at wordpress.org, which you turn on per scan.
+* No outbound network requests, except to your own site during verification.
+  Two optional features can reach further, both off by default and both listed
+  under "External services" below.
 * No claims about speed it did not measure.
 * No safety feature behind a paywall.
+
+= External services =
+
+Debloater works completely offline. Two optional features reach outside your
+site, neither of them enabled by default, and neither of them sends anything
+about your site.
+
+**Plugin release dates, from wordpress.org.** When you tick "check plugin
+update dates" before a scan, Debloater asks
+`https://api.wordpress.org/plugins/info/1.2/` for the public release dates of
+the plugins you have installed, so it can tell you which look abandoned. It
+sends the plugin slugs it is asking about and nothing else — no site address,
+no user, no site data. The setting is per scan and is not remembered, so it
+never happens without you asking that time. This is WordPress's own API:
+see the [wordpress.org privacy notice](https://wordpress.org/about/privacy/).
+
+**Registry updates, from GitHub.** The rules Debloater reasons with — which
+changes exist, what they touch, how risky they are — ship inside the plugin. A
+newer set can be fetched from
+`https://raw.githubusercontent.com/scornik/debloater-registry`, and only through
+WP-CLI, by running the command yourself. It is a download: nothing about your
+site is sent. The downloaded rules are refused unless they carry a valid
+signature. See GitHub's [terms](https://docs.github.com/en/site-policy/github-terms/github-terms-of-service)
+and [privacy statement](https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement).
+
+Nothing else leaves your server. There is no telemetry, no analytics, no
+licensing call and no usage reporting in this plugin.
 
 = WP-CLI =
 
@@ -141,10 +168,11 @@ went, turn on "remove all data on uninstall" in the settings first.
 
 = Does it phone home? =
 
-No. There is no telemetry of any kind. The only outbound request it makes on its
-own is to your own site, to check that your site still works after a change. The
-only other network feature — looking up plugin release dates at wordpress.org —
-is off by default and asks again every scan rather than remembering.
+No. There is no telemetry of any kind. The only request it makes on its own is
+to your own site, to check that your site still works after a change. Two other
+features can reach outside, both off until you ask for them and neither sending
+anything about your site: plugin release dates from wordpress.org, and registry
+updates from GitHub. Both are described under "External services" above.
 
 = Is it compatible with my caching plugin? =
 

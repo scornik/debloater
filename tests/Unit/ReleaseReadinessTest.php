@@ -198,6 +198,77 @@ final class ReleaseReadinessTest extends TestCase {
 	}
 
 	/**
+	 * Every host the plugin can call is disclosed in readme.txt.
+	 *
+	 * wordpress.org requires a plugin to say which outside services it uses.
+	 * The readme said the one exception to "no outbound requests" was looking
+	 * up release dates at wordpress.org — and there was a second: registry
+	 * updates from `raw.githubusercontent.com`, off by default and reachable
+	 * only through WP-CLI, but real, shipped and undisclosed. Nothing in the
+	 * suite compared the claim against the code, so the claim drifted.
+	 *
+	 * This reads the hosts out of the files that actually make requests, and
+	 * requires each one to appear in the readme. It is deliberately not a list
+	 * written here: a list would drift the same way the sentence did.
+	 *
+	 * @return void
+	 */
+	public function test_every_outbound_host_is_disclosed(): void {
+		$readme = $this->file( 'readme.txt' );
+		$hosts  = array();
+
+		// Keyed by relative path, valued with the file's contents.
+		foreach ( $this->sourceFiles() as $relative => $source ) {
+			// Only files that can actually make a request. A URL in a comment
+			// or a schema identifier is not an outbound call, and treating it
+			// as one would train somebody to disclose things that never happen.
+			if ( ! str_contains( $source, 'wp_remote_' ) ) {
+				continue;
+			}
+
+			$code = $this->withoutComments( $source );
+
+			if ( 0 === preg_match_all( '#https?://([a-z0-9.-]+)#i', $code, $found ) ) {
+				continue;
+			}
+
+			foreach ( $found[1] as $host ) {
+				$hosts[ strtolower( $host ) ] = $relative;
+			}
+		}
+
+		$this->assertNotSame(
+			array(),
+			$hosts,
+			'No outbound host was found at all, so this test is not reading what it thinks it is.'
+		);
+
+		$undisclosed = array();
+
+		foreach ( $hosts as $host => $where ) {
+			if ( ! str_contains( strtolower( $readme ), $host ) ) {
+				$undisclosed[] = sprintf( '%s (called from %s)', $host, $where );
+			}
+		}
+
+		$this->assertSame(
+			array(),
+			$undisclosed,
+			"readme.txt does not disclose every service this plugin can contact.
+"
+				. "wordpress.org requires each one to be named, with what is sent:
+
+  "
+				. implode( "
+  ", $undisclosed )
+		);
+
+		// And the section exists to hold them, rather than the hosts happening
+		// to appear somewhere in the prose.
+		$this->assertStringContainsString( '= External services =', $readme );
+	}
+
+	/**
 	 * The short description, and the limit wordpress.org holds it to.
 	 *
 	 * @return void
