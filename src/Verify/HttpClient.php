@@ -115,7 +115,42 @@ final class HttpClient {
 	 * @return Response
 	 */
 	public function getAsActor( string $url ): Response {
-		return $this->request( $url, $this->session->headers() );
+		return $this->request( $url, $this->session->headers( $url ) );
+	}
+
+	/**
+	 * Fetch a URL as the acting user, without following redirects.
+	 *
+	 * The admin probe needs this. A redirect to `wp-login.php` and a 200
+	 * carrying a login form mean two different things — a credential core
+	 * rejected, and a host that removed it before core saw it — and following
+	 * the redirect turns the first into the second, which is how a specific
+	 * diagnosis becomes a vague one.
+	 *
+	 * @param string $url URL to fetch.
+	 * @return Response
+	 */
+	public function getAsActorWithoutRedirects( string $url ): Response {
+		return $this->request( $url, $this->session->headers( $url ), false );
+	}
+
+	/**
+	 * Which admin cookie a URL calls for.
+	 *
+	 * @param string $url URL to fetch.
+	 * @return string 'secure_auth' or 'auth'.
+	 */
+	public function actorCookieScheme( string $url ): string {
+		return $this->session->schemeFor( $url );
+	}
+
+	/**
+	 * Whether the actor's requests carry an admin credential.
+	 *
+	 * @return bool
+	 */
+	public function actorHasAdminCredential(): bool {
+		return $this->session->hasAdminCredential();
 	}
 
 	/**
@@ -155,16 +190,17 @@ final class HttpClient {
 	 *
 	 * @param string                $url     URL to fetch.
 	 * @param array<string,string>  $headers Extra headers.
+	 * @param bool                  $follow  Whether to follow redirects.
 	 * @return Response
 	 */
-	private function request( string $url, array $headers ): Response {
+	private function request( string $url, array $headers, bool $follow = true ): Response {
 		$started = microtime( true );
 
 		$response = wp_remote_get(
 			$url,
 			array(
 				'timeout'     => $this->timeout,
-				'redirection' => self::MAX_REDIRECTS,
+				'redirection' => $follow ? self::MAX_REDIRECTS : 0,
 				'sslverify'   => $this->sslVerify(),
 				'headers'     => array_merge( array( self::HEADER => '1' ), $headers ),
 				'user-agent'  => 'Debloater/' . $this->context->plugin_version . '; verification',
@@ -186,7 +222,8 @@ final class HttpClient {
 			'',
 			$elapsed,
 			$url,
-			(string) wp_remote_retrieve_header( $response, 'content-type' )
+			(string) wp_remote_retrieve_header( $response, 'content-type' ),
+			(string) wp_remote_retrieve_header( $response, 'location' )
 		);
 	}
 

@@ -36,7 +36,7 @@ final class AcceptanceTest extends IntegrationTestCase {
 	private const PAGE = '<!DOCTYPE html><html><head><title>A site</title>'
 		. '<link rel="stylesheet" href="https://example.test/style.css">'
 		. '<script src="https://example.test/a.js"></script>'
-		. '</head><body>Hello<div id="adminmenu"></div><div id="wpbody"></div></body></html>';
+		. '</head><body>Hello<div id="wpadminbar"><ul><li id="wp-admin-bar-my-account"></li></ul></div><div id="adminmenu"></div><div id="wpbody"></div></body></html>';
 
 	/**
 	 * Prepare the tables, seed the site, and act as an administrator.

@@ -62,6 +62,18 @@ final class Response {
 	public readonly string $content_type;
 
 	/**
+	 * Where the response said to go next, or '' when it did not.
+	 *
+	 * Only ever set when the request was made without following redirects. A
+	 * status code alone cannot tell a probe whether `/wp-admin/` sent it to the
+	 * login page or to the https version of itself, and those mean different
+	 * things.
+	 *
+	 * @var string
+	 */
+	public readonly string $location;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param int    $status       HTTP status, 0 when unreachable.
@@ -70,6 +82,7 @@ final class Response {
 	 * @param int    $elapsed_ms   Milliseconds elapsed.
 	 * @param string $url          URL requested.
 	 * @param string $content_type Content type header.
+	 * @param string $location     Location header, when redirects were not followed.
 	 */
 	public function __construct(
 		int $status,
@@ -77,7 +90,8 @@ final class Response {
 		string $error = '',
 		int $elapsed_ms = 0,
 		string $url = '',
-		string $content_type = ''
+		string $content_type = '',
+		string $location = ''
 	) {
 		$this->status       = $status;
 		$this->body         = $body;
@@ -85,6 +99,25 @@ final class Response {
 		$this->elapsed_ms   = $elapsed_ms;
 		$this->url          = $url;
 		$this->content_type = $content_type;
+		$this->location     = $location;
+	}
+
+	/**
+	 * Whether the response was a redirect rather than a page.
+	 *
+	 * @return bool
+	 */
+	public function isRedirect(): bool {
+		return $this->status >= 300 && $this->status < 400;
+	}
+
+	/**
+	 * Whether the response redirected to the login form.
+	 *
+	 * @return bool
+	 */
+	public function redirectsToLogin(): bool {
+		return $this->isRedirect() && false !== strpos( $this->location, 'wp-login.php' );
 	}
 
 	/**

@@ -49,7 +49,7 @@ final class VerificationTest extends IntegrationTestCase {
 	 * A body that looks like the dashboard.
 	 */
 	private const GOOD_ADMIN = '<!DOCTYPE html><html><head><title>Dashboard</title></head><body>'
-		. '<div id="adminmenu"></div><div id="wpbody">Howdy</div></body></html>';
+		. '<div id="wpadminbar"><ul><li id="wp-admin-bar-my-account"></li></ul></div><div id="adminmenu"></div><div id="wpbody">Howdy</div></body></html>';
 
 	/**
 	 * A body that looks like the login screen.

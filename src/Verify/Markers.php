@@ -84,6 +84,23 @@ final class Markers {
 	);
 
 	/**
+	 * Text that proves the admin rendered *for somebody*, rather than merely
+	 * rendering.
+	 *
+	 * The admin bar's account item is only printed for a logged-in user, so its
+	 * presence is the difference between "the dashboard came back" and "the
+	 * dashboard came back as a signed-in person". Both parts matter: a probe
+	 * that only checked the first would pass on a page core served before it
+	 * decided who was asking.
+	 *
+	 * @var array<int,string>
+	 */
+	public const ADMIN_BAR = array(
+		'id="wpadminbar"',
+		'wp-admin-bar-my-account',
+	);
+
+	/**
 	 * Text that means the request was answered with a login form.
 	 *
 	 * @var array<int,string>

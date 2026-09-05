@@ -2,21 +2,22 @@
 # This file is distributed under the GPL-2.0-or-later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Debloater – Scan, Fix & Undo Site Bloat 0.1.0\n"
+"Project-Id-Version: Debloater 0.1.1\n"
 "Report-Msgid-Bugs-To: https://github.com/scornik/debloater/issues\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-09-04T05:41:41+00:00\n"
+"POT-Creation-Date: 2026-09-05T06:45:02+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: debloater\n"
 
 #. Plugin Name of the plugin
 #: debloater.php
-msgid "Debloater – Scan, Fix & Undo Site Bloat"
+#: build/index.js:10
+msgid "Debloater"
 msgstr ""
 
 #. Plugin URI of the plugin
@@ -34,13 +35,13 @@ msgstr ""
 msgid "Hakeemify"
 msgstr ""
 
-#: src/Admin/Screen.php:243
+#: src/Admin/Screen.php:247
 #: src/Rest/Controller.php:214
 #: build/index.js:10
 msgid "You do not have permission to manage Debloater on this site."
 msgstr ""
 
-#: src/Admin/Screen.php:249
+#: src/Admin/Screen.php:253
 msgid "Loading Debloater…"
 msgstr ""
 
@@ -1561,25 +1562,41 @@ msgstr ""
 msgid "%1$s loaded, but what makes it work is missing from it: %2$s."
 msgstr ""
 
-#: src/Verify/Probes/AdminProbe.php:53
+#: src/Verify/Probes/AdminProbe.php:69
 msgid "The dashboard could not be checked, because there was no signed-in user to check it as."
 msgstr ""
 
-#: src/Verify/Probes/AdminProbe.php:71
-msgid "The dashboard answered with the login form, so this check could not confirm whether it renders."
+#: src/Verify/Probes/AdminProbe.php:103
+msgid "The dashboard answered with the login form rather than a redirect, which usually means something between this site and itself removed the sign-in cookie. This check could not confirm whether the dashboard renders."
 msgstr ""
 
 #. translators: %s: comma-separated markers.
-#: src/Verify/Probes/AdminProbe.php:87
+#: src/Verify/Probes/AdminProbe.php:119
 #, php-format
 msgid "The dashboard loaded, but parts of it are missing: %s not found."
 msgstr ""
 
-#: src/Verify/Probes/AdminProbe.php:97
-msgid "The dashboard loaded normally."
+#. translators: %s: comma-separated markers.
+#: src/Verify/Probes/AdminProbe.php:138
+#, php-format
+msgid "The dashboard loaded, but not as a signed-in user: %s not found."
 msgstr ""
 
-#: src/Verify/Probes/AdminProbe.php:108
+#: src/Verify/Probes/AdminProbe.php:148
+msgid "The dashboard loaded normally, signed in."
+msgstr ""
+
+#. translators: %s: the cookie scheme, either secure_auth or auth.
+#: src/Verify/Probes/AdminProbe.php:172
+#, php-format
+msgid "The dashboard sent this check back to the sign-in page, so WordPress read the sign-in cookie and would not accept it. The usual cause is the address: the cookie was signed for %s, and an admin reached over the other scheme rejects it. This check could not confirm whether the dashboard renders."
+msgstr ""
+
+#: src/Verify/Probes/AdminProbe.php:178
+msgid "The dashboard sent this check back to the sign-in page, because there was no sign-in cookie to send: this site had no session for the person making the change. This check could not confirm whether the dashboard renders."
+msgstr ""
+
+#: src/Verify/Probes/AdminProbe.php:204
 msgid "The dashboard"
 msgstr ""
 
@@ -2086,6 +2103,14 @@ msgid "There is no change to apply for this finding."
 msgstr ""
 
 #: build/index.js:8
+msgid "Apply this change…"
+msgstr ""
+
+#: build/index.js:8
+msgid "You will see exactly what it does, and what the recovery point will contain, before anything happens."
+msgstr ""
+
+#: build/index.js:8
 msgid "Undo"
 msgstr ""
 
@@ -2271,10 +2296,6 @@ msgstr ""
 
 #: build/index.js:10
 msgid "Changes & recovery"
-msgstr ""
-
-#: build/index.js:10
-msgid "Debloater"
 msgstr ""
 
 #: build/index.js:10

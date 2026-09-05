@@ -2265,3 +2265,48 @@ before it was written.
   what gets installed (BUILD-SPEC §13 rule 15).
 - `validate_plugin()` returns no error, which is a different question from
   whether the plugin activated: it is what the installer and the updater call.
+
+---
+
+## Phase 19b part 1b – the admin probe signs in
+
+**Status:** complete, 2026-09-05
+
+Every apply on a live site ended `VERIFIED_WITH_WARNINGS` because the admin
+probe was answered with the login form. It was authenticating – with
+`LOGGED_IN_COOKIE`, which is not the cookie `/wp-admin/` reads. Full reasoning
+in `docs/DECISIONS.md` D-0058.
+
+### What the fix is
+
+`ActorSession` now sends the admin cookie alongside the logged-in one, minted
+for the scheme the target URL needs, bound to the same session token, kept
+inside the site's own cookie domain, and never persisted. The probe stops
+following redirects so that "core refused the cookie" and "something stripped
+the cookie" stay distinguishable, and it checks the admin bar as well as the
+admin body markers, so a page that rendered for nobody is not a pass.
+
+### Proved end to end, not asserted
+
+`tools/admin-probe-e2e.php` (`npm run test:probe-e2e`) runs the probe against
+the real web container: a committed administrator, a real session, a real
+request through Apache, and core's own `auth_redirect()` deciding. It reports
+PASS, and the whole verification aggregates to PASS – the state that makes a
+run end `VERIFIED`.
+
+Reverting the fix to the old logged-in-only credential reproduces the reported
+symptom exactly, over that same real HTTP: `302`, `redirected_to_login yes`.
+
+### The environment limit, stated plainly
+
+A whole `wp debloater apply` cannot be run end to end in wp-env. The apply runs
+in its own process, and the address it asks for comes from `WP_HOME`, which
+wp-env pins as a constant in `wp-config.php` to `http://localhost:8889` – an
+address that, inside a container, is that container. No option, filter or flag
+reaches a constant in another process, and editing the environment's
+`wp-config.php` would break the site for the browser on the host.
+
+So what is demonstrated is the verification stage, in process, with every probe
+making a real request: aggregate PASS, which is precisely what decides
+`VERIFIED` against `VERIFIED_WITH_WARNINGS`. The apply machinery around it is
+covered by the integration suite as before.

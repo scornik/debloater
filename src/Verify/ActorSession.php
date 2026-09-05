@@ -34,6 +34,28 @@ use Debloater\Contracts\Context;
  * When neither is possible — no acting user, or an actor that is not a real
  * account — no credential is produced and the probes that need one report that
  * they could not check, rather than reporting a pass they did not earn.
+ *
+ * ## Two cookies, not one
+ *
+ * The first version sent only `LOGGED_IN_COOKIE`, and every admin probe on
+ * every real site came back with the login form. The cause is in core and is
+ * not obvious: `auth_redirect()`, which guards `/wp-admin/`, calls
+ * `wp_validate_auth_cookie( '', '' )`, and `wp_parse_auth_cookie()` resolves an
+ * empty scheme to `secure_auth` when `is_ssl()` and to `auth` otherwise —
+ * **never** to `logged_in`. So the admin reads `AUTH_COOKIE` or
+ * `SECURE_AUTH_COOKIE` and nothing else, and a request carrying only the
+ * logged-in cookie is an anonymous request as far as the dashboard is
+ * concerned.
+ *
+ * `LOGGED_IN_COOKIE` is still sent: it is what `wp_get_current_user()` reads,
+ * so it is what makes the page render *as the actor* rather than merely letting
+ * the request through.
+ *
+ * The scheme is chosen from the URL being fetched rather than from the current
+ * request, because `force_ssl_admin()` can put the admin on https while the
+ * request doing the verifying arrived over http. Only the matching cookie is
+ * sent: a `secure_auth` credential put on a plaintext request would be a
+ * credential minted for TLS and then sent without it.
  */
 final class ActorSession {
 
@@ -74,6 +96,24 @@ final class ActorSession {
 	private string $minted_token = '';
 
 	/**
+	 * The session token the credential is bound to, minted or forwarded.
+	 *
+	 * The admin cookie has to carry the same token as the logged-in one, or
+	 * core rejects it: `wp_validate_auth_cookie()` checks the token against the
+	 * user's sessions.
+	 *
+	 * @var string
+	 */
+	private string $session_token = '';
+
+	/**
+	 * When the credential stops being valid.
+	 *
+	 * @var int
+	 */
+	private int $expiration = 0;
+
+	/**
 	 * The user the credential belongs to.
 	 *
 	 * @var int
@@ -101,13 +141,29 @@ final class ActorSession {
 	/**
 	 * Headers that authenticate a loopback request as the acting user.
 	 *
+	 * @param string $url The URL about to be fetched. Its scheme decides which
+	 *                    of the two admin cookies is sent, and its host decides
+	 *                    whether a credential is sent at all.
 	 * @return array<string,string>
 	 */
-	public function headers(): array {
+	public function headers( string $url = '' ): array {
 		$cookie = $this->resolve();
 
 		if ( '' === $cookie ) {
 			return array();
+		}
+
+		if ( '' !== $url && ! $this->withinCookieDomain( $url ) ) {
+			// COOKIE_DOMAIN says where this site's credentials belong. A
+			// browser would not send them anywhere else and neither will this,
+			// however the URL came to be pointed off-site.
+			return array();
+		}
+
+		$admin = $this->adminCookie( $url );
+
+		if ( '' !== $admin ) {
+			$cookie .= '; ' . $admin;
 		}
 
 		$headers = array( 'Cookie' => $cookie );
@@ -119,6 +175,119 @@ final class ActorSession {
 		}
 
 		return $headers;
+	}
+
+	/**
+	 * Whether an admin credential can be produced at all.
+	 *
+	 * There is one only when the session is bound to a token, which is what
+	 * core checks the cookie against. Without it the probe is being turned away
+	 * for a different reason than a rejected cookie, and saying which is the
+	 * difference between a diagnosis and a guess.
+	 *
+	 * @return bool
+	 */
+	public function hasAdminCredential(): bool {
+		$this->resolve();
+
+		return 0 !== $this->user_id && '' !== $this->session_token;
+	}
+
+	/**
+	 * Which cookie `auth_redirect()` will read for a given URL.
+	 *
+	 * @param string $url The URL being fetched.
+	 * @return string 'secure_auth' or 'auth'.
+	 */
+	public function schemeFor( string $url = '' ): string {
+		$target = '' === $url ? admin_url() : $url;
+
+		return str_starts_with( strtolower( $target ), 'https://' ) ? 'secure_auth' : 'auth';
+	}
+
+	/**
+	 * The admin cookie for one request, minted for the scheme that URL needs.
+	 *
+	 * Not stored: it is derived from the session token, which is, and holding a
+	 * second credential for the lifetime of the object buys nothing.
+	 *
+	 * @param string $url The URL being fetched.
+	 * @return string `NAME=value`, or '' when there is nothing to send.
+	 */
+	private function adminCookie( string $url ): string {
+		if ( 0 === $this->user_id || '' === $this->session_token ) {
+			return '';
+		}
+
+		$scheme = $this->schemeFor( $url );
+		$name   = 'secure_auth' === $scheme ? SECURE_AUTH_COOKIE : AUTH_COOKIE;
+
+		if ( ! defined( 'AUTH_COOKIE' ) || ! defined( 'SECURE_AUTH_COOKIE' ) ) {
+			return '';
+		}
+
+		$forwarded = $this->forwardedAdminCookie( $name, $scheme );
+
+		if ( '' !== $forwarded ) {
+			return $name . '=' . $forwarded;
+		}
+
+		return $name . '=' . wp_generate_auth_cookie(
+			$this->user_id,
+			$this->expiration,
+			$scheme,
+			$this->session_token
+		);
+	}
+
+	/**
+	 * The admin cookie of the request we are running inside, when it has one.
+	 *
+	 * @param string $name   Cookie name.
+	 * @param string $scheme Scheme to validate against.
+	 * @return string The cookie value, or '' when there is not a usable one.
+	 */
+	private function forwardedAdminCookie( string $name, string $scheme ): string {
+		if ( ! isset( $_COOKIE[ $name ] ) ) {
+			return '';
+		}
+
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Validated below by WordPress itself; sanitising an authentication cookie would corrupt it.
+		$value = (string) $_COOKIE[ $name ];
+
+		return wp_validate_auth_cookie( $value, $scheme ) === $this->user_id ? $value : '';
+	}
+
+	/**
+	 * Whether a URL is somewhere this site's cookies belong.
+	 *
+	 * @param string $url The URL being fetched.
+	 * @return bool
+	 */
+	private function withinCookieDomain( string $url ): bool {
+		$host = (string) wp_parse_url( $url, PHP_URL_HOST );
+
+		if ( '' === $host ) {
+			return false;
+		}
+
+		$domain = defined( 'COOKIE_DOMAIN' ) ? (string) COOKIE_DOMAIN : '';
+
+		if ( '' === $domain ) {
+			// Unset means "the host this site is served from", which is what
+			// every probe asks for anyway. Compared against the site's own host
+			// rather than waved through.
+			$domain = (string) wp_parse_url( home_url(), PHP_URL_HOST );
+		}
+
+		$domain = ltrim( strtolower( $domain ), '.' );
+		$host   = strtolower( $host );
+
+		if ( '' === $domain ) {
+			return false;
+		}
+
+		return $host === $domain || str_ends_with( $host, '.' . $domain );
 	}
 
 	/**
@@ -144,9 +313,11 @@ final class ActorSession {
 
 		WP_Session_Tokens::get_instance( $this->user_id )->destroy( $this->minted_token );
 
-		$this->minted_token = '';
-		$this->cookie       = null;
-		$this->nonce        = '';
+		$this->minted_token  = '';
+		$this->session_token = '';
+		$this->expiration    = 0;
+		$this->cookie        = null;
+		$this->nonce         = '';
 	}
 
 	/**
@@ -178,6 +349,8 @@ final class ActorSession {
 			return $this->cookie;
 		}
 
+		unset( $forwarded );
+
 		return $this->mintCookie( $user_id );
 	}
 
@@ -202,6 +375,17 @@ final class ActorSession {
 			return '';
 		}
 
+		// The session this cookie belongs to. The admin cookie sent alongside
+		// it has to name the same one, because core checks the token against
+		// the user's live sessions and a cookie naming a session that does not
+		// exist is rejected however well-formed it is.
+		$parts = wp_parse_auth_cookie( $cookie, 'logged_in' );
+
+		if ( is_array( $parts ) ) {
+			$this->session_token = (string) ( $parts['token'] ?? '' );
+			$this->expiration    = (int) ( $parts['expiration'] ?? 0 );
+		}
+
 		return LOGGED_IN_COOKIE . '=' . $cookie;
 	}
 
@@ -218,7 +402,9 @@ final class ActorSession {
 
 		$expiration = time() + self::LIFETIME;
 
-		$this->minted_token = WP_Session_Tokens::get_instance( $user_id )->create( $expiration );
+		$this->minted_token  = WP_Session_Tokens::get_instance( $user_id )->create( $expiration );
+		$this->session_token = $this->minted_token;
+		$this->expiration    = $expiration;
 
 		$value = wp_generate_auth_cookie( $user_id, $expiration, 'logged_in', $this->minted_token );
 

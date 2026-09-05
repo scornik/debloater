@@ -31,6 +31,7 @@
     "plugin-zip:free": "node scripts/plugin-zip.mjs free",
     "plugin-zip:pro": "node scripts/plugin-zip.mjs pro",
     "plugin-zip:all": "node scripts/plugin-zip.mjs all",
+    "test:probe-e2e": "wp-env run tests-cli --env-cwd=wp-content/plugins/debloater wp eval-file tools/admin-probe-e2e.php",
     "test:packaging": "node --test tests/Packaging/zip.test.mjs"
   },
   "devDependencies": {

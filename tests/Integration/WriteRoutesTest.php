@@ -429,7 +429,7 @@ final class WriteRoutesTest extends IntegrationTestCase {
 					$body = '<html><head><title>Log In</title></head><body><form id="loginform"></form></body></html>';
 				} elseif ( 0 === strpos( $url, admin_url() ) ) {
 					$body = '<html><head><title>Dashboard</title></head><body>'
-						. '<div id="adminmenu"></div><div id="wpbody"></div></body></html>';
+						. '<div id="wpadminbar"><ul><li id="wp-admin-bar-my-account"></li></ul></div><div id="adminmenu"></div><div id="wpbody"></div></body></html>';
 				}
 
 				return array(

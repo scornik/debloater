@@ -23,3 +23,5 @@ define( 'DB_PASSWORD', 'password' );
 // Defined by WordPress when the cookie constants are set up, which happens on
 // every request but not before wp-settings.php runs.
 define( 'LOGGED_IN_COOKIE', 'wordpress_logged_in_0123456789abcdef' );
+define( 'AUTH_COOKIE', 'wordpress_0123456789abcdef' );
+define( 'SECURE_AUTH_COOKIE', 'wordpress_sec_0123456789abcdef' );

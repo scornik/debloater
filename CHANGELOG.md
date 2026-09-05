@@ -8,6 +8,13 @@ All notable changes to Debloater are recorded here. The format follows
 
 ### Fixed
 
+- **Changes could never finish as fully verified.** The check that loads the
+  dashboard signed in as you was sending the wrong sign-in cookie, so WordPress
+  answered it with the login form and the check honestly reported that it could
+  not tell. Every change therefore ended "verified, with warnings" on sites
+  where nothing was wrong. It now sends the cookie the dashboard actually reads,
+  and says precisely which of the two things went wrong when one does.
+
 - **The packaging job in CI had been failing for five commits.** It opened the
   release archive by a hard-coded filename that the version bump had changed,
   and nothing checked whether the file opened. It now reads the version and

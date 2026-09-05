@@ -2219,3 +2219,84 @@ and both are already covered by the assertions either side of it.
 `test_the_packaging_files_exist` and `test_the_free_zip_carries_no_pro_code`
 named `tools/build-zip.mjs`. Moving the file failed both, which is what a test
 that names a path is for.
+
+---
+
+## Phase 19b part 1b – the admin probe
+
+```
+Unit                 OK  1 187 tests, 12 209 assertions
+Integration          OK    334 tests,  4 704 assertions   (+12)
+Fail-probe           OK      9 tests,    105 assertions
+PHPCS                clean
+PHPStan level 6      no errors
+```
+
+### One full verification, over real HTTP
+
+`npm run test:probe-e2e`, against the wp-env web container:
+
+```
+admin probe: PASS
+message:     The dashboard loaded normally, signed in.
+  bytes                80953
+  http_status          200
+  url                  http://tests-wordpress/wp-admin/
+
+  admin            PASS       The dashboard loaded normally, signed in.
+  content_page     NOT_TESTED The "content_page" check does not apply to this site.
+  home             PASS       The home page loaded normally.
+  login            PASS       The login page loaded normally.
+  rest             PASS       The REST API answered normally.
+  runtime_loaded   PASS       Nothing is selected, so there is no runtime to load.
+
+aggregate: PASS
+a run verifying with this aggregate ends VERIFIED
+```
+
+### The same route, with the fix reverted
+
+`headers()` put back to sending only the logged-in cookie:
+
+```
+admin probe: UNKNOWN
+message:     The dashboard sent this check back to the sign-in page, so
+             WordPress read the sign-in cookie and would not accept it.
+  cookie_reached_core  yes
+  cookie_scheme        auth
+  http_status          302
+  redirected_to_login  yes
+```
+
+That is the reported symptom, reproduced against a real server and then fixed.
+
+### What the suite could not do, and why
+
+The first version of `AdminProbeAuthTest` fetched the dashboard over real HTTP
+and failed. WordPress's integration suite wraps every test in a transaction it
+rolls back, so a factory-created user – and the session token authorising its
+cookie – exists only inside that connection. A real request is served by a
+different process on a different connection and cannot see uncommitted rows, so
+core refused the cookie for a reason unrelated to whether the cookie was right.
+The test failed exactly as it would have failed had the fix been wrong, which
+makes it worthless as a test.
+
+The suite's version therefore has core decide instead: the stub reads the
+`Cookie` header the client actually sent, resolves the scheme the way
+`wp_parse_auth_cookie()` resolves an empty one, and calls
+`wp_validate_auth_cookie()`. Nothing about the verdict is written in the test.
+`test_the_old_logged_in_only_credential_is_refused` strips the admin cookie back
+off and is refused by that same code.
+
+### Nine failures that were mine, and not the code's
+
+Running the end-to-end script against the test database left tables, a scan and
+a generated runtime behind – created outside the suite's transaction, so they
+survived its rollback and were still there for the next test. Nine tests failed:
+"previewing before a scan is refused" (a scan existed), the runtime tests (a
+runtime existed), and a test that drops the plugin's tables and found them
+present.
+
+None of it was about the change. The script now removes its tables, options,
+generated files and theme switch on the way out, so the next run of the suite
+starts where it would have.

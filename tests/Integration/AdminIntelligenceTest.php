@@ -492,7 +492,7 @@ final class AdminIntelligenceTest extends IntegrationTestCase {
 						. '<form id="loginform"></form></body></html>';
 				} else {
 					$body = '<!DOCTYPE html><html><head><title>A site</title></head><body>'
-						. 'Hello<div id="adminmenu"></div><div id="wpbody"></div></body></html>';
+						. 'Hello<div id="wpadminbar"><ul><li id="wp-admin-bar-my-account"></li></ul></div><div id="adminmenu"></div><div id="wpbody"></div></body></html>';
 				}
 
 				return array(
