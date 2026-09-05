@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name:       Debloater
- * Plugin URI:        https://github.com/scornik/WPDebloat
+ * Plugin URI:        https://github.com/scornik/debloater
  * Description:       Audits a WordPress site against the facts, then applies only the changes you approve — each with its own risk level, a recovery point taken first, and an automatic rollback if verification fails.
  * Version:           0.1.1
  * Requires at least: 6.5

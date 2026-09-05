@@ -89,22 +89,35 @@ compatibility data were untouched apart from the `$id` host in
 
 ## Manual steps, for a person
 
-These are external acts and were not performed in the session:
-
-1. **Rename the GitHub repository:** `scornik/wp-debloat` → `scornik/debloater`.
-   GitHub redirects the old URL, so the references already written in this
-   repository resolve either way once the rename happens.
-2. **Update the git remote:**
-
-   ```
-   git remote set-url origin https://github.com/scornik/debloater.git
-   ```
-
-3. **Update the CI badge** in `README.md` if the workflow URL is pinned to the
-   old repository name.
+1. ~~**Rename the GitHub repository:** `scornik/wp-debloat` → `scornik/debloater`.~~
+   **Done, 2026-09-05.** Confirmed by request rather than by report:
+   `scornik/debloater` resolves, and `scornik/WPDebloat` redirects to it.
+2. ~~**Update the git remote.**~~ **Done, 2026-09-05** — `origin` is
+   `https://github.com/scornik/debloater.git` rather than relying on the
+   redirect, which is a courtesy GitHub offers and not a guarantee.
+3. **Update the CI badge** in `README.md` — nothing to do: `README.md` contains
+   no GitHub URL and no badge.
 4. **Rename the local working directory** from `WP Debloat` to `Debloater`. The
    directory name is not referenced by anything — `.wp-env.json` maps `.` — so
    this is cosmetic, but it stops the next person wondering which one is real.
+   Still outstanding.
 5. **Reserve `debloater` on wordpress.org** by submitting the plugin. Submission
    is outside this build's boundary (see D-0045 for the same reasoning about the
-   registry repository).
+   registry repository). Still outstanding.
+
+### Two things the rename does not fix
+
+**The repository is private.** `https://github.com/scornik/debloater` answers
+`404` to anyone not signed in as its owner — verified with an anonymous request,
+which is what a reviewer and every user makes. It is the plugin's `Plugin URI`,
+so that link is dead for everybody but you until the repository is made public
+or the header points at something that is.
+
+**`scornik/debloater-registry` does not exist.** `readme.txt` tells users that
+optional registry updates come from
+`https://raw.githubusercontent.com/scornik/debloater-registry`, and
+`RegistryOrigin::DEFAULT_BASE` points there. Nothing is served from it today, so
+the feature fails — safely, and doubly: the fetch 404s, and
+`SignatureVerifier::PUBLIC_KEY_HEX` is empty so an unsigned registry would be
+refused anyway. The disclosure describes a service that is not there yet, which
+is honest about intent and wrong about the present.
