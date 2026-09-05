@@ -3087,7 +3087,7 @@ arrives as an ordinary 200.
 
 - **Phase:** post-19b
 - **Date:** 2026-09-05
-- **Status:** accepted, with one open item
+- **Status:** accepted; the open item resolved 2026-09-05, below
 - **Spec:** §13 rule 9, §17 Phase 17
 - **Relates to:** D-0045 (the registry repository)
 
@@ -3154,6 +3154,69 @@ should be fixed together:
 
 Until then the vendored snapshot is the only registry any site will load, which
 is exactly what D-0045 said and is unchanged by this decision.
+
+### Resolved: the signature covers the file
+
+The registry signature is a detached Ed25519 signature over the exact bytes of
+`manifest.json` as served, and the plugin verifies those bytes **before
+`json_decode` is called on them**. `Manifest::canonical()` is deleted;
+`RegistryOrigin::SIGNATURE` is `manifest.sig`; `SignatureVerifier::verify()`
+takes 64 raw bytes and refuses any other length.
+
+Two reasons, and the second is the one that settled it.
+
+**A release should be checkable without this plugin.** Signing a re-encoding
+means the published file is not the signed artefact, so `openssl` says a correct
+release is invalid. Nobody can audit what they cannot verify, and a signature
+only the signer's own software can check is a weaker claim than it appears.
+
+**Parsing untrusted bytes before verifying them puts a parser inside the trust
+boundary.** The old order fetched a manifest from a remote, ran `Json::decode()`
+on it, rebuilt a `Manifest`, and only then asked whether any of it was ours.
+Every one of those steps ran on bytes an attacker controlling the download had
+supplied. Verify-then-parse is the standard ordering for exactly this reason,
+and the cost of getting it wrong is not theoretical: it is a JSON parser as the
+first thing an attacker reaches.
+
+**What was given up:** a signature no longer survives reformatting the manifest.
+Two documents differing only in key order or whitespace are the same manifest to
+a reader and different releases to the verifier, and the re-encoded one is
+refused. That is correct rather than merely acceptable – the question a site
+asks is not "is this a manifest you would have released" but "are these the bytes
+you did". Reformatting a released manifest is not something that happens by
+accident, and when it does the answer is to sign it again.
+
+`RegistryUpdateTest::test_reordering_keys_does_not_change_the_signature`
+asserted the abandoned property and is now
+`test_re_encoding_a_manifest_invalidates_its_signature`, asserting its opposite
+with the reasoning in the docblock.
+
+### Also fixed, since they travelled with it
+
+- `fetch()` refuses a non-200, an empty body, and anything over a megabyte
+  (`MAX_MANIFEST_BYTES`) before a byte is verified or parsed. 200 exactly rather
+  than any 2xx: this fetches a static file, and a 204 or 206 answering it means
+  something other than the file arrived.
+- The signature is no longer `trim()`ed. That was a text operation applied to
+  binary, and it could silently turn a valid 64-byte signature into a 63-byte
+  one.
+- `download()` passes its own size limit, so an oversized file is refused as it
+  arrives rather than after being held whole.
+
+### Verified
+
+`RegistryPinnedReleaseTest` runs the published v0.1.0 release – the real
+manifest, the real signature, the real pinned key – through the whole updater
+with the HTTP layer serving the committed fixture bytes. It is accepted; a
+manifest with one byte changed is refused; a 63- and a 65-byte signature are
+refused, each naming its length; an empty and an oversized body are refused
+before verification.
+
+The ordering has its own test. A refusal looks the same whether the parser ran
+first or not, so `test_nothing_is_parsed_until_the_signature_has_been_checked`
+serves bytes that are not JSON at all and asserts the refusal names the
+signature rather than the syntax – a parse message there would mean
+`json_decode()` had run on unverified input.
 
 ### Consequences
 

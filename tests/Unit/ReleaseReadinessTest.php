@@ -254,13 +254,16 @@ final class ReleaseReadinessTest extends TestCase {
 		$this->assertSame(
 			array(),
 			$undisclosed,
-			"readme.txt does not disclose every service this plugin can contact.
-"
-				. "wordpress.org requires each one to be named, with what is sent:
+			'readme.txt does not disclose every service this plugin can contact.
+'
+				. 'wordpress.org requires each one to be named, with what is sent:
 
-  "
-				. implode( "
-  ", $undisclosed )
+  '
+				. implode(
+					'
+  ',
+					$undisclosed 
+				)
 		);
 
 		// And the section exists to hold them, rather than the hosts happening

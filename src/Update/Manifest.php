@@ -16,7 +16,6 @@ namespace Debloater\Update;
 
 use RuntimeException;
 use Debloater\Brand;
-use Debloater\Contracts\Json;
 
 /**
  * A signed list of every file in a registry release, with its hash
@@ -31,10 +30,21 @@ use Debloater\Contracts\Json;
  * because the manifest names everything, and a file whose hash is absent from
  * the manifest is a file that was never released.
  *
- * **The canonical form is the thing that gets signed**, not the bytes on disk.
- * Two JSON documents that differ only in key order or whitespace are the same
- * manifest, and a signature that broke when somebody reformatted a file would
- * be a signature nobody could maintain.
+ * **The bytes on disk are the thing that gets signed**, not any re-encoding of
+ * them. This class used to expose a `canonical()` form for that purpose, on the
+ * reasoning that two documents differing only in key order are the same
+ * manifest and a signature should survive reformatting.
+ *
+ * That reasoning was wrong in the direction that matters. Signing a re-encoding
+ * means the parser runs before the signature is checked, so untrusted bytes
+ * reach `json_decode()` on the strength of nothing; and it means the published
+ * file is not the signed artefact, so nobody can verify a release with
+ * `openssl`. Reformatting a released manifest is not a thing that happens by
+ * accident, and when it does the right answer is to sign it again.
+ *
+ * Verification is now `sodium_crypto_sign_verify_detached()` over the exact
+ * bytes fetched, before this class is constructed at all. See
+ * `docs/DECISIONS.md` D-0059.
  */
 final class Manifest {
 
@@ -176,18 +186,6 @@ final class Manifest {
 			(string) ( $document['generated_at'] ?? '' ),
 			$files
 		);
-	}
-
-	/**
-	 * The bytes that are signed.
-	 *
-	 * Canonical, so that reformatting the file on disk cannot invalidate a
-	 * signature and reordering keys cannot forge one.
-	 *
-	 * @return string
-	 */
-	public function canonical(): string {
-		return Json::canonical( $this->toArray() );
 	}
 
 	/**

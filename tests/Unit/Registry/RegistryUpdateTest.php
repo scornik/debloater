@@ -65,7 +65,7 @@ final class RegistryUpdateTest extends TestCase {
 		$verifier = new SignatureVerifier( $this->keys['public'] );
 
 		$this->assertTrue( $verifier->isAvailable() );
-		$this->assertTrue( $verifier->verify( $manifest->canonical(), $this->sign( $manifest ) ) );
+		$this->assertTrue( $verifier->verify( $this->bytes( $manifest ), $this->sign( $manifest ) ) );
 	}
 
 	/**
@@ -88,7 +88,7 @@ final class RegistryUpdateTest extends TestCase {
 		$verifier = new SignatureVerifier( $this->keys['public'] );
 
 		$this->assertFalse(
-			$verifier->verify( $altered->canonical(), $signature ),
+			$verifier->verify( $this->bytes( $altered ), $signature ),
 			'a manifest whose file hashes were changed must not verify'
 		);
 	}
@@ -103,12 +103,12 @@ final class RegistryUpdateTest extends TestCase {
 
 		$other  = sodium_crypto_sign_keypair();
 		$forged = bin2hex(
-			sodium_crypto_sign_detached( $manifest->canonical(), sodium_crypto_sign_secretkey( $other ) )
+			sodium_crypto_sign_detached( $this->bytes( $manifest ), sodium_crypto_sign_secretkey( $other ) )
 		);
 
 		$verifier = new SignatureVerifier( $this->keys['public'] );
 
-		$this->assertFalse( $verifier->verify( $manifest->canonical(), $forged ) );
+		$this->assertFalse( $verifier->verify( $this->bytes( $manifest ), $forged ) );
 	}
 
 	/**
@@ -122,7 +122,7 @@ final class RegistryUpdateTest extends TestCase {
 
 		foreach ( array( '', 'not hex', 'ab', str_repeat( 'f', 200 ), "\0\0" ) as $rubbish ) {
 			$this->assertFalse(
-				$verifier->verify( $manifest->canonical(), $rubbish ),
+				$verifier->verify( $this->bytes( $manifest ), $rubbish ),
 				'a malformed signature must be a "no", not an exception'
 			);
 		}
@@ -150,7 +150,7 @@ final class RegistryUpdateTest extends TestCase {
 
 		$this->assertFalse( $verifier->isAvailable() );
 		$this->assertNotSame( '', $verifier->unavailableReason() );
-		$this->assertFalse( $verifier->verify( $this->manifest()->canonical(), $this->sign( $this->manifest() ) ) );
+		$this->assertFalse( $verifier->verify( $this->bytes( $this->manifest() ), $this->sign( $this->manifest() ) ) );
 
 		// Nor by any other route into an empty key: whitespace, a truncated
 		// pin, an odd number of digits, something that is not hex at all.
@@ -163,20 +163,89 @@ final class RegistryUpdateTest extends TestCase {
 	}
 
 	/**
-	 * The signature covers the canonical form, so formatting cannot break it.
+	 * Re-encoding a manifest invalidates its signature, deliberately.
+	 *
+	 * This test used to assert the opposite — that reordering keys could not
+	 * change the signature, because the signature covered a canonical form.
+	 * D-0059 gave that property up on purpose.
+	 *
+	 * What it bought was tolerance of reformatting. What it cost was the order
+	 * of operations: a canonical signature can only be checked after the
+	 * document has been parsed, so untrusted bytes reached `json_decode()`
+	 * before anything had established they were ours. It also meant the
+	 * published file was not the signed artefact, so no release could be
+	 * verified with `openssl` by anyone.
+	 *
+	 * So two documents that a human would call the same manifest now have
+	 * different signatures, and the one that was not signed is refused. That is
+	 * the correct outcome: the plugin is not being asked whether this is *a*
+	 * manifest we would have released, but whether these *bytes* are the ones
+	 * we did.
 	 *
 	 * @return void
 	 */
-	public function test_reordering_keys_does_not_change_the_signature(): void {
+	public function test_re_encoding_a_manifest_invalidates_its_signature(): void {
 		$files = array(
 			'tweaks/b.json' => str_repeat( '1', 64 ),
 			'tweaks/a.json' => str_repeat( '2', 64 ),
 		);
 
-		$one = new Manifest( 1, 'debloater', 'v1.0.0', '2026-01-01T00:00:00Z', $files );
-		$two = new Manifest( 1, 'debloater', 'v1.0.0', '2026-01-01T00:00:00Z', array_reverse( $files, true ) );
+		$published = new Manifest( 1, 'debloater', 'v1.0.0', '2026-01-01T00:00:00Z', $files );
 
-		$this->assertSame( $one->canonical(), $two->canonical() );
+		$verifier  = new SignatureVerifier( $this->keys['public'] );
+		$bytes     = $this->bytes( $published );
+		$signature = $this->sign( $published );
+
+		$this->assertTrue( $verifier->verify( $bytes, $signature ) );
+
+		// Round-tripped through a decoder and out again: the same document by
+		// any reading of it, and not the same bytes. Built this way rather than
+		// from a second Manifest because the class sorts its files on
+		// construction, so two orderings arrive identical and there would be
+		// nothing to test.
+		$decoded = json_decode( $bytes, true );
+
+		$this->assertIsArray( $decoded );
+
+		foreach ( array( JSON_PRETTY_PRINT, JSON_UNESCAPED_SLASHES ) as $flags ) {
+			$reencoded = (string) json_encode( $decoded, $flags );
+
+			$this->assertNotSame( $bytes, $reencoded, 'the re-encoding should differ in bytes' );
+			$this->assertSame(
+				$decoded,
+				json_decode( $reencoded, true ),
+				'and should not differ in meaning'
+			);
+
+			$this->assertFalse(
+				$verifier->verify( $reencoded, $signature ),
+				'A re-encoded manifest is not the file that was signed, so it must be refused.'
+			);
+		}
+	}
+
+	/**
+	 * A signature of the wrong length is refused before sodium sees it.
+	 *
+	 * 63 and 65 are the cases that happen: a body truncated in transit, and a
+	 * file with a newline appended by an editor or by a line-ending conversion.
+	 *
+	 * @return void
+	 */
+	public function test_a_signature_of_the_wrong_length_is_refused(): void {
+		$manifest  = $this->manifest();
+		$verifier  = new SignatureVerifier( $this->keys['public'] );
+		$signature = $this->sign( $manifest );
+
+		$this->assertSame( SODIUM_CRYPTO_SIGN_BYTES, strlen( $signature ) );
+		$this->assertTrue( $verifier->verify( $this->bytes( $manifest ), $signature ) );
+
+		foreach ( array( substr( $signature, 0, 63 ), $signature . "\n", '', str_repeat( 'x', 128 ) ) as $malformed ) {
+			$this->assertFalse(
+				$verifier->verify( $this->bytes( $manifest ), $malformed ),
+				sprintf( 'A %d-byte signature must be refused.', strlen( $malformed ) )
+			);
+		}
 	}
 
 	/**
@@ -435,6 +504,23 @@ final class RegistryUpdateTest extends TestCase {
 	 * @return string
 	 */
 	private function sign( Manifest $manifest ): string {
-		return bin2hex( sodium_crypto_sign_detached( $manifest->canonical(), $this->keys['secret'] ) );
+		return sodium_crypto_sign_detached( $this->bytes( $manifest ), $this->keys['secret'] );
+	}
+
+	/**
+	 * The bytes a manifest is published and signed as.
+	 *
+	 * One encoding, used for both, because that is now the contract: what is
+	 * signed is the file, and the file is what is verified.
+	 *
+	 * @param Manifest $manifest The manifest.
+	 * @return string
+	 */
+	private function bytes( Manifest $manifest ): string {
+		// json_encode, not wp_json_encode: these units run with no WordPress
+		// loaded. What matters is that one encoding is used for both signing
+		// and verifying, not which one — a release is published as bytes and
+		// checked as those same bytes.
+		return (string) json_encode( $manifest->toArray() );
 	}
 }

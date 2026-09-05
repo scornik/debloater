@@ -9,7 +9,6 @@ declare( strict_types = 1 );
 
 namespace Debloater\Tests\Unit\Registry;
 
-use Debloater\Update\Manifest;
 use Debloater\Update\SignatureVerifier;
 use PHPUnit\Framework\TestCase;
 
@@ -99,7 +98,7 @@ final class PinnedSigningKeyTest extends TestCase {
 
 		$this->assertTrue( $verifier->isAvailable() );
 		$this->assertTrue(
-			$verifier->verify( $this->fixture( 'manifest.json' ), bin2hex( $this->fixture( 'manifest.sig' ) ) )
+			$verifier->verify( $this->fixture( 'manifest.json' ), $this->fixture( 'manifest.sig' ) )
 		);
 	}
 
@@ -134,7 +133,7 @@ final class PinnedSigningKeyTest extends TestCase {
 		);
 
 		$this->assertFalse(
-			( new SignatureVerifier() )->verify( $tampered, bin2hex( $this->fixture( 'manifest.sig' ) ) )
+			( new SignatureVerifier() )->verify( $tampered, $this->fixture( 'manifest.sig' ) )
 		);
 	}
 
@@ -164,7 +163,7 @@ final class PinnedSigningKeyTest extends TestCase {
 			'A signature from a key we do not trust must be refused.'
 		);
 
-		$this->assertFalse( ( new SignatureVerifier() )->verify( $manifest, bin2hex( $forged ) ) );
+		$this->assertFalse( ( new SignatureVerifier() )->verify( $manifest, $forged ) );
 	}
 
 	/**
@@ -180,59 +179,78 @@ final class PinnedSigningKeyTest extends TestCase {
 
 		$this->assertFalse( $unpinned->isAvailable() );
 		$this->assertFalse(
-			$unpinned->verify( $this->fixture( 'manifest.json' ), bin2hex( $this->fixture( 'manifest.sig' ) ) )
+			$unpinned->verify( $this->fixture( 'manifest.json' ), $this->fixture( 'manifest.sig' ) )
 		);
 	}
 
 	/**
-	 * What was signed is the file, and the updater checks something else.
+	 * What is signed is the file, and the file is what is verified.
 	 *
-	 * Recorded as a test rather than a comment because it is a fact about two
-	 * byte strings and it decides whether a release installs.
+	 * When this fixture was first committed these were two different byte
+	 * strings: the signature covered `manifest.json` as published, and
+	 * `RegistryUpdater` verified `Manifest::canonical()`, a re-encoding six
+	 * hundred bytes shorter. The release was correct and the update path
+	 * refused it. D-0059 resolved that by making the file the signed artefact
+	 * and deleting the canonical form.
 	 *
-	 * `manifest.sig` was produced over `manifest.json` as it sits on disk —
-	 * which is what `openssl pkeyutl -sign -rawin` signs, what the registry's
-	 * CI checks, and what anybody auditing the release would check.
-	 * `RegistryUpdater` verifies `Manifest::canonical()`, a re-encoding that is
-	 * six hundred bytes shorter. They are not the same bytes and no signature
-	 * can satisfy both.
-	 *
-	 * See docs/DECISIONS.md D-0059: the pin is correct and this release cannot
-	 * be installed by the update path until one of the two is changed.
+	 * This asserts the resolution rather than the mismatch: the bytes on disk
+	 * verify, and a re-encoding of the same document does not.
 	 *
 	 * @return void
 	 */
-	public function test_the_signed_bytes_are_the_file_not_the_canonical_form(): void {
-		$file = $this->fixture( 'manifest.json' );
+	public function test_the_signed_bytes_are_the_file_as_published(): void {
+		$file      = $this->fixture( 'manifest.json' );
+		$signature = $this->fixture( 'manifest.sig' );
+		$verifier  = new SignatureVerifier();
+
+		$this->assertTrue( $verifier->verify( $file, $signature ) );
 
 		$decoded = json_decode( $file, true );
 
 		$this->assertIsArray( $decoded );
 
-		$canonical = Manifest::fromArray( $decoded )->canonical();
+		// The same manifest, encoded differently. Refused, because the question
+		// is not whether this is a manifest we would have released but whether
+		// these are the bytes we did release.
+		$reencoded = (string) json_encode( $decoded );
 
-		$this->assertNotSame(
-			$file,
-			$canonical,
-			'If these ever become equal, the mismatch D-0059 records has gone and that decision should be revisited.'
+		$this->assertNotSame( $file, $reencoded );
+		$this->assertSame( $decoded, json_decode( $reencoded, true ) );
+		$this->assertFalse( $verifier->verify( $reencoded, $signature ) );
+	}
+
+	/**
+	 * A signature of any length but 64 is refused.
+	 *
+	 * The two that happen in practice: 63, from a body truncated in transit,
+	 * and 65, from a newline appended by an editor or by a line-ending
+	 * conversion. The registry's `.gitattributes` marks `*.sig` binary to stop
+	 * the second, and this refuses it if that ever fails.
+	 *
+	 * @return void
+	 */
+	public function test_a_signature_of_the_wrong_length_is_refused(): void {
+		$file      = $this->fixture( 'manifest.json' );
+		$signature = $this->fixture( 'manifest.sig' );
+		$verifier  = new SignatureVerifier();
+
+		$this->assertSame( 64, strlen( $signature ) );
+		$this->assertTrue( $verifier->verify( $file, $signature ) );
+
+		$malformed = array(
+			'63 bytes'       => substr( $signature, 0, 63 ),
+			'65 bytes'       => $signature . "\n",
+			'empty'          => '',
+			'hex-encoded'    => bin2hex( $signature ),
+			'base64-encoded' => base64_encode( $signature ),
 		);
 
-		$this->assertTrue(
-			sodium_crypto_sign_verify_detached(
-				$this->fixture( 'manifest.sig' ),
-				$file,
-				sodium_hex2bin( self::PINNED )
-			)
-		);
-
-		$this->assertFalse(
-			sodium_crypto_sign_verify_detached(
-				$this->fixture( 'manifest.sig' ),
-				$canonical,
-				sodium_hex2bin( self::PINNED )
-			),
-			'The signature is over the file, so it cannot also be over the canonical form.'
-		);
+		foreach ( $malformed as $what => $value ) {
+			$this->assertFalse(
+				$verifier->verify( $file, $value ),
+				sprintf( 'A signature that is %s (%d bytes) must be refused.', $what, strlen( $value ) )
+			);
+		}
 	}
 
 	/**

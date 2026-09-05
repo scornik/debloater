@@ -178,76 +178,97 @@ a signed release replaces it.
 
 ## Cutting a signed release
 
-The registry is published at `scornik/debloater-registry`. A release is a tag,
-a manifest, and a detached signature over that manifest.
+A release is a manifest, a detached signature over that manifest, and a tag.
 
-The private key is **held offline** and has never been in either repository. It
-signs, and nothing else has a copy. If it is lost, the recovery is to generate a
-new pair and ship a plugin release pinning the new public half – which is why
-losing it is inconvenient rather than fatal, and why it is not kept anywhere
-convenient.
+The private key is **held offline** and has never been in any repository. If it
+is lost, the recovery is to generate a new pair and ship a plugin release
+pinning the new public half – inconvenient, not fatal, and the reason it is not
+kept anywhere convenient.
 
-### The procedure
+```
+# 1. edit — change the tweak documents, then regenerate the manifest so it
+#    describes what is on disk
+php tools/registry-manifest.php --write
 
-1. **Regenerate the manifest** so it describes what is actually on disk:
+# 2. sign the file exactly as it will be committed
+openssl pkeyutl -sign -inkey registry-signing.key -rawin -in manifest.json -out manifest.sig
 
-   ```
-   php tools/registry-manifest.php --write
-   ```
+# 3. commit both
+git add manifest.json manifest.sig && git commit -m "registry: vX.Y.Z"
 
-   `manifest.json` records every file, its SHA-256 and the tag being cut.
+# 4. tag
+git tag -a vX.Y.Z -m "Registry vX.Y.Z" && git push --follow-tags
+```
 
-2. **Sign it**, on the offline machine, over the file exactly as it will be
-   committed:
+`-rawin` is not optional. Ed25519 signs the message itself; anything that
+pre-hashes produces a signature this plugin refuses.
 
-   ```
-   openssl pkeyutl -sign -rawin -inkey registry-signing.key -in manifest.json -out manifest.sig
-   ```
+`manifest.sig` is 64 raw bytes. The registry's `.gitattributes` marks `*.sig`
+binary so that no line-ending conversion can touch it, and both the plugin and
+the registry's CI refuse a signature of any other length – 63 bytes is a
+truncated download, 65 is a newline somebody's editor added.
 
-   `-rawin` is not optional: Ed25519 signs the message itself, and anything that
-   pre-hashes produces a signature this plugin will refuse.
+CI verifies the committed signature on every push, so a manifest edited without
+re-signing fails there rather than on somebody's site.
 
-3. **Check it before it leaves the machine**, with the public half:
+## Anyone can verify a release
 
-   ```
-   openssl pkeyutl -verify -rawin -pubin -inkey registry-signing.pub \
-       -in manifest.json -sigfile manifest.sig
-   ```
+The signature covers `manifest.json` byte for byte as published, so no special
+tooling is needed and nothing has to trust this plugin's own code.
 
-4. **Commit `manifest.sig` beside `manifest.json`** in the registry repository.
-   CI verifies the committed signature against the same public key, so a
-   manifest edited without re-signing fails there rather than on somebody's
-   site.
+Save the public key:
 
-5. **Tag** the release with the tag the manifest names. CI checks those agree.
+```
+cat > debloater-registry.pub <<'KEY'
+-----BEGIN PUBLIC KEY-----
+MCowBQYDK2VwAyEAwFBMu0dyQhhXAzCjHNF107QMC7WNcsTOZA/evayuqwY=
+-----END PUBLIC KEY-----
+KEY
+```
 
-6. **Vendor the snapshot** into the plugin, if the plugin release is meant to
-   carry it, and run the plugin's suite.
+Then, in a checkout of the registry:
 
-### The key
+```
+openssl pkeyutl -verify -pubin -inkey debloater-registry.pub -rawin \
+    -in manifest.json -sigfile manifest.sig
+```
+
+which prints `Signature Verified Successfully`. `node tests/signature.mjs` in
+the registry repository does the same with no dependencies at all.
+
+The same key, hex-encoded, is what the plugin pins in
+`SignatureVerifier::PUBLIC_KEY_HEX`:
+
+```
+c0504cbb47724218570330a31cd175d3b40c0bb58d72c4ce640fdebdacaeab06
+```
 
 | | |
 |---|---|
 | Algorithm | Ed25519 |
-| Public half | pinned in `SignatureVerifier::PUBLIC_KEY_HEX` |
 | Fingerprint | `a2179aba…8964caa3` (SHA-256 of the 32 raw bytes) |
 | Private half | offline, never committed, never in a package |
 
-The full fingerprint is in `docs/DECISIONS.md` D-0059, and the same value is
-asserted in `PinnedSigningKeyTest`. Two places on purpose: a key changed in one
-and not the other is a key somebody changed without saying so.
+The full fingerprint is in `docs/DECISIONS.md` D-0059 and asserted in
+`PinnedSigningKeyTest`. Two places on purpose: a key changed in one and not the
+other is a key somebody changed without saying so.
 
-### What is signed, and a mismatch to resolve first
+## What the plugin does with it
 
-`manifest.sig` covers **`manifest.json` as committed**, byte for byte. That is
-what `openssl pkeyutl -sign -rawin` produces, what the registry's CI checks, and
-what anybody auditing a release can check with standard tools.
+In this order, and the order is the point:
 
-`RegistryUpdater` currently verifies something else – `Manifest::canonical()`,
-a re-encoding of the parsed manifest that is about six hundred bytes shorter.
-The two byte strings differ, so **no single signature satisfies both**, and the
-v0.1.0 signature is refused by the update path even though it is correct.
+1. Fetch `manifest.sig`. Refuse anything that is not exactly 64 bytes.
+2. Fetch `manifest.json`. Refuse a non-200, an empty body, or more than a
+   megabyte.
+3. **Verify those bytes against the pinned key.** Nothing has been parsed yet.
+4. Parse the manifest.
+5. Fetch each file it lists and check its SHA-256 against the manifest.
+6. Stage.
 
-This does not affect any site: the fetch is opt-in, off by default, and reached
-only by running a WP-CLI command. It has to be settled before it does. The
-options and the recommendation are in `docs/DECISIONS.md` D-0059.
+A failure at any step leaves the vendored registry untouched and says which
+step failed. Verification before parsing is deliberate: it keeps a JSON parser
+out of the trust boundary, so untrusted bytes never reach `json_decode()` on the
+strength of nothing.
+
+The fetch remains **opt-in and off by default**, reachable only by running a
+WP-CLI command. Signing a release does not make anything download one.

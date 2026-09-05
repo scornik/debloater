@@ -360,9 +360,15 @@ final class RegistryUpdaterTest extends IntegrationTestCase {
 		$manifest = $this->manifest( $tag, $files );
 		$origin   = new RegistryOrigin( self::ORIGIN );
 
-		$this->served[ $origin->manifestUrl( $tag ) ]  = (string) wp_json_encode( $manifest->toArray() );
-		$this->served[ $origin->signatureUrl( $tag ) ] = bin2hex(
-			sodium_crypto_sign_detached( $manifest->canonical(), $secret ?? $this->keys['secret'] )
+		// One encoding, signed and served. What is published is what is
+		// verified: the signature covers these exact bytes, and the updater
+		// checks them before it parses them (D-0059).
+		$bytes = (string) wp_json_encode( $manifest->toArray() );
+
+		$this->served[ $origin->manifestUrl( $tag ) ]  = $bytes;
+		$this->served[ $origin->signatureUrl( $tag ) ] = sodium_crypto_sign_detached(
+			$bytes,
+			$secret ?? $this->keys['secret']
 		);
 
 		foreach ( $files as $path => $contents ) {

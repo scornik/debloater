@@ -54,7 +54,7 @@ final class RegistryOrigin {
 	/**
 	 * The path the detached signature lives at, relative to a tag.
 	 */
-	public const SIGNATURE = 'manifest.json.sig';
+	public const SIGNATURE = 'manifest.sig';
 
 	/**
 	 * The base every URL is built from.

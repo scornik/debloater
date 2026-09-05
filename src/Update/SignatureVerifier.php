@@ -98,20 +98,25 @@ final class SignatureVerifier {
 	/**
 	 * Whether a signature over the given bytes is ours.
 	 *
-	 * @param string $signed_bytes  The exact bytes that were signed.
-	 * @param string $signature_hex Hex-encoded detached signature.
+	 * The signature is 64 raw bytes, which is what a detached Ed25519 signature
+	 * is and what `openssl pkeyutl -sign -rawin` writes. It used to be passed
+	 * hex-encoded, which meant the bytes fetched from the registry had to be
+	 * re-encoded on the way in — an encoding step between the file and the
+	 * check, for no gain.
+	 *
+	 * @param string $signed_bytes The exact bytes that were signed.
+	 * @param string $signature    Detached signature, 64 raw bytes.
 	 * @return bool
 	 */
-	public function verify( string $signed_bytes, string $signature_hex ): bool {
+	public function verify( string $signed_bytes, string $signature ): bool {
 		if ( ! $this->isAvailable() ) {
 			return false;
 		}
 
-		$signature = $this->decode( $signature_hex );
-
 		// An Ed25519 signature is exactly 64 bytes. Anything else is not a
 		// signature, and handing it to sodium would be an exception rather than
-		// an answer.
+		// an answer. 63 and 65 are the interesting cases: a signature truncated
+		// in transit, or one with a newline appended by an editor.
 		if ( SODIUM_CRYPTO_SIGN_BYTES !== strlen( $signature ) ) {
 			return false;
 		}

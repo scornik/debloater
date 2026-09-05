@@ -68,6 +68,21 @@ final class RegistryUpdater {
 	public const MAX_FILE_BYTES = 262144;
 
 	/**
+	 * The largest manifest that will be read, in bytes.
+	 *
+	 * A manifest is a list of file names and hashes; the real one is under
+	 * seven kilobytes. A megabyte is far more than a legitimate release needs
+	 * and small enough that a server answering with something enormous is
+	 * refused before any of it is verified, parsed or held in memory twice.
+	 */
+	public const MAX_MANIFEST_BYTES = 1048576;
+
+	/**
+	 * The exact size of a detached Ed25519 signature, in bytes.
+	 */
+	public const SIGNATURE_BYTES = 64;
+
+	/**
 	 * Where to fetch from.
 	 *
 	 * @var RegistryOrigin
@@ -210,7 +225,9 @@ final class RegistryUpdater {
 		foreach ( $manifest->files as $path => $hash ) {
 			unset( $hash );
 
-			$contents = $this->fetch( $this->origin->fileUrl( $manifest->tag, $path ) );
+			// The size limit is now the fetch's own, so an oversized file is
+			// refused as it arrives rather than after being held in full.
+			$contents = $this->fetch( $this->origin->fileUrl( $manifest->tag, $path ), self::MAX_FILE_BYTES );
 
 			if ( strlen( $contents ) > self::MAX_FILE_BYTES ) {
 				throw new RuntimeException(
@@ -260,21 +277,39 @@ final class RegistryUpdater {
 	 * @throws RuntimeException When anything does not check out.
 	 */
 	private function fetchAndVerify( string $tag ): UpdateCheck {
-		$raw       = $this->fetch( $this->origin->manifestUrl( $tag ) );
-		$signature = trim( $this->fetch( $this->origin->signatureUrl( $tag ) ) );
+		// The signature first, so that a release missing one costs a single
+		// request rather than a manifest download as well.
+		$signature = $this->fetch( $this->origin->signatureUrl( $tag ), self::SIGNATURE_BYTES );
 
-		$decoded = Json::decode( $raw );
-
-		if ( ! is_array( $decoded ) ) {
-			throw new RuntimeException( 'The registry manifest is not a JSON document.' );
+		if ( self::SIGNATURE_BYTES !== strlen( $signature ) ) {
+			throw new RuntimeException(
+				sprintf(
+					/* translators: 1: number of bytes received, 2: number of bytes expected. */
+					__(
+						'The registry signature is %1$d bytes; a signature is %2$d. Nothing was installed.',
+						'debloater'
+					),
+					strlen( $signature ),
+					self::SIGNATURE_BYTES
+				)
+			);
 		}
 
-		/** @var array<string,mixed> $decoded */
-		$manifest = Manifest::fromArray( $decoded );
+		$raw = $this->fetch( $this->origin->manifestUrl( $tag ), self::MAX_MANIFEST_BYTES );
 
-		// The canonical form rather than the bytes that arrived: whitespace and
-		// key order must not be able to make or break a signature.
-		if ( ! $this->verifier->verify( $manifest->canonical(), $signature ) ) {
+		// Verified before it is parsed, and this order is the whole point.
+		//
+		// It used to be the other way round: decode the manifest, rebuild it,
+		// and check the signature against a canonical re-encoding. That put a
+		// JSON parser inside the trust boundary — an attacker who controlled
+		// the download got their bytes through `Json::decode()` before anything
+		// had established the bytes were ours. It also meant the signature did
+		// not cover the file that was published, so a release could not be
+		// checked with `openssl` or by anybody without this plugin.
+		//
+		// Now: these exact bytes, this signature, then parse. See
+		// docs/DECISIONS.md D-0059.
+		if ( ! $this->verifier->verify( $raw, $signature ) ) {
 			throw new RuntimeException(
 				__(
 					'The registry release is not signed with the key this plugin trusts. Nothing was installed.',
@@ -282,6 +317,23 @@ final class RegistryUpdater {
 				)
 			);
 		}
+
+		$decoded = Json::decode( $raw );
+
+		if ( ! is_array( $decoded ) ) {
+			// Signed by us and still not a manifest. Worth its own message:
+			// this is our release process having gone wrong, not somebody
+			// tampering with a download.
+			throw new RuntimeException(
+				__(
+					'The registry manifest is signed but is not a JSON document. Nothing was installed.',
+					'debloater'
+				)
+			);
+		}
+
+		/** @var array<string,mixed> $decoded */
+		$manifest = Manifest::fromArray( $decoded );
 
 		if ( $manifest->tag === $this->current_tag ) {
 			return new UpdateCheck(
@@ -308,11 +360,13 @@ final class RegistryUpdater {
 	/**
 	 * Fetch one URL over HTTPS.
 	 *
-	 * @param string $url URL to fetch.
+	 * @param string $url      URL to fetch.
+	 * @param int    $max_bytes Largest body that will be accepted.
 	 * @return string
-	 * @throws RuntimeException When the request fails or answers with anything but 200.
+	 * @throws RuntimeException When the request fails, answers with anything but 200,
+	 *                          or returns a body that is empty or too large.
 	 */
-	private function fetch( string $url ): string {
+	private function fetch( string $url, int $max_bytes ): string {
 		// phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.wp_remote_get_wp_remote_get -- vip_safe_wp_remote_get() exists only on VIP, and Debloater ships with zero runtime dependencies. What it buys — a bounded timeout and a graceful failure — this call already has.
 		$response = wp_remote_get(
 			$url,
@@ -329,13 +383,39 @@ final class RegistryUpdater {
 
 		$status = (int) wp_remote_retrieve_response_code( $response );
 
+		// 200 exactly, not "any 2xx". This fetches a static file; a 204 or a
+		// 206 answering it means something other than the file arrived, and a
+		// partial body would be refused a moment later anyway with a less
+		// useful message.
 		if ( 200 !== $status ) {
 			throw new RuntimeException(
 				sprintf( 'The registry answered HTTP %d for %s.', $status, $url )
 			);
 		}
 
-		return (string) wp_remote_retrieve_body( $response );
+		$body = (string) wp_remote_retrieve_body( $response );
+
+		// Both checks happen before the body is verified, parsed or hashed. A
+		// zero-length body is not a release, and an enormous one is not worth
+		// reading to find out.
+		if ( '' === $body ) {
+			throw new RuntimeException(
+				sprintf( 'The registry answered with an empty body for %s.', $url )
+			);
+		}
+
+		if ( strlen( $body ) > $max_bytes ) {
+			throw new RuntimeException(
+				sprintf(
+					'The registry answered with %d bytes for %s; the limit is %d.',
+					strlen( $body ),
+					$url,
+					$max_bytes
+				)
+			);
+		}
+
+		return $body;
 	}
 
 	/**
