@@ -48,6 +48,7 @@ import path from 'node:path';
 import process from 'node:process';
 import test from 'node:test';
 import zlib from 'node:zlib';
+import crypto from 'node:crypto';
 import url from 'node:url';
 
 const ROOT = path.resolve( path.dirname( url.fileURLToPath( import.meta.url ) ), '..', '..' );
@@ -145,7 +146,7 @@ function rawEntryNames( archive ) {
  * @param {string} entry   Entry name, exactly as stored.
  * @return {string} Contents.
  */
-function read( archive, entry ) {
+function readBytes( archive, entry ) {
 	const data = fs.readFileSync( archive );
 	const wanted = Buffer.from( entry, 'utf8' );
 
@@ -174,11 +175,22 @@ function read( archive, entry ) {
 			const start = localOffset + 30 + localNameLength + localExtraLength;
 			const body = data.subarray( start, start + compressed );
 
-			return 0 === method ? body.toString( 'utf8' ) : zlib.inflateRawSync( body ).toString( 'utf8' );
+			return 0 === method ? body : zlib.inflateRawSync( body );
 		}
 
 		position += 4;
 	}
+}
+
+/**
+ * One entry's contents, as text.
+ *
+ * @param {string} archive Path to the zip.
+ * @param {string} entry   Entry name.
+ * @return {string} The contents.
+ */
+function read( archive, entry ) {
+	return readBytes( archive, entry ).toString( 'utf8' );
 }
 
 /**
@@ -456,6 +468,91 @@ for ( const plugin of PLUGINS ) {
 		}
 	} );
 }
+
+/**
+ * The archive is a function of its contents, and nothing else.
+ *
+ * It was not. A zip stores each entry's modification time, and `composer
+ * install` rewrites `vendor/` mtimes, so every release build produced different
+ * bytes from identical sources. Worse, entries were appended in whatever order
+ * the filesystem answered in, so the same 340 files landed in different
+ * positions each time.
+ *
+ * That made the published checksum a statement about one build rather than
+ * about one plugin — it could not be used to answer "is this the code you
+ * reviewed", which is the only question anybody asks a checksum of a plugin
+ * zip.
+ */
+test( 'the free zip builds byte for byte the same twice', () => {
+	const archive = path.join( DIST, `debloater-${ VERSION }.zip` );
+	const first = crypto.createHash( 'sha256' ).update( fs.readFileSync( archive ) ).digest( 'hex' );
+
+	execFileSync( process.execPath, [ path.join( ROOT, 'scripts', 'plugin-zip.mjs' ), 'free' ], {
+		cwd: ROOT,
+		stdio: 'ignore',
+	} );
+
+	const second = crypto.createHash( 'sha256' ).update( fs.readFileSync( archive ) ).digest( 'hex' );
+
+	assert.equal(
+		second,
+		first,
+		'Two builds of an unchanged tree must produce identical bytes, or the checksum ' +
+			'identifies a build rather than a plugin.'
+	);
+} );
+
+/**
+ * Splitting Pro out of this repository changed no shipped file.
+ *
+ * The brief for the split asked that the zip's SHA-256 be identical before and
+ * after. It could not be: the build was not reproducible, so that hash differed
+ * between two builds of the same commit, let alone across a history rewrite.
+ * Byte identity was the wrong invariant — the question is whether the plugin
+ * people install changed.
+ *
+ * So this asserts the thing that was actually meant. `free-plugin-content.json`
+ * records every entry's content hash as of 699eace, the commit before the
+ * split, taken from the artifact that was about to be uploaded. A file added,
+ * removed or altered by the split fails here and names itself.
+ */
+test( 'the free zip ships exactly the content recorded before the Pro split', () => {
+	const recorded = JSON.parse(
+		fs.readFileSync( path.join( ROOT, 'tests', 'Packaging', 'free-plugin-content.json' ), 'utf8' )
+	);
+
+	const archive = path.join( DIST, `debloater-${ VERSION }.zip` );
+	const names = rawEntryNames( archive ).map( ( n ) => n.toString( 'utf8' ) );
+
+	const built = {};
+
+	for ( const name of names ) {
+		if ( name.endsWith( '/' ) ) {
+			continue;
+		}
+
+		// The bytes, not the text. Decoding to a string first and hashing that
+		// reports every file containing a multi-byte character as altered,
+		// which is a statement about the decoder rather than the archive.
+		built[ name ] = crypto.createHash( 'sha256' ).update( readBytes( archive, name ) ).digest( 'hex' );
+	}
+
+	assert.equal(
+		Object.keys( built ).length,
+		recorded.entry_count,
+		`The zip ships ${ Object.keys( built ).length } files; ${ recorded.entry_count } were recorded.`
+	);
+
+	const added = Object.keys( built ).filter( ( n ) => ! ( n in recorded.entries ) );
+	const gone = Object.keys( recorded.entries ).filter( ( n ) => ! ( n in built ) );
+	const changed = Object.keys( built ).filter(
+		( n ) => n in recorded.entries && built[ n ] !== recorded.entries[ n ]
+	);
+
+	assert.deepEqual( added, [], 'files the split added to the zip' );
+	assert.deepEqual( gone, [], 'files the split removed from the zip' );
+	assert.deepEqual( changed, [], 'files the split altered' );
+} );
 
 test( 'the guard refuses a mapped slug', () => {
 	// The rule that stops this file destroying the repository again. It has to

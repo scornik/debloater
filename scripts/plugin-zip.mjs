@@ -39,6 +39,18 @@
  *   archive ends up flat.
  * - **One top-level folder,** named for the slug: that is the directory
  *   WordPress installs into.
+ * - **Every entry carries the same fixed timestamp.** A zip stores each file's
+ *   modification time, so two archives built from identical sources minutes
+ *   apart differ in bytes while installing the very same plugin — and a
+ *   `composer install` rewrites `vendor/` mtimes, so this happened on every
+ *   release build. It made the archive's checksum useless: it identified one
+ *   build rather than one plugin, and could not be used to say "the shipped
+ *   code did not change".
+ *
+ *   With the dates fixed the bytes are a function of the contents, so the
+ *   checksum answers the question people actually ask of it. Nothing reads
+ *   these timestamps: WordPress does not, the updater does not, and the file
+ *   dates on a live site come from the extraction, not the archive.
  * - **`.distignore` at each plugin root** is the exclusion list, read from that
  *   plugin's own root rather than the repository's.
  * - **An allow-list decides what ships,** and `.distignore` can only remove
@@ -69,6 +81,16 @@ import url from 'node:url';
 
 const ROOT = path.resolve( path.dirname( url.fileURLToPath( import.meta.url ) ), '..' );
 const DIST = path.join( ROOT, 'dist' );
+
+/**
+ * The timestamp every entry carries.
+ *
+ * Fixed, so the archive is a function of its contents. The particular moment is
+ * arbitrary and deliberately so — it is not the build time, not the release
+ * date and not any file's mtime, because each of those would put something in
+ * the bytes that is not the plugin.
+ */
+const ENTRY_DATE = new Date( Date.UTC( 2024, 0, 1, 0, 0, 0 ) );
 
 /**
  * The two plugins this repository builds.
@@ -409,16 +431,31 @@ function write( plugin, files, tag ) {
 			}
 		}
 
-		zip.append( null, { name: `${ plugin.slug }/` } );
+		zip.append( null, { name: `${ plugin.slug }/`, date: ENTRY_DATE } );
 
 		for ( const directory of [ ...directories ].sort() ) {
-			zip.append( null, { name: `${ plugin.slug }/${ directory }/` } );
+			zip.append( null, { name: `${ plugin.slug }/${ directory }/`, date: ENTRY_DATE } );
 		}
 
 		for ( const file of files ) {
+			// Read here rather than handed to `zip.file()` as a path. Given a
+			// path, archiver opens the file itself and appends the entry when
+			// that read completes — so the order of entries in the archive
+			// follows the order the filesystem answered in, which is not the
+			// order they were asked for and not the same twice. Two builds of
+			// an unchanged tree produced the same 340 entries in different
+			// positions, and therefore different bytes.
+			//
+			// A buffer is already in hand, so each entry is appended in the
+			// order this loop visits it. The whole plugin is half a megabyte;
+			// there is nothing to stream.
+			//
 			// Joined with a literal `/`, never `path.join`, which on Windows
 			// produces the backslashes this whole file exists to prevent.
-			zip.file( path.join( plugin.root, file ), { name: `${ plugin.slug }/${ file }` } );
+			zip.append( fs.readFileSync( path.join( plugin.root, file ) ), {
+				name: `${ plugin.slug }/${ file }`,
+				date: ENTRY_DATE,
+			} );
 		}
 
 		zip.finalize();
