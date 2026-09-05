@@ -2174,3 +2174,37 @@ not need a build step somebody has to maintain forever.
 | Integration | 320 tests, 4 637 assertions |
 | Fail-probe | 9 tests |
 | PHPCS / PHPStan L6 | clean |
+
+---
+
+## Phase 18e – the last Plugin Check warning
+
+**Status:** complete, 2026-09-05
+
+Plugin Check reported one warning and no errors: `mismatched_plugin_name`, the
+readme title against the plugin header. D-0054 had recorded it as open with two
+ways out, because the title is a naming decision. The decision was made:
+
+| | Before | After |
+|---|---|---|
+| `Plugin Name` header | `Debloater` | `Debloater` |
+| readme title | `Debloater – Scan, Fix & Undo Site Bloat` | `Debloater` |
+| readme short description | a summary | the tagline, then the summary |
+
+The tagline did not go anywhere – it moved to the line wordpress.org actually
+displays under a plugin's name. `Brand::FULL_TITLE` still titles the admin
+screen. Reasoning in `docs/DECISIONS.md` D-0056.
+
+Plugin Check now reports nothing on this plugin.
+
+### The test was asserting the bug
+
+`ReleaseReadinessTest::test_the_header_is_the_name_and_the_readme_is_the_title`
+asserted that the two strings differ, and the suite was green for it while
+wordpress.org's own checker was not. Worth naming plainly: a test holds a wrong
+belief as firmly as a right one, and a green suite is evidence about the belief,
+not about the world.
+
+It now asserts what Plugin Check asserts – the two strings are identical – and
+two more things the old test never covered: the short description exists and
+fits inside 150 characters, and it still carries the tagline.

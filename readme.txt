@@ -1,4 +1,4 @@
-=== Debloater – Scan, Fix & Undo Site Bloat ===
+=== Debloater ===
 Contributors: hakeemify
 Tags: bloat, debloat, performance, cleanup, optimization
 Requires at least: 6.5
@@ -8,7 +8,7 @@ Stable tag: 0.1.1
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Audits your site against the facts, then applies only what you approve — with a recovery point first and automatic rollback if anything breaks.
+Scan, fix and undo site bloat: audits your site against the facts, applies only what you approve, with a recovery point and automatic rollback.
 
 == Description ==
 
@@ -164,6 +164,7 @@ LiteSpeed Cache and WP Super Cache.
 = 0.1.1 =
 * The "Apply this change" button on a finding now actually appears. It was
   comparing against the wrong value and rendered nothing.
+* The plugin name reads the same in the readme and the plugin header.
 * The release zip is built the same way on every platform. The previous one
   used backslash path separators and could not be installed on Linux.
 

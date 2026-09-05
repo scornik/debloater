@@ -135,24 +135,31 @@ final class ReleaseReadinessTest extends TestCase {
 	}
 
 	/**
-	 * The plugin header is the short name; the full title is the readme's.
+	 * The header and the readme say the same name, character for character.
 	 *
-	 * These two look like the same fact and are not, which is why they are
-	 * asserted separately and exactly.
+	 * This test used to assert the opposite: header `Debloater`, readme title
+	 * `Debloater – Scan, Fix & Undo Site Bloat`. The reasoning went as far as
+	 * the slug and stopped – wordpress.org derives the slug from `Plugin
+	 * Name`, so the header must be the short name alone or the slug becomes
+	 * `debloater-scan-fix-undo-site-bloat`, permanent and unfixable after
+	 * publication. That part is still true and still asserted.
 	 *
-	 * wordpress.org **generates the slug from `Plugin Name`**. A header reading
-	 * "Debloater ''' – ''' Scan, Fix & Undo Site Bloat" would produce a slug like
-	 * `debloater-scan-fix-undo-site-bloat` — permanent, unfixable after
-	 * publication, and not the slug D-0047 chose. So the header carries the
-	 * short name and nothing else.
+	 * What it missed is that Plugin Check reads the readme title as a plugin
+	 * name too, and refuses any disagreement between the two
+	 * (`mismatched_plugin_name`). Both files had to carry the short name; only
+	 * one of them did. This suite asserted the mismatch as though it were the
+	 * requirement, so it passed while wordpress.org's own checker did not –
+	 * which is the failure worth naming: a test can hold a wrong belief just as
+	 * firmly as it holds a right one.
 	 *
-	 * The readme's `=== ... ===` line is a *display* string. That is where the
-	 * full title belongs, and it must equal `Brand::FULL_TITLE` character for
-	 * character, so the constant and the file cannot drift.
+	 * The tagline has not gone anywhere. It is the readme's short description,
+	 * which is the line wordpress.org actually displays under a plugin's name,
+	 * and `Brand::FULL_TITLE` still titles the admin screen – a heading, not a
+	 * name anything derives a slug from.
 	 *
 	 * @return void
 	 */
-	public function test_the_header_is_the_name_and_the_readme_is_the_title(): void {
+	public function test_the_header_and_the_readme_agree_on_the_name(): void {
 		$header = $this->headerField( $this->file( 'debloater.php' ), 'Plugin Name' );
 
 		$this->assertSame(
@@ -166,13 +173,51 @@ final class ReleaseReadinessTest extends TestCase {
 		$this->assertStringNotContainsString( Brand::TAGLINE, $header );
 
 		$readme = $this->file( 'readme.txt' );
-		$first  = strtok( $readme, "\n" );
+		$first  = rtrim( (string) strtok( $readme, "\n" ), "\r" );
 
 		$this->assertSame(
-			'=== ' . Brand::FULL_TITLE . ' ===',
-			rtrim( (string) $first, "\r" ),
-			'The readme title line must equal Brand::FULL_TITLE exactly.'
+			'=== ' . Brand::NAME . ' ===',
+			$first,
+			'The readme title must equal the plugin header, or Plugin Check reports mismatched_plugin_name.'
 		);
+
+		// Said once more as the property rather than as two literals, because
+		// the property is the thing wordpress.org checks.
+		$this->assertSame(
+			$header,
+			trim( str_replace( '=', '', $first ) ),
+			'Plugin Check compares these two strings directly.'
+		);
+
+		// And the tagline survives, in the line wordpress.org displays.
+		$this->assertStringContainsString(
+			'site bloat',
+			strtolower( $this->shortDescription() ),
+			'The tagline moved to the short description; it must not have been dropped.'
+		);
+	}
+
+	/**
+	 * The short description, and the limit wordpress.org holds it to.
+	 *
+	 * @return void
+	 */
+	public function test_the_short_description_fits(): void {
+		$short = $this->shortDescription();
+
+		$this->assertNotSame( '', $short );
+
+		// Plugin Check warns above 150 characters, and wordpress.org truncates
+		// what it shows in a search result.
+		$this->assertLessThanOrEqual(
+			150,
+			mb_strlen( $short ),
+			'readme.txt short description must be 150 characters or fewer.'
+		);
+
+		// It is prose, not a heading and not a header field that has drifted
+		// down into the wrong place.
+		$this->assertStringNotContainsString( '=', $short );
 	}
 
 	/**
@@ -232,7 +277,7 @@ final class ReleaseReadinessTest extends TestCase {
 	public function test_the_readme_has_the_required_sections(): void {
 		$readme = $this->file( 'readme.txt' );
 
-		$this->assertStringStartsWith( '=== ' . Brand::FULL_TITLE . ' ===', $readme );
+		$this->assertStringStartsWith( '=== ' . Brand::NAME . ' ===', $readme );
 
 		foreach ( array( 'Contributors', 'Tags', 'Requires at least', 'Requires PHP', 'Stable tag', 'License' ) as $field ) {
 			$this->assertNotSame(
@@ -749,6 +794,35 @@ final class ReleaseReadinessTest extends TestCase {
 		);
 
 		return 1 === $matched ? $value[1] : '';
+	}
+
+	/**
+	 * The readme's short description.
+	 *
+	 * wordpress.org takes it as the first paragraph after the header block.
+	 *
+	 * @return string
+	 */
+	private function shortDescription(): string {
+		$past = false;
+
+		// The fields run from the title line to the first blank line, and what
+		// follows is the short description. Read positionally rather than by
+		// looking for a colon, because the description may contain one.
+		foreach ( explode( "\n", $this->file( 'readme.txt' ) ) as $line ) {
+			$line = trim( $line );
+
+			if ( ! $past ) {
+				$past = '' === $line;
+				continue;
+			}
+
+			if ( '' !== $line ) {
+				return $line;
+			}
+		}
+
+		return '';
 	}
 
 	/**

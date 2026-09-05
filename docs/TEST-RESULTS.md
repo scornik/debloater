@@ -2093,3 +2093,61 @@ output. It did – of an empty table. The assertion was true and useless.
 `test_the_report_shows_what_was_measured` now names the producer's shape,
 requires the run to have measured something, and requires every metric it
 measured to appear in the page. Confirmed to fail against the old reader.
+
+---
+
+## Phase 18e – a green suite that disagreed with the checker
+
+```
+Unit                 OK  1 187 tests, 12 209 assertions
+Integration          OK    322 tests,  4 662 assertions
+Fail-probe           OK      9 tests
+PHPCS                clean
+PHPStan level 6      no errors
+Plugin Check         0 errors, 0 warnings
+```
+
+### Plugin Check was run, not assumed
+
+Against the built `dist/debloater-0.1.1.zip` rather than the working tree, in a
+directory named `debloater` outside the wp-env mount, because Plugin Check
+derives the expected text domain from the folder name and a throwaway slug
+produces 300-odd text-domain errors that are about the folder and nothing else.
+
+```
+wp plugin check /tmp/pcheck/debloater
+Success: Checks complete. No errors found.
+```
+
+And the tool was fail-probed too: putting the old title back into that same copy
+reproduces the reported warning exactly, word for word.
+
+```
+WARNING mismatched_plugin_name
+"Plugin name "Debloater ... Scan, Fix & Undo Site Bloat" is different from the
+ name declared in plugin header "Debloater"."
+```
+
+So the clean run above is the check passing, not the check failing to run.
+
+### What the old test proved
+
+That the plugin header and the readme title were different strings. They were.
+The suite was green on it for two phases while Plugin Check – which is what
+wordpress.org runs at review – reported the same fact as a warning.
+
+Nothing here was flaky, misconfigured or skipped. The assertion was simply
+about the wrong property, and no amount of running it would have said so. The
+only thing that caught it was running the tool the assertion was standing in
+for.
+
+### What replaces it
+
+`test_the_header_and_the_readme_agree_on_the_name` asserts the property Plugin
+Check asserts, twice – once against `Brand::NAME`, once by comparing the two
+strings directly, so a change to the constant cannot make both sides wrong
+together.
+
+`test_the_short_description_fits` is new, and covers the line the tagline moved
+to: that it exists, that it is inside 150 characters, and that it is prose
+rather than a header field that has drifted down into the wrong place.
