@@ -65,6 +65,42 @@ const mappedProPath = () => {
 		] );
 	}
 
+	// wp-env rejects any key it does not recognise, and refuses to start over
+	// it. There is no comment syntax in JSON, so the obvious way to explain a
+	// config file — a "//" key holding an array of prose — makes it invalid.
+	// The committed template had exactly that, and only CI found out, because
+	// the copy on the machine that wrote it did not.
+	//
+	// Checked here so the answer arrives with the file rather than as
+	// `"//" is not a configuration option` from four layers down.
+	const allowed = [
+		'$schema',
+		'core',
+		'plugins',
+		'themes',
+		'port',
+		'testsPort',
+		'config',
+		'mappings',
+		'lifecycleScripts',
+		'env',
+	];
+
+	const unknown = Object.keys( parsed ).filter( ( key ) => ! allowed.includes( key ) );
+
+	if ( unknown.length > 0 ) {
+		refuse( [
+			`${ path.basename( OVERRIDE ) } has keys wp-env does not accept:`,
+			...unknown.map( ( key ) => `    ${ key }` ),
+			'',
+			'wp-env refuses to start rather than ignoring them, and JSON has no',
+			'comment syntax — so a "//" key of explanatory prose is a broken',
+			'config file, not a documented one.',
+			'',
+			`Start again from ${ path.basename( TEMPLATE ) }.`,
+		] );
+	}
+
 	// The tests environment is the one that matters — the suite runs in
 	// tests-cli — but a mapping in only one of the two is a configuration
 	// somebody will spend an afternoon on, so both are required.

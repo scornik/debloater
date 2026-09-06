@@ -1,36 +1,8 @@
 {
 	"$schema": "https://schemas.wp.org/trunk/wp-env.json",
-
-	"//": [
-		"Copy this file to .wp-env.override.json to run Debloater Pro's",
-		"integration tests. The copy is gitignored; this template is not.",
-		"",
-		"Pro is a separate, private repository. Its integration tests assert",
-		"what Pro does to a site running Debloater, so they need both plugins",
-		"in one WordPress -- and wp-env can only map a directory that exists.",
-		"A mapping like this one in .wp-env.json would therefore break",
-		"`wp-env start` for everybody who does not have Pro checked out, which",
-		"is everybody but us. Hence a template, and a copy nobody has to have.",
-		"",
-		"The path is a sibling checkout, which is the layout both repositories'",
-		"READMEs describe:",
-		"",
-		"    Wordpress Plugins/",
-		"      debloater/          <- this one",
-		"      debloater-pro/",
-		"",
-		"Change it if yours is somewhere else. Then:",
-		"",
-		"    npm run env:start",
-		"    npm run test:integration:pro",
-		"",
-		"See debloater-pro/docs/DECISIONS.md D-0065."
-	],
-
 	"mappings": {
 		"wp-content/plugins/debloater-pro": "../debloater-pro"
 	},
-
 	"env": {
 		"tests": {
 			"mappings": {
