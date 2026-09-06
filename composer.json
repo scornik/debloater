@@ -50,6 +50,11 @@
             "@lint",
             "@analyze",
             "@test"
-        ]
+        ],
+        "check:packaging": "node tools/packaging-check.mjs"
+    },
+    "scripts-descriptions": {
+        "check": "Lint, static analysis and the unit suite.",
+        "check:packaging": "Build the release archive with a production autoloader and run tests/Packaging, then restore the development autoloader. Deliberately not part of `check`: it rebuilds the admin UI and takes a minute or two."
     }
 }

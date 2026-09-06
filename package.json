@@ -17,6 +17,7 @@
     "test:integration": "npm run test:integration:main && npm run test:integration:fail-probe",
     "test:integration:main": "wp-env run tests-cli --env-cwd=wp-content/plugins/debloater php tools/phpunit-9.phar -c phpunit-wp.xml.dist",
     "test:integration:fail-probe": "wp-env run tests-cli --env-cwd=wp-content/plugins/debloater php tools/phpunit-9.phar -c phpunit-wp-fail-probe.xml.dist",
+    "test:integration:pro": "node tools/pro-integration.mjs",
     "test:cli": "wp-env run cli --env-cwd=wp-content/plugins/debloater sh tools/cli-e2e.sh",
     "lint:php": "wp-env run cli --env-cwd=wp-content/plugins/debloater vendor/bin/phpcs --standard=phpcs.xml.dist",
     "test:integration:setup": "node tools/download-phpunit.mjs",

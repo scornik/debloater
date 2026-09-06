@@ -2345,3 +2345,50 @@ and `ProIntegrationTest` were present and unreachable. They run again from this
 plugin's wp-env, with the Pro checkout mapped in through an untracked
 `.wp-env.override.json`. It is untracked deliberately — this repository is public
 and must start without a private sibling beside it.
+
+## Phase 19c follow-up – three checks that were not checking
+
+Phase 19c closed with three things known to be unverified. Closing them found a
+fourth that nobody had known about, and it is the one worth reading first.
+
+### CI had been red for seven commits
+
+The packaging suite was never missing from the gate. The `package` job has run
+it on Linux and Windows for every push since Phase 18b. It had simply been
+**failing** since `61e0bff` — through the Pro split, the registry signing work
+and all of phase 19c — while unit, integration, static analysis and the registry
+job all passed and nobody opened the workflow.
+
+The failing assertion was the shipped-content record, and it had never passed in
+CI at all. It pinned content hashes for five files whose bytes a second machine
+cannot reproduce: webpack's bundle, the asset manifest carrying a hash of it,
+and the three Composer autoloader files that embed the absolute install path.
+
+Those five are now recorded by path, the other 302 by content, and a second test
+asserts the exemption list has not grown. `docs/DECISIONS.md` D-0066 has the
+reasoning and what was rejected.
+
+### Running the packaging suite no longer costs the toolchain
+
+`composer check:packaging` builds the archive with a production autoloader and
+runs `tests/Packaging`, then puts the development autoloader back — checking
+that it did. It regenerates the autoloader rather than reinstalling, so PHPUnit,
+PHPCS and PHPStan never leave the tree. That is why the suite had gone three
+commits without a local run: satisfying it by hand meant `composer install
+--no-dev` and two reinstalls to undo.
+
+`tools/record-shipped-content.mjs --why "..."` re-records what ships and refuses
+without a reason, which lands in the file beside the diff.
+
+### Pro's integration suite runs in CI
+
+`.wp-env.override.json.dist` is committed here; the working copy stays
+untracked. `npm run test:integration:pro` runs Pro's suite against this
+environment and refuses, with the `cp` command, when the mapping is missing.
+Pro's own CI generates the mapping from that template and runs the same script.
+
+Pro's workflow also stopped being able to pass by not looking: `scornik/debloater`
+is public, so the two jobs that check it out no longer need a token that was
+never configured, and the invariants asserting "Pro adds nothing to Debloater"
+no longer skip on every run while reporting success. See
+`debloater-pro/docs/DECISIONS.md` D-0065.

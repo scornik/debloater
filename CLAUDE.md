@@ -73,6 +73,35 @@ pass, docs and ledgers are updated, and a `phase-N: <summary>` commit exists.
 Never skip a failing test, weaken an assertion to make it pass, delete an
 inconvenient test, or mark a phase complete with known failures.
 
+## Testing conventions
+
+`CONVENTIONS.md` has the layout rules. These are the ones that were learned the
+hard way, each from a test that passed while the thing it named was broken.
+
+**Pin a cross-component contract by its literal value, never by the constant
+both sides read.** A test written as
+`assertSame( ProfilesPanel::PRESELECT . '=x', $url )` compares the constant with
+itself: rename it and both halves of the comparison rename together, so the test
+agrees with whatever it became and the other component — which still sends the
+old name — silently stops working. Write the literal, and say in a comment who
+else depends on it.
+
+The example is `debloater_profile`, the query argument Pro's profiles panel puts
+in a URL and `admin-ui/src/components/Profiles.js` reads back
+(`docs/HOOKS.md`, "URL contracts"). Both sides assert the string; neither
+asserts its own constant. This was found by probe — renaming the constant left
+the test green.
+
+Two rules of the same shape, from the same phase:
+
+- **Assert the property, not a value the code derives.** A test that pinned the
+  id `ProfileStore` generates from a name was asserting the store's private
+  naming rule, not the behaviour under test. Find the row by what it is.
+- **A probe that does not bite is a finding, not a formality.** Break what each
+  new assertion defends and watch it fail. Every guard in this repository that
+  turned out never to have worked — the private-key grep, the entry-point
+  invariant, the admin probe's cookie — was found this way and by nothing else.
+
 ## Do not
 
 - Add Composer runtime dependencies.

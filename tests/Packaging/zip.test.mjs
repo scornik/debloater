@@ -488,24 +488,66 @@ test( 'the free zip builds byte for byte the same twice', () => {
 } );
 
 /**
+ * The five files whose bytes a second machine cannot reproduce.
+ *
+ * Named one by one, with the reason, rather than excused by directory. A rule
+ * like "anything under vendor/" would also stop pinning `ClassLoader.php` --
+ * code that runs on somebody's site -- and `build/style-index.css`, both of
+ * which are byte-identical everywhere and were only ever guilty by association.
+ *
+ * - `build/index.js` is webpack's output and moves with the toolchain version.
+ * - `build/index.asset.php` carries a hash of that bundle.
+ * - `vendor/autoload.php`, `autoload_real.php` and `autoload_static.php` embed
+ *   `ComposerAutoloaderInit<hash>`, where the hash comes from the absolute path
+ *   Composer installed at. `D:\...` and `/home/runner/...` cannot agree.
+ *
+ * They are still recorded, by path, because one appearing or disappearing is
+ * exactly what this file exists to notice. What cannot be asserted is bytes.
+ */
+const GENERATED = new Set( [
+	'debloater/build/index.js',
+	'debloater/build/index.asset.php',
+	'debloater/vendor/autoload.php',
+	'debloater/vendor/composer/autoload_real.php',
+	'debloater/vendor/composer/autoload_static.php',
+] );
+
+/**
  * Nothing reaches the zip that nobody meant to put there.
  *
- * `free-plugin-content.json` records every entry's content hash. It began as
- * proof about the Pro split: the brief asked for an identical SHA-256 before
- * and after, which was impossible — the build was not reproducible then, so
- * that hash differed between two builds of the same commit. Byte identity was
- * the wrong invariant. The question worth asking was whether the plugin people
- * install had changed, and the answer was recorded file by file.
+ * `free-plugin-content.json` records every entry. It began as proof about the
+ * Pro split: the brief asked for an identical SHA-256 before and after, which
+ * was impossible — the build was not reproducible then, so that hash differed
+ * between two builds of the same commit. Byte identity was the wrong
+ * invariant. The question worth asking was whether the plugin people install
+ * had changed, and the answer was recorded file by file.
  *
- * That question is settled, and the file has outlived it. What it does now is
- * the more useful thing: a release that adds, removes or alters a shipped file
- * fails here and names the file. A build artefact, a stray fixture or a
- * dependency that quietly grew a directory shows up as an addition nobody
- * wrote down.
+ * That question is settled. What this does now is the more useful thing: a
+ * release that adds, removes or alters a shipped file fails here and names the
+ * file. A build artefact, a stray fixture or a dependency that quietly grew a
+ * directory shows up as an addition nobody wrote down.
  *
- * So a diff here is not a failure to fix by regenerating on reflex. Regenerate
- * it in the commit that changed the shipped code, and say in the file's own
- * comment what changed and why — the record is the point of it.
+ * ## Why two lists rather than one
+ *
+ * The first version hashed everything, and it had never once been green in CI.
+ * It was written from a local build and pinned five files that a different
+ * machine cannot reproduce. The `package` job went red at the commit that
+ * introduced it and stayed red for seven commits while every other job passed,
+ * which is how a check that cannot succeed becomes a check nobody reads.
+ *
+ * So those five are recorded by path and the other 302 by content. That is not
+ * a smaller claim than "the whole zip is pinned" — it is the largest claim that
+ * is true. Their bytes are covered elsewhere and better: `the free zip builds
+ * byte for byte the same twice` fixes them on one machine, the
+ * `package-parity` job compares the two runners' listings, and `carries no dev
+ * Composer packages` asserts the thing about vendor that actually matters.
+ *
+ * ## Regenerating
+ *
+ * A diff here is not a failure to fix on reflex. Regenerate it in the commit
+ * that changes the shipped code, with `node tools/record-shipped-content.mjs`,
+ * and say in the file's own comment what changed and why. The record is the
+ * point of it.
  */
 test( 'the free zip ships exactly the content recorded', () => {
 	const recorded = JSON.parse(
@@ -513,36 +555,124 @@ test( 'the free zip ships exactly the content recorded', () => {
 	);
 
 	const archive = path.join( DIST, `debloater-${ VERSION }.zip` );
-	const names = rawEntryNames( archive ).map( ( n ) => n.toString( 'utf8' ) );
+	const names = rawEntryNames( archive )
+		.map( ( n ) => n.toString( 'utf8' ) )
+		.filter( ( n ) => ! n.endsWith( '/' ) );
 
-	const built = {};
+	const hashed = {};
+	const generated = [];
 
 	for ( const name of names ) {
-		if ( name.endsWith( '/' ) ) {
+		if ( GENERATED.has( name ) ) {
+			generated.push( name );
+
 			continue;
 		}
 
 		// The bytes, not the text. Decoding to a string first and hashing that
 		// reports every file containing a multi-byte character as altered,
 		// which is a statement about the decoder rather than the archive.
-		built[ name ] = crypto.createHash( 'sha256' ).update( readBytes( archive, name ) ).digest( 'hex' );
+		hashed[ name ] = crypto.createHash( 'sha256' ).update( readBytes( archive, name ) ).digest( 'hex' );
 	}
 
 	assert.equal(
-		Object.keys( built ).length,
+		names.length,
 		recorded.entry_count,
-		`The zip ships ${ Object.keys( built ).length } files; ${ recorded.entry_count } were recorded.`
+		`The zip ships ${ names.length } files; ${ recorded.entry_count } were recorded.`
 	);
 
-	const added = Object.keys( built ).filter( ( n ) => ! ( n in recorded.entries ) );
-	const gone = Object.keys( recorded.entries ).filter( ( n ) => ! ( n in built ) );
-	const changed = Object.keys( built ).filter(
-		( n ) => n in recorded.entries && built[ n ] !== recorded.entries[ n ]
+	// Source files: by content.
+	const added = Object.keys( hashed ).filter( ( n ) => ! ( n in recorded.entries ) );
+	const gone = Object.keys( recorded.entries ).filter( ( n ) => ! ( n in hashed ) );
+	const changed = Object.keys( hashed ).filter(
+		( n ) => n in recorded.entries && hashed[ n ] !== recorded.entries[ n ]
 	);
 
-	assert.deepEqual( added, [], 'files added to the zip since it was recorded' );
-	assert.deepEqual( gone, [], 'files no longer in the zip' );
-	assert.deepEqual( changed, [], 'files whose shipped contents changed' );
+	assert.deepEqual( added, [], 'source files added to the zip since it was recorded' );
+	assert.deepEqual( gone, [], 'source files no longer in the zip' );
+	assert.deepEqual( changed, [], 'source files whose shipped contents changed' );
+
+	// Generated files: by path.
+	assert.deepEqual(
+		generated.slice().sort(),
+		recorded.generated.slice().sort(),
+		'the set of generated files in the zip changed'
+	);
+
+	// And the two lists together are the whole archive, so nothing can be
+	// dropped from the record by being called generated.
+	assert.equal(
+		Object.keys( hashed ).length + generated.length,
+		names.length
+	);
+} );
+
+/**
+ * The exemption list does not grow.
+ *
+ * Five files are recorded by path instead of by content, and this is the test
+ * that keeps it five. An exemption list is the easiest thing in a repository to
+ * add one more line to, and each line silently stops pinning a file that ships
+ * to somebody's site — so the list is written out here as well, and the two
+ * have to agree.
+ */
+test( 'only the five unreproducible files are exempt from content hashing', () => {
+	const recorded = JSON.parse(
+		fs.readFileSync( path.join( ROOT, 'tests', 'Packaging', 'free-plugin-content.json' ), 'utf8' )
+	);
+
+	assert.deepEqual(
+		recorded.generated.slice().sort(),
+		[
+			'debloater/build/index.asset.php',
+			'debloater/build/index.js',
+			'debloater/vendor/autoload.php',
+			'debloater/vendor/composer/autoload_real.php',
+			'debloater/vendor/composer/autoload_static.php',
+		],
+		'the set of files exempt from content hashing changed'
+	);
+
+	// The two vendor files that are not exempt, and are the reason the
+	// exemption is a list of names rather than "anything under vendor/".
+	// ClassLoader.php is code that runs on a site.
+	for ( const pinned of [
+		'debloater/vendor/composer/ClassLoader.php',
+		'debloater/vendor/composer/autoload_classmap.php',
+		'debloater/vendor/composer/autoload_psr4.php',
+		'debloater/build/style-index.css',
+		'debloater/debloater.php',
+		'debloater/uninstall.php',
+		'debloater/src/Plugin.php',
+		'debloater/readme.txt',
+		'debloater/composer.json',
+	] ) {
+		assert.ok(
+			pinned in recorded.entries,
+			`${ pinned } must be pinned by content`
+		);
+		assert.equal(
+			GENERATED.has( pinned ),
+			false,
+			`${ pinned } must not be treated as generated`
+		);
+	}
+
+	// The three trees where a silently altered file changes what happens on
+	// somebody's site.
+	const hashedNames = Object.keys( recorded.entries );
+
+	for ( const tree of [ 'debloater/runtime-handlers/', 'debloater/registry/', 'debloater/src/' ] ) {
+		assert.ok(
+			hashedNames.some( ( n ) => n.startsWith( tree ) ),
+			`${ tree } should be pinned by content`
+		);
+		assert.equal(
+			recorded.generated.some( ( n ) => n.startsWith( tree ) ),
+			false,
+			`nothing in ${ tree } may be recorded as generated`
+		);
+	}
 } );
 
 test( 'the guard refuses a mapped slug', () => {

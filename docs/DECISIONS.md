@@ -3303,3 +3303,92 @@ is not, and has to be unbuilt before the real thing can be written.
 Until then the file is the sync mechanism: export it, put it wherever you keep
 things, import it. That is not a workaround so much as the smaller honest
 version of the feature.
+
+---
+
+## D-0066 – what the shipped-content record can honestly pin
+
+- **Phase:** 19c follow-up
+- **Date:** 2026-09-06
+- **Status:** accepted
+- **Spec:** §14, §21.2
+
+### The check that could not pass
+
+`tests/Packaging/free-plugin-content.json` records every file in the release
+archive by content hash, and `zip.test.mjs` fails when one is added, removed or
+altered. It was introduced at the Pro split to prove the split changed nothing
+that ships.
+
+It had never been green in CI. Not once, from the commit that introduced it.
+
+The `package` job runs the packaging suite on Linux and Windows for every push,
+and it went red at `61e0bff` and stayed red through `d07334e`, `699eace`,
+`57faa5d`, `9f0df8c` and `402b160` — seven commits, while every other job in the
+workflow passed. Nobody looked, because the last thing anybody remembered about
+that job was that it had been fixed.
+
+### Why it could not pass
+
+Five of the files it pinned are not reproducible on a second machine:
+
+| File | Why its bytes differ |
+|---|---|
+| `build/index.js` | webpack's output, which moves with the toolchain version |
+| `build/index.asset.php` | carries a hash of that bundle |
+| `vendor/autoload.php` | embeds `ComposerAutoloaderInit<hash>` |
+| `vendor/composer/autoload_real.php` | the same |
+| `vendor/composer/autoload_static.php` | the same |
+
+The Composer hash is derived from the absolute path the install happened at.
+`D:\Hakeemify\…` and `/home/runner/work/debloater/debloater` cannot agree, and
+no amount of care makes them.
+
+So the file was written from a local build and asserted a property that is false
+by construction anywhere else. It was not a check that had regressed; it was a
+check that had never been capable of succeeding.
+
+### What it pins now
+
+Those five by **path**; the other 302 by **content**.
+
+Recorded by name, one at a time, with the reason for each — not excused by
+directory. A rule like "anything under `vendor/`" would have been shorter and
+would also have stopped pinning `ClassLoader.php`, which is code that runs on
+somebody's site, and `build/style-index.css`, which is byte-identical
+everywhere and was only ever guilty by association. A second test asserts the
+exemption list has not grown and that `src/`, `registry/` and
+`runtime-handlers/` are pinned by content.
+
+This is not a weaker claim than "the whole archive is pinned". It is the
+strongest claim that is true, and the bytes of those five are covered better
+elsewhere: `the free zip builds byte for byte the same twice` fixes them on one
+machine, and the `package-parity` job compares the two runners' listings.
+
+### Regenerating is a deliberate act
+
+`tools/record-shipped-content.mjs` refuses to run without `--why` and writes the
+reason into the file. The failure mode this guards against is the obvious one:
+a release changes what ships, the test goes red, and somebody regenerates the
+record to make it green — at which point the record asserts nothing and reads
+as though it does.
+
+### Running it without losing the toolchain
+
+The archive needs a production autoloader, so `scripts/plugin-zip.mjs` refuses
+to build against a development install. The obvious way to satisfy that,
+`composer install --no-dev`, deletes PHPUnit, PHPCS and PHPStan from the tree —
+which is why the suite went three commits of phase 19c without being run by
+hand, and why running it once cost two reinstalls, one of which timed out.
+
+`composer check:packaging` uses `composer dump-autoload --no-dev
+--classmap-authoritative` instead. It regenerates the autoloader and touches no
+installed package. The nine files under `vendor/` that the archive contains
+come out byte-identical either way, which was verified — the same sha256 for
+all five shipped autoloader files after each — rather than assumed. The
+development autoloader is restored in a `finally`, and the restore is checked.
+
+A scratch directory would be tidier and was rejected on cost: the build step
+needs `node_modules`, so genuine isolation means a second npm install for a
+check meant to take a minute. CI has that isolation for free, and the `package`
+job is where the pristine version runs.

@@ -2334,3 +2334,48 @@ The commit for the free screen (`b331989`) reported PHPCS clean. It was not.
 `tests/Integration/ProfileRoutesTest.php` carried seven errors — two camelCase
 variables and an inline associative array — which this run found. They are
 fixed here. The suite's behaviour was never affected; the claim was.
+
+## Phase 19c follow-up – the checks themselves
+
+### What was found by reading CI rather than by running tests
+
+`gh run list` on the free repository: `failure` for `402b160`, `9f0df8c`,
+`57faa5d`, `d07334e`, `61e0bff`, `699eace` and `489beab`. Seven consecutive CI
+runs, six of them failing the same assertion in the `package` job.
+
+The local suites had been green throughout, which is how it went unnoticed: the
+phase gate was being checked by running the suites, and the one check that only
+CI ran was the one that was broken.
+
+### The five files
+
+CI's diff named them exactly:
+
+```
+debloater/build/index.asset.php
+debloater/build/index.js
+debloater/vendor/autoload.php
+debloater/vendor/composer/autoload_real.php
+debloater/vendor/composer/autoload_static.php
+```
+
+Five, out of 307. Every other file in the archive hashes identically on this
+machine and on a GitHub runner — including `vendor/composer/ClassLoader.php` and
+`build/style-index.css`, which is why the exemption is a list of five names
+rather than two directory prefixes.
+
+### Verified rather than assumed
+
+That `composer dump-autoload --no-dev --classmap-authoritative` is equivalent to
+`composer install --no-dev --classmap-authoritative` for everything the archive
+contains: the zip was built after each, and all five shipped autoloader files
+had the same sha256 both times. The dev packages remained installed throughout
+the first, which is the whole point of using it.
+
+### Probes
+
+| Broken | What failed |
+|---|---|
+| `.wp-env.override.json` removed | `npm run test:integration:pro` refused, naming the `.dist` and the `cp` |
+| the exemption list given a sixth entry | `only the five unreproducible files are exempt from content hashing` |
+| `record-shipped-content.mjs` run without `--why` | refused, exit 1 |

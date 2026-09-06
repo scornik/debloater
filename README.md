@@ -86,6 +86,40 @@ composer check     # all three
 If the machine has no native PHP, the same commands run in Docker; see
 `docs/DECISIONS.md` D-0003.
 
+### The release archive
+
+```bash
+composer check:packaging   # build the zip and run tests/Packaging
+```
+
+Separate from `composer check`, and not because it is optional. The archive
+must carry a **production** autoloader — one naming no `Tests\` namespace and
+no dev package — so `scripts/plugin-zip.mjs` refuses to build against a
+development install. Satisfying that with `composer install --no-dev` deletes
+PHPUnit, PHPCS and PHPStan from the tree, which is why this had gone three
+commits without being run by hand.
+
+So it does not. `composer dump-autoload --no-dev` regenerates the autoloader
+and leaves every installed package alone; the nine files under `vendor/` that
+the archive actually contains come out byte-identical either way, which was
+checked rather than assumed. The development autoloader is put back afterwards
+even when the suite fails, and the script says so loudly if it cannot.
+
+It rebuilds the admin UI on the way through, so give it a minute or two. CI
+runs the same suite on Linux and Windows for every push, in the `package` job —
+a fresh checkout there gets the isolation this cannot have locally.
+
+When a release legitimately changes what ships, re-record it with a reason
+attached:
+
+```bash
+node tools/record-shipped-content.mjs --why "what changed, and why"
+```
+
+The reason is written into `tests/Packaging/free-plugin-content.json`, and the
+command refuses to run without one. Regenerating that file to turn a red build
+green is exactly how the record stops being worth keeping.
+
 The admin dashboard is a React app in `admin-ui/`, built with
 `@wordpress/scripts`:
 
@@ -106,6 +140,19 @@ npm run env:start
 npm run test:integration   # the WordPress suites
 npm run test:cli           # the whole loop through the real `wp` binary
 ```
+
+Debloater Pro, if you have it checked out, runs its own integration suite
+against this environment:
+
+```bash
+cp .wp-env.override.json.dist .wp-env.override.json
+npm run env:start              # restart, so the mapping takes effect
+npm run test:integration:pro
+```
+
+The mapping is a template rather than a default because wp-env can only map a
+directory that exists, and this repository has to start for people who do not
+have Pro. See `debloater-pro/docs/DECISIONS.md` D-0065.
 
 ## Licence
 
