@@ -4,6 +4,29 @@ All notable changes to Debloater are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [semantic versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **Profiles.** Save the set of changes a site has under a name, export it as a
+  file, and import that file on another site. Debloater's own three — Safe,
+  Performance and Maximum — are listed alongside anything you save, so the panel
+  has something in it on a site that has saved nothing.
+
+  On the command line: `wp debloater profile list|save|export|import|apply`.
+
+  **Importing never applies anything.** It reads the file, tells you which
+  changes this site does not have, and opens the ordinary preview with the rest
+  ticked. Everything after that is the usual path — the plan, the confirmation,
+  the recovery point, the checks afterwards and the way back. A file somebody
+  emailed you does not get a shortcut past the screen that shows what it
+  touches.
+
+- **Pro: a profiles panel** in place of the "Saved profile" dropdown, with
+  Apply, Export, Duplicate, Rename and Delete. Apply opens Debloater's preview
+  with the profile's changes ticked; it does not apply them. The profiles
+  Debloater ships with can be copied and exported but not renamed or deleted.
+
 ## [0.1.1] — 2026-09-04
 
 ### Fixed

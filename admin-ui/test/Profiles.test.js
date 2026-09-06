@@ -49,10 +49,24 @@ const listing = {
 	max: 50,
 };
 
+/**
+ * Put a query string on the page, the way a link from Pro's screen would.
+ *
+ * @param {string} query Query string, or '' for none.
+ */
+const arriveWith = ( query ) => {
+	window.history.replaceState( {}, '', `/wp-admin/admin.php${ query }` );
+};
+
 describe( 'Profiles', () => {
 	beforeEach( () => {
 		jest.clearAllMocks();
 		client.get.mockResolvedValue( listing );
+		arriveWith( '' );
+	} );
+
+	afterEach( () => {
+		arriveWith( '' );
 	} );
 
 	it( 'lists built-in profiles on a site that has saved none', async () => {
@@ -158,6 +172,44 @@ describe( 'Profiles', () => {
 		expect(
 			screen.getByText( /Nothing has been applied/ )
 		).toBeInTheDocument();
+	} );
+
+	it( 'opens the preview for a profile named in the URL', async () => {
+		// Pro's Profiles panel links here rather than applying anything
+		// itself; docs/HOOKS.md documents the argument as a contract.
+		arriveWith( '?page=debloater&debloater_profile=client-baseline' );
+
+		const onPreview = jest.fn();
+
+		render( <Profiles onPreview={ onPreview } epoch={ 0 } /> );
+
+		await waitFor( () =>
+			expect( onPreview ).toHaveBeenCalledWith( [
+				'core.remove_rsd',
+				'core.disable_emojis',
+			] )
+		);
+
+		// A link opens a preview and nothing else. The preview issues its own
+		// confirmation token, exactly as it does when the button was on this
+		// page (BUILD-SPEC §13 rule 8).
+		expect( client.post ).not.toHaveBeenCalled();
+	} );
+
+	it( 'opens nothing for a profile the site does not have', async () => {
+		// A URL somebody edited. It names an id, so the worst it can ask for is
+		// a profile this site already has; asking for one it does not have gets
+		// nothing rather than a selection of the URL's choosing.
+		arriveWith( '?page=debloater&debloater_profile=not-a-profile' );
+
+		const onPreview = jest.fn();
+
+		render( <Profiles onPreview={ onPreview } epoch={ 0 } /> );
+
+		expect( await screen.findByText( 'Client baseline' ) ).toBeInTheDocument();
+
+		expect( onPreview ).not.toHaveBeenCalled();
+		expect( client.post ).not.toHaveBeenCalled();
 	} );
 
 	it( 'imports without applying', async () => {

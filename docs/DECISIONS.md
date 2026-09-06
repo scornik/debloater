@@ -10,11 +10,13 @@ Format: `D-NNNN — title` · phase · date · status · context · options · d
 
 ---
 
-## Two decisions are not here
+## Four decisions are not here
 
 `D-0035` and `D-0050` concern Pro – how entitlement is
-obtained, and what the optional cloud service may and may not be used for. They
-live in `scornik/debloater-pro`, which is where the code they describe lives.
+obtained, and what the optional cloud service may and may not be used for.
+`D-0064` and `D-0065` are Pro's too: what its profiles panel is allowed to do,
+and how its integration suite runs. All four live in `scornik/debloater-pro`,
+which is where the code they describe lives.
 
 They are named where other entries refer to them, so a reference that goes
 nowhere from here is not a gap in the record; it is the half of the record that

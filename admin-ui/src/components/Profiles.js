@@ -13,12 +13,32 @@
  * emailed does not get a shortcut past the screen that shows what it touches.
  */
 
-import { useState, useRef } from '@wordpress/element';
+import { useState, useRef, useEffect } from '@wordpress/element';
 import { Button, Notice, Spinner, TextControl } from '@wordpress/components';
 import { __, sprintf } from '@wordpress/i18n';
 
 import { get, post } from '../api/client';
 import { useResource } from '../api/useResource';
+
+/**
+ * The query argument another plugin uses to ask for a profile's preview.
+ *
+ * Pro's own screen has a Profiles panel too, and its Apply button links here
+ * rather than applying anything itself. What arrives is an id: this screen looks
+ * it up in its own listing and opens the ordinary preview with that profile's
+ * changes ticked. A link nobody sent — an id that names nothing, or one edited
+ * by hand — finds no row and opens nothing, so the worst a crafted URL can do is
+ * show somebody a preview of changes this site already offered them.
+ *
+ * The preview is where anything is decided, and it issues its own confirmation
+ * token exactly as it does when the button was on this page (BUILD-SPEC §13
+ * rule 8). A URL cannot apply anything, and this is the code that would have to
+ * change for that sentence to stop being true.
+ *
+ * Documented in `docs/HOOKS.md` as a contract, because something outside this
+ * repository depends on the name.
+ */
+const PRESELECT = 'debloater_profile';
 
 /**
  * Offer a string to the browser as a file.
@@ -123,6 +143,34 @@ export default function Profiles( { onPreview, epoch } ) {
 	};
 
 	const rows = profiles.data?.profiles || [];
+
+	// Once, when the listing first arrives. `onPreview` opens a dialog, and a
+	// dialog that reopened every time this component re-rendered would be one
+	// nobody could dismiss.
+	const asked = useRef( false );
+
+	useEffect( () => {
+		if ( asked.current || profiles.status !== 'ready' ) {
+			return;
+		}
+
+		asked.current = true;
+
+		const wanted = new URLSearchParams( window.location.search ).get(
+			PRESELECT
+		);
+
+		if ( ! wanted ) {
+			return;
+		}
+
+		const row = rows.find( ( entry ) => entry.id === wanted );
+
+		if ( row && row.selection.length > 0 ) {
+			onPreview( row.selection );
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [ profiles.status ] );
 
 	return (
 		<section className="debloater-panel debloater-profiles">

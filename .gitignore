@@ -20,3 +20,8 @@ Thumbs.db
 /e2e-report.json
 /playwright-report/
 /dist/
+
+# wp-env, overridden locally. The mapping that adds the private Pro checkout
+# as a second plugin lives here, because this repository is public and must
+# start without it.
+.wp-env.override.json

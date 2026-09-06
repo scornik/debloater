@@ -2310,3 +2310,38 @@ So what is demonstrated is the verification stage, in process, with every probe
 making a real request: aggregate PASS, which is precisely what decides
 `VERIFIED` against `VERIFIED_WITH_WARNINGS`. The apply machinery around it is
 covered by the integration suite as before.
+
+## Phase 19c – profiles
+
+A profile is a named set of changes. Four surfaces now read and write the same
+list: `wp debloater profile`, the Debloater screen, an exported file, and Pro's
+own screen. There is one store behind all of them (`Config\ProfileStore`, one
+non-autoloaded option) and one encoder (`Config\Profile::toJson()`), so the file
+the CLI writes and the file a browser downloads are the same bytes.
+
+Built-in profiles come from the registry and are listed alongside saved ones. A
+site that has saved nothing still has profiles to look at, which is the state
+every fresh install is in.
+
+### What importing and applying do, and do not do
+
+Importing a profile validates it against `schemas/profile-export.schema.json`,
+names the changes this site does not have and leaves them out, warns when it was
+written against a different registry — and applies nothing. It opens the
+ordinary preview with the rest ticked, and the preview issues its own
+confirmation token exactly as it does for a change chosen by hand (§13 rule 8).
+
+Pro's panel is the same promise from the other side. Its Apply builds a URL to
+Debloater's screen (`?page=debloater&debloater_profile=<id>`, documented in
+`docs/HOOKS.md`), and that is the whole of it. There is no plan, no token and no
+call into the engine in Pro's code, which is why an extension cannot become a
+route around a safety mechanism it does not contain.
+
+### The Pro half runs again
+
+Pro's integration tests had not run since the split: nothing mapped the Pro
+checkout into wp-env and no configuration pointed at its tests, so `ProScreenTest`
+and `ProIntegrationTest` were present and unreachable. They run again from this
+plugin's wp-env, with the Pro checkout mapped in through an untracked
+`.wp-env.override.json`. It is untracked deliberately — this repository is public
+and must start without a private sibling beside it.

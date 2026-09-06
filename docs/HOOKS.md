@@ -166,6 +166,28 @@ that choice.
 
 ---
 
+## URL contracts
+
+Not hooks, but depended on from outside this repository all the same, and so
+held to the same promise: they do not change without a note here.
+
+### `?page=debloater&debloater_profile=<id>`
+
+Opens the admin screen with that profile's changes ticked in the ordinary
+preview. Pro's Profiles panel links here rather than applying anything itself.
+
+What it carries is an **id**, never a selection. The screen looks the id up in
+its own `ProfileStore`; an id naming nothing opens nothing. So the most a
+crafted link can do is show somebody a preview of changes this site was already
+offering them — and the preview is where anything is decided, issuing its own
+confirmation token exactly as it does when the button was on the page
+(`BUILD-SPEC.md` §13 rule 8).
+
+A link cannot apply anything, and nothing may be added here that would make
+that sentence need qualifying.
+
+---
+
 ## Adding a hook
 
 A new extension point needs, in the same commit: the hook, its entry here, and a

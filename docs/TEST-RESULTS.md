@@ -2300,3 +2300,37 @@ present.
 None of it was about the change. The script now removes its tables, options,
 generated files and theme switch on the way out, so the next run of the suite
 starts where it would have.
+
+## Phase 19c – profiles
+
+Unit 1191 (12,291 assertions) · integration 334 (4,766) · JS 23 · Pro
+integration 38 (168) · Pro units 26 (196) · PHPCS clean both repositories ·
+PHPStan level 6 clean both · ESLint clean.
+
+### Probes
+
+Six assertions were checked by breaking what they defend.
+
+| Broken | Test that failed |
+|---|---|
+| built-ins left out of the panel's listing | `test_the_panel_is_never_empty` |
+| Rename and Delete rendered for built-ins too | `test_only_a_sites_own_profiles_offer_rename_and_delete` |
+| a built-in rename reported as done without writing | `test_a_builtin_cannot_be_renamed_or_deleted` |
+| `PRESELECT` renamed | `test_apply_leads_to_the_preview_and_applies_nothing` |
+| the query argument renamed in the browser | `opens the preview for a profile named in the URL` |
+| an unknown id falling back to some other row | `opens nothing for a profile the site does not have` |
+
+The fourth of those did not bite the first time. The assertion was written as
+`assertStringContainsString( ProfilesPanel::PRESELECT . '=...', $url )`, so
+renaming the constant renamed both sides of the comparison and the test agreed
+with whatever it was renamed to. What the test is for is the *literal*
+`debloater_profile`, because that string is a contract with a different plugin:
+`admin-ui/src/components/Profiles.js` carries the same literal and
+`docs/HOOKS.md` documents it. It now asserts the literal, and it bites.
+
+### A correction to the step 3 report
+
+The commit for the free screen (`b331989`) reported PHPCS clean. It was not.
+`tests/Integration/ProfileRoutesTest.php` carried seven errors — two camelCase
+variables and an inline associative array — which this run found. They are
+fixed here. The suite's behaviour was never affected; the claim was.

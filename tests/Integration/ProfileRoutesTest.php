@@ -136,19 +136,19 @@ final class ProfileRoutesTest extends IntegrationTestCase {
 	public function test_a_document_that_is_not_a_profile_is_refused(): void {
 		$this->asAdministrator();
 
-		$notJson = $this->post( '/profiles/import', array( 'document' => 'this is not json' ) );
+		$not_json = $this->post( '/profiles/import', array( 'document' => 'this is not json' ) );
 
-		$this->assertSame( 400, $notJson->get_status() );
-		$this->assertSame( 'debloater_profile_unreadable', $notJson->get_data()['code'] );
+		$this->assertSame( 400, $not_json->get_status() );
+		$this->assertSame( 'debloater_profile_unreadable', $not_json->get_data()['code'] );
 
 		// Valid JSON, wrong shape: the schema is what says so.
-		$wrongShape = $this->post(
+		$wrong_shape = $this->post(
 			'/profiles/import',
 			array( 'document' => (string) wp_json_encode( array( 'hello' => 'world' ) ) )
 		);
 
-		$this->assertSame( 400, $wrongShape->get_status() );
-		$this->assertSame( 'debloater_profile_invalid', $wrongShape->get_data()['code'] );
+		$this->assertSame( 400, $wrong_shape->get_status() );
+		$this->assertSame( 'debloater_profile_invalid', $wrong_shape->get_data()['code'] );
 	}
 
 	/**
@@ -200,7 +200,13 @@ final class ProfileRoutesTest extends IntegrationTestCase {
 		foreach ( array( '/profiles', '/profiles/save', '/profiles/import' ) as $path ) {
 			$response = '/profiles' === $path
 				? $this->get( $path )
-				: $this->post( $path, array( 'name' => 'x', 'document' => '{}' ) );
+				: $this->post(
+					$path,
+					array(
+						'name'     => 'x',
+						'document' => '{}',
+					)
+				);
 
 			$this->assertContains(
 				$response->get_status(),

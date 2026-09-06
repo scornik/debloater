@@ -488,20 +488,26 @@ test( 'the free zip builds byte for byte the same twice', () => {
 } );
 
 /**
- * Splitting Pro out of this repository changed no shipped file.
+ * Nothing reaches the zip that nobody meant to put there.
  *
- * The brief for the split asked that the zip's SHA-256 be identical before and
- * after. It could not be: the build was not reproducible, so that hash differed
- * between two builds of the same commit, let alone across a history rewrite.
- * Byte identity was the wrong invariant — the question is whether the plugin
- * people install changed.
+ * `free-plugin-content.json` records every entry's content hash. It began as
+ * proof about the Pro split: the brief asked for an identical SHA-256 before
+ * and after, which was impossible — the build was not reproducible then, so
+ * that hash differed between two builds of the same commit. Byte identity was
+ * the wrong invariant. The question worth asking was whether the plugin people
+ * install had changed, and the answer was recorded file by file.
  *
- * So this asserts the thing that was actually meant. `free-plugin-content.json`
- * records every entry's content hash as of 699eace, the commit before the
- * split, taken from the artifact that was about to be uploaded. A file added,
- * removed or altered by the split fails here and names itself.
+ * That question is settled, and the file has outlived it. What it does now is
+ * the more useful thing: a release that adds, removes or alters a shipped file
+ * fails here and names the file. A build artefact, a stray fixture or a
+ * dependency that quietly grew a directory shows up as an addition nobody
+ * wrote down.
+ *
+ * So a diff here is not a failure to fix by regenerating on reflex. Regenerate
+ * it in the commit that changed the shipped code, and say in the file's own
+ * comment what changed and why — the record is the point of it.
  */
-test( 'the free zip ships exactly the content recorded before the Pro split', () => {
+test( 'the free zip ships exactly the content recorded', () => {
 	const recorded = JSON.parse(
 		fs.readFileSync( path.join( ROOT, 'tests', 'Packaging', 'free-plugin-content.json' ), 'utf8' )
 	);
@@ -534,9 +540,9 @@ test( 'the free zip ships exactly the content recorded before the Pro split', ()
 		( n ) => n in recorded.entries && built[ n ] !== recorded.entries[ n ]
 	);
 
-	assert.deepEqual( added, [], 'files the split added to the zip' );
-	assert.deepEqual( gone, [], 'files the split removed from the zip' );
-	assert.deepEqual( changed, [], 'files the split altered' );
+	assert.deepEqual( added, [], 'files added to the zip since it was recorded' );
+	assert.deepEqual( gone, [], 'files no longer in the zip' );
+	assert.deepEqual( changed, [], 'files whose shipped contents changed' );
 } );
 
 test( 'the guard refuses a mapped slug', () => {
