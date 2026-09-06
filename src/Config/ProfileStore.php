@@ -299,7 +299,11 @@ final class ProfileStore {
 	 * @return string
 	 */
 	private function newId( string $name, array $taken ): string {
-		$base = sanitize_key( $name );
+		// Whitespace and punctuation become hyphens before sanitize_key() drops
+		// them, so "Client baseline" is `client-baseline` rather than
+		// `clientbaseline` — the id appears in CLI output and in URLs, and one
+		// somebody can read is worth the extra line.
+		$base = sanitize_key( (string) preg_replace( '/[^a-z0-9]+/i', '-', $name ) );
 
 		if ( '' === $base ) {
 			$base = 'profile';

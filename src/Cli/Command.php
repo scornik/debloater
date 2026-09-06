@@ -12,6 +12,8 @@ namespace Debloater\Cli;
 use Throwable;
 use Debloater\Apply\Lock;
 use Debloater\Config\ConfigDocument;
+use Debloater\Config\Profile;
+use Debloater\Config\ProfileStore;
 use Debloater\Contracts\ApplyResult;
 use Debloater\Contracts\Finding;
 use Debloater\Contracts\Json;
@@ -791,6 +793,422 @@ final class Command {
 				return self::EXIT_OK;
 			}
 		);
+	}
+
+	/**
+	 * Save, list, export, import and apply profiles.
+	 *
+	 * A profile is a named selection of changes, in a file that can be moved
+	 * between sites. Importing one never applies anything: it produces a plan,
+	 * and applying that plan is a separate, confirmed step (docs/DECISIONS.md
+	 * D-0063, BUILD-SPEC §13 rule 8).
+	 *
+	 * ## OPTIONS
+	 *
+	 * <action>
+	 * : What to do.
+	 * ---
+	 * options:
+	 *   - list
+	 *   - save
+	 *   - export
+	 *   - import
+	 *   - apply
+	 * ---
+	 *
+	 * [<name>]
+	 * : The profile to act on, or the name to save under. Not used by `list`;
+	 * for `import` this is the path to the file.
+	 *
+	 * [--file=<path>]
+	 * : Where `export` writes. Prints to standard output when omitted.
+	 *
+	 * [--yes]
+	 * : Required by `apply`, which changes the site.
+	 *
+	 * [--format=<format>]
+	 * : How to print. `--json` is shorthand for `--format=json`.
+	 * ---
+	 * default: table
+	 * options:
+	 *   - table
+	 *   - json
+	 * ---
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     wp debloater profile list
+	 *     wp debloater profile save "Client baseline"
+	 *     wp debloater profile export "Client baseline" --file=baseline.json
+	 *     wp debloater profile import baseline.json
+	 *     wp debloater profile apply "Client baseline" --yes
+	 *
+	 * @param array<int,string>    $args       Positional arguments.
+	 * @param array<string,string> $assoc_args Options.
+	 * @return void
+	 */
+	public function profile( array $args, array $assoc_args ): void {
+		$this->run(
+			function () use ( $args, $assoc_args ): int {
+				$action = $args[0] ?? '';
+				$name   = $args[1] ?? '';
+
+				switch ( $action ) {
+					case 'list':
+						return $this->profileList( $assoc_args );
+
+					case 'save':
+						return $this->profileSave( $name );
+
+					case 'export':
+						return $this->profileExport( $name, $assoc_args );
+
+					case 'import':
+						return $this->profileImport( $name, $assoc_args );
+
+					case 'apply':
+						return $this->profileApply( $name, $assoc_args );
+
+					default:
+						$this->io->error(
+							__( 'Use: profile list|save <name>|export <name>|import <file>|apply <name> --yes', 'debloater' )
+						);
+
+						return self::EXIT_ERROR;
+				}
+			}
+		);
+	}
+
+	/**
+	 * Every profile this site has.
+	 *
+	 * @param array<string,string> $assoc_args Options.
+	 * @return int
+	 */
+	private function profileList( array $assoc_args ): int {
+		$rows = array();
+
+		foreach ( $this->profiles()->all() as $entry ) {
+			$rows[] = array(
+				'id'      => $entry['id'],
+				'name'    => $entry['profile']->name,
+				'changes' => (string) $entry['profile']->count(),
+				'source'  => $entry['builtin']
+					? __( 'built in', 'debloater' )
+					: __( 'saved here', 'debloater' ),
+			);
+		}
+
+		if ( $this->wantsJson( $assoc_args ) ) {
+			$this->io->json( array( 'profiles' => $rows ) );
+
+			return self::EXIT_OK;
+		}
+
+		$this->io->table( $rows, array( 'id', 'name', 'changes', 'source' ) );
+
+		return self::EXIT_OK;
+	}
+
+	/**
+	 * Save what this site currently has selected.
+	 *
+	 * @param string $name What to call it.
+	 * @return int
+	 */
+	private function profileSave( string $name ): int {
+		if ( '' === $name ) {
+			$this->io->error( __( 'A profile needs a name: profile save "Client baseline"', 'debloater' ) );
+
+			return self::EXIT_ERROR;
+		}
+
+		$document = ConfigDocument::fromSite(
+			$this->plugin->state(),
+			$this->plugin->intentProfile(),
+			$this->plugin->registry(),
+			$this->plugin->context()
+		);
+
+		$id = $this->profiles()->save(
+			new Profile( $name, $document->selection, $document->intent, $document->registry_hash )
+		);
+
+		$this->io->success(
+			sprintf(
+				/* translators: 1: profile name, 2: profile id, 3: number of changes. */
+				__( 'Saved "%1$s" as %2$s, with %3$d changes.', 'debloater' ),
+				$name,
+				$id,
+				count( $document->selection )
+			)
+		);
+
+		return self::EXIT_OK;
+	}
+
+	/**
+	 * Write a profile out.
+	 *
+	 * @param string               $name       Profile id or name.
+	 * @param array<string,string> $assoc_args Options.
+	 * @return int
+	 */
+	private function profileExport( string $name, array $assoc_args ): int {
+		$profile = $this->profileNamed( $name );
+
+		if ( null === $profile ) {
+			return self::EXIT_ERROR;
+		}
+
+		// One encoder, the profile's own. The admin screen exports through the
+		// same method, which is what makes "the CLI and the UI produce the same
+		// file" a fact rather than an intention.
+		$json = $profile->toJson();
+		$path = $this->option( $assoc_args, 'file', '' );
+
+		if ( '' === $path ) {
+			$this->io->line( rtrim( $json, "\n" ) );
+
+			return self::EXIT_OK;
+		}
+
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- Writing where the operator asked, on their own machine, from their own shell.
+		if ( false === file_put_contents( $path, $json ) ) {
+			$this->io->error(
+				sprintf(
+					/* translators: %s: file path. */
+					__( 'Could not write %s.', 'debloater' ),
+					$path
+				)
+			);
+
+			return self::EXIT_ERROR;
+		}
+
+		$this->io->success(
+			sprintf(
+				/* translators: 1: profile name, 2: file path. */
+				__( 'Wrote "%1$s" to %2$s.', 'debloater' ),
+				$profile->name,
+				$path
+			)
+		);
+
+		return self::EXIT_OK;
+	}
+
+	/**
+	 * Read a profile from a file and save it here.
+	 *
+	 * Saves it. Does not apply it, and cannot: applying is `profile apply`,
+	 * which asks for confirmation of its own. A file that arrived by email must
+	 * not be able to change a site by being read.
+	 *
+	 * @param string               $path       Path to the file.
+	 * @param array<string,string> $assoc_args Options.
+	 * @return int
+	 */
+	private function profileImport( string $path, array $assoc_args ): int {
+		if ( '' === $path ) {
+			$this->io->error( __( 'Which file? profile import <file>', 'debloater' ) );
+
+			return self::EXIT_ERROR;
+		}
+
+		if ( ! is_readable( $path ) ) {
+			$this->io->error(
+				sprintf(
+					/* translators: %s: file path. */
+					__( 'Cannot read %s.', 'debloater' ),
+					$path
+				)
+			);
+
+			return self::EXIT_ERROR;
+		}
+
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_get_contents -- Reading the file the operator named, on their own machine.
+		$profile = ProfileStore::read( (string) file_get_contents( $path ) );
+		$store   = $this->profiles();
+
+		$unknown = $profile->unknownTweaks( $this->plugin->registry() );
+
+		if ( array() !== $unknown ) {
+			// Listed, then skipped. A count would say something is wrong and
+			// nothing about what; the names are what somebody needs in order to
+			// decide whether it matters.
+			$this->io->warning(
+				sprintf(
+					/* translators: %s: comma-separated tweak ids. */
+					__( 'This profile names changes this site does not have, and they were left out: %s', 'debloater' ),
+					implode( ', ', $unknown )
+				)
+			);
+
+			$profile = $profile->withoutUnknownTweaks( $this->plugin->registry() );
+		}
+
+		if ( ! $profile->matchesRegistry( $this->plugin->registry() ) ) {
+			$this->io->warning(
+				__( 'This profile was written against a different registry, so a change may mean something slightly different now. The preview shows what it would do here.', 'debloater' )
+			);
+		}
+
+		$id = $store->save( $profile );
+
+		$this->io->success(
+			sprintf(
+				/* translators: 1: profile name, 2: profile id. */
+				__( 'Imported "%1$s" as %2$s. Nothing has been applied — run `profile apply %2$s --yes` when you have read the preview.', 'debloater' ),
+				$profile->name,
+				$id
+			)
+		);
+
+		if ( $this->wantsJson( $assoc_args ) ) {
+			$this->io->json(
+				array(
+					'id'      => $id,
+					'name'    => $profile->name,
+					'skipped' => $unknown,
+					'applied' => false,
+				)
+			);
+		}
+
+		return self::EXIT_OK;
+	}
+
+	/**
+	 * Apply a profile's selection, through the ordinary confirmed path.
+	 *
+	 * The profile is resolved to a list of tweak ids and handed to the same
+	 * planner, the same confirmation and the same apply that `wp debloater
+	 * apply` uses. There is no shortcut here and deliberately no second code
+	 * path: a profile is a way of choosing changes, not a way of applying them
+	 * differently.
+	 *
+	 * @param string               $name       Profile id or name.
+	 * @param array<string,string> $assoc_args Options.
+	 * @return int
+	 */
+	private function profileApply( string $name, array $assoc_args ): int {
+		$profile = $this->profileNamed( $name );
+
+		if ( null === $profile ) {
+			return self::EXIT_ERROR;
+		}
+
+		// Asked before anything is planned. §13 rule 8: applying is confirmed,
+		// and on the command line `--yes` is that confirmation.
+		if ( ! $this->confirmed( $assoc_args ) ) {
+			return self::EXIT_ERROR;
+		}
+
+		// Two kinds of profile, one apply path each, and both already exist.
+		//
+		// A saved profile names its changes, so it plans as a list of tweak
+		// ids. A built-in names a risk band instead — "everything safe that
+		// this scan found" — and has no fixed list to hand over, which is why
+		// `profile list` shows it as nought changes. That one plans through the
+		// profile planner, exactly as `wp debloater apply --profile=safe` does.
+		$store = $this->profiles();
+		$ids   = array_keys( $profile->withoutUnknownTweaks( $this->plugin->registry() )->selection );
+
+		if ( array() === $ids ) {
+			$builtin = null;
+
+			foreach ( $store->builtins() as $id => $candidate ) {
+				if ( $candidate->name === $profile->name ) {
+					$builtin = $id;
+
+					break;
+				}
+			}
+
+			if ( null === $builtin ) {
+				$this->io->warning( __( 'That profile selects nothing this site has, so there is nothing to apply.', 'debloater' ) );
+
+				return self::EXIT_OK;
+			}
+
+			$result = $this->plugin->preview( $builtin );
+		} else {
+			$result = $this->plugin->previewTweaks( $ids );
+		}
+
+		if ( null === $result ) {
+			$this->io->error( __( 'There is no scan to plan from. Run `wp debloater scan` first.', 'debloater' ) );
+
+			return self::EXIT_ERROR;
+		}
+
+		if ( $result->plan->isEmpty() ) {
+			$this->io->warning( __( 'There is nothing to apply: the plan is empty.', 'debloater' ) );
+
+			return self::EXIT_OK;
+		}
+
+		$applied = $this->plugin->apply( $result->plan );
+
+		if ( $this->wantsJson( $assoc_args ) ) {
+			$this->io->json( $applied->toArray() );
+		} else {
+			$this->printApplyResult( $applied );
+		}
+
+		return $this->exitCodeFor( $applied );
+	}
+
+	/**
+	 * A profile by id or by name, with the failure already reported.
+	 *
+	 * By either, because a person who saved "Client baseline" thinks of it as
+	 * "Client baseline" and not as `client-baseline`.
+	 *
+	 * @param string $name Profile id or name.
+	 * @return Profile|null
+	 */
+	private function profileNamed( string $name ): ?Profile {
+		if ( '' === $name ) {
+			$this->io->error( __( 'Which profile? Run `profile list` to see them.', 'debloater' ) );
+
+			return null;
+		}
+
+		$store = $this->profiles();
+		$found = $store->find( $name );
+
+		if ( null !== $found ) {
+			return $found;
+		}
+
+		foreach ( $store->all() as $entry ) {
+			if ( strcasecmp( $entry['profile']->name, $name ) === 0 ) {
+				return $entry['profile'];
+			}
+		}
+
+		$this->io->error(
+			sprintf(
+				/* translators: %s: the name given. */
+				__( 'No profile called "%s". Run `profile list` to see them.', 'debloater' ),
+				$name
+			)
+		);
+
+		return null;
+	}
+
+	/**
+	 * The profile store.
+	 *
+	 * @return ProfileStore
+	 */
+	private function profiles(): ProfileStore {
+		return new ProfileStore( $this->plugin->registry() );
 	}
 
 	/**
