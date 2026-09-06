@@ -102,6 +102,36 @@ Two rules of the same shape, from the same phase:
   turned out never to have worked — the private-key grep, the entry-point
   invariant, the admin probe's cookie — was found this way and by nothing else.
 
+**A skipped test is a failed test in CI.** A suite that can skip on a missing
+secret, path or sibling checkout must have a step that fails the job when the
+skip count is not zero. Skipping is a legitimate answer to "this machine cannot
+run that"; it is never a legitimate answer in the one environment configured to
+run everything, and the two are indistinguishable in a green tick.
+
+Pro's cross-tree invariants are the example — the tests asserting Pro adds no
+tweaks, no runtime handlers and no safety features to Debloater. They were gated
+on a `FREE_PLUGIN_TOKEN` that was never configured, so they skipped on every run
+from the split until `068b4b3` while the job reported success. They printed a
+warning saying so, to nobody. Six tests, months of green, nothing checked.
+
+**A check that cannot pass is indistinguishable from a check nobody wrote.**
+When adding or repairing a CI job, watch it pass in the runner at least once
+before counting it as coverage. Passing locally is not the same claim: the
+runner is a different machine, and the whole point of the job is what happens
+there.
+
+The packaging job is the example. It ran on Linux and Windows for every push and
+had been failing since the split — through six commits, while unit, integration,
+static analysis and the registry job stayed green — because the shipped-content
+record pinned hashes of files no second machine can reproduce. It had never
+passed in CI at all, from the commit that introduced it until `5fa0dc9`. Nobody
+looked, because the last thing anybody remembered about that job was that it had
+been fixed.
+
+Both rules have the same root: **absence of a failure is not evidence of a
+pass.** Ask what the check would do if the thing it guards were broken right
+now, and if the honest answer is "nothing, probably", it is not coverage yet.
+
 ## Do not
 
 - Add Composer runtime dependencies.
