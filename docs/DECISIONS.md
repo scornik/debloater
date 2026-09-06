@@ -3226,3 +3226,78 @@ signature rather than the syntax – a parse message there would mean
 - §13 rule 15 is unaffected: what ships is 32 bytes, and an Ed25519 secret key
   is 64. `SecurityRulesTest` asserts the length rather than the emptiness.
 - The release procedure is in `docs/REGISTRY.md`.
+
+---
+
+## D-0063 – a profile is a file, and importing one never applies it
+
+- **Phase:** 19c
+- **Date:** 2026-09-06
+- **Status:** accepted
+- **Spec:** §7.3, §13 rule 8, §17 Phase 19c
+
+### The contract
+
+`{ schema_version, name, created_at, registry_hash, intent_profile, selection }`,
+validated against `schemas/profile-export.schema.json`.
+
+It is the configuration document of `cli-export.schema.json` with a name and a
+creation date, and **without** `site_hash`, `plugin_version` and `exported_at`.
+A profile is meant to travel; one carrying the fingerprint of the site that made
+it invites the next person to treat it as belonging there. There is nothing in a
+profile that says where it came from.
+
+`Config\Profile` reuses `ConfigDocument`'s answers to the two questions an
+import has to ask – which changes does this site not have, and was this written
+against this registry – rather than growing a second, slightly different
+opinion about them.
+
+### Importing never applies
+
+An imported profile pre-fills a preview. That is the whole of what importing
+does. The plan then goes through the same confirmation token, snapshot,
+verification and rollback as any other plan (§13 rule 8).
+
+This is the rule the rest of the feature is shaped around. A profile is a file
+somebody was emailed, downloaded, or found in a repository; it is exactly the
+input that must not be able to change a site by arriving. An import that applied
+would also skip the preview, which is where a person sees what a change touches
+and what the way back is – so "import applies it for you" would be selling the
+removal of the one screen that makes this plugin trustworthy.
+
+An unknown change is listed and skipped rather than refusing the file; a
+registry-hash mismatch is a warning and not a gate. Both because the preview
+that follows shows exactly what would happen anyway, and refusing a file
+somebody asked for teaches them to work around the tool.
+
+### Built-ins are profiles
+
+`safe`, `performance` and `maximum` are returned alongside saved ones and marked
+read-only. A site that has saved nothing still has three profiles, which is what
+stops the panel listing them from being an empty box on a fresh install – the
+state most people see it in first. They can be exported and applied and cannot
+be renamed, edited or deleted.
+
+### Storage
+
+One option, `debloater_profiles`, **not autoloaded**, at most 50 profiles.
+Autoloading a list of saved selections would put it in every front-end request
+of the site this plugin exists to make lighter. A table was the alternative;
+fifty short documents are not a table's worth of data, and uninstall already has
+four tables to explain.
+
+### Deferred: syncing profiles between sites
+
+Profiles are per-site. Editing one on site A does not change it on site B, and
+there is no shared list.
+
+That is the obvious next feature and it is deliberately not here. Sync needs
+somewhere for the list to live, a way to say which site wins when both changed,
+and an account to attach it to – which is a service, not a plugin feature.
+`docs/CLOUD-DESIGN.md` is where that belongs, and building half of it now
+(export, a folder, a convention) would produce something that looks like sync,
+is not, and has to be unbuilt before the real thing can be written.
+
+Until then the file is the sync mechanism: export it, put it wherever you keep
+things, import it. That is not a workaround so much as the smaller honest
+version of the feature.

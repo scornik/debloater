@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-09-05T06:45:02+00:00\n"
+"POT-Creation-Date: 2026-09-06T06:31:52+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: debloater\n"
@@ -1159,6 +1159,24 @@ msgstr ""
 msgid "This version of Debloater does not know that change, so it cannot be applied here."
 msgstr ""
 
+#: src/Config/ProfileStore.php:209
+msgid "The profiles Debloater ships with cannot be changed. Save a copy under your own name instead."
+msgstr ""
+
+#. translators: %d: the maximum number of profiles.
+#: src/Config/ProfileStore.php:225
+#, php-format
+msgid "This site already has %d saved profiles, which is the most it keeps. Delete one first."
+msgstr ""
+
+#: src/Config/ProfileStore.php:250
+msgid "The profiles Debloater ships with cannot be deleted."
+msgstr ""
+
+#: src/Config/ProfileStore.php:349
+msgid "That file is not a Debloater profile: it is not a JSON document."
+msgstr ""
+
 #: src/Meter/Comparison.php:188
 msgid "This was not measured before the change."
 msgstr ""
@@ -1482,29 +1500,39 @@ msgstr ""
 msgid "This recovery point is %s, so there is nothing to restore from it."
 msgstr ""
 
-#: src/Update/RegistryUpdater.php:161
+#: src/Update/RegistryUpdater.php:176
 msgid "The registry update check is off, so nothing was requested. Nothing leaves this server unless you ask for it."
 msgstr ""
 
-#: src/Update/RegistryUpdater.php:279
+#. translators: 1: number of bytes received, 2: number of bytes expected.
+#: src/Update/RegistryUpdater.php:288
+#, php-format
+msgid "The registry signature is %1$d bytes; a signature is %2$d. Nothing was installed."
+msgstr ""
+
+#: src/Update/RegistryUpdater.php:314
 msgid "The registry release is not signed with the key this plugin trusts. Nothing was installed."
 msgstr ""
 
-#: src/Update/RegistryUpdater.php:291
+#: src/Update/RegistryUpdater.php:328
+msgid "The registry manifest is signed but is not a JSON document. Nothing was installed."
+msgstr ""
+
+#: src/Update/RegistryUpdater.php:343
 msgid "The registry is already the newest release."
 msgstr ""
 
 #. translators: 1: offered tag, 2: current tag.
-#: src/Update/RegistryUpdater.php:301
+#: src/Update/RegistryUpdater.php:353
 #, php-format
 msgid "Registry release %1$s is available and its signature checks out. This site has %2$s."
 msgstr ""
 
-#: src/Update/SignatureVerifier.php:78
+#: src/Update/SignatureVerifier.php:86
 msgid "This server has no libsodium, so a signed registry update cannot be checked. Debloater will not install one it cannot verify."
 msgstr ""
 
-#: src/Update/SignatureVerifier.php:84
+#: src/Update/SignatureVerifier.php:92
 msgid "No registry signing key is pinned in this build, so there is nothing to check a signed update against."
 msgstr ""
 
