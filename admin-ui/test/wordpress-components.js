@@ -67,6 +67,37 @@ const CheckboxControl = ( { label, checked, onChange, disabled } ) =>
 		label
 	);
 
+/**
+ * A labelled text input.
+ *
+ * The label is tied to the input with htmlFor/id so that getByLabelText finds
+ * it, which is how the real control behaves and the only property of it these
+ * tests depend on.
+ *
+ * @param {Object}   props           Props.
+ * @param {string}   props.label     Field label.
+ * @param {string}   props.value     Current value.
+ * @param {Function} props.onChange  Called with the new value.
+ * @param {boolean}  [props.disabled] Whether the field is disabled.
+ * @return {Object} The element.
+ */
+const TextControl = ( { label, value, onChange, disabled } ) => {
+	const id = `text-${ String( label ).replace( /\W+/g, '-' ).toLowerCase() }`;
+
+	return createElement(
+		'div',
+		null,
+		createElement( 'label', { htmlFor: id }, label ),
+		createElement( 'input', {
+			id,
+			type: 'text',
+			value: value || '',
+			disabled,
+			onChange: ( event ) => onChange( event.target.value ),
+		} )
+	);
+};
+
 module.exports = {
 	Button,
 	CheckboxControl,
@@ -74,4 +105,5 @@ module.exports = {
 	Notice,
 	SelectControl,
 	Spinner,
+	TextControl,
 };

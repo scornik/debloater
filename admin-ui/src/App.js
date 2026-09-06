@@ -13,6 +13,7 @@ import { __ } from '@wordpress/i18n';
 import { canManage } from './api/client';
 import ApplyDialog from './components/ApplyDialog';
 import Dashboard from './screens/Dashboard';
+import Profiles from './components/Profiles';
 import Findings from './screens/Findings';
 import Finding from './screens/Finding';
 import Run from './screens/Run';
@@ -28,6 +29,7 @@ export const App = () => {
 	const [ view, setView ] = useState( 'dashboard' );
 	const [ finding, setFinding ] = useState( null );
 	const [ applyOpen, setApplyOpen ] = useState( false );
+	const [ previewTweaks, setPreviewTweaks ] = useState( null );
 	const [ activeRun, setActiveRun ] = useState( null );
 	const [ scoreBefore, setScoreBefore ] = useState( null );
 	const [ epoch, setEpoch ] = useState( 0 );
@@ -98,11 +100,20 @@ export const App = () => {
 
 			<main className="debloater-app__main" key={ epoch }>
 				{ view === 'dashboard' && (
-					<Dashboard
-						onNavigate={ setView }
-						onScore={ setScoreBefore }
-						onFixSafeIssues={ () => setApplyOpen( true ) }
-					/>
+					<>
+						<Dashboard
+							onNavigate={ setView }
+							onScore={ setScoreBefore }
+							onFixSafeIssues={ () => setApplyOpen( true ) }
+						/>
+						<Profiles
+							epoch={ epoch }
+							onPreview={ ( tweaks ) => {
+								setPreviewTweaks( tweaks );
+								setApplyOpen( true );
+							} }
+						/>
+					</>
 				) }
 				{ view === 'findings' && (
 					<Findings onOpenFinding={ openFinding } />
@@ -129,9 +140,19 @@ export const App = () => {
 
 			{ applyOpen && (
 				<ApplyDialog
-					onClose={ () => setApplyOpen( false ) }
+					tweaks={ previewTweaks }
+					title={
+						previewTweaks
+							? __( 'Review the profile', 'debloater' )
+							: undefined
+					}
+					onClose={ () => {
+						setApplyOpen( false );
+						setPreviewTweaks( null );
+					} }
 					onStarted={ ( runId ) => {
 						setApplyOpen( false );
+						setPreviewTweaks( null );
 						setActiveRun( runId );
 						setView( 'run' );
 					} }

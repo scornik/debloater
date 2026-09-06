@@ -89,18 +89,28 @@ const request = async ( options ) => {
 };
 
 export const get = ( path, query = {} ) => {
-	const search = Object.entries( query )
-		.filter(
-			( [ , value ] ) =>
-				value !== undefined && value !== null && value !== ''
-		)
-		.map(
-			( [ key, value ] ) =>
-				`${ encodeURIComponent( key ) }=${ encodeURIComponent(
-					value
-				) }`
-		)
-		.join( '&' );
+	// An array value becomes one parameter per item, which is what WordPress
+	// reads back as an array. Joining them with a comma — which is what the
+	// default string conversion does — produces a single parameter holding
+	// "a,b" and a route that sees one change named `a,b`. It worked until now
+	// only because every array passed here had one item in it.
+	const pairs = [];
+
+	Object.entries( query ).forEach( ( [ key, value ] ) => {
+		const values = Array.isArray( value ) ? value : [ value ];
+
+		values.forEach( ( item ) => {
+			if ( item === undefined || item === null || item === '' ) {
+				return;
+			}
+
+			pairs.push(
+				`${ encodeURIComponent( key ) }=${ encodeURIComponent( item ) }`
+			);
+		} );
+	} );
+
+	const search = pairs.join( '&' );
 
 	const full = namespaced( path );
 

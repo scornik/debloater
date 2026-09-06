@@ -60,22 +60,32 @@ const SNAPSHOT_LABELS = {
  * it would start out identical and drift, and the half that drifted would be
  * the half with no dialog in front of it.
  *
+ * A third shape, for profiles: with `tweaks` it plans exactly that list, which
+ * is what importing or applying a profile does. The profile chose the changes;
+ * this dialog is still where somebody sees what they touch and agrees to it,
+ * and the confirmation token it carries is issued by the same preview as
+ * always. An imported file gets no shortcut past this screen.
+ *
  * @param {Object}   props           Component props.
  * @param {string}   [props.tweak]   Apply just this tweak, instead of a profile.
+ * @param {string[]} [props.tweaks]  Apply exactly these changes.
  * @param {string}   [props.title]   Heading, when the default is not right.
  * @param {Function} props.onClose   Called when the dialog is dismissed.
  * @param {Function} props.onStarted Called with the run id once an apply starts.
  */
-export const ApplyDialog = ( { tweak, title, onClose, onStarted } ) => {
-	const single = Boolean( tweak );
+export const ApplyDialog = ( { tweak, tweaks, title, onClose, onStarted } ) => {
+	const listed = Array.isArray( tweaks ) && tweaks.length > 0 ? tweaks : null;
+	const single = Boolean( tweak ) || Boolean( listed );
 	const [ profile, setProfile ] = useState( 'safe' );
 	const [ applying, setApplying ] = useState( false );
 	const [ failure, setFailure ] = useState( null );
 	const [ attested, setAttested ] = useState( false );
 
+	const chosen = listed || ( tweak ? [ tweak ] : null );
+
 	const preview = useResource(
-		() => get( '/preview', single ? { 'tweaks[]': tweak } : { profile } ),
-		[ profile, tweak, single ]
+		() => get( '/preview', chosen ? { 'tweaks[]': chosen } : { profile } ),
+		[ profile, tweak, listed && listed.join( ',' ) ]
 	);
 
 	const apply = async () => {
@@ -84,7 +94,7 @@ export const ApplyDialog = ( { tweak, title, onClose, onStarted } ) => {
 
 		try {
 			const result = await post( '/apply', {
-				...( single ? { tweaks: [ tweak ] } : { profile } ),
+				...( chosen ? { tweaks: chosen } : { profile } ),
 				confirm: preview.data.confirm,
 				attestation: attested,
 			} );

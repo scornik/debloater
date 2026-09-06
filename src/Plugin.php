@@ -52,6 +52,9 @@ use Debloater\Rest\Routes\FindingsRoute;
 use Debloater\Rest\Routes\PreviewRoute;
 use Debloater\Rest\Routes\RollbackRoute;
 use Debloater\Rest\Routes\RunRoute;
+use Debloater\Rest\Routes\ProfileImportRoute;
+use Debloater\Rest\Routes\ProfileSaveRoute;
+use Debloater\Rest\Routes\ProfilesRoute;
 use Debloater\Rest\Routes\ScanRoute;
 use Debloater\Rest\Routes\SnapshotsRoute;
 use Debloater\Rest\Routes\StatusRoute;
@@ -736,6 +739,9 @@ final class Plugin {
 					new RunRoute( $this ),
 					new ApplyRoute( $this ),
 					new RollbackRoute( $this ),
+					new ProfilesRoute( $this ),
+					new ProfileSaveRoute( $this ),
+					new ProfileImportRoute( $this ),
 				)
 			)
 		);
