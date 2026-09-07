@@ -212,6 +212,18 @@ jobs:
       # the `integration` job is where a real WordPress runs.
       - run: npm run test:packaging
 
+      # Shipped content and the version move together, or this refuses.
+      #
+      # Not "since the last git tag": this repository's only tag is v0.1.0 and
+      # it points into the history the Pro split rewrote, so it is not an
+      # ancestor of main and comparing against it would report every file as
+      # changed on every run. The content record names the files *and* the
+      # version they shipped at, which is what the tag was meant to stand for.
+      #
+      # It never bumps anything. Which version comes next is a decision.
+      - name: Content and version agree
+        run: node tools/version-discipline.mjs
+
       # The archives are named for the version, so the version is read rather
       # than written here. It used to be spelled out — `debloater-0.1.0.zip` —
       # and the release after that bump made every step below open a file that

@@ -15,7 +15,7 @@
     "Regenerate with tools/record-shipped-content.mjs --why \"...\". It will",
     "not run without a reason, and the reason lands in \"history\" below."
   ],
-  "version": "0.1.1",
+  "version": "0.2.0",
   "recorded_at_commit": "699eace",
   "entry_count": 307,
   "hashed_count": 302,
@@ -40,6 +40,23 @@
       "changed": [
         "debloater/composer.json"
       ]
+    },
+    {
+      "why": "0.2.0: profiles across the CLI, the screen and a URL contract; the registry signing key pinned and signed bytes verified before parsing; the verification cookie fix; reproducible archives. The shipped code had changed repeatedly since 0.1.1 with the version never moving.",
+      "added": [],
+      "removed": [],
+      "changed": [
+        "debloater/debloater.php",
+        "debloater/readme.txt"
+      ]
+    },
+    {
+      "why": "0.2.0: profiles across the CLI, the screen and a URL contract; the registry signing key pinned and signed bytes verified before parsing; the verification cookie fix; reproducible archives. Includes the DEBLOATER_VERSION constant, which the first pass at this bump missed.",
+      "added": [],
+      "removed": [],
+      "changed": [
+        "debloater/debloater.php"
+      ]
     }
   ],
   "generated": [
@@ -54,10 +71,10 @@
     "debloater/build/style-index-rtl.css": "81c1732172134ea390741729073672ff87908bd875a82b66ad80161d8f9439d8",
     "debloater/build/style-index.css": "a3a65467e8b7debc329de65b7a62c0530bb4f3f1aa3e88f71f9b52a6172c88c0",
     "debloater/composer.json": "616f2cbe8232cfb86e0de71ffd0e3434700215b1f114d5e9c1ccb95dbe58124b",
-    "debloater/debloater.php": "73cbb2656506d16bbd9bf13cb399c5f3a798e198a71216e7f3bdbce25cb152fc",
+    "debloater/debloater.php": "d2beb2f104e657131b0ea068158cd58d0ffe379d995101ecb861a4ff7b9a65ec",
     "debloater/languages/debloater.pot": "fd9375817c5a16a2fcb66eee5a733052625ce8786ad341800655ab0950cac96d",
     "debloater/mu-loader/debloater-loader.php": "6e8dc4d9cf107d8671cd0807a591c8165b01ef3e86dce8fcb0eff7d1e9310ce4",
-    "debloater/readme.txt": "79bb4f65ea969d841578a3d524947500ea277e39b514e2ad2bccbde71a4db556",
+    "debloater/readme.txt": "95e75b82568d2bb556d283257c791e320f92de9f0a3e54aa06c145932789f637",
     "debloater/registry/admin-notices.json": "168502077be40257f7e2271bf526466765bb728bbe3193e23119a62cc1fddfa7",
     "debloater/registry/compatibility/contact-form-7.json": "206dfc65065af55c036aecdd0dce6df571504c4e1c187c627dba7d6e1eb18de6",
     "debloater/registry/compatibility/elementor-pro.json": "94b8d0095404069bbf34d4382cfc68d17cdfe72cb9716203d555f516e8623ab6",

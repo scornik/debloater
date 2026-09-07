@@ -4,7 +4,7 @@ Tags: bloat, debloat, performance, cleanup, optimization
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 0.1.1
+Stable tag: 0.2.0
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -188,6 +188,17 @@ LiteSpeed Cache and WP Super Cache.
 3. A recovery point, and the one-click way back.
 
 == Changelog ==
+
+
+= 0.2.0 =
+* Profiles: save what a site has under a name, export it, and import it
+  elsewhere. Importing shows a preview and applies nothing on its own.
+* `wp debloater profile` on the command line.
+* Registry updates are verified against a key compiled into the plugin, and
+  refused when the signature does not check out.
+* Fixed: changes could end "verified, with warnings" on sites where nothing was
+  wrong, because the verification check was sending the wrong sign-in cookie.
+* Fixed: the release archive now builds identically twice from the same code.
 
 = 0.1.1 =
 Initial wordpress.org release.

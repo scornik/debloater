@@ -4,6 +4,63 @@ All notable changes to Debloater are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [semantic versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] — 2026-09-07
+
+### Added
+
+- **Profiles.** Save the set of changes a site has under a name, export it as a
+  file, and import that file on another site. Debloater's own three — Safe,
+  Performance and Maximum — are listed alongside anything you save, so the panel
+  has something in it on a site that has saved nothing.
+
+  On the command line: `wp debloater profile list|save|export|import|apply`.
+
+  **Importing never applies anything.** It reads the file, tells you which
+  changes this site does not have, and opens the ordinary preview with the rest
+  ticked. Everything after that is the usual path — the plan, the confirmation,
+  the recovery point, the checks afterwards and the way back. A file somebody
+  emailed you does not get a shortcut past the screen that shows what it
+  touches.
+
+- **A profile can be opened from another plugin.** `?page=debloater&debloater_profile=<id>`
+  opens the preview with that profile's changes ticked. It carries an id, never
+  a selection, so a link cannot ask for changes this site was not already
+  offering. Documented in `docs/HOOKS.md`.
+
+### Changed
+
+- **Registry updates are verified against a pinned key.** The signing key is
+  compiled into the plugin, and a downloaded registry whose signature does not
+  check out is refused rather than parsed. Signed file bytes are verified
+  *before* being parsed, not after.
+
+- **The plugin now discloses every service it can contact**, in `readme.txt`, and
+  the Plugin URI points at a repository that exists.
+
+### Fixed
+
+- **A change could never finish as fully verified.** The check that loads the
+  dashboard signed in as you sent the wrong sign-in cookie, so WordPress
+  answered with the login form and the check honestly reported that it could not
+  tell. Every change therefore ended "verified, with warnings" on sites where
+  nothing was wrong.
+
+- **The release archive is now built the same way twice.** It was assembled in
+  whatever order the filesystem answered in, with live timestamps, so two builds
+  of the same code produced different archives.
+
+- **The plugin name is the same in both places it is written**, which is what
+  wordpress.org's own checker asks for.
+
+### Internal
+
+- Pro moved to its own repository. Nothing in this plugin depends on it, and the
+  full suite passes with Pro absent, with no licensing platform installed and
+  with no network.
+- A version check now refuses a build whose shipped content has changed while
+  the version has not — the reason this release exists as a number rather than
+  as a series of quiet edits. See `docs/RELEASING.md`.
+
 ## [Unreleased]
 
 ### Added
