@@ -91,7 +91,7 @@ plugins. Pro's repository holds only Pro-specific ones, and the registry's holds
 its own; a decision number appears in exactly one file, and a test in each
 repository fails if that stops being true.
 
-**Seven decisions are not here**, all in
+**Eight decisions are not here**, all in
 [`scornik/debloater-pro`](https://github.com/scornik/debloater-pro/blob/main/docs/DECISIONS.md):
 
 | | |
@@ -103,6 +103,7 @@ repository fails if that stops being true.
 | `D-0062` | The commerce path is verified end to end |
 | `D-0064` | Pro chooses a profile; Debloater applies it |
 | `D-0065` | Pro's integration suite runs again, from the free plugin's wp-env |
+| `D-0068` | Pro has no apply path, so the unreachable one is deleted |
 
 `D-0067` is in `scornik/debloater-registry`.
 
@@ -2346,6 +2347,12 @@ document, checking the manifest describes what is on disk, and running the
 plugin's own suites against the registry, because a tweak that validates and
 then does nothing is worse than one that fails to parse.
 
+> **Superseded in part by `D-0069`.** The CI reasoning below — that the
+> plugin repository is private, so checking it out in a public workflow would
+> need a credential — stopped being true when `scornik/debloater` went
+> public. The registry now checks the plugin out with no token at all.
+> `D-0069` records the current position and what is actually in the way.
+
 ### Consequences
 
 - Nothing in the plugin depends on the split having happened. The vendored
@@ -3485,3 +3492,68 @@ A scratch directory would be tidier and was rejected on cost: the build step
 needs `node_modules`, so genuine isolation means a second npm install for a
 check meant to take a minute. CI has that isolation for free, and the `package`
 job is where the pristine version runs.
+
+---
+
+## D-0069 – the registry's CI still does not run the plugin's matrix, and why
+
+- **Phase:** 0.2.0 follow-up
+- **Date:** 2026-09-07
+- **Status:** accepted
+- **Supersedes:** the CI half of `D-0045`.
+
+### What D-0045 said, and what stopped being true
+
+§17 Phase 17 asks the registry's CI to run "the plugin's WP/Woo/Elementor
+integration matrix against the registry". `D-0045` recorded that it does not,
+and gave a reason:
+
+> The plugin repository is private and the registry's is public, so that
+> checkout would need a token in a public workflow — a credential in the one
+> place it should never be.
+
+That was correct when it was written. **It is not correct now.** `scornik/debloater`
+is public, and `scornik/debloater-registry` already checks it out with no token
+at all — the Phase 21 pipeline does exactly that, in `registry-update.yml`, and
+has done since the pipeline landed.
+
+So the record has been justifying a limitation with a fact that stopped being
+true, which is worse than recording no reason: a reader checks the reason,
+finds it plausible, and stops.
+
+### The current position
+
+**The matrix should run on every push to the registry, and it does not yet.**
+This decision does not implement it; it stops the record claiming there is an
+obstacle.
+
+What actually stands in the way now is cost and shape, not credentials:
+
+- The matrix needs WordPress, the plugin's Composer install, its npm install
+  and a wp-env start. In the Phase 21 pipeline that is about three minutes per
+  job, twice, and the registry's `integrity` job currently finishes in under
+  one on nothing but Node.
+- Most registry pushes change one tweak's `description` or `breaks` text.
+  Running the full WooCommerce and Elementor matrix for a wording change is the
+  kind of check people learn to skip, and `P3` is about what happens to checks
+  nobody reads.
+- The Phase 21 pipeline already runs the matrix against the registry weekly,
+  and on every dispatch, writing `regressions.json`. That is coverage — it is
+  just not a gate.
+
+### What it would take
+
+Roughly a day: a `matrix` job in `registry.yml` reusing the checkout and
+wp-env steps that `registry-update.yml`'s `verify` job already has, gated to
+pushes that touch `tweaks/`, `compatibility/`, `profiles/` or `detectors/` so a
+documentation change does not pay for it. The parts that were unknown when
+`D-0045` was written — whether wp-env works in that runner, whether the plugin
+can be pointed at this registry — are now known to work, because the pipeline
+does both.
+
+### Why not now
+
+Because it is a day of work that changes no outcome this week, and because
+inventing it in the same session that discovered the record was wrong is how a
+correction turns into an unreviewed feature. It is listed in
+`docs/GAP-ANALYSIS.md` under what is left, with that estimate.
