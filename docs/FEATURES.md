@@ -135,8 +135,7 @@ documented hooks. **It adds no tweaks and no safety features**, asserted by
 | Scheduled scans | Daily or weekly scan; never a scheduled *apply* | `src/Features/ScheduledScans.php` | Pro screen | `ProScreenTest`, `ProIntegrationTest` |
 | Drift detection | What changed between the last two scans | `src/Features/DriftDetector.php` | Pro screen, a text panel on the free dashboard | `ProIntegrationTest` |
 | Before/after report | A printable document per applied change, with the agency's name on it | `src/Features/BeforeAfterReport.php` | Pro screen → Open | `ProScreenTest` |
-| Profiles panel | Apply, export, duplicate, rename, delete; built-ins always listed | `src/Admin/ProfilesPanel.php` | Pro screen | `ProProfilesPanelTest` |
-| Bulk apply | Applies a saved registry profile through the free plugin's own preview and confirmation | `src/Features/BulkApply.php` | API only — see gap analysis | `ProIntegrationTest` |
+| Portable profiles | Save a setup once and take it to every site you manage: apply, export, duplicate, rename, delete, with built-ins always listed. Applying opens Debloater's preview — Pro has no apply path of its own (D-0068) | `src/Admin/ProfilesPanel.php` | Pro screen | `ProProfilesPanelTest`, `ProArchitectureTest` |
 | Registry channel | Priority registry updates | `src/Features/RegistryChannel.php` | automatic | `ProIntegrationTest` |
 | Licence display | Plan, quota and a way to release the site, on Pro's own screen | `src/Admin/Screen.php` | Pro screen | `ProScreenTest` |
 | Entitlement | Freemius behind an interface, cached and offline-tolerant | `src/Entitlement/` | automatic | `EntitlementTest`, `FreemiusIntegrationTest` |
