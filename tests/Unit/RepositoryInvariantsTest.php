@@ -323,7 +323,7 @@ final class RepositoryInvariantsTest extends TestCase {
 	 * @return void
 	 */
 	public function test_pro_only_decisions_are_not_recorded_here(): void {
-		$reserved = array( 'D-0035', 'D-0050', 'D-0060', 'D-0061', 'D-0062', 'D-0064', 'D-0065' );
+		$reserved = array( 'D-0035', 'D-0050', 'D-0060', 'D-0061', 'D-0062', 'D-0064', 'D-0065', 'D-0068' );
 
 		$decisions = $this->decisionNumbers();
 
