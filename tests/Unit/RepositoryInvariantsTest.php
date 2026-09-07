@@ -305,4 +305,115 @@ final class RepositoryInvariantsTest extends TestCase {
 
 		return $files;
 	}
+
+	/**
+	 * The decisions that belong to Pro are not also recorded here.
+	 *
+	 * Both repositories carried a full copy of this file from the split until
+	 * 0.2.0 -- fifty-six of the entries identical in both. Nothing noticed,
+	 * because nothing looked, and amending either copy would have left the
+	 * other stating the opposite with equal authority.
+	 *
+	 * This is the half of the check that can run here. Pro's repository is
+	 * private and this one is public, so nothing here may check it out; the
+	 * comparison of the two files lives in Pro, whose CI has both. What this
+	 * can know alone is that the numbers reserved for Pro are not in this file,
+	 * and that is enough to stop a duplicate arriving from this side.
+	 *
+	 * @return void
+	 */
+	public function test_pro_only_decisions_are_not_recorded_here(): void {
+		$reserved = array( 'D-0035', 'D-0050', 'D-0060', 'D-0061', 'D-0062', 'D-0064', 'D-0065' );
+
+		$decisions = $this->decisionNumbers();
+
+		foreach ( $reserved as $number ) {
+			$this->assertNotContains(
+				$number,
+				$decisions,
+				sprintf(
+					'%s belongs to scornik/debloater-pro. A decision recorded in both places '
+						. 'is two decisions that can disagree.',
+					$number
+				)
+			);
+		}
+
+		// And the registry's, for the same reason.
+		$this->assertNotContains( 'D-0067', $decisions );
+	}
+
+	/**
+	 * Every decision number is used once, and the file says where the rest are.
+	 *
+	 * @return void
+	 */
+	public function test_the_decision_record_is_internally_consistent(): void {
+		$decisions = $this->decisionNumbers();
+
+		$this->assertSame(
+			array_unique( $decisions ),
+			$decisions,
+			'A decision number is used twice in this file.'
+		);
+
+		$this->assertGreaterThan( 50, count( $decisions ) );
+
+		// The pointer to the decisions that are elsewhere. A reader who cannot
+		// find D-0060 here has to be told it exists rather than left to
+		// conclude it was never taken.
+		$markdown = $this->decisionRecord();
+
+		$this->assertStringContainsString( 'scornik/debloater-pro', $markdown );
+		$this->assertStringContainsString( 'D-0060', $markdown );
+		$this->assertStringContainsString( 'scornik/debloater-registry', $markdown );
+	}
+
+	/**
+	 * The Principles section exists and is short enough to be read.
+	 *
+	 * It stops being read at about a dozen entries, which is written into the
+	 * section itself. A test is the only thing that will notice the day it
+	 * quietly becomes fifteen.
+	 *
+	 * @return void
+	 */
+	public function test_the_principles_stay_short(): void {
+		preg_match_all( '/^\*\*(P\d+)\./m', $this->decisionRecord(), $found );
+
+		$this->assertNotEmpty( $found[1], 'docs/DECISIONS.md should have a Principles section.' );
+
+		$this->assertLessThanOrEqual(
+			12,
+			count( $found[1] ),
+			'The principles have outgrown being read. Consolidate rather than append -- '
+				. 'the section says so itself.'
+		);
+
+		$this->assertSame( array_unique( $found[1] ), $found[1], 'A principle number is reused.' );
+	}
+
+	/**
+	 * The decision record, as text.
+	 *
+	 * @return string
+	 */
+	private function decisionRecord(): string {
+		$path = dirname( __DIR__, 2 ) . '/docs/DECISIONS.md';
+
+		$this->assertFileExists( $path );
+
+		return (string) file_get_contents( $path );
+	}
+
+	/**
+	 * Every `## D-NNNN` heading in the decision record.
+	 *
+	 * @return string[]
+	 */
+	private function decisionNumbers(): array {
+		preg_match_all( '/^## (D-\d+)/m', $this->decisionRecord(), $found );
+
+		return $found[1];
+	}
 }

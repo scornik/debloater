@@ -84,13 +84,32 @@ live API calls, or died for want of an argument, because it imported a stage.
 
 ---
 
-## Four decisions are not here
+## This file is authoritative
 
-`D-0035` and `D-0050` concern Pro – how entitlement is
-obtained, and what the optional cloud service may and may not be used for.
-`D-0064` and `D-0065` are Pro's too: what its profiles panel is allowed to do,
-and how its integration suite runs. All four live in `scornik/debloater-pro`,
-which is where the code they describe lives.
+For every decision about Debloater and for every decision that concerns both
+plugins. Pro's repository holds only Pro-specific ones, and the registry's holds
+its own; a decision number appears in exactly one file, and a test in each
+repository fails if that stops being true.
+
+**Seven decisions are not here**, all in
+[`scornik/debloater-pro`](https://github.com/scornik/debloater-pro/blob/main/docs/DECISIONS.md):
+
+| | |
+|---|---|
+| `D-0035` | Licensing is provider-agnostic; Hakeemify Cloud is optional |
+| `D-0050` | How Pro attaches to the free plugin |
+| `D-0060` | The Freemius product, and what it is allowed to decide |
+| `D-0061` | What white-label actually does, and what we may promise |
+| `D-0062` | The commerce path is verified end to end |
+| `D-0064` | Pro chooses a profile; Debloater applies it |
+| `D-0065` | Pro's integration suite runs again, from the free plugin's wp-env |
+
+`D-0067` is in `scornik/debloater-registry`.
+
+This section said *four* until 0.2.0, and had said so since the split. `D-0060`,
+`D-0061` and `D-0062` were recorded in Pro afterwards and nobody updated the
+count — a small thing, and exactly the kind of drift that having two copies of
+the same file produces.
 
 They are named where other entries refer to them, so a reference that goes
 nowhere from here is not a gap in the record; it is the half of the record that
