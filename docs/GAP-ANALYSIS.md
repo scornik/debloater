@@ -1,6 +1,6 @@
 # Gap analysis: `docs/FEATURES.md` against `BUILD-SPEC.md`
 
-Phase by phase, at **0.2.0**. Four verdicts:
+Phase by phase, at **free 0.2.0** and **Pro 0.2.1**. Four verdicts:
 
 - **As specified** — built, and built the way §17 describes it.
 - **Differently** — built, not the way the spec says. How, and the decision.
@@ -54,16 +54,19 @@ when it says "the only tweaks until Phase 10".
 Specified: the registry's CI runs "the plugin's WP/Woo/Elementor integration
 matrix against the registry".
 
-Built: it does not. **D-0045** records why — the plugin was private and the
-registry public, so that checkout would have needed a credential in a public
-workflow. The registry's CI checks what data can be checked with nothing
-installed.
+Built: it does not. The registry's CI checks what data can be checked with
+nothing installed.
 
-**That reason expired and the decision has not been revisited.** The plugin
-repository is public now. The Phase 21 pipeline does check the plugin against
-the registry, but weekly and as a proposal engine — not as a gate on every
-registry push. D-0045 should be amended or superseded; it currently justifies
-a limitation by a fact that is no longer true.
+**D-0045's reason for that expired, and `D-0069` now says so.** D-0045 gave the
+plugin being private as the obstacle; the plugin repository is public and the
+registry already checks it out with no token. D-0045 carries a note pointing at
+D-0069 rather than being rewritten, so what was believed then is still readable.
+
+Still **Differently**, for reasons that are now stated honestly: the matrix costs
+about three minutes a job against an `integrity` job that finishes in under one,
+and most registry pushes change a line of wording. The Phase 21 pipeline runs the
+matrix against the registry weekly and on dispatch, so there is coverage — it is
+not a gate. D-0069 estimates a day to make it one.
 
 ### 18 — Release hardening: **As specified**, with one exception
 
@@ -83,6 +86,9 @@ adapter and its entry point; no cloud host outside the resolver.
 
 Sub-phases 19b (packaging, admin probe, Freemius SDK) and 19c (profiles) were
 added beyond §17 and are **not in the spec**. See below.
+
+One §17 task is deliberately **not built**: "bulk apply of a saved profile".
+See "Specified, and not built".
 
 ### 20 — Cloud design: **As specified**
 
@@ -112,9 +118,36 @@ has completed one successful end-to-end run against a real model.
 
 ## Specified, and not built
 
-**Nothing in §17 phases 0–20 is missing**, with the two exceptions named above:
-the registry CI does not run the plugin's matrix (17), and wordpress.org
-submission has not happened (18).
+Three things, all deliberate and all recorded.
+
+### Bulk apply of a saved profile (19)
+
+§17 Phase 19 lists it as a task, and `BUILD-SPEC.md` is the authority, so this
+is a divergence and not an oversight.
+
+It was built, and it was reachable from nothing: the dropdown that stored its
+profile was replaced by the profiles panel in 19c-2, and `apply()` had no caller
+outside its own tests. **D-0068** deleted it rather than wiring it up, on the
+grounds 19c-2 had already used to refuse the same route — a second path into
+applying inside the paid half is a path that can be taken without the free
+half's checks. `ProArchitectureTest::test_pro_cannot_apply_anything` fails if
+one comes back.
+
+What the task was reaching for — one setup applied across many sites — is
+delivered by portable profiles: export, import, preview and confirm on each
+site. Cross-site *sync*, where one place pushes to many, remains deferred to the
+cloud phase by D-0063.
+
+Amending §17 is the spec owner's call, not this document's. Until then the two
+disagree, and this is where that is written down.
+
+### The registry CI does not run the plugin's matrix (17)
+
+Above, and `D-0069`.
+
+### wordpress.org submission (18)
+
+Above. An external act needing credentials.
 
 ---
 
@@ -156,21 +189,34 @@ Ran only on one machine from the split until this week. It now runs in Pro's CI
 `ProIntegrationTest` were present and **uncollected for four commits** — not
 failing, not skipping, never run.
 
-### `BulkApply` has no interface
+### ~~`BulkApply` has no interface~~ — resolved, by deletion
 
-`Features/BulkApply.php` is complete and tested, and **nothing calls
-`apply()` except tests**. The dropdown that used to store its profile was
-replaced by the profiles panel, which links to Debloater's preview instead. So
-Pro ships a feature reachable only from PHP. Either give it an interface or
-remove it; shipping it as-is is a claim about capability that no user can
-exercise.
+Deleted in Pro 0.2.1 (**D-0068**), with a test that fails if any file in Pro
+contains `->apply(`, `ConfirmationToken`, `matchesPlan` or `previewTweaks(`.
+The copy that promised it is corrected. It leaves §17 and the build disagreeing
+about Phase 19; that is recorded above rather than here.
 
-### The tags are broken
+### ~~The tags are broken~~ — resolved
 
-The free plugin's only tag is `v0.1.0`, pointing at a commit from before the
-Pro split rewrote history — not an ancestor of `main`. 0.1.1 was never tagged.
-Pro has no tags at all. Nothing depends on them today because the version check
-reads the content record, but `git describe` misleads.
+`v0.1.0` is deleted from both the free repository and its remote; it pointed at
+`91a66d2`, from before the Pro split rewrote history. Both repositories are
+tagged `v0.2.0` at the commit where their version locations moved together, and
+`docs/RELEASING.md` in each makes tagging a release step with the reasoning
+attached. **0.1.1 stays untagged on purpose**: its content record was later found
+misdated, so no commit has a tree that is honestly 0.1.1.
+
+### The version check was reading whichever archive was lying about
+
+`tools/version-discipline.mjs` compares a built zip against the content record.
+It never asked whether that zip was a build of the current tree. Deleting
+`BulkApply.php` and running it produced "shipped content is unchanged" — the
+previous release's zip agreeing with the record it was made from, and neither
+of them describing the code.
+
+CI never met it, because CI builds the archive in the job that runs the check.
+A person following `docs/RELEASING.md` met it whenever they edited anything
+after building, which is the ordinary case. Fixed in both repositories: the
+check refuses an archive older than any file it ships, and says which files.
 
 ### The content record misdated itself
 
@@ -188,12 +234,12 @@ unreachable objects, which needs a support request. **Nothing secret was ever
 committed there** — Pro's CI asserts that on every push — but the source is
 readable by anyone who knows the SHA.
 
-### The decision record is duplicated
+### ~~The decision record is duplicated~~ — resolved
 
-`scornik/debloater` and `scornik/debloater-pro` each hold a full copy of
-`docs/DECISIONS.md`, including duplicate `D-0057` and `D-0065`. Amending either
-makes them silently disagree, and Principle **P1** cites "D-0057" without
-saying which is authoritative.
+`54d19f7` (free) and `a7322aa` (Pro). This repository's `docs/DECISIONS.md` is
+the authoritative one; Pro's holds only the eight decisions that are about Pro
+alone and points here for the rest, including the Principles. A test in each
+repository fails if a number appears in both.
 
 ### The registry pipeline has proposed nothing yet
 
@@ -210,33 +256,32 @@ Ordered by whether it blocks revenue, then by effort.
 
 ### Blocks revenue
 
-1. **Upload Pro 0.2.0 to Freemius.** The zip is built. Minutes; needs
-   credentials. Without it nothing can be sold.
+1. **Upload Pro 0.2.1 to Freemius.** `dist/debloater-pro-0.2.1.zip` is built.
+   Minutes; needs credentials. Without it nothing can be sold. The Freemius
+   dashboard's own description still carries the corrected copy's predecessor
+   and has to be edited there by hand — it is not in this repository.
 2. **Submit the free plugin to wordpress.org.** The zip is built and Plugin
    Check is clean. Hours of forms, then a review queue measured in weeks. It is
    the funnel Pro sells into, and the `debloater` slug is unreserved until it
    happens.
-3. **Decide what `BulkApply` is.** Pro's feature list promises bulk apply and a
-   customer cannot reach it. Either an interface or a removal — an afternoon
-   either way, and a support conversation if neither.
 
 ### Does not block revenue, but is owed
 
-4. **Amend D-0045.** It justifies the registry CI's limits with a fact that
-   stopped being true when the plugin repository went public. Minutes.
-5. **Resolve the duplicated decision record.** An hour.
-6. **Fix or remove the broken tags.** Minutes to delete, longer to decide.
-7. **Request GitHub garbage collection** of the pre-rewrite objects, and check
-   for forks. Minutes to ask; the answer is not ours to control.
+3. **Request GitHub garbage collection** of the pre-rewrite objects, and check
+   for forks. **Still open.** Minutes to ask; the answer is not ours to control,
+   and until it happens Pro's source is readable by anyone with the SHA.
+4. **Decide whether §17's "bulk apply of a saved profile" is amended or
+   restored.** D-0068 chose deletion and gave its reasons; the specification
+   still lists the task. Minutes, and it is the spec owner's call.
 
 ### Improves the product
 
-8. **Enumerating facts for the three missing families.** New scanner facts for
+5. **Enumerating facts for the three missing families.** New scanner facts for
    admin notices, dashboard widgets and REST routes, plus schema and tests.
    Days, and it is what makes the Phase 21 pipeline able to notice most of what
    it was built to notice.
-9. **Watch the pipeline's first real proposal.** Nothing to build; the next run
+6. **Watch the pipeline's first real proposal.** Nothing to build; the next run
    with a baseline to compare against is the first that can produce one, and it
    should be read carefully rather than trusted.
-10. **Registry CI running the plugin's matrix**, now that both repositories are
-    public — closing the gap D-0045 left. A day.
+7. **Registry CI running the plugin's matrix.** `D-0069` costs it at a day and
+   says what is actually in the way now that credentials are not.

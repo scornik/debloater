@@ -1795,7 +1795,7 @@ hooks only, adding workflow and never safety.
 | Pro adds no safety features | Done — no `RuntimeWriter`, `Compiler` or `SnapshotManager` reachable from `pro/`, asserted by grep |
 | No Freemius symbol outside its adapter | Done — the SDK's entry function, its class and `is_paying` appear in exactly one file |
 | No cloud host outside the endpoint resolver | Done — `hakeemify.com` appears in `EndpointResolver` and nowhere else |
-| A missing or invalid entitlement fails safe | Done — every failure path arrives at `Entitlement::none()`, and bulk apply returns null having changed nothing |
+| A missing or invalid entitlement fails safe | Done — every failure path arrives at `Entitlement::none()`, and the profiles panel is not rendered |
 | A cloud outage degrades Pro and changes nothing | Done — a site fingerprint is identical across an outage, and drift still works |
 | No remote PHP or JS executes | Done — the client returns decoded data; there is no `eval`, no variable include, no remote enqueue |
 | Drift reports added and resolved findings | Done — and reversing the comparison turns one into the other |
@@ -1814,9 +1814,15 @@ Five things, and every one of them is workflow:
   warranted, or a low-severity finding that has become a high one.
 - **A white-label before/after report.** Print-CSS HTML, no PDF library
   (D-0049). Measured deltas only; where nothing was measured it says so.
-- **Bulk apply of a saved profile.** The same `preview()` and `apply()` the
-  dashboard calls, with the same confirmation token check — it removes clicking,
-  not safety.
+- **Portable profiles.** Save a setup on one site, export it, import it on the
+  next. Applying opens Debloater's own preview with those changes ticked; Pro
+  holds no plan, no confirmation token and no call into the engine.
+
+  This replaced **bulk apply of a saved profile**, which §17 Phase 19 asks for
+  and which was built. Nothing could reach it — the dropdown that fed it was
+  replaced in 19c-2 — so `D-0068` deleted it in Pro 0.2.1 rather than wiring up
+  a second route into applying inside the paid half. `docs/GAP-ANALYSIS.md`
+  records the divergence from §17; amending the spec is not this file's call.
 - **A priority registry channel.** A different HTTPS base, and the same
   signature verification, the same traversal checks, the same ceilings.
 
