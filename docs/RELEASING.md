@@ -37,10 +37,10 @@ Semantic versioning. A new tweak, a new screen or a new command is a minor; a
 fix on its own is a patch; anything that changes what an existing selection
 does to a site is worth thinking about for longer than this sentence suggests.
 
-### 2. Move all three
+### 2. Move all four
 
-Edit the three lines above. Nothing generates them, on purpose: a version
-number that appears as a side effect of a build has no author and no meaning.
+Edit the four lines above. Nothing generates them, on purpose: a version number
+that appears as a side effect of a build has no author and no meaning.
 
 ### 3. Write the changelog
 
@@ -93,22 +93,37 @@ that record to turn a build green is how it stops meaning anything.
 
 Commit the regenerated record with the release.
 
-### 7. Tag
+### 7. Tag, in the same breath as the commit
 
 ```bash
 git tag -a vX.Y.Z -m "Debloater X.Y.Z"
 git push --follow-tags
 ```
 
-**The tags are currently broken and this is worth knowing.** The only tag in
-this repository is `v0.1.0`, and it points at `91a66d2` — a commit from before
-the Pro split rewrote history. It is not an ancestor of `main`. Version 0.1.1
-was never tagged at all.
+**This is a release step, not something to get round to.** A release with no tag
+cannot be checked out later, `git describe` on `main` reports the wrong thing to
+everybody who runs it, and "what was in 0.2.0" has to be reconstructed from
+dates. Every one of those failures shows up long after the release, to somebody
+who was not there.
 
-Nothing depends on it today: the version check reads the content record, not
-the tag. But an old tag that resolves to an unrelated tree is worse than no tag,
-and the first person to run `git describe` will be misled. Deleting it, or
-re-pointing it, is a decision nobody has taken yet.
+`--follow-tags` rather than a separate `git push --tags`: it pushes the
+annotated tag with the commit it names, so the two cannot arrive separately or
+one of them not at all.
+
+#### What the tags in this repository have been through
+
+- `v0.1.0` **pointed at `91a66d2`**, a commit from before the Pro split rewrote
+  history — not an ancestor of `main`, so it resolved to a tree unrelated to
+  anything here. It was deleted, locally and on the remote. If it is ever wanted
+  back, `91a66d2` is written down here on purpose.
+- **0.1.1 is deliberately untagged.** Its shipped-content record was later found
+  to be misdated, so there is no commit whose tree is honestly 0.1.1 to hang a
+  tag on. Inventing one would make the tag say something no build could confirm.
+- `v0.2.0` is tagged at the commit where the four version locations moved
+  together, which is the first commit whose tree the content record describes.
+
+The tag is not what the version check reads — it reads the content record, for
+the reasons in `tools/version-discipline.mjs`. The tag is for people.
 
 ### 8. Upload
 
