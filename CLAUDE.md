@@ -9,7 +9,12 @@ implementation disagrees with `BUILD-SPEC.md`, the specification wins.
 Read, in this order, before changing anything:
 
 1. `BUILD-SPEC.md` — the section relevant to the current phase (§17 lists phases).
-2. `docs/DECISIONS.md` — decisions already taken; do not re-litigate them.
+2. `docs/DECISIONS.md` — **the Principles section at the top, every time**, and
+   then the decisions relevant to what you are about to change. The principles
+   are the handful of decisions that turned out to apply beyond their own
+   subject; they are separated out because nobody reads a numbered list of
+   sixty-seven front to back, and `D-0057` was violated two directories away
+   from where it was written. Do not re-litigate any of it.
 3. `docs/BUILD-STATUS.md` — which phase is current and what is already green.
 4. `CONVENTIONS.md` — shared Hakeemify conventions.
 
