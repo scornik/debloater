@@ -444,13 +444,6 @@ final class ReleaseReadinessTest extends TestCase {
 		$this->assertIsArray( $package );
 		$this->assertSame( $expected, $composer['license'] );
 		$this->assertSame( $expected, $package['license'] );
-
-		// And the must-use loader, which is a plugin in its own right as far as
-		// WordPress is concerned and gets listed as one.
-		$this->assertStringContainsString(
-			'License: ' . $expected,
-			$this->file( 'mu-loader/debloater-loader.php' )
-		);
 	}
 
 	/**
@@ -830,7 +823,7 @@ final class ReleaseReadinessTest extends TestCase {
 		$files = array();
 		$root  = str_replace( '\\', '/', $this->path( '' ) );
 
-		foreach ( array( 'src', 'runtime-handlers', 'mu-loader' ) as $directory ) {
+		foreach ( array( 'src', 'runtime-handlers' ) as $directory ) {
 			$iterator = new \RecursiveIteratorIterator(
 				new \RecursiveDirectoryIterator( $this->path( $directory ), \FilesystemIterator::SKIP_DOTS )
 			);

@@ -1,7 +1,7 @@
 # Everything that is not the plugin.
 #
 # `wp dist-archive` and `wp-scripts plugin-zip` both read this file. What ships
-# is: the entry point, src/, runtime-handlers/, mu-loader/, registry/, schemas/,
+# is: the entry point, src/, runtime-handlers/, registry/, schemas/,
 # build/, languages/, readme.txt, uninstall.php, and the Composer autoloader.
 #
 # Anything listed here is development apparatus. The rule of thumb: if removing

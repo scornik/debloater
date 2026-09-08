@@ -7,7 +7,6 @@ parameters:
 		- debloater.php
 		- src
 		- runtime-handlers
-		- mu-loader
 	excludePaths:
 		analyse:
 			- vendor (?)

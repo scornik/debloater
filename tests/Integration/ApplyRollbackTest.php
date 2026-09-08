@@ -87,12 +87,11 @@ final class ApplyRollbackTest extends IntegrationTestCase {
 			static fn ( array $options ): array => array_merge( $options, array( 'debloater_test_option' ) )
 		);
 
-		$runtime  = $this->context()->runtimeFile();
-		$before   = (string) file_get_contents( $runtime );
-		$hash     = $this->plugin->state()->runtimeHash();
+		$before   = $this->storedHandlersDigest();
+		$hash     = $this->plugin->state()->selectionHash();
 		$selected = $this->plugin->state()->selection();
 
-		$this->assertNotSame( '', $before, 'The baseline runtime should have been written.' );
+		$this->assertNotSame( array(), $this->storedHandlers(), 'The baseline selection should have been stored.' );
 
 		$result = $this->plugin->apply( $this->planOf( self::CONFIG_TWEAKS ) );
 
@@ -102,9 +101,7 @@ final class ApplyRollbackTest extends IntegrationTestCase {
 
 		$this->assertSame( $expected, $result->applied, 'Every planned tweak should have been applied.' );
 
-		$applied_runtime = (string) file_get_contents( $runtime );
-
-		$this->assertNotSame( $before, $applied_runtime, 'Applying should have changed the runtime.' );
+		$this->assertNotSame( $before, $this->storedHandlersDigest(), 'Applying should have changed the selection.' );
 
 		// Something else writes the option in between, so a restore that merely
 		// leaves it alone cannot pass.
@@ -113,8 +110,8 @@ final class ApplyRollbackTest extends IntegrationTestCase {
 		$undone = $this->plugin->rollback( $result->run_id );
 
 		$this->assertSame( RunState::ROLLED_BACK, $undone->state );
-		$this->assertSame( $before, (string) file_get_contents( $runtime ), 'The runtime is not byte-identical.' );
-		$this->assertSame( $hash, $this->plugin->state()->runtimeHash() );
+		$this->assertSame( $before, $this->storedHandlersDigest(), 'The restored selection differs.' );
+		$this->assertSame( $hash, $this->plugin->state()->selectionHash() );
 		$this->assertSame( $selected, $this->plugin->state()->selection() );
 		$this->assertSame( array( 'kept' => 'exactly this' ), get_option( 'debloater_test_option' ) );
 
@@ -264,7 +261,7 @@ final class ApplyRollbackTest extends IntegrationTestCase {
 	public function test_a_corrupt_recovery_point_refuses_to_restore(): void {
 		$this->selectAndGenerate( array( 'core.remove_jquery_migrate' => array() ) );
 
-		$before = (string) file_get_contents( $this->context()->runtimeFile() );
+		$before = $this->storedHandlersDigest();
 		$result = $this->plugin->apply( $this->planOf( array( 'core.remove_generator' ) ) );
 
 		$this->assertSame( RunState::COMMITTED, $result->state, (string) $result->error );
@@ -287,7 +284,7 @@ final class ApplyRollbackTest extends IntegrationTestCase {
 
 			$this->assertNotSame(
 				$before,
-				(string) file_get_contents( $this->context()->runtimeFile() ),
+				$this->storedHandlersDigest(),
 				'Verification must not have written anything.'
 			);
 		}
@@ -349,7 +346,7 @@ final class ApplyRollbackTest extends IntegrationTestCase {
 	public function test_a_second_apply_while_locked_is_rejected(): void {
 		$this->selectAndGenerate( array( 'core.remove_jquery_migrate' => array() ) );
 
-		$before = (string) file_get_contents( $this->context()->runtimeFile() );
+		$before = $this->storedHandlersDigest();
 		$holder = new Lock( 'another-request' );
 
 		$this->assertTrue( $holder->acquire(), 'The first claim on the lock should succeed.' );
@@ -359,7 +356,7 @@ final class ApplyRollbackTest extends IntegrationTestCase {
 		$this->assertSame( RunState::ABORTED, $result->state );
 		$this->assertStringContainsString( 'already in progress', (string) $result->error );
 		$this->assertSame( array(), $result->applied );
-		$this->assertSame( $before, (string) file_get_contents( $this->context()->runtimeFile() ) );
+		$this->assertSame( $before, $this->storedHandlersDigest() );
 		$this->assertSame( 'another-request', $holder->heldBy(), 'The rejected run must not steal the lock.' );
 
 		$holder->release();
@@ -391,11 +388,11 @@ final class ApplyRollbackTest extends IntegrationTestCase {
 
 		$this->selectAndGenerate( array( 'core.remove_jquery_migrate' => array() ) );
 
-		$before = (string) file_get_contents( $this->context()->runtimeFile() );
+		$before = $this->storedHandlersDigest();
 		$result = $this->plugin->apply( $this->planOf( self::CONFIG_TWEAKS ) );
 
 		$this->assertSame( RunState::COMMITTED, $result->state, (string) $result->error );
-		$this->assertNotSame( $before, (string) file_get_contents( $this->context()->runtimeFile() ) );
+		$this->assertNotSame( $before, $this->storedHandlersDigest() );
 
 		// Rewind the run to the state a crash would have left it in: applied to
 		// the site, never verified, never committed, and nobody coming back.
@@ -413,7 +410,7 @@ final class ApplyRollbackTest extends IntegrationTestCase {
 		$this->assertSame( array( $result->run_id ), $recovered );
 		$this->assertSame(
 			$before,
-			(string) file_get_contents( $this->context()->runtimeFile() ),
+			$this->storedHandlersDigest(),
 			'Crash recovery must restore the runtime exactly.'
 		);
 

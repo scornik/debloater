@@ -667,7 +667,6 @@ final class ApplyManager {
 
 		ksort( $selection, SORT_STRING );
 
-		$compiler = new Compiler( $this->context );
 		$resolved = array();
 
 		foreach ( $selection as $tweak_id => $params ) {
@@ -682,16 +681,11 @@ final class ApplyManager {
 			}
 		}
 
-		$hash = ( new RuntimeWriter( $this->context ) )->write(
-			$compiler->compile( $resolved, $this->registry->hash() ),
-			$compiler->selectionHash( $resolved ),
-			$this->registry->hash()
-		);
+		$runtime = new Runtime( $this->context );
 
-		$mode = '' === $hash ? RuntimeLoader::MODE_NONE : ( new RuntimeLoader( $this->context ) )->install();
+		$runtime->write( $resolved );
 
 		$this->state->setSelection( $selection );
-		$this->state->setRuntime( $hash, $mode );
 	}
 
 	/**

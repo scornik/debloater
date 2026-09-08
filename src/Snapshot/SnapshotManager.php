@@ -113,14 +113,11 @@ final class SnapshotManager {
 	 * @throws RuntimeException When the snapshot cannot be stored.
 	 */
 	public function captureConfig( int $run_id, array $tweaks ): Snapshot {
-		$writer = new RuntimeWriter( $this->context );
-
 		$config = array(
-			'selection'    => $this->state->selection(),
-			'tweak_states' => $this->serialisedTweakStates(),
-			'runtime_hash' => $writer->actualHash(),
-			'loader_mode'  => $this->state->loaderMode(),
-			'options'      => $this->affectedOptions( $tweaks ),
+			'selection'      => $this->state->selection(),
+			'tweak_states'   => $this->serialisedTweakStates(),
+			'selection_hash' => $this->state->selectionHash(),
+			'options'        => $this->affectedOptions( $tweaks ),
 		);
 
 		$snapshot = new Snapshot(

@@ -15,9 +15,7 @@ namespace Debloater\Snapshot;
 // src/Contracts and src/Registry, which are required not to call WordPress at all.
 
 use RuntimeException;
-use Debloater\Apply\Compiler;
-use Debloater\Apply\RuntimeLoader;
-use Debloater\Apply\RuntimeWriter;
+use Debloater\Apply\Runtime;
 use Debloater\Contracts\Context;
 use Debloater\Contracts\DataOperationInterface;
 use Debloater\Contracts\Snapshot;
@@ -254,14 +252,19 @@ final class RollbackManager {
 			$this->state->set( array( 'tweak_states' => $config['tweak_states'] ) );
 		}
 
-		$hash = $this->rewriteRuntime( $selection );
-		$mode = '' === $hash ? RuntimeLoader::MODE_NONE : ( new RuntimeLoader( $this->context ) )->install();
+		$this->rewriteRuntime( $selection );
 
-		$this->state->setRuntime( $hash, $mode );
+		$hash = $this->state->selectionHash();
 
-		$expected = is_string( $config['runtime_hash'] ?? null ) ? $config['runtime_hash'] : '';
+		// Recovery points taken before 0.3.0 recorded `runtime_hash`: the sha256
+		// of the generated file's bytes. That file is gone and its bytes cannot
+		// be reproduced, so there is nothing to compare an old snapshot against
+		// and the check is skipped rather than failed. Said out loud because a
+		// skipped safety check that looks like a passing one is the thing this
+		// codebase keeps finding (P2, P3).
+		$expected = is_string( $config['selection_hash'] ?? null ) ? $config['selection_hash'] : null;
 
-		if ( $expected !== $hash ) {
+		if ( null !== $expected && $expected !== $hash ) {
 			throw new RuntimeException(
 				sprintf(
 					'The restored runtime does not match the one recorded in the recovery point (%s vs %s).',
@@ -331,14 +334,13 @@ final class RollbackManager {
 	}
 
 	/**
-	 * Rewrite the runtime from a selection.
+	 * Store the selection for the loader.
 	 *
 	 * @param array<string,array<string,mixed>> $selection Tweak id to parameters.
-	 * @return string The runtime hash, or '' when the selection is empty.
+	 * @return void
 	 */
-	private function rewriteRuntime( array $selection ): string {
-		$compiler = new Compiler( $this->context );
-		$tweaks   = array();
+	private function rewriteRuntime( array $selection ): void {
+		$tweaks = array();
 
 		foreach ( $selection as $tweak_id => $params ) {
 			if ( ! $this->registry->has( $tweak_id ) ) {
@@ -348,13 +350,7 @@ final class RollbackManager {
 			$tweaks[] = $this->registry->tweak( $tweak_id )->resolve( is_array( $params ) ? $params : array() );
 		}
 
-		$source = $compiler->compile( $tweaks, $this->registry->hash() );
-
-		return ( new RuntimeWriter( $this->context ) )->write(
-			$source,
-			$compiler->selectionHash( $tweaks ),
-			$this->registry->hash()
-		);
+		( new Runtime( $this->context ) )->write( $tweaks );
 	}
 
 	/**

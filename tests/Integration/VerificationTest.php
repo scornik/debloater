@@ -11,7 +11,6 @@ namespace Debloater\Tests\Integration;
 
 use WP_Error;
 use Debloater\Apply\Lock;
-use Debloater\Apply\RuntimeLoader;
 use Debloater\Contracts\PreviewPlan;
 use Debloater\Contracts\ProbeStatus;
 use Debloater\Contracts\RunState;
@@ -115,7 +114,6 @@ final class VerificationTest extends IntegrationTestCase {
 				'home',
 				'login',
 				'rest',
-				'runtime_loaded',
 				'woo_account',
 				'woo_cart',
 				'woo_checkout',
@@ -308,104 +306,24 @@ final class VerificationTest extends IntegrationTestCase {
 	}
 
 	/**
-	 * A runtime on disk that is not the one we generated is a failure: the site
-	 * is running something other than what the user approved.
-	 *
-	 * @return void
-	 */
-	public function test_a_runtime_hash_mismatch_fails(): void {
-		$this->selectAndGenerate( array( 'core.remove_generator' => array() ) );
-
-		$this->serveHealthySite(
-			array(
-				rest_url( 'debloater/v1/status' ) => array(
-					'status' => 200,
-					'body'   => (string) wp_json_encode(
-						array(
-							'runtime' => array( 'hash' => str_repeat( 'b', 64 ) ),
-							'loader'  => array( 'mode' => RuntimeLoader::MODE_MU_PLUGIN ),
-						)
-					),
-				),
-			)
-		);
-
-		$probe = $this->probe( $this->plugin->verifier()->verify(), 'runtime_loaded' );
-
-		$this->assertSame( ProbeStatus::FAIL, $probe->status );
-		$this->assertStringContainsString( 'not the one this change generated', $probe->message );
-	}
-
-	/**
-	 * A selection with no runtime behind it is a failure, not a pass: the site
-	 * would be reporting changes it is not making.
-	 *
-	 * @return void
-	 */
-	public function test_a_selection_with_no_runtime_fails(): void {
-		$this->selectAndGenerate( array( 'core.remove_generator' => array() ) );
-
-		$this->serveHealthySite(
-			array(
-				rest_url( 'debloater/v1/status' ) => array(
-					'status' => 200,
-					'body'   => (string) wp_json_encode(
-						array(
-							'runtime' => array( 'hash' => '' ),
-							'loader'  => array( 'mode' => RuntimeLoader::MODE_NONE ),
-						)
-					),
-				),
-			)
-		);
-
-		$this->assertSame(
-			ProbeStatus::FAIL,
-			$this->probe( $this->plugin->verifier()->verify(), 'runtime_loaded' )->status
-		);
-	}
-
-	/**
-	 * The fallback loader works, but later in the request than it could, so it
-	 * is reported as a warning.
-	 *
-	 * @return void
-	 */
-	public function test_the_fallback_loader_warns(): void {
-		$hash = $this->selectAndGenerate( array( 'core.remove_generator' => array() ) );
-
-		$this->serveHealthySite(
-			array(
-				rest_url( 'debloater/v1/status' ) => array(
-					'status' => 200,
-					'body'   => (string) wp_json_encode(
-						array(
-							'runtime' => array( 'hash' => $hash ),
-							'loader'  => array( 'mode' => RuntimeLoader::MODE_FALLBACK ),
-						)
-					),
-				),
-			)
-		);
-
-		$probe = $this->probe( $this->plugin->verifier()->verify(), 'runtime_loaded' );
-
-		$this->assertSame( ProbeStatus::WARN, $probe->status );
-		$this->assertStringContainsString( 'mu-plugin', $probe->message );
-	}
-
-	/**
 	 * With nothing selected there is nothing to load, and finding nothing is
 	 * the correct answer rather than a missing runtime.
 	 *
 	 * @return void
 	 */
-	public function test_an_empty_selection_passes_without_a_runtime(): void {
+	public function test_an_empty_selection_verifies_cleanly(): void {
 		$this->serveHealthySite();
 
-		$this->assertSame(
-			ProbeStatus::PASS,
-			$this->probe( $this->plugin->verifier()->verify(), 'runtime_loaded' )->status
+		$result = $this->plugin->verifier()->verify();
+
+		$this->assertSame( ProbeStatus::PASS, $result->status );
+
+		// And nothing reports on a runtime, because there is no longer a probe
+		// that could: `runtime_loaded` asked whether a generated file was
+		// loaded and matched its hash (D-0070).
+		$this->assertNotContains(
+			'runtime_loaded',
+			array_map( static fn ( $probe ): string => $probe->probe, $result->probes )
 		);
 	}
 
@@ -699,10 +617,7 @@ final class VerificationTest extends IntegrationTestCase {
 	private static function bodyFor( string $url, $plugin ): string {
 		if ( 0 === strpos( $url, rest_url( 'debloater/v1/status' ) ) ) {
 			return (string) wp_json_encode(
-				array(
-					'runtime' => array( 'hash' => $plugin->state()->runtimeHash() ),
-					'loader'  => array( 'mode' => RuntimeLoader::MODE_MU_PLUGIN ),
-				)
+				array( 'runtime' => array( 'handlers' => 0 ) )
 			);
 		}
 

@@ -127,60 +127,32 @@ final class StatusRouteTest extends IntegrationTestCase {
 
 		$this->assertSame( array(), $data['selection'] );
 		$this->assertSame( 0, $data['selection_count'] );
-		$this->assertFalse( $data['runtime']['present'] );
-		$this->assertTrue( $data['runtime']['intact'] );
-		$this->assertTrue( $data['runtime']['matches_state'] );
-		$this->assertSame( 'none', $data['loader']['mode'] );
+		$this->assertSame( 0, $data['runtime']['handlers'] );
 	}
 
 	/**
-	 * With a selection, the status reports the runtime and its hash.
+	 * With a selection, the status reports what is registered and its hash.
 	 *
 	 * @return void
 	 */
-	public function test_status_reports_the_runtime_hash(): void {
+	public function test_status_reports_what_is_registered(): void {
 		$this->asAdministrator();
 
-		$hash = $this->selectAndGenerate(
+		$this->selectAndGenerate(
 			array(
 				'core.remove_rsd'       => array(),
 				'core.remove_generator' => array(),
 			)
 		);
 
+		$hash = $this->plugin->state()->selectionHash();
+
 		$data = $this->request()->get_data();
 
 		$this->assertSame( array( 'core.remove_generator', 'core.remove_rsd' ), $data['selection'] );
 		$this->assertSame( 2, $data['selection_count'] );
-		$this->assertTrue( $data['runtime']['present'] );
-		$this->assertSame( $hash, $data['runtime']['hash'] );
-		$this->assertSame( $hash, $data['runtime']['recorded'] );
-		$this->assertSame( $hash, $data['runtime']['expected'] );
-		$this->assertTrue( $data['runtime']['intact'] );
-		$this->assertTrue( $data['runtime']['matches_state'] );
-		$this->assertSupportedLoaderMode( $data['loader']['mode'] );
-	}
-
-	/**
-	 * A runtime edited on disk is reported as not intact, so the dashboard can
-	 * say what happened instead of quietly disagreeing with reality.
-	 *
-	 * @return void
-	 */
-	public function test_status_reports_a_tampered_runtime(): void {
-		$this->asAdministrator();
-
-		$this->selectAndGenerate( array( 'core.remove_rsd' => array() ) );
-
-		$runtime = $this->context()->runtimeFile();
-
-		file_put_contents( $runtime, file_get_contents( $runtime ) . "\n// tampered\n" );
-
-		$data = $this->request()->get_data();
-
-		$this->assertFalse( $data['runtime']['intact'] );
-		$this->assertFalse( $data['runtime']['matches_state'] );
-		$this->assertNotSame( $data['runtime']['hash'], $data['runtime']['recorded'] );
+		$this->assertSame( 2, $data['runtime']['handlers'] );
+		$this->assertSame( $hash, $data['runtime']['selection_hash'] );
 	}
 
 	/**

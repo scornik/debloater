@@ -15,22 +15,78 @@ use Debloater\Brand;
  * BUILD-SPEC §10 and §14: with nothing selected, Debloater costs nothing.
  *
  * This is the promise the whole architecture is arranged around, so it is
- * measured rather than reasoned about: no runtime file, no hooks, no queries,
- * nothing autoloaded.
+ * measured rather than reasoned about: no hooks, no queries, and nothing
+ * autoloaded beyond the one small option the loader has to read.
+ *
+ * That last clause is the part `D-0070` changed. There is no generated file to
+ * be absent any more; there is an option, and the tests below measure what it
+ * costs rather than assuming the answer.
  */
 final class RuntimeOverheadTest extends IntegrationTestCase {
 
 	/**
-	 * An empty selection leaves no runtime file behind.
+	 * An empty selection resolves to no handlers.
 	 *
 	 * @return void
 	 */
-	public function test_an_empty_selection_writes_no_runtime_file(): void {
-		$this->selectAndGenerate( array() );
+	public function test_an_empty_selection_resolves_to_nothing(): void {
+		$this->assertSame( 0, $this->selectAndGenerate( array() ) );
+		$this->assertSame( array(), $this->plugin->runtime()->registeredClasses() );
+	}
 
-		$this->assertFileDoesNotExist( $this->context()->runtimeFile() );
-		$this->assertFileDoesNotExist( $this->context()->runtimeLockFile() );
-		$this->assertSame( '', $this->plugin->state()->runtimeHash() );
+	/**
+	 * And this plugin writes no PHP anywhere under wp-content.
+	 *
+	 * The reason the compiled runtime was removed, asserted rather than
+	 * remembered: apply a real selection, then look. A `.php` file appearing
+	 * under wp-content that this plugin put there is the thing wordpress.org
+	 * refused, and the only way to know it has not come back is to check
+	 * (D-0070, P8).
+	 *
+	 * The two guards are excluded by name — `index.php` files that exist to stop
+	 * directory listing, contain nothing, and are what WordPress itself does.
+	 *
+	 * @return void
+	 */
+	public function test_no_php_is_written_under_wp_content(): void {
+		$this->selectAndGenerate( array( 'core.remove_generator' => array() ) );
+
+		$directory = $this->context()->dataDir();
+
+		if ( ! is_dir( $directory ) ) {
+			$this->assertDirectoryDoesNotExist( $directory );
+
+			return;
+		}
+
+		$found = array();
+
+		$files = new \RecursiveIteratorIterator( new \RecursiveDirectoryIterator( $directory ) );
+
+		foreach ( $files as $file ) {
+			if ( $file->isFile() && 'php' === strtolower( $file->getExtension() ) && 'index.php' !== $file->getFilename() ) {
+				$found[] = $file->getPathname();
+			}
+		}
+
+		$this->assertSame(
+			array(),
+			$found,
+			"This plugin wrote executable PHP under wp-content:\n" . implode( "\n", $found )
+		);
+	}
+
+	/**
+	 * The mu-plugins loader is not installed, and is not left behind.
+	 *
+	 * @return void
+	 */
+	public function test_no_mu_plugin_is_installed(): void {
+		$this->selectAndGenerate( array( 'core.remove_generator' => array() ) );
+
+		$this->assertFileDoesNotExist(
+			$this->context()->content_dir . '/mu-plugins/debloater-loader.php'
+		);
 	}
 
 	/**
@@ -43,7 +99,7 @@ final class RuntimeOverheadTest extends IntegrationTestCase {
 
 		$before = $this->hookSnapshot();
 
-		$this->assertFalse( $this->loadRuntime(), 'there should be no runtime to load' );
+		$this->assertFalse( $this->loadRuntime(), 'there should be nothing to register' );
 
 		$this->assertSame(
 			array(),
@@ -133,14 +189,15 @@ final class RuntimeOverheadTest extends IntegrationTestCase {
 	}
 
 	/**
-	 * Debloater stores exactly one option (BUILD-SPEC §8).
+	 * Debloater stores exactly two options (BUILD-SPEC §8, D-0070).
 	 *
 	 * @return void
 	 */
-	public function test_only_one_option_is_stored(): void {
+	public function test_only_the_two_expected_options_are_stored(): void {
 		global $wpdb;
 
 		$this->plugin->state()->set( array( 'last_scan_run_id' => 1 ) );
+		$this->selectAndGenerate( array() );
 
 		$options = $wpdb->get_col(
 			$wpdb->prepare(
@@ -149,7 +206,16 @@ final class RuntimeOverheadTest extends IntegrationTestCase {
 			)
 		);
 
-		$this->assertSame( array( Brand::STATE_OPTION ), $options );
+		// Two now, and the second one is the point of D-0070: the selection
+		// lives in its own small autoloaded row so that the big one — runs,
+		// attestation, intent profile — can stay out of the autoload set, which
+		// is what the not-autoloaded rule was protecting.
+		sort( $options );
+
+		$this->assertSame(
+			array( \Debloater\Apply\Runtime::OPTION, Brand::STATE_OPTION ),
+			$options
+		);
 	}
 
 	/**
@@ -276,13 +342,17 @@ final class RuntimeOverheadTest extends IntegrationTestCase {
 
 		$this->selectAndGenerate( $tweaks );
 
-		$source = (string) file_get_contents( $this->context()->runtimeFile() );
+		// The loader itself. It reads exactly one option and requires files;
+		// anything else here would put the plugin's slowest work in the hot
+		// path. `get_option` is expected and excluded — reading the selection is
+		// the whole job — but nothing may reach the registry or the database.
+		$loader = (string) file_get_contents( DEBLOATER_TESTS_ROOT . '/src/Apply/Runtime.php' );
 
-		foreach ( array( 'registry/', '.json', 'json_decode', 'get_option', 'wpdb' ) as $needle ) {
+		foreach ( array( 'registry/', '.json', 'json_decode', 'wpdb' ) as $needle ) {
 			$this->assertStringNotContainsString(
 				$needle,
-				$source,
-				'The generated runtime must not reference ' . $needle . '.'
+				$loader,
+				'The loader must not reference ' . $needle . '.'
 			);
 		}
 
@@ -308,10 +378,15 @@ final class RuntimeOverheadTest extends IntegrationTestCase {
 	}
 
 	/**
-	 * The generated runtime parses in well under a millisecond.
+	 * The handlers parse in well under a millisecond, all of them together.
+	 *
+	 * This used to measure `runtime.php`. There is no `runtime.php`; what a
+	 * request now pays is the tokenising of the handler files the selection
+	 * names, which is the same cost moved from one file into several and is
+	 * measured the same way.
 	 *
 	 * A budget rather than a comparison, because there is nothing to compare
-	 * against: the alternative to loading this file is not loading it. What the
+	 * against: the alternative to loading these is not loading them. What the
 	 * number has to be is small enough that nobody would notice it, on the
 	 * slowest machine anybody runs this suite on.
 	 *
@@ -324,11 +399,11 @@ final class RuntimeOverheadTest extends IntegrationTestCase {
 	 * file, hitting the database, doing work at include time instead of on a
 	 * hook.
 	 *
-	 * BUILD-SPEC §14: "runtime.php parse time".
+	 * BUILD-SPEC §14, which said "runtime.php parse time" and now means this.
 	 *
 	 * @return void
 	 */
-	public function test_the_runtime_parses_within_budget(): void {
+	public function test_the_handlers_parse_within_budget(): void {
 		$selection = array();
 
 		// Every config tweak there is: the worst case a real site can reach,
@@ -343,10 +418,18 @@ final class RuntimeOverheadTest extends IntegrationTestCase {
 
 		$this->selectAndGenerate( $selection );
 
-		$source = (string) file_get_contents( $this->context()->runtimeFile() );
+		$source = '';
 
-		// Parse time, not execution time: the file is tokenised rather than
-		// included, because including it registers hooks and running the
+		foreach ( get_option( \Debloater\Apply\Runtime::OPTION )['handlers'] as $handler ) {
+			$source .= (string) file_get_contents(
+				$this->context()->handlersDir() . '/' . $handler['file']
+			);
+		}
+
+		$this->assertNotSame( '', $source, 'the worst case should have read some handlers' );
+
+		// Parse time, not execution time: the files are tokenised rather than
+		// included, because including them registers hooks and running the
 		// handlers is a different measurement.
 		$iterations = 20;
 		$started    = hrtime( true );

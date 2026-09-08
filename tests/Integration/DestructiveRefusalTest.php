@@ -330,10 +330,7 @@ final class DestructiveRefusalTest extends IntegrationTestCase {
 
 				if ( 0 === strpos( $url, rest_url( 'debloater/v1/status' ) ) ) {
 					$body = (string) wp_json_encode(
-						array(
-							'runtime' => array( 'hash' => $plugin->state()->runtimeHash() ),
-							'loader'  => array( 'mode' => \Debloater\Apply\RuntimeLoader::MODE_MU_PLUGIN ),
-						)
+						array( 'runtime' => array( 'handlers' => 0 ) )
 					);
 				} elseif ( 0 === strpos( $url, rest_url() ) ) {
 					$body = (string) wp_json_encode( array( 'name' => 'A site' ) );

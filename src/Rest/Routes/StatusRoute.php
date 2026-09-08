@@ -77,14 +77,9 @@ final class StatusRoute implements RouteInterface {
 		unset( $request );
 
 		$context   = $this->plugin->context();
-		$writer    = $this->plugin->runtimeWriter();
-		$loader    = $this->plugin->runtimeLoader();
 		$state     = $this->plugin->state();
 		$selection = $state->selection();
-
-		$actual   = $writer->actualHash();
-		$recorded = $writer->recordedHash();
-		$expected = $state->runtimeHash();
+		$handlers  = $this->plugin->runtime()->registeredClasses();
 
 		return new WP_REST_Response(
 			array(
@@ -92,21 +87,13 @@ final class StatusRoute implements RouteInterface {
 				'registry_hash'   => $this->plugin->registry()->hash(),
 				'selection'       => array_keys( $selection ),
 				'selection_count' => count( $selection ),
+				// There is no generated file to be present, intact, or to
+				// disagree with the state option, because there is no generated
+				// file (D-0070). What is reportable is what the selection
+				// resolves to and what it hashes to.
 				'runtime'         => array(
-					'present'       => '' !== $actual,
-					'hash'          => $actual,
-					'recorded'      => $recorded,
-					'expected'      => $expected,
-					'intact'        => $writer->isIntact(),
-					// The state option is what the plugin believes it generated;
-					// a mismatch means something rewrote the file behind us.
-					'matches_state' => '' === $expected ? '' === $actual : hash_equals( $expected, $actual ),
-				),
-				'loader'          => array(
-					'mode'       => $loader->mode(),
-					'installed'  => $loader->isInstalled(),
-					'up_to_date' => $loader->isUpToDate(),
-					'fallback'   => \Debloater\Apply\RuntimeLoader::MODE_FALLBACK === $loader->mode(),
+					'handlers'       => count( $handlers ),
+					'selection_hash' => $state->selectionHash(),
 				),
 			),
 			200

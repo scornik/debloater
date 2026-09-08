@@ -88,7 +88,7 @@ final class PreviewTest extends IntegrationTestCase {
 
 		$this->assertSame( $runs_before, $this->plugin->runs()->count(), 'a preview must not create a run' );
 		$this->assertSame( $state_before, $this->plugin->state()->all(), 'a preview must not change state' );
-		$this->assertFileDoesNotExist( $this->context()->runtimeFile(), 'a preview must not write a runtime' );
+		$this->assertSame( array(), $this->storedHandlers() );
 	}
 
 	/**

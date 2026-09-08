@@ -50,24 +50,39 @@ require_once __DIR__ . '/vendor/autoload.php';
 // phpcs:disable WordPress.DB.DirectDatabaseQuery.SchemaChange -- Dropping this plugin's own tables is what an opt-in uninstall is.
 
 /**
- * Remove the generated runtime and the loader, whatever else happens.
+ * Remove what this plugin left on disk, whatever else happens.
  *
  * Written out here rather than delegated, because delegating would mean booting
  * the plugin during its own uninstall — and the one thing that must work here is
  * the part that runs when everything else is already half gone.
+ *
+ * Since 0.3.0 the only thing written under wp-content is the Level B spill, so
+ * the backups directory below is all there is. The three paths that used to be
+ * removed first — runtime.php, runtime.lock and the mu-plugins loader — are
+ * still removed, because a site upgrading from 0.2.x has them and an uninstall
+ * that leaves an orphaned mu-plugin behind is an uninstall that leaves the site
+ * running our hooks forever (D-0070).
  *
  * @return void
  */
 function debloater_uninstall_runtime(): void {
 	$content = defined( 'WP_CONTENT_DIR' ) ? WP_CONTENT_DIR : ABSPATH . 'wp-content';
 
-	$paths = array(
+	// The runtime is this option now, and BUILD-SPEC §13 rule 10 says the
+	// runtime goes on uninstall whatever the user chose about their data. It is
+	// also autoloaded, so leaving it would leave a row that every request pays
+	// for, belonging to a plugin that is no longer installed — which is the
+	// exact thing this plugin exists to find on other people's sites.
+	delete_option( 'debloater_runtime' );
+
+	// Left by 0.2.x and earlier. Nothing writes these now.
+	$legacy = array(
 		$content . '/debloater/runtime.php',
 		$content . '/debloater/runtime.lock',
 		$content . '/mu-plugins/debloater-loader.php',
 	);
 
-	foreach ( $paths as $path ) {
+	foreach ( $legacy as $path ) {
 		if ( is_file( $path ) ) {
 			wp_delete_file( $path );
 		}

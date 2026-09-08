@@ -1,6 +1,6 @@
 <?php
 /**
- * Generation, rewriting and integrity of the runtime file.
+ * Registering a selection directly, with no generated file in between.
  *
  * @package Debloater
  */
@@ -9,323 +9,267 @@ declare( strict_types = 1 );
 
 namespace Debloater\Tests\Integration;
 
-use RuntimeException;
-use Debloater\Apply\RuntimeLoader;
+use Debloater\Apply\Runtime;
 
 /**
- * BUILD-SPEC §10 and §17 Phase 1.
+ * BUILD-SPEC §10, as it stands after `D-0070`.
  *
- * These tests treat the generated file as a product artefact: it must be
- * reproducible, tamper-evident, and removable without trace.
+ * The file this class used to be about is gone. What replaced it is an
+ * autoloaded option holding handler file names, and a `plugins_loaded` hook that
+ * requires them and calls `register()`.
+ *
+ * The tests that went with the file went with it — byte-identical regeneration,
+ * the lock's provenance, an edited runtime being detected, the writer refusing
+ * to escape its directory, unparseable source being refused, the loader's
+ * install modes. None of those things exist to be wrong any more.
+ *
+ * What survives is the part that was never really about the file: the same
+ * selection produces the same registrations, an unknown tweak is skipped, the
+ * handlers actually change the page, and nothing outside the plugin's own
+ * handler directory can be loaded.
  */
 final class RuntimeGenerationTest extends IntegrationTestCase {
 
 	/**
-	 * A selection produces a runtime file, a lock, and a matching hash.
+	 * Clean up.
 	 *
 	 * @return void
 	 */
-	public function test_a_selection_writes_a_runtime_and_a_lock(): void {
-		$hash = $this->selectAndGenerate( array( 'core.disable_emojis' => array() ) );
-
-		$this->assertMatchesRegularExpression( '/^[0-9a-f]{64}$/', $hash );
-		$this->assertFileExists( $this->context()->runtimeFile() );
-		$this->assertFileExists( $this->context()->runtimeLockFile() );
-		$this->assertSame( $hash, $this->plugin->state()->runtimeHash() );
-		$this->assertTrue( $this->plugin->runtimeWriter()->isIntact() );
-	}
-
-	/**
-	 * BUILD-SPEC §17 Phase 1: regenerating the same selection produces a
-	 * byte-identical file.
-	 *
-	 * @return void
-	 */
-	public function test_regeneration_is_byte_identical(): void {
-		$selection = array(
-			'core.disable_emojis'   => array(),
-			'core.remove_generator' => array(),
+	public function tear_down(): void {
+		$this->unregisterHandlers(
+			array( 'core.remove_generator', 'core.disable_emojis', 'core.heartbeat_interval' )
 		);
 
-		$this->selectAndGenerate( $selection );
-
-		$first = file_get_contents( $this->context()->runtimeFile() );
-
-		$this->selectAndGenerate( $selection );
-
-		$second = file_get_contents( $this->context()->runtimeFile() );
-
-		$this->assertSame( $first, $second );
+		parent::tear_down();
 	}
 
 	/**
-	 * The lock records the generation time, which is why the file itself does
-	 * not have to (docs/DECISIONS.md D-0005).
+	 * A selection is stored as handler file names and validated parameters.
 	 *
 	 * @return void
 	 */
-	public function test_the_lock_records_provenance(): void {
-		$hash = $this->selectAndGenerate( array( 'core.remove_rsd' => array() ) );
-		$lock = $this->plugin->runtimeWriter()->readLock();
+	public function test_a_selection_is_stored_for_the_loader(): void {
+		$this->selectAndGenerate( array( 'core.remove_generator' => array() ) );
 
-		$this->assertSame( $hash, $lock['runtime_hash'] );
-		$this->assertMatchesRegularExpression( '/^[0-9a-f]{64}$/', (string) $lock['selection_hash'] );
-		$this->assertSame( $this->plugin->registry()->hash(), $lock['registry_hash'] );
-		$this->assertSame( $this->plugin->version(), $lock['plugin_version'] );
-		$this->assertMatchesRegularExpression(
-			'/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/',
-			(string) $lock['generated_at']
+		$stored = get_option( Runtime::OPTION );
+
+		$this->assertIsArray( $stored );
+		$this->assertArrayHasKey( 'handlers', $stored );
+		$this->assertCount( 1, $stored['handlers'] );
+
+		$this->assertSame( 'core-remove-generator.php', $stored['handlers'][0]['file'] );
+		$this->assertSame(
+			'Debloater_Handler_Core_Remove_Generator',
+			$stored['handlers'][0]['class']
 		);
+
+		// A file name, never a path. The directory is supplied by the loader, so
+		// a traversal cannot be expressed here even if something wrote one.
+		$this->assertStringNotContainsString( '/', $stored['handlers'][0]['file'] );
 	}
 
 	/**
-	 * Changing the selection rewrites the file and changes the hash.
+	 * The option is autoloaded, because the loader reads it on every request.
 	 *
 	 * @return void
 	 */
-	public function test_changing_the_selection_changes_the_runtime(): void {
-		$one = $this->selectAndGenerate( array( 'core.remove_rsd' => array() ) );
-		$two = $this->selectAndGenerate(
-			array(
-				'core.remove_rsd'       => array(),
-				'core.remove_generator' => array(),
+	public function test_the_runtime_option_is_autoloaded(): void {
+		$this->selectAndGenerate( array( 'core.remove_generator' => array() ) );
+
+		global $wpdb;
+
+		$autoload = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT autoload FROM {$wpdb->options} WHERE option_name = %s",
+				Runtime::OPTION
 			)
 		);
 
-		$this->assertNotSame( $one, $two );
-		$this->assertTrue( $this->plugin->runtimeWriter()->isIntact() );
-	}
-
-	/**
-	 * Emptying the selection removes the runtime again, leaving nothing behind.
-	 *
-	 * @return void
-	 */
-	public function test_emptying_the_selection_removes_the_runtime(): void {
-		$this->selectAndGenerate( array( 'core.remove_rsd' => array() ) );
-
-		$this->assertFileExists( $this->context()->runtimeFile() );
-
-		$this->assertSame( '', $this->selectAndGenerate( array() ) );
-		$this->assertFileDoesNotExist( $this->context()->runtimeFile() );
-		$this->assertFileDoesNotExist( $this->context()->runtimeLockFile() );
-	}
-
-	/**
-	 * A runtime edited by hand no longer matches its lock, and that is detected
-	 * rather than repaired: overwriting somebody's edit would destroy the
-	 * evidence of what they were trying to do.
-	 *
-	 * @return void
-	 */
-	public function test_an_edited_runtime_is_detected(): void {
-		$this->selectAndGenerate( array( 'core.remove_rsd' => array() ) );
-
-		$runtime = $this->context()->runtimeFile();
-
-		file_put_contents( $runtime, file_get_contents( $runtime ) . "\n// edited\n" );
-
-		$this->assertFalse( $this->plugin->runtimeWriter()->isIntact() );
-		$this->assertNotSame(
-			$this->plugin->runtimeWriter()->recordedHash(),
-			$this->plugin->runtimeWriter()->actualHash()
+		$this->assertContains(
+			$autoload,
+			array( 'yes', 'on', 'auto', 'auto-on' ),
+			'the loader reads this on every request; a query per request is the thing being avoided'
 		);
 	}
 
 	/**
-	 * A selection naming a tweak the registry does not have is skipped rather
-	 * than fatal: a registry can legitimately shrink between versions.
+	 * The same selection produces the same stored result.
+	 *
+	 * Determinism mattered when it decided a file's bytes and a hash. It still
+	 * matters: two sites with the same selection should register the same
+	 * handlers in the same order, because a handler that behaves differently
+	 * depending on what registered before it is a bug to reproduce rather than
+	 * to shuffle.
+	 *
+	 * @return void
+	 */
+	public function test_storing_twice_produces_the_same_thing(): void {
+		$selection = array(
+			'core.heartbeat_interval' => array( 'interval' => 60 ),
+			'core.remove_generator'   => array(),
+		);
+
+		$this->selectAndGenerate( $selection );
+		$first = get_option( Runtime::OPTION );
+
+		$this->selectAndGenerate( $selection );
+		$second = get_option( Runtime::OPTION );
+
+		$this->assertSame( $first, $second );
+
+		// Sorted by tweak id, not by the order they were selected in.
+		$this->assertSame(
+			array( 'core-heartbeat-interval.php', 'core-remove-generator.php' ),
+			array_column( $first['handlers'], 'file' )
+		);
+	}
+
+	/**
+	 * Emptying the selection leaves an empty list, not an absent option.
+	 *
+	 * An absent option is a `get_option()` miss, and a miss is a query on every
+	 * request until something writes it again — which is exactly the cost this
+	 * plugin exists to remove from other people's sites.
+	 *
+	 * @return void
+	 */
+	public function test_emptying_the_selection_keeps_the_option(): void {
+		$this->selectAndGenerate( array( 'core.remove_generator' => array() ) );
+		$this->selectAndGenerate( array() );
+
+		$stored = get_option( Runtime::OPTION );
+
+		$this->assertIsArray( $stored );
+		$this->assertSame( array(), $stored['handlers'] );
+		$this->assertNotFalse( get_option( Runtime::OPTION, false ) );
+	}
+
+	/**
+	 * A tweak the registry does not know is skipped, not fatal.
 	 *
 	 * @return void
 	 */
 	public function test_an_unknown_tweak_in_the_selection_is_skipped(): void {
-		$hash = $this->selectAndGenerate(
+		$this->selectAndGenerate(
 			array(
-				'core.remove_rsd'      => array(),
-				'core.from_the_future' => array(),
+				'core.remove_generator' => array(),
+				'not.a_real_tweak'      => array(),
 			)
 		);
 
-		$this->assertNotSame( '', $hash );
+		$stored = get_option( Runtime::OPTION );
 
-		$source = file_get_contents( $this->context()->runtimeFile() );
-
-		$this->assertStringContainsString( 'core.remove_rsd', $source );
-		$this->assertStringNotContainsString( 'core.from_the_future', $source );
+		$this->assertCount( 1, $stored['handlers'] );
+		$this->assertSame( 'core-remove-generator.php', $stored['handlers'][0]['file'] );
 	}
 
 	/**
-	 * The generated file is world-readable but not writable.
+	 * Nothing outside the plugin's handler directory can be loaded.
+	 *
+	 * The compiler got this from a `realpath()` check when it generated the
+	 * file. There is no generation step, so the check moved to where the value
+	 * is used — and it is stricter than it was, because the stored value is
+	 * matched against a file-name pattern rather than resolved as a path.
+	 *
+	 * The option is written to directly here, which is the point: this is what
+	 * happens if something that is not this plugin gets to write that row.
 	 *
 	 * @return void
 	 */
-	public function test_generated_files_are_not_world_writable(): void {
-		$this->selectAndGenerate( array( 'core.remove_rsd' => array() ) );
+	public function test_a_planted_path_is_refused(): void {
+		foreach ( array( '../../../wp-config.php', '/etc/passwd', 'core-remove-generator.php/../x.php', '' ) as $planted ) {
+			update_option(
+				Runtime::OPTION,
+				array(
+					'handlers' => array(
+						array(
+							'file'   => $planted,
+							'class'  => 'Debloater_Handler_Core_Remove_Generator',
+							'params' => array(),
+						),
+					),
+				),
+				true
+			);
 
-		foreach ( array( $this->context()->runtimeFile(), $this->context()->runtimeLockFile() ) as $path ) {
-			$mode = fileperms( $path ) & 0777;
-
-			$this->assertSame( 0, $mode & 0022, sprintf( '%s must not be group- or world-writable', basename( $path ) ) );
+			$this->assertSame(
+				0,
+				$this->plugin->runtime()->load(),
+				sprintf( '"%s" was not refused', $planted )
+			);
 		}
 	}
 
 	/**
-	 * Everything the plugin generates lives under wp-content/debloater
-	 * (BUILD-SPEC §13 rule 6).
+	 * A class name that is not a handler is refused too.
 	 *
 	 * @return void
 	 */
-	public function test_generated_files_stay_in_one_directory(): void {
-		$this->selectAndGenerate( array( 'core.remove_rsd' => array() ) );
+	public function test_a_planted_class_is_refused(): void {
+		update_option(
+			Runtime::OPTION,
+			array(
+				'handlers' => array(
+					array(
+						'file'   => 'core-remove-generator.php',
+						'class'  => 'wp_die',
+						'params' => array(),
+					),
+				),
+			),
+			true
+		);
 
-		$directory = $this->context()->runtimeDir();
-		$entries   = scandir( $directory );
+		$this->assertSame( 0, $this->plugin->runtime()->load() );
+	}
 
-		$this->assertIsArray( $entries );
+	/**
+	 * The selection actually changes the page.
+	 *
+	 * The end of the whole chain, and the only test here that would notice if
+	 * everything above were right and the handlers still did nothing.
+	 *
+	 * @return void
+	 */
+	public function test_a_registered_handler_removes_the_generator_tag(): void {
+		$this->selectAndGenerate( array( 'core.remove_generator' => array() ) );
 
-		$files       = array();
-		$directories = array();
+		$this->assertStringContainsString( '<meta name="generator"', $this->headOutput() );
 
-		foreach ( array_diff( $entries, array( '.', '..' ) ) as $entry ) {
-			if ( is_dir( $directory . '/' . $entry ) ) {
-				$directories[] = $entry;
-			} else {
-				$files[] = $entry;
-			}
-		}
+		$this->assertSame( 1, $this->plugin->runtime()->load() );
 
-		sort( $files, SORT_STRING );
-		sort( $directories, SORT_STRING );
+		$this->assertStringNotContainsString( '<meta name="generator"', $this->headOutput() );
+	}
 
-		$this->assertSame( array( 'index.php', 'runtime.lock', 'runtime.php' ), $files );
+	/**
+	 * Deactivation stops registration but keeps the selection.
+	 *
+	 * @return void
+	 */
+	public function test_deactivation_clears_the_runtime_but_keeps_the_selection(): void {
+		$this->selectAndGenerate( array( 'core.remove_generator' => array() ) );
 
-		// BUILD-SPEC §4 puts oversized Level B recovery points in a backups
-		// subdirectory. It is the only thing allowed to appear beside the
-		// runtime, and it only exists once one has been written.
+		$this->plugin->deactivate();
+
+		$stored = get_option( Runtime::OPTION );
+
+		$this->assertSame( array(), $stored['handlers'] );
 		$this->assertSame(
-			array(),
-			array_values( array_diff( $directories, array( 'backups' ) ) ),
-			'Nothing but the backups directory belongs under wp-content/debloater.'
+			array( 'core.remove_generator' ),
+			array_keys( $this->plugin->state()->selection() ),
+			'deactivating is not uninstalling'
 		);
 	}
 
 	/**
-	 * The writer refuses to write outside its own directory.
+	 * `wp_head()` output, for the handlers that filter it.
 	 *
-	 * @return void
+	 * @return string
 	 */
-	public function test_the_writer_refuses_to_escape_its_directory(): void {
-		$this->selectAndGenerate( array( 'core.remove_rsd' => array() ) );
+	private function headOutput(): string {
+		ob_start();
+		wp_head();
 
-		$writer = $this->plugin->runtimeWriter();
-
-		$this->expectException( RuntimeException::class );
-		$this->expectExceptionMessageMatches( '/Refusing to write outside|Could not resolve/' );
-
-		$method = new \ReflectionMethod( $writer, 'atomicWrite' );
-		$method->setAccessible( true );
-		$method->invoke( $writer, $this->context()->content_dir . '/escaped.php', '<?php' );
-	}
-
-	/**
-	 * Source that does not parse is never put in place.
-	 *
-	 * @return void
-	 */
-	public function test_unparseable_source_is_refused(): void {
-		$this->expectException( RuntimeException::class );
-
-		$this->plugin->runtimeWriter()->assertSyntax( '<?php function ( {' );
-	}
-
-	/**
-	 * The generated runtime actually loads and does what it says.
-	 *
-	 * @return void
-	 */
-	public function test_the_generated_runtime_removes_the_generator_tag(): void {
-		$this->selectAndGenerate( array( 'core.remove_generator' => array() ) );
-
-		$this->assertNotFalse( has_action( 'wp_head', 'wp_generator' ) );
-
-		$this->loadRuntime();
-
-		$this->assertFalse( has_action( 'wp_head', 'wp_generator' ) );
-		$this->assertSame( '', apply_filters( 'the_generator', '<meta name="generator" />', 'xhtml' ) );
-
-		$this->unregisterHandlers( array( 'core.remove_generator' ) );
-
-		$this->assertNotFalse( has_action( 'wp_head', 'wp_generator' ) );
-	}
-
-	/**
-	 * The emoji handler removes the pieces WordPress registers, across the
-	 * versions in the supported range.
-	 *
-	 * @return void
-	 */
-	public function test_the_generated_runtime_removes_the_emoji_script(): void {
-		$this->selectAndGenerate( array( 'core.disable_emojis' => array() ) );
-
-		$this->assertNotFalse( has_action( 'wp_head', 'print_emoji_detection_script' ) );
-
-		$this->loadRuntime();
-
-		$this->assertFalse( has_action( 'wp_head', 'print_emoji_detection_script' ) );
-		$this->assertFalse( has_filter( 'wp_mail', 'wp_staticize_emoji_for_email' ) );
-		$this->assertNotContains( 'wpemoji', apply_filters( 'tiny_mce_plugins', array( 'wpemoji', 'charmap' ) ) );
-
-		$this->unregisterHandlers( array( 'core.disable_emojis' ) );
-	}
-
-	/**
-	 * The loader ends up in a documented mode, and the runtime it points at is
-	 * the one we generated.
-	 *
-	 * @return void
-	 */
-	public function test_the_loader_is_installed_in_a_supported_mode(): void {
-		$this->selectAndGenerate( array( 'core.remove_rsd' => array() ) );
-
-		$mode = $this->plugin->state()->loaderMode();
-
-		$this->assertSupportedLoaderMode( $mode );
-
-		if ( RuntimeLoader::MODE_MU_PLUGIN === $mode ) {
-			$this->assertTrue( $this->loaderInstalled() );
-			$this->assertTrue( $this->plugin->runtimeLoader()->isUpToDate() );
-		}
-	}
-
-	/**
-	 * Uninstalling the loader removes it completely.
-	 *
-	 * @return void
-	 */
-	public function test_the_loader_can_be_removed(): void {
-		$this->selectAndGenerate( array( 'core.remove_rsd' => array() ) );
-
-		$this->assertTrue( $this->plugin->runtimeLoader()->uninstall() );
-		$this->assertFalse( $this->loaderInstalled() );
-	}
-
-	/**
-	 * Deactivation removes the runtime and the loader but keeps the selection,
-	 * so reactivating restores exactly what was there.
-	 *
-	 * @return void
-	 */
-	public function test_deactivation_removes_the_runtime_but_keeps_the_selection(): void {
-		$this->selectAndGenerate( array( 'core.remove_rsd' => array() ) );
-
-		$this->plugin->deactivate();
-
-		$this->assertFileDoesNotExist( $this->context()->runtimeFile() );
-		$this->assertFalse( $this->loaderInstalled() );
-		$this->assertSame( array( 'core.remove_rsd' => array() ), $this->plugin->state()->selection() );
-
-		$this->plugin->regenerateRuntime();
-
-		$this->assertFileExists( $this->context()->runtimeFile() );
+		return (string) ob_get_clean();
 	}
 }

@@ -1571,11 +1571,8 @@ final class Command {
 	 */
 	private function statusDocument(): array {
 		$state  = $this->plugin->state();
-		$writer = $this->plugin->runtimeWriter();
-		$loader = $this->plugin->runtimeLoader();
 		$lock   = new Lock();
 		$run    = $this->plugin->latestScan();
-		$actual = $writer->actualHash();
 		$states = array();
 
 		foreach ( $state->tweakStates() as $tweak_id => $tweak_state ) {
@@ -1589,15 +1586,8 @@ final class Command {
 			'selection_count' => count( $state->selection() ),
 			'tweak_states'    => (object) $states,
 			'runtime'         => array(
-				'present'       => '' !== $actual,
-				'hash'          => $actual,
-				'intact'        => $writer->isIntact(),
-				'matches_state' => '' === $state->runtimeHash() ? '' === $actual : hash_equals( $state->runtimeHash(), $actual ),
-			),
-			'loader'          => array(
-				'mode'       => $loader->mode(),
-				'installed'  => $loader->isInstalled(),
-				'up_to_date' => $loader->isUpToDate(),
+				'handlers'       => count( $this->plugin->runtime()->registeredClasses() ),
+				'selection_hash' => $state->selectionHash(),
 			),
 			'last_scan'       => null === $run
 				? null

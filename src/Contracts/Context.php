@@ -234,44 +234,23 @@ final class Context {
 	 *
 	 * @return string
 	 */
-	public function runtimeDir(): string {
+	public function dataDir(): string {
 		return $this->content_dir . '/debloater';
-	}
-
-	/**
-	 * The generated runtime file path.
-	 *
-	 * @return string
-	 */
-	public function runtimeFile(): string {
-		return $this->runtimeDir() . '/runtime.php';
-	}
-
-	/**
-	 * The runtime lock file path, holding the runtime hash.
-	 *
-	 * @return string
-	 */
-	public function runtimeLockFile(): string {
-		return $this->runtimeDir() . '/runtime.lock';
 	}
 
 	/**
 	 * The Level B spill directory.
 	 *
-	 * @return string
-	 */
-	public function backupsDir(): string {
-		return $this->runtimeDir() . '/backups';
-	}
-
-	/**
-	 * The mu-plugins directory the loader is installed into.
+	 * The one thing this plugin still writes under wp-content, and it is data:
+	 * gzipped NDJSON rows of a recovery point too large to sit in the database,
+	 * behind an index.php and a .htaccess. No PHP is written here or anywhere
+	 * else (D-0070), and removing it would remove the recovery that BUILD-SPEC
+	 * §13 rule 8 requires before a destructive change.
 	 *
 	 * @return string
 	 */
-	public function muPluginsDir(): string {
-		return $this->content_dir . '/mu-plugins';
+	public function backupsDir(): string {
+		return $this->dataDir() . '/backups';
 	}
 
 	/**

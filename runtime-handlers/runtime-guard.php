@@ -1,10 +1,10 @@
 <?php
 /**
- * Kill switch for the generated runtime.
+ * Kill switch for the selection.
  *
- * Loaded by wp-content/debloater/runtime.php before any handler, so it must
- * follow the same rules as a handler: no namespace, no autoloader, no options,
- * no database, no output.
+ * Loaded by Debloater\Apply\Runtime before any handler, so it follows the same
+ * rules as a handler: no namespace, no autoloader, no options, no database, no
+ * output.
  *
  * @package Debloater
  */
@@ -14,22 +14,27 @@ defined( 'ABSPATH' ) || exit;
 if ( ! class_exists( 'Debloater_Runtime_Guard', false ) ) {
 
 	/**
-	 * Decides whether the generated runtime should register anything at all.
+	 * Decides whether anything should be registered at all.
 	 *
 	 * Two ways out exist, and they are deliberately different in strength.
 	 *
 	 * The DEBLOATER_DISABLE constant is absolute: someone who can edit wp-config
-	 * can always switch the runtime off, including when the site is too broken
+	 * can always switch the selection off, including when the site is too broken
 	 * to reach the admin. It needs no authentication because being able to set it
 	 * already implies full access.
 	 *
 	 * The ?debloater=off query bypass is for logged-in administrators and must be
-	 * authenticated. The runtime is loaded from mu-plugins, long before WordPress
-	 * loads pluggable.php, so wp_verify_nonce() and current_user_can() usually do
-	 * not exist yet at that point. Rather than pretend otherwise, the guard records
-	 * the request and returns false; Debloater\Apply\RuntimeLoader completes the
-	 * check at plugins_loaded and unregisters the handlers if, and only if, the
-	 * request turns out to be authorised (docs/DECISIONS.md D-0007).
+	 * authenticated, so it needs current_user_can() and wp_verify_nonce() to
+	 * exist when it is asked.
+	 *
+	 * They now do. This used to run from mu-plugins, long before WordPress loads
+	 * pluggable.php, so the guard recorded the request, returned false, and
+	 * Debloater\Apply\RuntimeLoader finished the check at plugins_loaded and
+	 * unregistered the handlers again if the request turned out to be authorised
+	 * (D-0007). Registration happens at plugins_loaded -999 now, and
+	 * wp-settings.php loads pluggable.php before firing that hook — so the
+	 * question can simply be answered, and the deferral, the second hook and the
+	 * unregister pass are all gone (D-0070).
 	 */
 	final class Debloater_Runtime_Guard {
 
@@ -57,13 +62,6 @@ if ( ! class_exists( 'Debloater_Runtime_Guard', false ) ) {
 		 * Capability required to bypass the runtime.
 		 */
 		const CAPABILITY = 'debloater_manage';
-
-		/**
-		 * Whether a bypass was requested but could not yet be authorised.
-		 *
-		 * @var bool
-		 */
-		private static $deferred = false;
 
 		/**
 		 * Whether the runtime is switched off outright.
@@ -104,24 +102,7 @@ if ( ! class_exists( 'Debloater_Runtime_Guard', false ) ) {
 				return false;
 			}
 
-			if ( ! self::auth_available() ) {
-				// Too early in the request to know who is asking. Remember, and let
-				// RuntimeLoader finish the job once WordPress can answer.
-				self::$deferred = true;
-
-				return false;
-			}
-
 			return self::authorised();
-		}
-
-		/**
-		 * Whether a bypass request is waiting for a decision.
-		 *
-		 * @return bool
-		 */
-		public static function bypass_deferred() {
-			return self::$deferred;
 		}
 
 		/**
@@ -159,15 +140,6 @@ if ( ! class_exists( 'Debloater_Runtime_Guard', false ) ) {
 		 */
 		private static function auth_available() {
 			return function_exists( 'current_user_can' ) && function_exists( 'wp_verify_nonce' );
-		}
-
-		/**
-		 * Reset the deferred flag. Used by tests only.
-		 *
-		 * @return void
-		 */
-		public static function reset() {
-			self::$deferred = false;
 		}
 	}
 }

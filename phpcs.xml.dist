@@ -5,7 +5,6 @@
 	<file>debloater.php</file>
 	<file>src</file>
 	<file>runtime-handlers</file>
-	<file>mu-loader</file>
 	<file>tests</file>
 
 	<exclude-pattern>*/vendor/*</exclude-pattern>

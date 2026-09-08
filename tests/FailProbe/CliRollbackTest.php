@@ -77,7 +77,7 @@ final class CliRollbackTest extends FailProbeTestCase {
 		$this->assertNotSame( array(), $io->errors, 'A rolled-back apply must say why.' );
 		$this->assertStringContainsString( 'did not pass its checks', $io->output() );
 		$this->assertSame( array(), $this->plugin->state()->selection() );
-		$this->assertFileDoesNotExist( $this->context()->runtimeFile() );
+		$this->assertSame( array(), $this->storedHandlers() );
 	}
 
 	/**

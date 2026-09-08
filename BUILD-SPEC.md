@@ -40,7 +40,8 @@ Autonomous protocol (Claude Code follows for every phase):
 | 4 | **Safe ≠ cannot break.** Risk and **Confidence** are separate dimensions | `risk` enum + `confidence` float on every Finding. §6 |
 | 5 | Every Finding carries **Evidence** | `evidence[]` with fact-key provenance. §6 |
 | 6 | **Don't Touch** is a first-class decision | `decision: dont_touch` + reason. §6 |
-| 7 | **Runtime v1 is simple**: generated `runtime.php` that `require`s selected handlers and calls `register()` | No conditions/environment logic in the runtime until Phase 13+. §10 |
+| 7 | **Runtime v1 is simple**: the selection is read from an autoloaded option and the declared handlers are `require`d and `register()`ed | No conditions/environment logic in the runtime until Phase 13+. §10 |
+| 7a | **No generated PHP.** The compiled `runtime.php`, its lock, the mu-plugins loader and the fallback include were removed on wordpress.org's instruction: writing executable PHP under `wp-content` is not a permitted exception. Decision 7 above predates that ruling and described the design it replaced | §10, `docs/DECISIONS.md` D-0070 |
 | 8 | **Single-site first.** Multisite is Phase 19+ | Interfaces take an explicit `site_id`-free `Context`; no network options. |
 | 9 | Tweak has **lifecycle states**; apply run has a **state machine** | §9 |
 | 10 | **Vertical slice first** (Phases 0–9 = MVP v0.1), 10–15 tweaks only | §17 |
@@ -470,23 +471,43 @@ Transition table lives in `docs/STATE-MACHINE.md`, generated from the enum by a 
 
 ## 10. Runtime v1 (simple by design)
 
-**Generated file** `wp-content/debloater/runtime.php`:
+The selection is read from an **autoloaded option**, and the handlers the
+registry declares for it are `require`d and registered at `plugins_loaded`
+priority **-999** — early enough to beat every ordinary plugin, late enough that
+WordPress is fully set up.
+
 ```php
-<?php
-/* Debloater runtime — generated 2026-09-02T18:34:00Z — selection a1b2c3… — DO NOT EDIT */
-if ( ! defined( 'ABSPATH' ) || defined( 'DEBLOATER_DISABLE' ) ) { return; }
-if ( isset( $_GET['debloater'] ) && $_GET['debloater'] === 'off' && \Debloater_Runtime_Guard::bypass_allowed() ) { return; }
-require_once '/abs/path/debloater/runtime-handlers/core-disable-emojis.php';
-Debloater_Handler_Core_Disable_Emojis::register( array() );
-require_once '/abs/path/debloater/runtime-handlers/core-heartbeat-interval.php';
-Debloater_Handler_Core_Heartbeat_Interval::register( array( 'interval' => 60 ) );
+// Debloater\Apply\Runtime::load(), in outline.
+$handlers = get_option( 'debloater_runtime' )['handlers'];   // autoloaded: no query
+
+if ( array() === $handlers ) { return; }                      // nothing selected
+
+require_once $plugin_dir . '/runtime-handlers/runtime-guard.php';
+
+if ( Debloater_Runtime_Guard::disabled() || Debloater_Runtime_Guard::bypass_allowed() ) { return; }
+
+foreach ( $handlers as $handler ) {
+    require_once $plugin_dir . '/runtime-handlers/' . $handler['file'];
+    $handler['class']::register( $handler['params'] );
+}
 ```
+
 - Handlers are plain, dependency-free static classes with one `register(array $params): void` and one `unregister(): void` (used by tests). No namespaces, no autoloader, no option reads.
-- Params are emitted with `var_export` **after** schema validation; user input never reaches the generated code path unvalidated.
-- `RuntimeWriter` writes to a temp file, `php -l`-equivalent validates via `token_get_all` + a syntax check subprocess when available, then atomic `rename`. `runtime.lock` holds sha256; `RuntimeLoadedProbe` compares via REST status.
-- **Loader**: on activation copy `mu-loader/debloater-loader.php` to `mu-plugins` (loads `runtime.php` if present and hash matches). If `mu-plugins` isn't writable → fallback: main plugin includes `runtime.php` at `plugins_loaded` priority −999 and `RuntimeLoadedProbe` reports `WARN: fallback loader`. Recorded in `DECISIONS.md` (Phase 1).
-- Bypass: `?debloater=off` requires a valid nonce for logged-in users with the capability; the constant works for everyone.
-- Empty selection → runtime file removed, loader is a no-op. Test asserts zero hooks registered.
+- The option stores a handler **file name**, never a path, matched against `/^[a-z0-9]+(?:-[a-z0-9]+)*\.php$/`, with the directory supplied by the loader. A traversal cannot be expressed. The class name is matched against `/^Debloater_Handler_[A-Za-z0-9_]+$/`. Both are re-checked on read: the option is a database row, not a thing to trust with a `require` because we wrote it last (§13 rule 5).
+- Parameters are validated against the tweak's declared schema **before** being stored, which is the same guarantee the old `var_export` gave and at the same point in the pipeline.
+- **Autoloaded, and always written.** `get_option()` on an absent option issues a query before caching the miss, so the option is written even when the selection is empty. This is one row in the autoload set, holding file names and validated scalars — not the run history, the attestation or the intent profile, which stay in the non-autoloaded `debloater_state` (`D-0070`).
+- Bypass: `?debloater=off` requires a valid nonce and the capability; the `DEBLOATER_DISABLE` constant works for everyone. Both are answered directly — `wp-settings.php` loads `pluggable.php` before firing `plugins_loaded`, so `current_user_can()` and `wp_verify_nonce()` exist by the time the guard is asked.
+- Empty selection → no handlers required, no hooks registered, **and no query**. Tested.
+
+**Nothing is written to disk.** There is no generated file, no lock, no hash
+check, no mu-plugins loader and no fallback include. That design is described in
+`docs/DECISIONS.md` **D-0070**, which records why it existed, why wordpress.org
+refused it, and what was gained and lost by removing it — `D-0005` and `D-0007`
+describe the removed design and are superseded.
+
+The one thing still written under `wp-content` is the Level B recovery spill:
+gzipped NDJSON rows, behind an `index.php` and a `.htaccess`, required by §13
+rule 8 before a destructive change. It is data, not code.
 
 ---
 
@@ -501,7 +522,6 @@ Each probe returns `ProbeResult { probe, status: PASS|WARN|FAIL|UNKNOWN|NOT_TEST
 | `admin` | GET `/wp-admin/` with cookie of actor | non-2xx/redirect loop, fatal markers | dashboard markers missing |
 | `rest` | GET `/wp-json/` and `/wp-json/wp/v2/types` | non-2xx or invalid JSON | 401 when `rest:public` expected |
 | `login` | GET `/wp-login.php` | non-2xx | — |
-| `runtime_loaded` | GET `/wp-json/debloater/v1/status` | hash mismatch or not loaded when selection non-empty | fallback loader in use |
 | later | `woo_cart`, `woo_checkout`, `woo_account`, `cf7_form`, `elementor_editor` | — | — |
 
 Aggregate: FAIL if any FAIL; else WARN if any WARN/UNKNOWN; else PASS. Probes not applicable to the stack report `NOT_TESTED` and are shown ("Checkout: not tested") so confidence is never overstated. HTTP via `wp_remote_get` with `sslverify` honoring site setting, 15 s timeout, `X-Debloater-Verify: 1` header (never used to change behavior, only for logs). Loopback failure → all HTTP probes `UNKNOWN`, run ends `VERIFIED_WITH_WARNINGS`, user is told loopback is blocked.

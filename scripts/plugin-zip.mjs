@@ -114,7 +114,6 @@ const PLUGINS = {
 			{ from: 'LICENSE' },
 			{ from: 'src' },
 			{ from: 'runtime-handlers' },
-			{ from: 'mu-loader' },
 			{ from: 'registry' },
 			{ from: 'schemas' },
 			{ from: 'languages' },

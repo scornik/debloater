@@ -109,9 +109,11 @@ final class VerificationRollbackTest extends FailProbeTestCase {
 	 * @return void
 	 */
 	public function test_a_failed_verification_rolls_the_apply_back_to_the_byte(): void {
-		$before_hash      = $this->selectAndGenerate( array( 'core.remove_jquery_migrate' => array() ) );
+		$this->selectAndGenerate( array( 'core.remove_jquery_migrate' => array() ) );
+
+		$before_hash      = $this->plugin->state()->selectionHash();
 		$before_selection = $this->plugin->state()->selection();
-		$before_runtime   = (string) file_get_contents( $this->context()->runtimeFile() );
+		$before_runtime   = $this->storedHandlersDigest();
 
 		$this->assertNotSame( '', $before_hash );
 
@@ -127,11 +129,11 @@ final class VerificationRollbackTest extends FailProbeTestCase {
 
 		$this->assertSame(
 			$before_runtime,
-			(string) file_get_contents( $this->context()->runtimeFile() ),
-			'The runtime must be byte-identical to what was there before the apply.'
+			$this->storedHandlersDigest(),
+			'The registered selection must be exactly what was there before the apply.'
 		);
 
-		$this->assertSame( $before_hash, $this->plugin->state()->runtimeHash() );
+		$this->assertSame( $before_hash, $this->plugin->state()->selectionHash() );
 		$this->assertSame( $before_selection, $this->plugin->state()->selection() );
 
 		$history = $this->historyOf( $result->run_id );

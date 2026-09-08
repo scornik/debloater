@@ -224,7 +224,7 @@ final class ServiceArchitectureTest extends TestCase {
 	private function shippedFiles(): array {
 		$files = array();
 
-		foreach ( array( 'src', 'runtime-handlers', 'mu-loader', 'admin-ui/src' ) as $directory ) {
+		foreach ( array( 'src', 'runtime-handlers', 'admin-ui/src' ) as $directory ) {
 			$root = DEBLOATER_TESTS_ROOT . '/' . $directory;
 
 			if ( ! is_dir( $root ) ) {

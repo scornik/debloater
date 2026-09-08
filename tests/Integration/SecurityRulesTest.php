@@ -198,72 +198,65 @@ final class SecurityRulesTest extends IntegrationTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_rule_5_generated_code_only_names_declared_handlers(): void {
+	public function test_rule_5_stored_handlers_only_name_declared_files(): void {
 		$declared = array();
 
 		foreach ( $this->plugin->registry()->all() as $definition ) {
-			$declared[] = str_replace( '\\', '/', $definition->handler );
+			$declared[] = basename( str_replace( '\\', '/', $definition->handler ) );
 		}
 
-		$tweaks = array(
-			'core.remove_generator' => array(),
-			'core.disable_emojis'   => array(),
+		$this->selectAndGenerate(
+			array(
+				'core.remove_generator' => array(),
+				'core.disable_emojis'   => array(),
+			)
 		);
 
-		$this->selectAndGenerate( $tweaks );
+		$stored = $this->storedHandlers();
 
-		$runtime = (string) file_get_contents( $this->context()->runtimeFile() );
-		$root    = str_replace( '\\', '/', (string) realpath( DEBLOATER_TESTS_ROOT ) );
+		$this->assertNotSame( array(), $stored, '§13 rule 5: nothing was stored to check.' );
 
-		$this->assertStringContainsString( 'require_once', $runtime );
-
-		$found = preg_match_all( "/require(?:_once)?\s+'([^']+)'/", $runtime, $matches );
-
-		$this->assertGreaterThan( 0, $found, '§13 rule 5: the runtime requires nothing at all.' );
-
-		foreach ( $matches[1] as $path ) {
-			$real = realpath( $path );
-
-			$this->assertNotFalse( $real, '§13 rule 5: required path does not exist — ' . $path );
-
-			$real = str_replace( '\\', '/', (string) $real );
-
-			$this->assertStringStartsWith(
-				$root . '/',
-				$real,
-				'§13 rule 5: generated code may only require files inside the plugin.'
+		foreach ( $stored as $handler ) {
+			// A file name, never a path: the loader supplies the directory, so
+			// a traversal cannot be expressed rather than merely being caught.
+			$this->assertMatchesRegularExpression(
+				'/^[a-z0-9]+(?:-[a-z0-9]+)*\\.php$/',
+				(string) $handler['file'],
+				'§13 rule 5: a stored handler is not a plain file name — ' . $handler['file']
 			);
-
-			$relative = substr( $real, strlen( $root ) + 1 );
-
-			// The guard is the runtime's own preamble rather than any tweak's
-			// handler, so the compiler declares it instead of the registry.
-			// Everything else must be a handler somebody declared.
-			if ( 'runtime-handlers/runtime-guard.php' === $relative ) {
-				continue;
-			}
 
 			$this->assertContains(
-				$relative,
+				$handler['file'],
 				$declared,
-				'§13 rule 5: ' . $relative . ' is required but no tweak declares it.'
+				'§13 rule 5: a handler was stored that the registry never declared — ' . $handler['file']
+			);
+
+			$this->assertFileExists(
+				$this->context()->handlersDir() . '/' . $handler['file'],
+				'§13 rule 5: a stored handler does not exist — ' . $handler['file']
+			);
+
+			$this->assertMatchesRegularExpression(
+				'/^Debloater_Handler_[A-Za-z0-9_]+$/',
+				(string) $handler['class'],
+				'§13 rule 5: a stored class name is not a handler — ' . $handler['class']
 			);
 		}
-
-		$this->unregisterHandlers( array_keys( $tweaks ) );
 	}
 
 	/**
-	 * Rule 6 — writes happen only under `wp-content/debloater/` and
-	 * `mu-plugins/`, and no write path comes from a request.
+	 * Rule 6 — writes happen only under `wp-content/debloater/`, and no write
+	 * path comes from a request.
+	 *
+	 * One directory now, not two: nothing is installed into `mu-plugins` any
+	 * more, and the only thing written at all is the Level B spill (D-0070).
 	 *
 	 * @return void
 	 */
-	public function test_rule_6_writes_stay_inside_two_directories(): void {
+	public function test_rule_6_writes_stay_inside_one_directory(): void {
 		$files = array(
-			'src/Apply/RuntimeWriter.php',
-			'src/Apply/RuntimeLoader.php',
 			'src/Snapshot/SpillFile.php',
+			'src/Apply/Runtime.php',
 		);
 
 		foreach ( $files as $relative ) {
@@ -278,34 +271,18 @@ final class SecurityRulesTest extends IntegrationTestCase {
 
 		$this->selectAndGenerate( array( 'core.remove_generator' => array() ) );
 
-		$allowed = array(
-			str_replace( '\\', '/', WP_CONTENT_DIR . '/debloater/' ),
-			str_replace( '\\', '/', WP_CONTENT_DIR . '/mu-plugins/' ),
+		$allowed = str_replace( '\\', '/', WP_CONTENT_DIR . '/debloater/' );
+		$written = str_replace( '\\', '/', $this->context()->backupsDir() );
+
+		$this->assertStringStartsWith(
+			$allowed,
+			$written,
+			'§13 rule 6: the spill directory is outside the one allowed place'
 		);
 
-		$written = str_replace( '\\', '/', $this->context()->runtimeFile() );
-
-		$inside = false;
-
-		foreach ( $allowed as $directory ) {
-			if ( 0 === strpos( $written, $directory ) ) {
-				$inside = true;
-			}
-		}
-
-		$this->assertTrue( $inside, '§13 rule 6: the runtime was written to ' . $written );
-
-		// Readable by the web server, writable by nobody who could not already
-		// write it.
-		$mode = fileperms( $this->context()->runtimeFile() ) & 0777;
-
-		$this->assertSame(
-			0,
-			$mode & 0022,
-			sprintf( '§13 rule 6: runtime.php is group- or world-writable (%o).', $mode )
-		);
-
-		$this->unregisterHandlers( array( 'core.remove_generator' ) );
+		// And nothing was installed into mu-plugins, which is the half of this
+		// rule that used to need a second allowed directory.
+		$this->assertFileDoesNotExist( WP_CONTENT_DIR . '/mu-plugins/debloater-loader.php' );
 	}
 
 	/**
@@ -480,19 +457,18 @@ final class SecurityRulesTest extends IntegrationTestCase {
 
 		// It reads the query string, and what it keeps is one boolean. Nothing
 		// from the request is retained, so nothing from the request can later
-		// be written out.
-		$this->assertStringContainsString( '$deferred = false', $guard );
 		$this->assertSame(
 			0,
 			preg_match( '/=\s*\$_GET/', $guard ),
 			'§13 rule 11: nothing from the request may be assigned to state.'
 		);
 
-		// Same for the mu-plugin loader, which runs on every request whether
-		// the plugin is active or not.
-		$loader = $this->source( 'mu-loader/debloater-loader.php' );
+		// Same for the loader, which runs on every request. It was a file in
+		// mu-plugins; it is `Apply\Runtime` now, and the rule is unchanged
+		// (D-0070).
+		$loader = $this->source( 'src/Apply/Runtime.php' );
 
-		foreach ( array( 'update_option', 'error_log', '$_POST', '$_REQUEST', '$wpdb' ) as $needle ) {
+		foreach ( array( 'error_log', '$_POST', '$_REQUEST', '$wpdb' ) as $needle ) {
 			$this->assertStringNotContainsString(
 				$needle,
 				$loader,
@@ -674,7 +650,7 @@ final class SecurityRulesTest extends IntegrationTestCase {
 		$sources = array();
 		$root    = str_replace( '\\', '/', (string) realpath( DEBLOATER_TESTS_ROOT ) );
 
-		foreach ( array( 'src', 'runtime-handlers', 'mu-loader' ) as $directory ) {
+		foreach ( array( 'src', 'runtime-handlers' ) as $directory ) {
 			$iterator = new \RecursiveIteratorIterator(
 				new \RecursiveDirectoryIterator(
 					DEBLOATER_TESTS_ROOT . '/' . $directory,

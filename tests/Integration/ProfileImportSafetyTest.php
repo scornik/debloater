@@ -104,11 +104,11 @@ final class ProfileImportSafetyTest extends IntegrationTestCase {
 			'importing must not change what this site has selected'
 		);
 		$this->assertSame(
-			$before['runtime_hash'],
-			$after['runtime_hash'],
-			'importing must not generate a runtime'
+			$before['selection_hash'],
+			$after['selection_hash'],
+			'importing must not change what would be registered'
 		);
-		$this->assertFalse( $after['runtime_exists'], 'importing must not write a runtime file' );
+		$this->assertSame( array(), $after['handlers'], 'importing must not register anything' );
 		$this->assertSame(
 			$before['runs'],
 			$after['runs'],
@@ -149,7 +149,7 @@ final class ProfileImportSafetyTest extends IntegrationTestCase {
 
 		$this->assertSame( $before['tweak_states'], $after['tweak_states'] );
 		$this->assertSame( $before['runs'], $after['runs'], 'a refused apply must not record a run' );
-		$this->assertFalse( $after['runtime_exists'] );
+		$this->assertSame( array(), $after['handlers'] );
 	}
 
 	/**
@@ -196,8 +196,8 @@ final class ProfileImportSafetyTest extends IntegrationTestCase {
 		return array(
 			'tweak_states'   => $state->tweakStates(),
 			'selection'      => $state->selection(),
-			'runtime_hash'   => $state->runtimeHash(),
-			'runtime_exists' => is_file( WP_CONTENT_DIR . '/debloater/runtime.php' ),
+			'selection_hash' => $state->selectionHash(),
+			'handlers'       => $this->storedHandlers(),
 			'runs'           => count( $this->plugin->runs()->recent( 100 ) ),
 		);
 	}

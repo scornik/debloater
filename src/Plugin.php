@@ -13,7 +13,6 @@ use Debloater\Admin\Screen;
 use Debloater\Analyze\Analyzer;
 use Debloater\Analyze\Rules;
 use Debloater\Apply\ApplyManager;
-use Debloater\Apply\Compiler;
 use Debloater\Apply\DataOperations\AutoDraftsCleanup;
 use Debloater\Apply\DataOperations\AutoloadReview;
 use Debloater\Apply\DataOperations\ExpiredTransientsCleanup;
@@ -22,8 +21,7 @@ use Debloater\Apply\DataOperations\RevisionsCleanup;
 use Debloater\Apply\DataOperations\SpamCommentsCleanup;
 use Debloater\Apply\DataOperations\TrashCleanup;
 use Debloater\Apply\Lock;
-use Debloater\Apply\RuntimeLoader;
-use Debloater\Apply\RuntimeWriter;
+use Debloater\Apply\Runtime;
 use Debloater\Cli\Command;
 use Debloater\Contracts\ApplyResult;
 use Debloater\Contracts\Context;
@@ -87,7 +85,6 @@ use Debloater\Verify\Probes\ContentPageProbe;
 use Debloater\Verify\Probes\HomeProbe;
 use Debloater\Verify\Probes\LoginProbe;
 use Debloater\Verify\Probes\RestProbe;
-use Debloater\Verify\Probes\RuntimeLoadedProbe;
 use Debloater\Verify\Probes\WooAccountProbe;
 use Debloater\Verify\Probes\WooCartProbe;
 use Debloater\Verify\Probes\WooCheckoutProbe;
@@ -182,14 +179,12 @@ final class Plugin {
 		register_activation_hook( $this->plugin_file, array( $this, 'activate' ) );
 		register_deactivation_hook( $this->plugin_file, array( $this, 'deactivate' ) );
 
-		// The fallback loader only matters when the mu-plugin is not in place.
-		// Adding the hook unconditionally would mean every request pays for a
-		// check that is almost always answered "the mu-plugin already did it".
-		if ( ! defined( 'DEBLOATER_LOADER_MODE' ) ) {
-			add_action( 'plugins_loaded', array( $this, 'loadRuntimeFallback' ), RuntimeLoader::FALLBACK_PRIORITY );
-		}
-
-		add_action( 'plugins_loaded', array( $this, 'resolveDeferredBypass' ), RuntimeLoader::FALLBACK_PRIORITY + 1 );
+		// The selection is registered here and nowhere else. There is no
+		// mu-plugin to have done it already and no second hook to undo a bypass
+		// the guard could not authorise in time: wp-settings.php loads
+		// pluggable.php before firing this, so the guard can simply answer
+		// (D-0070).
+		add_action( 'plugins_loaded', array( $this, 'loadRuntime' ), Runtime::PRIORITY );
 
 		// Tables are checked on an admin request only. A front-end request must
 		// never pay for a migration check, and nothing on the front end reads
@@ -244,26 +239,27 @@ final class Plugin {
 
 		$this->schema()->ensure();
 
-		$mode = $this->runtimeLoader()->install();
-
-		$state->setRuntime( $this->runtimeWriter()->actualHash(), $mode );
+		// Written even when nothing is selected, so the option exists and is in
+		// `alloptions` from the first request. An absent option costs a query
+		// per request until something writes it (Apply\Runtime).
+		$this->regenerateRuntime();
 	}
 
 	/**
-	 * Deactivation: stop the runtime loading, but keep the configuration.
+	 * Deactivation: stop registering anything, but keep the configuration.
 	 *
 	 * Deactivating is not uninstalling. The selection, the snapshots and the
 	 * journal all survive, so reactivating restores exactly what was there.
-	 * What must not survive is the runtime: leaving hooks registered by a
-	 * deactivated plugin would be indistinguishable from a haunting.
+	 *
+	 * A deactivated plugin registers nothing anyway now — its hooks are added by
+	 * this file, which WordPress stops loading — so this is belt and braces
+	 * rather than the load-bearing thing it was when a generated file in
+	 * wp-content would have gone on being included by a mu-plugin.
 	 *
 	 * @return void
 	 */
 	public function deactivate(): void {
-		$this->runtimeWriter()->remove();
-		$this->runtimeLoader()->uninstall();
-
-		$this->state()->setRuntime( '', RuntimeLoader::MODE_NONE );
+		$this->runtime()->clear();
 	}
 
 	/**
@@ -276,34 +272,12 @@ final class Plugin {
 	}
 
 	/**
-	 * Load the runtime from the plugin when no mu-plugin loader is installed.
+	 * Register the selected handlers.
 	 *
 	 * @return void
 	 */
-	public function loadRuntimeFallback(): void {
-		$this->runtimeLoader()->loadFallback();
-	}
-
-	/**
-	 * Honour a bypass request the runtime guard could not authorise in time.
-	 *
-	 * @return void
-	 */
-	public function resolveDeferredBypass(): void {
-		if ( ! class_exists( 'Debloater_Runtime_Guard', false ) ) {
-			return;
-		}
-
-		$compiler = $this->compiler();
-		$classes  = array();
-
-		foreach ( array_keys( $this->state()->selection() ) as $tweak_id ) {
-			if ( $this->registry()->has( $tweak_id ) ) {
-				$classes[] = $compiler->handlerClass( $tweak_id );
-			}
-		}
-
-		$this->runtimeLoader()->resolveDeferredBypass( $classes );
+	public function loadRuntime(): void {
+		$this->runtime()->load();
 	}
 
 	/**
@@ -352,30 +326,12 @@ final class Plugin {
 	}
 
 	/**
-	 * The runtime compiler.
+	 * The runtime: reads the selection, requires the handlers, registers them.
 	 *
-	 * @return Compiler
+	 * @return Runtime
 	 */
-	public function compiler(): Compiler {
-		return $this->service( 'compiler', fn (): Compiler => new Compiler( $this->context() ) );
-	}
-
-	/**
-	 * The runtime writer.
-	 *
-	 * @return RuntimeWriter
-	 */
-	public function runtimeWriter(): RuntimeWriter {
-		return $this->service( 'runtime_writer', fn (): RuntimeWriter => new RuntimeWriter( $this->context() ) );
-	}
-
-	/**
-	 * The runtime loader.
-	 *
-	 * @return RuntimeLoader
-	 */
-	public function runtimeLoader(): RuntimeLoader {
-		return $this->service( 'runtime_loader', fn (): RuntimeLoader => new RuntimeLoader( $this->context() ) );
+	public function runtime(): Runtime {
+		return $this->service( 'runtime', fn (): Runtime => new Runtime( $this->context() ) );
 	}
 
 	/**
@@ -703,7 +659,7 @@ final class Plugin {
 	 * @return bool
 	 */
 	public function hasCustomMuPlugins(): bool {
-		$directory = $this->context()->muPluginsDir();
+		$directory = $this->context()->content_dir . '/mu-plugins';
 
 		if ( ! is_dir( $directory ) ) {
 			return false;
@@ -711,13 +667,9 @@ final class Plugin {
 
 		$files = glob( $directory . '/*.php' );
 
-		foreach ( false === $files ? array() : $files as $file ) {
-			if ( RuntimeLoader::LOADER_FILE !== basename( $file ) ) {
-				return true;
-			}
-		}
-
-		return false;
+		// Every .php file here is now somebody else's: this plugin no longer
+		// installs one (D-0070).
+		return array() !== ( false === $files ? array() : $files );
 	}
 
 	/**
@@ -909,7 +861,6 @@ final class Plugin {
 						new WooCartProbe( $http ),
 						new WooCheckoutProbe( $http ),
 						new WooAccountProbe( $http ),
-						new RuntimeLoadedProbe( $http, $this->state() ),
 					),
 					$http
 				);
@@ -1108,17 +1059,19 @@ final class Plugin {
 	}
 
 	/**
-	 * Regenerate the runtime from the saved selection.
+	 * Resolve the saved selection and store it for the loader.
 	 *
-	 * Phase 1 exposes this so activation, the CLI and the tests share one code
-	 * path. ApplyManager takes over the orchestration in Phase 5; this stays as
-	 * the primitive it calls.
+	 * Activation, the CLI and the tests share one code path. ApplyManager
+	 * orchestrates; this stays as the primitive it calls.
 	 *
-	 * @return string The runtime hash, or '' when nothing is selected.
+	 * Still called "regenerate" because that is what every caller and every
+	 * `wp debloater` user knows it as, and nothing is generated by anything else
+	 * now to confuse it with.
+	 *
+	 * @return int How many handlers the selection resolves to.
 	 */
-	public function regenerateRuntime(): string {
+	public function regenerateRuntime(): int {
 		$registry  = $this->registry();
-		$compiler  = $this->compiler();
 		$selection = $this->state()->selection();
 		$tweaks    = array();
 
@@ -1130,14 +1083,7 @@ final class Plugin {
 			$tweaks[] = $registry->tweak( $tweak_id )->resolve( $params );
 		}
 
-		$source = $compiler->compile( $tweaks, $registry->hash() );
-		$hash   = $this->runtimeWriter()->write( $source, $compiler->selectionHash( $tweaks ), $registry->hash() );
-
-		$mode = '' === $hash ? RuntimeLoader::MODE_NONE : $this->runtimeLoader()->install();
-
-		$this->state()->setRuntime( $hash, $mode );
-
-		return $hash;
+		return $this->runtime()->write( $tweaks );
 	}
 
 	/**

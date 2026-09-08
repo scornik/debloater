@@ -363,6 +363,12 @@ require do not exist in that context.
 
 ## D-0005 — The generated runtime carries no timestamp
 
+> **Superseded by `D-0070`.** There is no generated runtime. What this
+> record decided — that regeneration must be byte-identical, so the header
+> carries hashes and the generation time lives in the lock — was about a file
+> that no longer exists. Kept because the reasoning about determinism is why
+> the selection is still stored in sorted order.
+
 - **Phase:** 1
 - **Date:** 2026-09-02
 - **Status:** Accepted
@@ -451,6 +457,13 @@ a namespace declaration, or a reference to the autoloader.
 ---
 
 ## D-0007 — Loader strategy, fallback, and deferred bypass authorisation
+
+> **Superseded by `D-0070`.** The mu-plugin loader, the fallback include
+> and the deferred bypass are all gone. Registration happens at
+> `plugins_loaded` priority -999, where `pluggable.php` has already loaded, so
+> the guard answers the bypass question directly instead of recording it for
+> somebody else to finish. Kept because the reasoning about *why* the bypass
+> needs both a capability and a nonce is unchanged and still load-bearing.
 
 - **Phase:** 1
 - **Date:** 2026-09-02
@@ -3571,3 +3584,105 @@ Because it is a day of work that changes no outcome this week, and because
 inventing it in the same session that discovered the record was wrong is how a
 correction turns into an unreviewed feature. It is listed in
 `docs/GAP-ANALYSIS.md` under what is left, with that estimate.
+
+---
+
+## D-0070 – the compiled runtime is gone, on wordpress.org's instruction
+
+- **Phase:** 0.3.0, wordpress.org review round 1
+- **Date:** 2026-09-08
+- **Status:** accepted
+- **Supersedes:** `D-0005` (the runtime carries no timestamp), `D-0007` (loader
+  strategy, fallback, deferred bypass).
+- **Amends:** the rule that this plugin adds nothing to the autoload set.
+- **Spec:** `BUILD-SPEC.md` §1 decision 7a, §10, §11 — amended by the spec owner
+  as part of this change.
+
+### What was there
+
+A selection compiled into `wp-content/debloater/runtime.php`: a generated PHP
+file listing `require_once` of each handler and a `register()` call with
+`var_export`ed parameters. Written to a temp file, syntax-checked, moved into
+place with an atomic `rename`. Its sha256 recorded in `runtime.lock`. Loaded by
+a copy of `mu-loader/debloater-loader.php` planted in `mu-plugins`, which
+re-hashed the file before including it, with a fallback include from the main
+plugin at `plugins_loaded` -999 when `mu-plugins` was not writable, and a
+`runtime_loaded` probe reporting which path had been taken.
+
+It was careful work and most of it was defending against the consequences of the
+first decision.
+
+### Why it is gone
+
+**wordpress.org refused it.** A plugin writing executable PHP under
+`wp-content` is not permitted, and none of the exceptions apply. That is the
+whole reason. This was not reconsidered on its merits and then removed; it was
+removed because the plugin cannot be distributed otherwise, and the design is
+being described honestly rather than rationalised after the fact.
+
+`D-0007` predates the ruling. It was a good answer to the question it was asked.
+
+### What replaced it
+
+`Apply\Runtime`: an autoloaded `debloater_runtime` option holding, per handler, a
+**file name**, a class name and validated parameters — required and registered
+at `plugins_loaded` priority -999, the same priority the fallback include used.
+
+### What was gained
+
+- **No writes of code, anywhere.** The atomic rename, the syntax check, the
+  permission checks, the tamper detection and the "what if wp-content is
+  read-only" branch all existed to make writing PHP safe. Not writing it is
+  simpler than writing it safely.
+- **The deferral is gone, and with it a whole class of bug.** The guard could
+  not authorise `?debloater=off` from mu-plugins, because `pluggable.php` had
+  not loaded — so it recorded the request, returned false, and a second hook
+  unregistered the handlers afterwards if the request turned out to be
+  authorised. Registration now happens after `pluggable.php` loads (verified in
+  `wp-settings.php`: line 612 loads it, line 630 fires the hook), so the
+  question is simply answered. One hook instead of two, no unregister pass, no
+  static flag.
+- **A stricter security boundary.** The compiler proved handler paths safe with
+  `realpath()` when it generated the file, then trusted the file. The option
+  stores a file name matched against a pattern with the directory supplied by
+  the loader, re-checked on every read. That is **P1**'s allow-list where a
+  deny-list-evaluated-once used to be, and a test plants
+  `../../../wp-config.php` into the option to prove it.
+- **Fewer moving parts:** three classes, a mu-plugin, a lock file, a probe and
+  their tests removed; one class added.
+
+### What was lost
+
+- **Tamper evidence.** An edited `runtime.php` failed its hash and did not load.
+  There is no equivalent: an option edited in the database is registered. The
+  mitigation is that the loader validates shape rather than trusting content —
+  a planted path or class is refused — but *plausible* tampering, swapping one
+  real handler for another, is no longer detectable. Anybody who can write that
+  row can already write the options table, which is a larger problem, but the
+  check is genuinely gone and this record does not pretend otherwise.
+- **The `runtime_loaded` probe.** It answered "is the code you approved actually
+  the code running" and has no subject now. Removed from §11.
+- **One row in the autoload set.** The rule that this plugin adds nothing there
+  — stated in `Storage\State`'s class comment, asserted by
+  `RuntimeOverheadTest::test_the_state_option_is_not_autoloaded`, and never
+  written down as a decision until now — is amended, not reversed. What is
+  added is a short list of file names and validated scalars in its own small
+  option. `debloater_state`, which holds the run history, the attestation and
+  the intent profile, stays out of it and its test still passes. Autoloading the
+  big one would have been the lazy version of this and is what the rule exists
+  to prevent.
+- **Byte-identical regeneration** as a testable property. The selection is still
+  stored in sorted order for the same reason `D-0005` gave, but there are no
+  bytes to compare.
+
+### What is still written under wp-content
+
+The Level B recovery spill: gzipped NDJSON rows of a recovery point too large
+for the database, behind an `index.php` and a `.htaccess`. It is data, not code,
+and §13 rule 8 requires it before a destructive change. The review's objection
+was to executable PHP — the same round's instruction to default CLI exports into
+`wp_upload_dir()` puts files under `wp-content` too.
+
+`RuntimeOverheadTest::test_no_php_is_written_under_wp_content` walks the
+directory after a real apply and fails on any `.php` file this plugin put there,
+so the property is asserted rather than remembered (**P8**).

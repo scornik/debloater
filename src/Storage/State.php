@@ -41,8 +41,6 @@ final class State {
 		'tweak_states'      => array(),
 		'intent_profile'    => array(),
 		'last_scan_run_id'  => 0,
-		'runtime_hash'      => '',
-		'loader_mode'       => '',
 		'installed_at'      => '',
 		'uninstall_cleanup' => false,
 		'attestation'       => array(),
@@ -203,44 +201,6 @@ final class State {
 	}
 
 	/**
-	 * The hash of the runtime the plugin believes it generated.
-	 *
-	 * @return string
-	 */
-	public function runtimeHash(): string {
-		$hash = $this->get( 'runtime_hash', '' );
-
-		return is_string( $hash ) ? $hash : '';
-	}
-
-	/**
-	 * Record the generated runtime hash and how the loader was installed.
-	 *
-	 * @param string $runtime_hash Runtime hash, '' when there is no runtime.
-	 * @param string $loader_mode  Loader mode, see Apply\RuntimeLoader.
-	 * @return bool
-	 */
-	public function setRuntime( string $runtime_hash, string $loader_mode ): bool {
-		return $this->set(
-			array(
-				'runtime_hash' => $runtime_hash,
-				'loader_mode'  => $loader_mode,
-			)
-		);
-	}
-
-	/**
-	 * How the runtime loader is installed.
-	 *
-	 * @return string
-	 */
-	public function loaderMode(): string {
-		$mode = $this->get( 'loader_mode', '' );
-
-		return is_string( $mode ) ? $mode : '';
-	}
-
-	/**
 	 * Whether uninstalling should drop tables and options.
 	 *
 	 * Defaults to false: removing a plugin is not consent to delete the record
@@ -285,6 +245,15 @@ final class State {
 
 	/**
 	 * A stable hash of the current selection.
+	 *
+	 * The recovery point records this and `Snapshot\RollbackManager` compares it
+	 * after a restore, so "the site came back to what the snapshot described" is
+	 * checked rather than assumed.
+	 *
+	 * It replaced `runtime_hash`, which was the sha256 of the generated file's
+	 * bytes. There is no file, and this was already here computing the better
+	 * answer: the selection is what anybody cared about, and unlike a stored
+	 * hash it cannot drift from the thing it describes (D-0070).
 	 *
 	 * @return string
 	 */

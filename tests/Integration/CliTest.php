@@ -11,7 +11,6 @@ namespace Debloater\Tests\Integration;
 
 use WP_Error;
 use Debloater\Apply\Lock;
-use Debloater\Apply\RuntimeLoader;
 use Debloater\Cli\Command;
 use Debloater\Config\ConfigDocument;
 use Debloater\Registry\SchemaValidator;
@@ -183,7 +182,7 @@ final class CliTest extends IntegrationTestCase {
 
 		$this->assertSame( Command::EXIT_OK, $io->code );
 		$this->assertArrayHasKey( 'plan', $io->lastDocument() );
-		$this->assertFileDoesNotExist( $this->context()->runtimeFile() );
+		$this->assertSame( array(), $this->storedHandlers() );
 		$this->assertSame( $before['selection'], $this->plugin->state()->all()['selection'] );
 	}
 
@@ -218,7 +217,7 @@ final class CliTest extends IntegrationTestCase {
 
 		$this->assertSame( Command::EXIT_ERROR, $io->code );
 		$this->assertStringContainsString( '--yes', $io->output() );
-		$this->assertFileDoesNotExist( $this->context()->runtimeFile() );
+		$this->assertSame( array(), $this->storedHandlers() );
 		$this->assertSame( array(), $this->plugin->state()->selection() );
 	}
 
@@ -242,7 +241,7 @@ final class CliTest extends IntegrationTestCase {
 		);
 
 		$this->assertSame( Command::EXIT_OK, $apply->code, $apply->output() );
-		$this->assertFileExists( $this->context()->runtimeFile() );
+		$this->assertNotSame( array(), $this->storedHandlers() );
 		$this->assertNotSame( array(), $this->plugin->state()->selection() );
 
 		$status = new RecordingIo();
@@ -252,8 +251,8 @@ final class CliTest extends IntegrationTestCase {
 		$document = $status->lastDocument();
 
 		$this->assertSame( Command::EXIT_OK, $status->code );
-		$this->assertTrue( $document['runtime']['present'] );
-		$this->assertTrue( $document['runtime']['matches_state'] );
+		$this->assertGreaterThan( 0, $document['runtime']['handlers'] );
+		$this->assertNotSame( '', $document['runtime']['selection_hash'] );
 		$this->assertGreaterThan( 0, $document['selection_count'] );
 		$this->assertNotNull( $document['last_scan'] );
 
@@ -263,7 +262,7 @@ final class CliTest extends IntegrationTestCase {
 
 		$this->assertSame( Command::EXIT_OK, $rollback->code, $rollback->output() );
 		$this->assertSame( array(), $this->plugin->state()->selection() );
-		$this->assertFileDoesNotExist( $this->context()->runtimeFile() );
+		$this->assertSame( array(), $this->storedHandlers() );
 	}
 
 	/**
@@ -282,7 +281,7 @@ final class CliTest extends IntegrationTestCase {
 		( new Command( $this->plugin, $io ) )->rollback( array(), array() );
 
 		$this->assertSame( Command::EXIT_ERROR, $io->code );
-		$this->assertFileExists( $this->context()->runtimeFile() );
+		$this->assertNotSame( array(), $this->storedHandlers() );
 	}
 
 	/**
@@ -320,7 +319,7 @@ final class CliTest extends IntegrationTestCase {
 
 		$this->assertSame( Command::EXIT_WARNINGS, $io->code, $io->output() );
 		$this->assertNotSame( array(), $io->warnings );
-		$this->assertFileExists( $this->context()->runtimeFile(), 'The change is kept; only the checking failed.' );
+		$this->assertNotSame( array(), $this->storedHandlers() );
 	}
 
 	/**
@@ -594,14 +593,9 @@ final class CliTest extends IntegrationTestCase {
 
 		$this->assertSame( Command::EXIT_OK, $io->code );
 		$this->assertSame( 0, $document['selection_count'] );
-		$this->assertFalse( $document['runtime']['present'] );
-		$this->assertTrue( $document['runtime']['matches_state'] );
+		$this->assertSame( 0, $document['runtime']['handlers'] );
 		$this->assertNull( $document['last_scan'] );
 		$this->assertFalse( $document['lock']['held'] );
-		$this->assertContains(
-			$document['loader']['mode'],
-			array( RuntimeLoader::MODE_MU_PLUGIN, RuntimeLoader::MODE_FALLBACK, RuntimeLoader::MODE_NONE )
-		);
 	}
 
 	/**
@@ -686,10 +680,7 @@ final class CliTest extends IntegrationTestCase {
 
 				if ( 0 === strpos( $url, rest_url( 'debloater/v1/status' ) ) ) {
 					$body = (string) wp_json_encode(
-						array(
-							'runtime' => array( 'hash' => $plugin->state()->runtimeHash() ),
-							'loader'  => array( 'mode' => RuntimeLoader::MODE_MU_PLUGIN ),
-						)
+						array( 'runtime' => array( 'handlers' => 0 ) )
 					);
 				} elseif ( 0 === strpos( $url, rest_url() ) ) {
 					$body = (string) wp_json_encode( array( 'name' => 'A site' ) );

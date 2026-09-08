@@ -82,6 +82,22 @@ final class ScannerTest extends IntegrationTestCase {
 			unset( $facts[ $observed_name ] );
 		}
 
+		// Option names are names too, and the autoload report is a list of
+		// them. Ours is in it: `debloater_runtime` is autoloaded since D-0070,
+		// it is big enough to reach the top-N on a quiet site, and it contains
+		// the letters of "bloat" the way "Debloater" does. The plugin reports
+		// its own row rather than hiding it, which is the honest behaviour and
+		// is why this is exempted here instead of filtered there.
+		//
+		// The bytes are not exempted, only the names.
+		if ( isset( $facts['db.autoload.top'] ) && is_array( $facts['db.autoload.top'] ) ) {
+			foreach ( $facts['db.autoload.top'] as $index => $row ) {
+				if ( is_array( $row ) && isset( $row['name'] ) ) {
+					$facts['db.autoload.top'][ $index ]['name'] = 'option-name';
+				}
+			}
+		}
+
 		$encoded = strtolower( (string) wp_json_encode( $facts ) );
 
 		// The exemptions above are for names, not for a licence to editorialise

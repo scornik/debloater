@@ -811,22 +811,26 @@ final class ContractValidationTest extends TestCase {
 
 		$this->assertSame( 'https://example.test', $context->home_url );
 		$this->assertSame( 'C:/sites/example/', $context->abspath );
-		$this->assertSame( 'C:/sites/example/wp-content/debloater/runtime.php', $context->runtimeFile() );
-		$this->assertSame( 'C:/sites/example/wp-content/mu-plugins', $context->muPluginsDir() );
+		$this->assertSame( 'C:/sites/example/wp-content/debloater/backups', $context->backupsDir() );
 		$this->assertSame( 12, $context->actorUserId() );
 	}
 
 	/**
-	 * Everything the plugin generates lives under one directory
+	 * Everything the plugin writes lives under one directory
 	 * (BUILD-SPEC §13 rule 6).
+	 *
+	 * There is one path left to check rather than three: no generated runtime,
+	 * no lock beside it, and nothing in mu-plugins (D-0070). The assertion is
+	 * kept anyway, because the rule is about where writes may go and a list of
+	 * one is still a list — the next thing added to it is what this catches.
 	 *
 	 * @return void
 	 */
-	public function test_generated_paths_are_all_under_the_runtime_directory(): void {
+	public function test_written_paths_are_all_under_the_data_directory(): void {
 		$context = Build::context();
-		$root    = $context->runtimeDir();
+		$root    = $context->dataDir();
 
-		foreach ( array( $context->runtimeFile(), $context->runtimeLockFile(), $context->backupsDir() ) as $path ) {
+		foreach ( array( $context->backupsDir() ) as $path ) {
 			$this->assertStringStartsWith( $root . '/', $path );
 		}
 	}

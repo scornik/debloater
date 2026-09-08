@@ -11,7 +11,6 @@ namespace Debloater\Tests\Integration;
 
 use WP_REST_Request;
 use Debloater\Apply\Lock;
-use Debloater\Apply\RuntimeLoader;
 use Debloater\Brand;
 use Debloater\Contracts\SnapshotLevel;
 use Debloater\Rest\ConfirmationToken;
@@ -146,7 +145,7 @@ final class WriteRoutesTest extends IntegrationTestCase {
 		$this->assertSame( 409, $response->get_status() );
 		$this->assertSame( 'debloater_stale_confirmation', $response->get_data()['code'] );
 		$this->assertSame( array(), $this->plugin->state()->selection() );
-		$this->assertFileDoesNotExist( $this->context()->runtimeFile() );
+		$this->assertSame( array(), $this->storedHandlers() );
 	}
 
 	/**
@@ -180,7 +179,7 @@ final class WriteRoutesTest extends IntegrationTestCase {
 		$this->assertSame( 200, $response->get_status() );
 		$this->assertTrue( $response->get_data()['ok'], (string) ( $response->get_data()['result']['error'] ?? '' ) );
 		$this->assertNotSame( array(), $this->plugin->state()->selection() );
-		$this->assertFileExists( $this->context()->runtimeFile() );
+		$this->assertNotSame( array(), $this->storedHandlers() );
 	}
 
 	/**
@@ -232,7 +231,7 @@ final class WriteRoutesTest extends IntegrationTestCase {
 			wp_create_nonce( 'wp_rest' )
 		);
 
-		$this->assertFileExists( $this->context()->runtimeFile() );
+		$this->assertNotSame( array(), $this->storedHandlers() );
 
 		$listing = $this->get( '/snapshots' );
 
@@ -286,7 +285,7 @@ final class WriteRoutesTest extends IntegrationTestCase {
 		);
 
 		$this->assertSame( 409, $response->get_status() );
-		$this->assertFileExists( $this->context()->runtimeFile(), 'Nothing should have been restored.' );
+		$this->assertNotSame( array(), $this->storedHandlers() );
 	}
 
 	/**
@@ -418,10 +417,7 @@ final class WriteRoutesTest extends IntegrationTestCase {
 
 				if ( 0 === strpos( $url, rest_url( 'debloater/v1/status' ) ) ) {
 					$body = (string) wp_json_encode(
-						array(
-							'runtime' => array( 'hash' => $plugin->state()->runtimeHash() ),
-							'loader'  => array( 'mode' => RuntimeLoader::MODE_MU_PLUGIN ),
-						)
+						array( 'runtime' => array( 'handlers' => 0 ) )
 					);
 				} elseif ( 0 === strpos( $url, rest_url() ) ) {
 					$body = (string) wp_json_encode( array( 'name' => 'A site' ) );

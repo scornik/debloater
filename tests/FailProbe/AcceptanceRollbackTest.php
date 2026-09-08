@@ -69,9 +69,11 @@ final class AcceptanceRollbackTest extends FailProbeTestCase {
 	public function test_fix_safe_issues_rolls_back_and_restores_exactly(): void {
 		// A site that already has something applied, so the rollback has
 		// something to restore rather than merely something to delete.
-		$hash_before      = $this->selectAndGenerate( array( 'core.remove_jquery_migrate' => array() ) );
+		$this->selectAndGenerate( array( 'core.remove_jquery_migrate' => array() ) );
+
+		$hash_before      = $this->plugin->state()->selectionHash();
 		$selection_before = $this->plugin->state()->selection();
-		$runtime_before   = (string) file_get_contents( $this->context()->runtimeFile() );
+		$runtime_before   = $this->storedHandlersDigest();
 
 		$this->plugin->scan();
 
@@ -119,11 +121,11 @@ final class AcceptanceRollbackTest extends FailProbeTestCase {
 		// Exactly as it was.
 		$this->assertSame(
 			$runtime_before,
-			(string) file_get_contents( $this->context()->runtimeFile() ),
-			'The runtime must be byte-identical to what was there before.'
+			$this->storedHandlersDigest(),
+			'The registered selection must be exactly what was there before.'
 		);
 
-		$this->assertSame( $hash_before, $this->plugin->state()->runtimeHash() );
+		$this->assertSame( $hash_before, $this->plugin->state()->selectionHash() );
 		$this->assertSame( $selection_before, $this->plugin->state()->selection() );
 
 		$this->assertNull( ( new Lock() )->heldBy(), 'A rolled-back run must release the lock.' );

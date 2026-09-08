@@ -10,7 +10,6 @@ declare( strict_types = 1 );
 namespace Debloater\Tests\Integration;
 
 use Debloater\Apply\Lock;
-use Debloater\Apply\RuntimeLoader;
 use Debloater\Brand;
 use Debloater\Contracts\RunState;
 use Debloater\Contracts\SnapshotLevel;
@@ -156,7 +155,7 @@ final class AcceptanceTest extends IntegrationTestCase {
 		$this->assertSame( SnapshotLevel::A, $snapshots[0]->level );
 
 		// The change is in place.
-		$this->assertFileExists( $this->context()->runtimeFile() );
+		$this->assertNotSame( array(), $this->storedHandlers() );
 		$this->assertNotSame( array(), $this->plugin->state()->selection() );
 
 		// The run reads back with its verification and its measurements.
@@ -352,10 +351,7 @@ final class AcceptanceTest extends IntegrationTestCase {
 
 				if ( 0 === strpos( $url, rest_url( 'debloater/v1/status' ) ) ) {
 					$body = (string) wp_json_encode(
-						array(
-							'runtime' => array( 'hash' => $plugin->state()->runtimeHash() ),
-							'loader'  => array( 'mode' => RuntimeLoader::MODE_MU_PLUGIN ),
-						)
+						array( 'runtime' => array( 'handlers' => 0 ) )
 					);
 				} elseif ( 0 === strpos( $url, rest_url() ) ) {
 					$body = (string) wp_json_encode( array( 'name' => 'A site' ) );
