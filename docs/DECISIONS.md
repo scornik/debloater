@@ -82,6 +82,20 @@ live API calls, or died for want of an argument, because it imported a stage.
 *Not a numbered decision — see `docs/PIPELINE.md` in
 `scornik/debloater-registry`, under "A convention worth keeping".*
 
+**P8. A comment asserting a safety property is not the property. Test it or
+delete it.**
+Prose in a docblock is read as a guarantee by everybody after you, including
+the reviewer looking for exactly that guarantee — and unlike a test it does not
+notice when the code stops matching. Either write the assertion that fails when
+the property does, and cite it from the comment, or take the claim out and let
+the absence be honest.
+*From `Verify\HttpClient`, whose class comment said "requests are never followed
+off-site" while `getAsActor()` passed `redirection => 3`, so an open redirect
+could have carried an administrator's session cookie to any host. Same shape as
+the entry-point invariant that never read the entry point, and the private-key
+grep that matched nothing: all three described a check rather than performing
+one.*
+
 ---
 
 ## This file is authoritative

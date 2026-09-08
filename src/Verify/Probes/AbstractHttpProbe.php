@@ -58,6 +58,43 @@ abstract class AbstractHttpProbe implements ProbeInterface {
 	}
 
 	/**
+	 * A signed-in check was pointed at somewhere that is not this site.
+	 *
+	 * FAIL, and not UNKNOWN, which is the opposite of how the other "could not
+	 * check" outcomes are graded. The distinction is that this one is a finding
+	 * about the site rather than about the check: the credential was withheld,
+	 * so nothing leaked, but the site answered a request for its own dashboard
+	 * by naming another host, and whoever owns it should hear that today.
+	 *
+	 * @param Response $response The redirect that was refused.
+	 * @return ProbeResult
+	 */
+	protected function offsiteRedirect( Response $response ): ProbeResult {
+		$host = $this->http->redirectHost( $response );
+
+		return new ProbeResult(
+			$this->name(),
+			ProbeStatus::FAIL,
+			sprintf(
+				/* translators: %s: the host name the redirect pointed at. */
+				__(
+					'A signed-in check was sent to %s, which is not this site. The request was stopped and the sign-in cookie was not sent there. Something on this site is redirecting off-site, which is worth looking at whatever else is going on.',
+					'debloater'
+				),
+				'' === $host ? __( 'another site', 'debloater' ) : $host
+			),
+			array_merge(
+				$response->evidence(),
+				array(
+					'redirect_location' => $response->location,
+					'redirect_host'     => $host,
+					'credential_sent'   => 'no',
+				)
+			)
+		);
+	}
+
+	/**
 	 * A result for a request that never completed.
 	 *
 	 * Never FAIL: a site that cannot reach itself has told us nothing about the

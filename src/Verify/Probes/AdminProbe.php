@@ -74,14 +74,29 @@ final class AdminProbe extends AbstractHttpProbe {
 		}
 
 		$url      = admin_url();
-		$response = $this->http->getAsActorWithoutRedirects( $url );
+		$response = $this->http->getAsActor( $url );
+
+		// Before anything is followed: a dashboard that answers by naming
+		// another host is not a dashboard this check can follow. The credential
+		// was never sent there — the client refuses off-domain cookies and no
+		// authenticated request is redirected — and the answer is a FAIL that
+		// names the host rather than a second request.
+		if ( $this->http->redirectLeavesSite( $response ) ) {
+			return $this->offsiteRedirect( $response );
+		}
 
 		// One redirect is followed by hand, and only one: an admin behind
 		// `force_ssl_admin()` answers http with a redirect to itself over
 		// https, and the credential for that URL is a different cookie. Asking
 		// again at the URL it named is the whole of the handling.
 		if ( $response->isRedirect() && ! $response->redirectsToLogin() && '' !== $response->location ) {
-			$response = $this->http->getAsActorWithoutRedirects( $response->location );
+			$response = $this->http->getAsActor( $response->location );
+
+			// And the same question about the second hop, because a redirect
+			// chain that leaves on its second step leaves just the same.
+			if ( $this->http->redirectLeavesSite( $response ) ) {
+				return $this->offsiteRedirect( $response );
+			}
 		}
 
 		if ( $response->redirectsToLogin() ) {

@@ -84,6 +84,10 @@ final class RuntimeLoadedProbe extends AbstractHttpProbe {
 			return $this->unreachable( $response );
 		}
 
+		if ( $this->http->redirectLeavesSite( $response ) ) {
+			return $this->offsiteRedirect( $response );
+		}
+
 		if ( 401 === $response->status || 403 === $response->status ) {
 			return new ProbeResult(
 				$this->name(),

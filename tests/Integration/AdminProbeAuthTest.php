@@ -64,12 +64,24 @@ final class AdminProbeAuthTest extends IntegrationTestCase {
 	private int $actor = 0;
 
 	/**
+	 * Every outbound request the spy saw, in order.
+	 *
+	 * Public because the stubs are static closures that capture `$this` as a
+	 * plain object, matching the ones already in this file.
+	 *
+	 * @var array<int,array<string,mixed>>
+	 */
+	public array $seen = array();
+
+	/**
 	 * Set up.
 	 *
 	 * @return void
 	 */
 	public function set_up(): void {
 		parent::set_up();
+
+		$this->seen = array();
 
 		$this->plugin->schema()->ensure();
 
@@ -199,6 +211,160 @@ final class AdminProbeAuthTest extends IntegrationTestCase {
 	}
 
 	/**
+	 * An off-site redirect is refused, and never receives the cookie.
+	 *
+	 * The bug this pins: `getAsActor()` used to pass `redirection => 3`, and
+	 * the following happens inside `WP_Http`, which re-sends the same headers
+	 * to every hop. `ActorSession` refuses a credential for a URL outside
+	 * `COOKIE_DOMAIN`, but it is asked once, about the first URL — so an open
+	 * redirect anywhere on the site could have handed an administrator's
+	 * session cookie to whatever host it named.
+	 *
+	 * The spy records *every* request, which is the only way to see this: the
+	 * probe's own return value looks the same either way. What it asserts is an
+	 * absence — no second request at all — because the fix is that the hop does
+	 * not happen, not that it happens without a cookie.
+	 *
+	 * @return void
+	 */
+	public function test_an_external_redirect_never_receives_the_cookie(): void {
+		$this->spyAnswering(
+			static function ( string $url ): array {
+				if ( str_contains( $url, 'stealer.invalid' ) ) {
+					// Never reached. If the guard regresses, this is what the
+					// credential would have been handed to, and the assertions
+					// below say so by name.
+					return array(
+						'response' => array( 'code' => 200 ),
+						'body'     => 'collected',
+					);
+				}
+
+				return array(
+					'response' => array( 'code' => 302 ),
+					'headers'  => array( 'location' => 'https://stealer.invalid/collect' ),
+					'body'     => '',
+				);
+			}
+		);
+
+		$result = $this->probe()->run( $this->actorContext() );
+
+		$offsite = array_filter(
+			$this->seen,
+			static fn ( array $request ): bool => str_contains( (string) $request['url'], 'stealer.invalid' )
+		);
+
+		$this->assertSame(
+			array(),
+			$offsite,
+			'A request was made to the redirect target; the credential guard has regressed.'
+		);
+		$this->assertCount( 1, $this->seen, 'The redirect was followed.' );
+
+		// The property the review actually asked for, stated directly: no
+		// request carrying a credential went anywhere but this site. Belt to
+		// the braces above — if the spy is ever changed so that a hop is
+		// recorded without being flagged, this still fails.
+		foreach ( $this->seen as $request ) {
+			if ( ! str_contains( (string) $request['url'], (string) wp_parse_url( home_url(), PHP_URL_HOST ) ) ) {
+				$this->assertSame(
+					'',
+					$request['cookie'],
+					'A credential was sent to ' . $request['url']
+				);
+			}
+		}
+
+		// And the mechanism rather than the symptom: the request asked for no
+		// redirects at all, so there was nothing for core to follow.
+		$this->assertSame( 0, $this->seen[0]['redirection'] );
+
+		$this->assertSame( ProbeStatus::FAIL, $result->status );
+		$this->assertStringContainsString( 'stealer.invalid', $result->message );
+		$this->assertSame( 'no', $result->evidence['credential_sent'] );
+	}
+
+	/**
+	 * A credential is never sent over a weaker channel than it was asked on.
+	 *
+	 * Same host, https down to http. Nothing legitimate needs this, and a
+	 * session cookie moving onto plaintext is the thing `secure_auth` exists to
+	 * prevent.
+	 *
+	 * @return void
+	 */
+	public function test_a_scheme_downgrade_is_refused_like_another_host(): void {
+		// Both computed before the filter goes on: a callback on `admin_url`
+		// that calls `admin_url()` recurses until the stack gives out.
+		$plain  = $this->adminUrl( 'http' );
+		$secure = $this->adminUrl( 'https' );
+
+		add_filter( 'admin_url', static fn (): string => $secure );
+
+		$this->spyAnswering(
+			static function () use ( $plain ): array {
+				return array(
+					'response' => array( 'code' => 302 ),
+					'headers'  => array( 'location' => $plain ),
+					'body'     => '',
+				);
+			}
+		);
+
+		$result = $this->probe()->run( $this->actorContext() );
+
+		$this->assertCount( 1, $this->seen, 'The downgrade was followed.' );
+		$this->assertSame( ProbeStatus::FAIL, $result->status );
+	}
+
+	/**
+	 * The `force_ssl_admin()` upgrade is still followed, deliberately.
+	 *
+	 * The one redirect this probe takes by hand. Same host, http answered with
+	 * https, which is the ordinary configuration of a great many sites — and
+	 * the credential is re-chosen for the new scheme rather than resent, so the
+	 * hop strengthens the request instead of weakening it.
+	 *
+	 * Without this test the safe-looking change is to refuse every redirect,
+	 * which turns a working dashboard into a FAIL naming the site's own host.
+	 *
+	 * @return void
+	 */
+	public function test_the_force_ssl_admin_upgrade_is_still_followed(): void {
+		$plain  = $this->adminUrl( 'http' );
+		$secure = $this->adminUrl( 'https' );
+
+		add_filter( 'admin_url', static fn (): string => $plain );
+
+		$this->spyAnswering(
+			static function ( string $url ) use ( $secure ): array {
+				if ( str_starts_with( $url, 'https://' ) ) {
+					return array(
+						'response' => array( 'code' => 200 ),
+						'headers'  => array( 'content-type' => 'text/html' ),
+						'body'     => '<html><head><title>Dashboard</title></head><body>'
+							. '<div id="wpadminbar"><ul><li id="wp-admin-bar-my-account">x</li></ul></div>'
+							. '<div id="adminmenu"></div><div id="wpbody"></div></body></html>',
+					);
+				}
+
+				return array(
+					'response' => array( 'code' => 302 ),
+					'headers'  => array( 'location' => $secure ),
+					'body'     => '',
+				);
+			}
+		);
+
+		$result = $this->probe()->run( $this->actorContext() );
+
+		$this->assertCount( 2, $this->seen, 'The upgrade hop was not taken.' );
+		$this->assertStringStartsWith( 'https://', (string) $this->seen[1]['url'] );
+		$this->assertNotSame( ProbeStatus::FAIL, $result->status );
+	}
+
+	/**
 	 * The dashboard, fetched for real, as the actor.
 	 *
 	 * @return void
@@ -302,7 +468,13 @@ final class AdminProbeAuthTest extends IntegrationTestCase {
 		$this->stubResponse(
 			array(
 				'response' => array( 'code' => 302 ),
-				'headers'  => array( 'location' => 'http://example.org/wp-login.php?reauth=1' ),
+				// This site's own login page, not a hardcoded host. It used to
+				// say `http://example.org/...` while the test site answers on
+				// `localhost:8889`, which made this a *cross-host* redirect
+				// dressed as a login redirect. Nothing compared hosts, so it
+				// passed. The off-site guard does compare them, and reported it
+				// as what it literally was.
+				'headers'  => array( 'location' => home_url( '/wp-login.php?reauth=1' ) ),
 				'body'     => '',
 			)
 		);
@@ -313,6 +485,12 @@ final class AdminProbeAuthTest extends IntegrationTestCase {
 		$this->assertStringContainsString( 'would not accept it', $result->message );
 		$this->assertStringContainsString( 'auth', $result->message );
 		$this->assertSame( 'yes', $result->evidence['redirected_to_login'] );
+
+		// And it is reported as the login redirect it is, rather than as an
+		// off-site one. Same host, same scheme: the guard has nothing to say
+		// about it, and this is the assertion that keeps the guard from
+		// swallowing the diagnosis it sits in front of.
+		$this->assertNotSame( ProbeStatus::FAIL, $result->status );
 	}
 
 	/**
@@ -473,6 +651,74 @@ final class AdminProbeAuthTest extends IntegrationTestCase {
 	 */
 	private function probe(): AdminProbe {
 		return new AdminProbe( new HttpClient( $this->actorContext() ) );
+	}
+
+	/**
+	 * Record every outbound request, and answer it however the caller says.
+	 *
+	 * `stubResponse()` below answers but does not record, which is enough when
+	 * the question is what a probe concluded. It is not enough when the
+	 * question is what the probe *sent*, and where — an absent request is the
+	 * whole assertion in the redirect tests, and nothing about the returned
+	 * result would show it.
+	 *
+	 * @param callable $answer Given the URL and the request args, returns the response.
+	 * @return void
+	 */
+	private function spyAnswering( callable $answer ): void {
+		$test = $this;
+
+		add_filter(
+			'pre_http_request',
+			/**
+			 * @param mixed               $preempt Short-circuit value.
+			 * @param array<string,mixed> $args    Request arguments.
+			 * @param string              $url     Requested URL.
+			 * @return array<string,mixed>
+			 */
+			static function ( $preempt, array $args, string $url ) use ( $test, $answer ) {
+				unset( $preempt );
+
+				// Follow redirects the way `WP_Http` does, because the filter
+				// this runs on short-circuits before core would.
+				//
+				// Found by fail-probe: with the vulnerability restored, "no
+				// request reached the other host" and "only one request was
+				// made" both still passed, because a stubbed `pre_http_request`
+				// returns and core never gets as far as its redirect handling.
+				// The two assertions that name the actual danger were
+				// decorative, and only the `redirection` argument had teeth.
+				//
+				// So the spy does what core would: same headers, resent to each
+				// hop, up to the budget the caller asked for. That is the whole
+				// mechanism of the bug — `WP_Http` does not re-ask
+				// `ActorSession` whether the *next* host may have the cookie.
+				$budget = (int) ( $args['redirection'] ?? 0 );
+				$next   = $url;
+
+				while ( true ) {
+					$test->seen[] = array(
+						'url'         => $next,
+						'cookie'      => (string) ( $args['headers']['Cookie'] ?? '' ),
+						'redirection' => $args['redirection'] ?? null,
+					);
+
+					$response = $answer( $next, $args );
+					$code     = (int) ( $response['response']['code'] ?? 0 );
+					$location = (string) ( $response['headers']['location'] ?? '' );
+
+					if ( $budget > 0 && '' !== $location && $code >= 300 && $code < 400 ) {
+						--$budget;
+						$next = $location;
+						continue;
+					}
+
+					return $response;
+				}
+			},
+			10,
+			3
+		);
 	}
 
 	/**

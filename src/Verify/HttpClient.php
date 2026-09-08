@@ -24,9 +24,29 @@ use Debloater\Contracts\Context;
  * when it is present — a verification that the site passes only because it knew
  * it was being verified has verified nothing.
  *
- * Requests are never followed off-site: a redirect to another host is reported
- * as a redirect rather than chased, because a probe that follows one is no
- * longer measuring this site.
+ * ## Authenticated requests do not follow redirects. At all.
+ *
+ * This class used to carry a comment saying requests were "never followed
+ * off-site". They were. `getAsActor()` passed `redirection => 3`, and the
+ * following happens inside `WP_Http`, which re-sends the same headers to each
+ * hop — including `Cookie`. `ActorSession::headers()` refuses to hand over a
+ * credential for a URL outside `COOKIE_DOMAIN`, but it is asked once, about the
+ * first URL. Hops two and three were never shown to it.
+ *
+ * So an open redirect anywhere on the site — the sort of thing that is a low
+ * severity finding on its own — could have delivered an administrator's session
+ * cookie to any host that a redirect named.
+ *
+ * The rule now is the blunt one: **a request carrying a credential is never
+ * redirected.** A 3xx is a result, and the caller decides what it means. Guest
+ * requests still follow, because they carry nothing to lose and the home page
+ * legitimately redirects.
+ *
+ * `redirectLeavesSite()` says whether following one *would* have left, and
+ * `AdminProbeAuthTest::test_an_external_redirect_never_receives_the_cookie`
+ * asserts it against a spy that records every request WordPress makes. The
+ * property is tested, which is the only reason this paragraph is allowed to
+ * claim it (`docs/DECISIONS.md` **P8**).
  */
 final class HttpClient {
 
@@ -41,9 +61,13 @@ final class HttpClient {
 	public const HEADER = 'X-Debloater-Verify';
 
 	/**
-	 * Redirects followed before giving up.
+	 * Redirects followed before giving up, for guest requests only.
+	 *
+	 * There is no authenticated equivalent on purpose. A request that carries a
+	 * credential is sent with `redirection => 0` and nothing negotiates that
+	 * down from somewhere else in the class.
 	 */
-	private const MAX_REDIRECTS = 3;
+	private const GUEST_REDIRECTS = 3;
 
 	/**
 	 * Site context.
@@ -104,34 +128,88 @@ final class HttpClient {
 	}
 
 	/**
-	 * Fetch a URL as the user who asked for the change.
+	 * Fetch a URL as the user who asked for the change. Never redirected.
 	 *
 	 * Used for `/wp-admin/` and for the plugin's own REST endpoint, neither of
 	 * which an anonymous request can see. When there is no usable session the
 	 * request still goes out unauthenticated, and the probe reports what it
 	 * could not check rather than claiming a pass.
 	 *
+	 * A 3xx comes back as a 3xx. That is not only the safe answer, it is the
+	 * more useful one: a redirect to `wp-login.php` and a 200 carrying a login
+	 * form mean two different things — a credential core rejected, and a host
+	 * that removed it before core saw it — and following the redirect turns the
+	 * first into the second, which is how a specific diagnosis becomes a vague
+	 * one.
+	 *
 	 * @param string $url URL to fetch.
 	 * @return Response
 	 */
 	public function getAsActor( string $url ): Response {
-		return $this->request( $url, $this->session->headers( $url ) );
+		return $this->request( $url, $this->session->headers( $url ), false );
 	}
 
 	/**
-	 * Fetch a URL as the acting user, without following redirects.
+	 * Whether following this redirect would take the credential off the site.
 	 *
-	 * The admin probe needs this. A redirect to `wp-login.php` and a 200
-	 * carrying a login form mean two different things — a credential core
-	 * rejected, and a host that removed it before core saw it — and following
-	 * the redirect turns the first into the second, which is how a specific
-	 * diagnosis becomes a vague one.
+	 * Compared against the URL that was asked for rather than `home_url()`,
+	 * because the admin can legitimately be on a different scheme from the home
+	 * page and the question is about *this* request.
 	 *
-	 * @param string $url URL to fetch.
-	 * @return Response
+	 * Two things count as leaving:
+	 *
+	 * - **A different host.** The obvious case, and the one an open redirect
+	 *   exploits.
+	 * - **https answered with http on the same host.** A credential moving to a
+	 *   weaker channel is a credential exposed, and nothing legitimate needs it.
+	 *
+	 * An *upgrade* — http asked, https named, same host — does not count. That
+	 * is `force_ssl_admin()`, which is the ordinary configuration of a great
+	 * many sites, and `AdminProbe` follows exactly that one hop by hand with the
+	 * cookie re-chosen for the new scheme. Refusing it would turn a working
+	 * dashboard into a FAIL naming the site's own host, which is a false alarm
+	 * and reads as a bug.
+	 *
+	 * A relative or root-relative `Location` cannot leave, by definition.
+	 *
+	 * @param Response $response A response that may be a redirect.
+	 * @return bool
 	 */
-	public function getAsActorWithoutRedirects( string $url ): Response {
-		return $this->request( $url, $this->session->headers( $url ), false );
+	public function redirectLeavesSite( Response $response ): bool {
+		if ( ! $response->isRedirect() || '' === $response->location ) {
+			return false;
+		}
+
+		$target = wp_parse_url( $response->location );
+
+		if ( ! is_array( $target ) || ! isset( $target['host'] ) ) {
+			// No host means relative: same site, whatever else it is.
+			return false;
+		}
+
+		$from = wp_parse_url( $response->url );
+		$here = is_array( $from ) && isset( $from['host'] ) ? $from['host'] : '';
+
+		if ( strtolower( (string) $target['host'] ) !== strtolower( (string) $here ) ) {
+			return true;
+		}
+
+		$was = is_array( $from ) && isset( $from['scheme'] ) ? strtolower( (string) $from['scheme'] ) : '';
+		$now = isset( $target['scheme'] ) ? strtolower( (string) $target['scheme'] ) : $was;
+
+		return 'https' === $was && 'http' === $now;
+	}
+
+	/**
+	 * The host a redirect names, for saying so in a message.
+	 *
+	 * @param Response $response A response that may be a redirect.
+	 * @return string Host, or '' when there is not one to name.
+	 */
+	public function redirectHost( Response $response ): string {
+		$target = wp_parse_url( $response->location );
+
+		return is_array( $target ) && isset( $target['host'] ) ? (string) $target['host'] : '';
 	}
 
 	/**
@@ -189,18 +267,29 @@ final class HttpClient {
 	 * Perform the request.
 	 *
 	 * @param string                $url     URL to fetch.
-	 * @param array<string,string>  $headers Extra headers.
-	 * @param bool                  $follow  Whether to follow redirects.
+	 * @param array<string,string>  $headers Extra headers. Non-empty means the
+	 *                                       request carries a credential.
+	 * @param bool                  $follow  Whether to follow redirects. Ignored
+	 *                                       when headers are present: an
+	 *                                       authenticated request is never
+	 *                                       redirected, and a caller cannot ask
+	 *                                       for it to be.
 	 * @return Response
 	 */
 	private function request( string $url, array $headers, bool $follow = true ): Response {
 		$started = microtime( true );
 
+		// Belt and braces. `getAsActor()` already passes false, and this makes
+		// a future caller that forgets harmless rather than dangerous — the
+		// failure mode being guarded is somebody adding an authenticated call
+		// and taking the default.
+		$follow = $follow && array() === $headers;
+
 		$response = wp_remote_get(
 			$url,
 			array(
 				'timeout'     => $this->timeout,
-				'redirection' => $follow ? self::MAX_REDIRECTS : 0,
+				'redirection' => $follow ? self::GUEST_REDIRECTS : 0,
 				'sslverify'   => $this->sslVerify(),
 				'headers'     => array_merge( array( self::HEADER => '1' ), $headers ),
 				'user-agent'  => 'Debloater/' . $this->context->plugin_version . '; verification',
