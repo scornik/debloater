@@ -206,8 +206,37 @@ final class Sources {
 		}
 
 		// Root-relative: /wp-includes/js/jquery/jquery.min.js
+		//
+		// This used to be `ABSPATH . $url`, which is right only when WordPress
+		// is at the domain root. On a subdirectory install — WordPress in
+		// `/blog`, ABSPATH ending in `/blog/` — a root-relative URL carries the
+		// `/blog` too, and gluing the two together produced
+		// `/var/www/html/blog/blog/wp-includes/...`: a path that does not exist,
+		// so the asset was reported as unresolvable on every subdirectory site.
+		//
+		// The candidates above already know where each directory lives. Matching
+		// them by URL *path* rather than by whole URL answers the root-relative
+		// case with the same table, and gets the subdirectory prefix removed for
+		// free because it is part of every candidate's path.
 		if ( 0 === strpos( $url, '/' ) ) {
-			return rtrim( ABSPATH, '/' ) . $url;
+			foreach ( $candidates as $prefix => $directory ) {
+				$path = wp_parse_url( (string) $prefix, PHP_URL_PATH );
+				$path = rtrim( is_string( $path ) ? $path : '', '/' );
+
+				if ( '' !== $path && 0 === strpos( $url, $path . '/' ) ) {
+					return rtrim( (string) $directory, '/' ) . substr( $url, strlen( $path ) );
+				}
+			}
+
+			// No candidate matched. When WordPress is at the domain root its
+			// own path is empty, so nothing above could have matched a URL
+			// outside wp-content, wp-includes and wp-admin — and ABSPATH is the
+			// right answer. When it is in a subdirectory, a URL that does not
+			// begin with that subdirectory is not ours to resolve.
+			$root = wp_parse_url( site_url( '/' ), PHP_URL_PATH );
+			$root = rtrim( is_string( $root ) ? $root : '', '/' );
+
+			return '' === $root ? rtrim( ABSPATH, '/' ) . $url : null;
 		}
 
 		return null;

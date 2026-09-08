@@ -300,17 +300,20 @@ final class AdminScanner extends AbstractScanner {
 			return Sources::UNKNOWN;
 		}
 
-		$content_url = content_url();
-
-		if ( 0 === strpos( $src, $content_url ) ) {
-			return Sources::fromPath( WP_CONTENT_DIR . substr( $src, strlen( $content_url ) ) );
-		}
-
-		if ( 0 === strpos( $src, includes_url() ) || 0 === strpos( $src, admin_url() ) || 0 === strpos( $src, '/wp-' ) ) {
-			return Sources::CORE;
-		}
-
-		return Sources::UNKNOWN;
+		// `Sources::fromUrl()` resolves a URL to the file it is served from and
+		// says which root that file is under. This used to be done here by hand
+		// and got two things wrong.
+		//
+		// A root-relative URL was matched with `strpos( $src, '/wp-' )` and
+		// called core. `/wp-content/plugins/woocommerce/assets/x.js` begins with
+		// `/wp-` — so every plugin and theme asset enqueued with a root-relative
+		// source was attributed to WordPress itself, which is the opposite of
+		// what this scanner exists to report.
+		//
+		// And on a subdirectory install nothing matched at all: the URLs are
+		// `/blog/wp-includes/...`, the absolute comparisons fail and `/wp-` does
+		// not match either, so every asset came back unknown.
+		return Sources::fromUrl( $src );
 	}
 
 	/**
