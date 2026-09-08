@@ -110,7 +110,7 @@ final class ProfileCliTest extends IntegrationTestCase {
 
 		$io = new RecordingIo();
 
-		( new Command( $this->plugin, $io ) )->profile( array( 'export', 'client-baseline' ), array() );
+		( new Command( $this->plugin, $io ) )->profile( array( 'export', 'client-baseline' ), array( 'file' => '-' ) );
 
 		$printed = implode( "\n", $io->lines );
 
@@ -133,7 +133,7 @@ final class ProfileCliTest extends IntegrationTestCase {
 
 		$io = new RecordingIo();
 
-		( new Command( $this->plugin, $io ) )->profile( array( 'export', 'Client baseline' ), array() );
+		( new Command( $this->plugin, $io ) )->profile( array( 'export', 'Client baseline' ), array( 'file' => '-' ) );
 
 		$this->assertStringContainsString( '"name": "Client baseline"', implode( "\n", $io->lines ) );
 	}

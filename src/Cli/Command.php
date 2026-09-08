@@ -821,7 +821,8 @@ final class Command {
 	 * for `import` this is the path to the file.
 	 *
 	 * [--file=<path>]
-	 * : Where `export` writes. Prints to standard output when omitted.
+	 * : Where `export` writes. Defaults to a file in the uploads directory,
+	 * under `debloater/`. Pass `-` to print to standard output instead.
 	 *
 	 * [--yes]
 	 * : Required by `apply`, which changes the site.
@@ -839,7 +840,9 @@ final class Command {
 	 *
 	 *     wp debloater profile list
 	 *     wp debloater profile save "Client baseline"
+	 *     wp debloater profile export "Client baseline"
 	 *     wp debloater profile export "Client baseline" --file=baseline.json
+	 *     wp debloater profile export "Client baseline" --file=- > baseline.json
 	 *     wp debloater profile import baseline.json
 	 *     wp debloater profile apply "Client baseline" --yes
 	 *
@@ -968,10 +971,19 @@ final class Command {
 		$json = $profile->toJson();
 		$path = $this->option( $assoc_args, 'file', '' );
 
-		if ( '' === $path ) {
+		// `-` is standard output, which is not a write at all. It used to be
+		// what omitting --file did; it is kept because a plugin that cannot be
+		// piped is a plugin somebody writes a wrapper for.
+		if ( '-' === $path ) {
 			$this->io->line( rtrim( $json, "\n" ) );
 
 			return self::EXIT_OK;
+		}
+
+		$path = $this->exportPath( $path, $profile->name );
+
+		if ( '' === $path ) {
+			return self::EXIT_ERROR;
 		}
 
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- Writing where the operator asked, on their own machine, from their own shell.
@@ -1217,7 +1229,8 @@ final class Command {
 	 * ## OPTIONS
 	 *
 	 * [--file=<path>]
-	 * : Write to this file instead of standard output.
+	 * : Where to write. Defaults to a file in the uploads directory, under
+	 * `debloater/`. Pass `-` to print to standard output instead.
 	 *
 	 * @param array<int,string>    $args       Positional arguments.
 	 * @param array<string,string> $assoc_args Options.
@@ -1237,10 +1250,16 @@ final class Command {
 
 				$path = $this->option( $assoc_args, 'file', '' );
 
-				if ( '' === $path ) {
+				if ( '-' === $path ) {
 					$this->io->json( $document->toArray() );
 
 					return self::EXIT_OK;
+				}
+
+				$path = $this->exportPath( $path, 'config' );
+
+				if ( '' === $path ) {
+					return self::EXIT_ERROR;
 				}
 
 				$json = Json::encode( $document->toArray(), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES ) . "\n";
@@ -1562,6 +1581,31 @@ final class Command {
 		$this->io->table( $rows, array( 'id', 'run', 'level', 'status', 'items', 'created' ) );
 
 		return self::EXIT_OK;
+	}
+
+	/**
+	 * Where an export should be written.
+	 *
+	 * An explicit `--file` is passed through untouched: it was typed by
+	 * somebody with shell access, who can already write anywhere the web user
+	 * can, and refusing it would break exporting into a deployment pipeline
+	 * while protecting nothing.
+	 *
+	 * Everything else lands in `uploads/debloater/`, created on demand and
+	 * closed to the web.
+	 *
+	 * @param string $requested The --file value, '' for the default.
+	 * @param string $basename  What to name the default file after.
+	 * @return string The path, or '' when the destination could not be prepared.
+	 */
+	private function exportPath( string $requested, string $basename ): string {
+		try {
+			return ( new ExportDestination() )->resolve( $requested, $basename );
+		} catch ( \RuntimeException $error ) {
+			$this->io->error( esc_html( $error->getMessage() ) );
+
+			return '';
+		}
 	}
 
 	/**

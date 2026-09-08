@@ -43,9 +43,9 @@ captured. Destructive operations do not proceed unless that capture completed.
 your own pages and your own REST API. If they stopped working, it puts
 everything back and tells you what happened.
 
-**Costs nothing when it is doing nothing.** With no changes selected there is no
-generated file, no hooks registered, and no queries added to a front-end
-request. That is a measured guarantee, not a claim.
+**Costs nothing when it is doing nothing.** With no changes selected there are
+no hooks registered and no queries added to a front-end request. That is a
+measured guarantee, not a claim.
 
 = Three profiles =
 
@@ -127,10 +127,6 @@ warnings.
 3. Run a scan.
 4. Read the findings. Apply what you agree with.
 
-Debloater installs one small must-use plugin
-(`wp-content/mu-plugins/debloater-loader.php`) so that your selected changes
-can take effect before other plugins load. It is removed when you uninstall.
-
 == Frequently Asked Questions ==
 
 = Will this speed up my site? =
@@ -161,10 +157,33 @@ backup does not complete the deletion does not happen.
 
 = What happens to my data when I uninstall? =
 
-The generated file and the must-use loader are always removed. Your recovery
-points and settings are kept, because the moment somebody deletes a plugin is
-the moment they are most likely to need them. If you would rather everything
-went, turn on "remove all data on uninstall" in the settings first.
+Everything Debloater loads on your site is switched off immediately, and
+anything an older version left on disk is removed. Your recovery points and
+settings are kept, because the moment somebody deletes a plugin is the moment
+they are most likely to need them. If you would rather everything went, turn on
+"remove all data on uninstall" in the settings first.
+
+= Where does Debloater write files? =
+
+Almost nowhere, and never any code.
+
+The changes you apply are stored in your database, not compiled into a PHP file
+somewhere under wp-content. Nothing is added to must-use plugins.
+
+Two things do get written, both of them data:
+
+* A recovery point that is too large for the database spills into
+  `wp-content/debloater/backups/`, so that a change touching thousands of rows
+  can still be undone. The folder is closed to the web.
+* `wp debloater export` and `wp debloater profile export` write into
+  `wp-content/uploads/debloater/`, also closed to the web, with a random suffix
+  on the file name.
+
+Both export commands accept `--file=<path>` to write somewhere else, and
+`--file=-` to print to standard output so you can pipe it. Those are WP-CLI
+only: they need shell access to the server, which is a person who can already
+write files anywhere your site can. Nothing reachable from a browser accepts a
+path.
 
 = Does it phone home? =
 

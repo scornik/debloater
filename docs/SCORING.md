@@ -146,9 +146,12 @@ Two bounds:
 Confidence is rounded to two decimals, so the same site always prints the same
 figure.
 
-Our own mu-plugin loader does not count as custom code: it is ours, we know
+Every mu-plugin now counts, because none of them is ours. Debloater used to
+install a loader there and exempt it from this penalty — "it is ours, we know
 exactly what it does, and penalising confidence for installing Debloater would
-be absurd.
+be absurd". It installs nothing there any more (D-0070), so anything found in
+`mu-plugins` is genuinely somebody else's code and the exemption would only
+have let a file named like ours through unpenalised.
 
 ---
 

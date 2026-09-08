@@ -201,8 +201,7 @@ deliberately different, and `NOT_TESTED` never counts towards the aggregate.
   "selection": ["core.remove_rsd"],
   "selection_count": 1,
   "tweak_states": { "core.remove_rsd": "COMMITTED" },
-  "runtime": { "present": true, "hash": "…", "intact": true, "matches_state": true },
-  "loader": { "mode": "mu-plugin", "installed": true, "up_to_date": true },
+  "runtime": { "handlers": 1, "selection_hash": "…64 hex…" },
   "last_scan": { "run_id": 12, "at": "2026-09-03 10:11:12", "findings": 9 },
   "lock": { "held": false, "holder": null }
 }
