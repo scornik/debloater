@@ -136,7 +136,7 @@ final class Verifier {
 				ProbeStatus::NOT_TESTED,
 				sprintf(
 					/* translators: %s: probe name. */
-					__( 'The "%s" check does not apply to this site, so it was not run.', 'debloater' ),
+					__( 'The "%s" check does not apply to this site, so it was not run.', 'hakeemify-debloater' ),
 					$probe->name()
 				)
 			);
@@ -148,7 +148,7 @@ final class Verifier {
 				ProbeStatus::UNKNOWN,
 				sprintf(
 					/* translators: %s: the underlying connection error. */
-					__( 'This site cannot make requests to itself, so nothing could be checked over HTTP: %s', 'debloater' ),
+					__( 'This site cannot make requests to itself, so nothing could be checked over HTTP: %s', 'hakeemify-debloater' ),
 					$error
 				),
 				array( 'loopback_blocked' => true )
@@ -163,7 +163,7 @@ final class Verifier {
 				ProbeStatus::UNKNOWN,
 				sprintf(
 					/* translators: 1: probe name, 2: the error. */
-					__( 'The "%1$s" check could not complete: %2$s', 'debloater' ),
+					__( 'The "%1$s" check could not complete: %2$s', 'hakeemify-debloater' ),
 					$probe->name(),
 					$thrown->getMessage()
 				)
@@ -193,7 +193,7 @@ final class Verifier {
 			ProbeStatus::FAIL,
 			sprintf(
 				/* translators: 1: probe name, 2: constant name. */
-				__( 'The "%1$s" check was forced to fail by the %2$s constant.', 'debloater' ),
+				__( 'The "%1$s" check was forced to fail by the %2$s constant.', 'hakeemify-debloater' ),
 				$name,
 				self::TEST_FAIL_CONSTANT
 			),

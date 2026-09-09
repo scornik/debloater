@@ -1,15 +1,15 @@
 <?php
 /**
- * Plugin Name:       Debloater
+ * Plugin Name:       Hakeemify Debloater
  * Plugin URI:        https://github.com/scornik/debloater
  * Description:       Audits a WordPress site against the facts, then applies only the changes you approve — each with its own risk level, a recovery point taken first, and an automatic rollback if verification fails.
- * Version:           0.2.0
+ * Version:           0.3.0
  * Requires at least: 6.5
  * Requires PHP:      8.1
  * Author:            Hakeemify
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
- * Text Domain:       debloater
+ * Text Domain:       hakeemify-debloater
  * Domain Path:       /languages
  *
  * @package Debloater
@@ -19,7 +19,7 @@ declare( strict_types = 1 );
 
 defined( 'ABSPATH' ) || exit;
 
-const DEBLOATER_VERSION = '0.2.0';
+const DEBLOATER_VERSION = '0.3.0';
 const DEBLOATER_FILE    = __FILE__;
 
 define( 'DEBLOATER_DIR', plugin_dir_path( __FILE__ ) );

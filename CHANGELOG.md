@@ -4,6 +4,45 @@ All notable changes to Debloater are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [semantic versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] — 2026-09-08
+
+wordpress.org review, round one. Three of these are fixes to things that were
+wrong on real sites, not only objections to how the plugin was built.
+
+### Changed
+
+- **Renamed to Hakeemify Debloater.** The plugin folder, main file, display
+  name and text domain change. The `debloater_` prefixes, the table names, the
+  REST namespace, the `wp debloater` command and the admin menu slug do not:
+  nothing requires them to match the slug, and changing them would move data
+  and break links for no benefit.
+- **The compiled runtime is gone.** The selection was written to
+  `wp-content/debloater/runtime.php` and loaded by a must-use plugin; it is
+  read from an option now and the handlers are required directly at
+  `plugins_loaded`. wordpress.org does not permit a plugin to write executable
+  PHP under `wp-content`. Nothing about what is applied to a site changes, and
+  upgrading removes the old files. `docs/DECISIONS.md` D-0070 records what was
+  gained and lost — including the loss of tamper detection.
+- **Exports have a default home.** `wp debloater export` and
+  `wp debloater profile export` write into `wp-content/uploads/debloater/`,
+  closed to the web, instead of requiring a path. `--file` still takes one and
+  `--file=-` prints.
+
+### Fixed
+
+- **A signed-in check could carry a sign-in cookie off the site.** The
+  verification client followed up to three redirects, and WordPress re-sends
+  headers — including `Cookie` — to each hop. An open redirect anywhere on a
+  site could have handed an administrator's session to another host.
+  Authenticated requests are no longer redirected, and a redirect to another
+  host is reported as a failure naming it.
+- **Assets could not be traced on a subdirectory install.** A root-relative URL
+  was appended to `ABSPATH`, which duplicates the subdirectory and names a path
+  that does not exist.
+- **Plugin and theme assets were attributed to WordPress.** Anything loaded
+  from a URL beginning `/wp-` was called core, and `/wp-content/plugins/…`
+  begins with `/wp-`.
+
 ## [0.2.0] — 2026-09-07
 
 ### Added

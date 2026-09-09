@@ -180,7 +180,7 @@ final class HostOptimizerRules {
 				'%s is also on this site and has its own setting for this, so you can change it there instead — one switch is easier to remember than two.',
 				'These are also on this site and have their own settings for this, so you can change it there instead: %s. One switch is easier to remember than two.',
 				count( $owners ),
-				'debloater'
+				'hakeemify-debloater'
 			),
 			implode( ', ', $owners )
 		);

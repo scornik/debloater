@@ -83,18 +83,18 @@ final class SpamCommentsRule extends AbstractRule {
 				'category' => Category::DATABASE,
 				'severity' => $spam >= self::SUBSTANTIAL_COUNT ? Severity::MEDIUM : Severity::LOW,
 				'risk'     => Risk::LOW,
-				'title'    => __( 'Comments marked as spam are still stored', 'debloater' ),
+				'title'    => __( 'Comments marked as spam are still stored', 'hakeemify-debloater' ),
 				'summary'  => sprintf(
 					/* translators: %s: number of spam comments. */
-					__( '%s comments are marked as spam.', 'debloater' ),
+					__( '%s comments are marked as spam.', 'hakeemify-debloater' ),
 					number_format_i18n( $spam )
 				),
 				'why'      => __(
 					'Spam comments stay in the comments table, with their metadata, until something deletes them. Only comments already marked as spam are considered here: anything still awaiting moderation is left exactly where it is, because nobody has judged it yet.',
-					'debloater'
+					'hakeemify-debloater'
 				),
 				'evidence' => $this->evidence( $facts )
-					->fact( __( 'Comments marked as spam', 'debloater' ), 'db.spam_comments.count' )
+					->fact( __( 'Comments marked as spam', 'hakeemify-debloater' ), 'db.spam_comments.count' )
 					->build(),
 				'impact'   => $this->estimated( 'rows', (float) $spam, 'rows' ),
 				'tweak_id' => 'db.delete_spam_comments',

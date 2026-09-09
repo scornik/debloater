@@ -71,7 +71,7 @@ export const Dashboard = ( { onNavigate, onFixSafeIssues, onScore } ) => {
 	if ( status.status === 'loading' || findings.status === 'loading' ) {
 		return (
 			<p className="debloater-loading">
-				<Spinner /> { __( 'Reading this site…', 'debloater' ) }
+				<Spinner /> { __( 'Reading this site…', 'hakeemify-debloater' ) }
 			</p>
 		);
 	}
@@ -87,11 +87,11 @@ export const Dashboard = ( { onNavigate, onFixSafeIssues, onScore } ) => {
 	if ( ! findings.data?.scanned ) {
 		return (
 			<div className="debloater-empty">
-				<h2>{ __( 'Nothing has been looked at yet', 'debloater' ) }</h2>
+				<h2>{ __( 'Nothing has been looked at yet', 'hakeemify-debloater' ) }</h2>
 				<p>
 					{ __(
 						'A scan reads this site’s configuration and writes down what it finds. It changes nothing.',
-						'debloater'
+						'hakeemify-debloater'
 					) }
 				</p>
 				{ scanError && (
@@ -106,8 +106,8 @@ export const Dashboard = ( { onNavigate, onFixSafeIssues, onScore } ) => {
 					onClick={ scan }
 				>
 					{ scanning
-						? __( 'Scanning…', 'debloater' )
-						: __( 'Scan this site', 'debloater' ) }
+						? __( 'Scanning…', 'hakeemify-debloater' )
+						: __( 'Scan this site', 'hakeemify-debloater' ) }
 				</Button>
 			</div>
 		);
@@ -126,7 +126,7 @@ export const Dashboard = ( { onNavigate, onFixSafeIssues, onScore } ) => {
 				<Notice status="warning" isDismissible={ false }>
 					{ __(
 						'The generated file on disk is not the one Debloater wrote. Something else has changed it.',
-						'debloater'
+						'hakeemify-debloater'
 					) }
 				</Notice>
 			) }
@@ -136,7 +136,7 @@ export const Dashboard = ( { onNavigate, onFixSafeIssues, onScore } ) => {
 				aria-labelledby="debloater-counts-heading"
 			>
 				<h2 id="debloater-counts-heading">
-					{ __( 'What the scan found', 'debloater' ) }
+					{ __( 'What the scan found', 'hakeemify-debloater' ) }
 				</h2>
 
 				<p className="debloater-panel__lede">
@@ -146,7 +146,7 @@ export const Dashboard = ( { onNavigate, onFixSafeIssues, onScore } ) => {
 							'%d finding, with the facts behind it.',
 							'%d findings, each with the facts behind it.',
 							total,
-							'debloater'
+							'hakeemify-debloater'
 						),
 						total
 					) }
@@ -169,13 +169,13 @@ export const Dashboard = ( { onNavigate, onFixSafeIssues, onScore } ) => {
 						disabled={ recommended === 0 }
 						onClick={ onFixSafeIssues }
 					>
-						{ __( 'Fix safe issues', 'debloater' ) }
+						{ __( 'Fix safe issues', 'hakeemify-debloater' ) }
 					</Button>
 					<Button
 						variant="secondary"
 						onClick={ () => onNavigate( 'findings' ) }
 					>
-						{ __( 'Review findings', 'debloater' ) }
+						{ __( 'Review findings', 'hakeemify-debloater' ) }
 					</Button>
 					<Button
 						variant="tertiary"
@@ -183,7 +183,7 @@ export const Dashboard = ( { onNavigate, onFixSafeIssues, onScore } ) => {
 						disabled={ scanning }
 						onClick={ scan }
 					>
-						{ __( 'Scan again', 'debloater' ) }
+						{ __( 'Scan again', 'hakeemify-debloater' ) }
 					</Button>
 				</div>
 
@@ -191,7 +191,7 @@ export const Dashboard = ( { onNavigate, onFixSafeIssues, onScore } ) => {
 					<p className="debloater-panel__note">
 						{ __(
 							'Nothing is recommended on this site right now. That is a result, not a failure to find one.',
-							'debloater'
+							'hakeemify-debloater'
 						) }
 					</p>
 				) }

@@ -44,10 +44,10 @@ const Evidence = ( { evidence } ) => {
 			<thead>
 				<tr>
 					<th scope="col">
-						{ __( 'What was measured', 'debloater' ) }
+						{ __( 'What was measured', 'hakeemify-debloater' ) }
 					</th>
-					<th scope="col">{ __( 'Value', 'debloater' ) }</th>
-					<th scope="col">{ __( 'Fact', 'debloater' ) }</th>
+					<th scope="col">{ __( 'Value', 'hakeemify-debloater' ) }</th>
+					<th scope="col">{ __( 'Fact', 'hakeemify-debloater' ) }</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -86,7 +86,7 @@ const WillChange = ( { tweakId } ) => {
 		return (
 			<p className="debloater-loading">
 				<Spinner />{ ' ' }
-				{ __( 'Working out what this would change…', 'debloater' ) }
+				{ __( 'Working out what this would change…', 'hakeemify-debloater' ) }
 			</p>
 		);
 	}
@@ -108,7 +108,7 @@ const WillChange = ( { tweakId } ) => {
 					/* translators: %s: the reason the change was excluded. */
 					__(
 						'This change would not be applied on this site: %s',
-						'debloater'
+						'hakeemify-debloater'
 					),
 					reason
 				) }
@@ -128,7 +128,7 @@ const WillChange = ( { tweakId } ) => {
 			{ ( plan.will_not || [] ).length > 0 && (
 				<>
 					<p className="debloater-field__sublabel">
-						{ __( 'What would not change', 'debloater' ) }
+						{ __( 'What would not change', 'hakeemify-debloater' ) }
 					</p>
 					<ul className="debloater-list debloater-list--nochange">
 						{ plan.will_not.map( ( line ) => (
@@ -158,7 +158,7 @@ export const Finding = ( { finding, onBack, onStarted } ) => {
 				onClick={ onBack }
 				className="debloater-finding__back"
 			>
-				{ __( '← All findings', 'debloater' ) }
+				{ __( '← All findings', 'hakeemify-debloater' ) }
 			</Button>
 
 			<header className="debloater-finding__header">
@@ -171,36 +171,36 @@ export const Finding = ( { finding, onBack, onStarted } ) => {
 				</div>
 			</header>
 
-			<Field label={ __( 'What we found', 'debloater' ) }>
+			<Field label={ __( 'What we found', 'hakeemify-debloater' ) }>
 				<p>{ finding.summary }</p>
 			</Field>
 
-			<Field label={ __( 'Why it matters', 'debloater' ) }>
+			<Field label={ __( 'Why it matters', 'hakeemify-debloater' ) }>
 				<p>{ finding.why }</p>
 			</Field>
 
 			<Field
-				label={ __( 'Evidence', 'debloater' ) }
+				label={ __( 'Evidence', 'hakeemify-debloater' ) }
 				empty={ __(
 					'This finding carries no measurements.',
-					'debloater'
+					'hakeemify-debloater'
 				) }
 			>
 				<Evidence evidence={ finding.evidence } />
 			</Field>
 
 			<Field
-				label={ __( 'Potential impact', 'debloater' ) }
+				label={ __( 'Potential impact', 'hakeemify-debloater' ) }
 				empty={ __(
 					'No impact has been estimated for this finding.',
-					'debloater'
+					'hakeemify-debloater'
 				) }
 			>
 				{ impact && (
 					<p>
 						{ sprintf(
 							/* translators: 1: estimated amount, 2: unit, 3: what it affects. */
-							__( 'About %1$s %2$s of %3$s.', 'debloater' ),
+							__( 'About %1$s %2$s of %3$s.', 'hakeemify-debloater' ),
 							impact.estimate,
 							impact.unit,
 							impact.kind
@@ -210,7 +210,7 @@ export const Finding = ( { finding, onBack, onStarted } ) => {
 								{ ' ' }
 								{ __(
 									'This one cannot be measured before and after, so it is an estimate and stays an estimate.',
-									'debloater'
+									'hakeemify-debloater'
 								) }
 							</em>
 						) }
@@ -219,10 +219,10 @@ export const Finding = ( { finding, onBack, onStarted } ) => {
 			</Field>
 
 			<Field
-				label={ __( 'Recommendation', 'debloater' ) }
+				label={ __( 'Recommendation', 'hakeemify-debloater' ) }
 				empty={ __(
 					'Nothing is recommended for this finding.',
-					'debloater'
+					'hakeemify-debloater'
 				) }
 			>
 				{ recommendation && (
@@ -235,7 +235,7 @@ export const Finding = ( { finding, onBack, onStarted } ) => {
 				) }
 			</Field>
 
-			<Field label={ __( 'Risk', 'debloater' ) }>
+			<Field label={ __( 'Risk', 'hakeemify-debloater' ) }>
 				<p>
 					<RiskBadge risk={ finding.risk } />
 					{ finding.decision_reason
@@ -244,21 +244,21 @@ export const Finding = ( { finding, onBack, onStarted } ) => {
 				</p>
 			</Field>
 
-			<Field label={ __( 'Confidence', 'debloater' ) }>
+			<Field label={ __( 'Confidence', 'hakeemify-debloater' ) }>
 				<p>
 					<Confidence value={ finding.confidence } />{ ' ' }
 					{ __(
 						'Confidence falls when something on this site makes the conclusion less certain.',
-						'debloater'
+						'hakeemify-debloater'
 					) }
 				</p>
 			</Field>
 
 			<Field
-				label={ __( 'Dependencies', 'debloater' ) }
+				label={ __( 'Dependencies', 'hakeemify-debloater' ) }
 				empty={ __(
 					'Nothing on this site was detected as depending on this.',
-					'debloater'
+					'hakeemify-debloater'
 				) }
 			>
 				{ dependencies.length > 0 && (
@@ -271,10 +271,10 @@ export const Finding = ( { finding, onBack, onStarted } ) => {
 			</Field>
 
 			<Field
-				label={ __( 'What will change', 'debloater' ) }
+				label={ __( 'What will change', 'hakeemify-debloater' ) }
 				empty={ __(
 					'There is no change to apply for this finding.',
-					'debloater'
+					'hakeemify-debloater'
 				) }
 			>
 				{ recommendation && (
@@ -306,12 +306,12 @@ export const Finding = ( { finding, onBack, onStarted } ) => {
 						variant="primary"
 						onClick={ () => setApplying( true ) }
 					>
-						{ __( 'Apply this change…', 'debloater' ) }
+						{ __( 'Apply this change…', 'hakeemify-debloater' ) }
 					</Button>
 					<p className="debloater-finding__actions-note">
 						{ __(
 							'You will see exactly what it does, and what the recovery point will contain, before anything happens.',
-							'debloater'
+							'hakeemify-debloater'
 						) }
 					</p>
 				</div>
@@ -333,10 +333,10 @@ export const Finding = ( { finding, onBack, onStarted } ) => {
 			) }
 
 			<Field
-				label={ __( 'Undo', 'debloater' ) }
+				label={ __( 'Undo', 'hakeemify-debloater' ) }
 				empty={ __(
 					'No undo has been described for this finding.',
-					'debloater'
+					'hakeemify-debloater'
 				) }
 			>
 				{ finding.undo && <p>{ finding.undo }</p> }

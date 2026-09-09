@@ -9,13 +9,13 @@
 import { __, sprintf } from '@wordpress/i18n';
 
 const CATEGORY_LABELS = {
-	wordpress: __( 'WordPress', 'debloater' ),
-	configuration: __( 'Configuration', 'debloater' ),
-	database: __( 'Database', 'debloater' ),
-	plugins: __( 'Plugins', 'debloater' ),
-	maintenance: __( 'Maintenance', 'debloater' ),
-	admin: __( 'Admin', 'debloater' ),
-	assets: __( 'Assets', 'debloater' ),
+	wordpress: __( 'WordPress', 'hakeemify-debloater' ),
+	configuration: __( 'Configuration', 'hakeemify-debloater' ),
+	database: __( 'Database', 'hakeemify-debloater' ),
+	plugins: __( 'Plugins', 'hakeemify-debloater' ),
+	maintenance: __( 'Maintenance', 'hakeemify-debloater' ),
+	admin: __( 'Admin', 'hakeemify-debloater' ),
+	assets: __( 'Assets', 'hakeemify-debloater' ),
 };
 
 const band = ( value ) => {
@@ -69,18 +69,18 @@ export const Score = ( { score } ) => {
 					id="debloater-score-heading"
 					className="debloater-score__title"
 				>
-					{ __( 'Debloat score', 'debloater' ) }
+					{ __( 'Debloat score', 'hakeemify-debloater' ) }
 				</h2>
 				<p className="debloater-score__number">
 					<strong>{ score.headline }</strong>
 					<span className="debloater-score__outof">
-						{ __( '/ 100', 'debloater' ) }
+						{ __( '/ 100', 'hakeemify-debloater' ) }
 					</span>
 				</p>
 				<p className="debloater-score__meta">
 					{ sprintf(
 						/* translators: %d: number of findings. */
-						__( 'From %d findings in this scan.', 'debloater' ),
+						__( 'From %d findings in this scan.', 'hakeemify-debloater' ),
 						score.findings_total || 0
 					) }
 				</p>
@@ -104,7 +104,7 @@ export const Score = ( { score } ) => {
 						/* translators: %s: comma-separated category names. */
 						__(
 							'Not scored, because nothing was found to judge: %s',
-							'debloater'
+							'hakeemify-debloater'
 						),
 						unscored
 							.map( ( c ) => CATEGORY_LABELS[ c ] || c )

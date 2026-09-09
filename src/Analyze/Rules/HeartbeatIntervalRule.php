@@ -103,19 +103,19 @@ final class HeartbeatIntervalRule extends AbstractRule {
 
 		$evidence = $this->evidence( $facts )
 			->formatted(
-				__( 'Current interval', 'debloater' ),
+				__( 'Current interval', 'hakeemify-debloater' ),
 				sprintf(
 					/* translators: %d: number of seconds. */
-					__( '%d s', 'debloater' ),
+					__( '%d s', 'hakeemify-debloater' ),
 					$interval
 				),
 				'wp.heartbeat_interval'
 			)
-			->fact( __( 'Administrators', 'debloater' ), 'users.admin_count' )
-			->optional( __( 'Edited content in the last week', 'debloater' ), 'users.recent_editors_7d' );
+			->fact( __( 'Administrators', 'hakeemify-debloater' ), 'users.admin_count' )
+			->optional( __( 'Edited content in the last week', 'hakeemify-debloater' ), 'users.recent_editors_7d' );
 
 		if ( $facts->has( 'plugins.detected' ) ) {
-			$evidence->within( __( 'WooCommerce active', 'debloater' ), 'plugins.detected', 'woocommerce' );
+			$evidence->within( __( 'WooCommerce active', 'hakeemify-debloater' ), 'plugins.detected', 'woocommerce' );
 		}
 
 		return $this->recommend(
@@ -123,16 +123,16 @@ final class HeartbeatIntervalRule extends AbstractRule {
 				'category' => Category::WORDPRESS,
 				'severity' => Severity::LOW,
 				'risk'     => Risk::LOW,
-				'title'    => __( 'Heartbeat polls more often than this site needs', 'debloater' ),
+				'title'    => __( 'Heartbeat polls more often than this site needs', 'hakeemify-debloater' ),
 				'summary'  => sprintf(
 					/* translators: 1: current interval in seconds, 2: proposed interval in seconds. */
-					__( 'Heartbeat polls every %1$d s. Nothing about how this site is used needs it that often; %2$d s is enough.', 'debloater' ),
+					__( 'Heartbeat polls every %1$d s. Nothing about how this site is used needs it that often; %2$d s is enough.', 'hakeemify-debloater' ),
 					$interval,
 					$proposed
 				),
 				'why'      => __(
 					'Heartbeat sends a background request on a timer to autosave drafts, warn when two people open the same post, and notice an expired login. Every open admin tab does it. On a busy site that is useful; on a quiet one it is a steady stream of admin-ajax requests for events that are not happening.',
-					'debloater'
+					'hakeemify-debloater'
 				),
 				'evidence' => $evidence->build(),
 				'impact'   => $this->measurable(

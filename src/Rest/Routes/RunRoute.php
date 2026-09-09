@@ -70,7 +70,7 @@ final class RunRoute implements RouteInterface {
 	public function args(): array {
 		return array(
 			'id' => array(
-				'description' => __( 'The run to read.', 'debloater' ),
+				'description' => __( 'The run to read.', 'hakeemify-debloater' ),
 				'type'        => 'integer',
 				'minimum'     => 1,
 				'required'    => true,
@@ -90,7 +90,7 @@ final class RunRoute implements RouteInterface {
 		if ( null === $run ) {
 			return new WP_Error(
 				'debloater_no_run',
-				__( 'There is no change with that id.', 'debloater' ),
+				__( 'There is no change with that id.', 'hakeemify-debloater' ),
 				array( 'status' => 404 )
 			);
 		}
@@ -127,25 +127,25 @@ final class RunRoute implements RouteInterface {
 	 */
 	private function label( RunState $state ): string {
 		return match ( $state ) {
-			RunState::IDLE                   => __( 'Waiting to start', 'debloater' ),
-			RunState::PLANNING               => __( 'Working out what to change', 'debloater' ),
-			RunState::PREVIEWED              => __( 'Waiting for you to confirm', 'debloater' ),
-			RunState::LOCKED                 => __( 'Holding the site so nothing else changes it', 'debloater' ),
-			RunState::MEASURING_BEFORE       => __( 'Counting what is there now', 'debloater' ),
-			RunState::SNAPSHOTTING           => __( 'Taking a recovery point', 'debloater' ),
-			RunState::APPLYING               => __( 'Applying the changes', 'debloater' ),
-			RunState::APPLIED                => __( 'Changes applied', 'debloater' ),
-			RunState::APPLY_FAILED           => __( 'Something went wrong while applying', 'debloater' ),
-			RunState::VERIFYING              => __( 'Checking the site still works', 'debloater' ),
-			RunState::VERIFIED               => __( 'The site checked out', 'debloater' ),
-			RunState::VERIFIED_WITH_WARNINGS => __( 'The site works, with some checks incomplete', 'debloater' ),
-			RunState::VERIFICATION_FAILED    => __( 'The site did not pass its checks', 'debloater' ),
-			RunState::MEASURING_AFTER        => __( 'Counting what is there now', 'debloater' ),
-			RunState::COMMITTED              => __( 'Done', 'debloater' ),
-			RunState::ROLLING_BACK           => __( 'Putting the site back', 'debloater' ),
-			RunState::ROLLED_BACK            => __( 'Rollback complete', 'debloater' ),
-			RunState::ABORTED                => __( 'Stopped before anything changed', 'debloater' ),
-			RunState::INTERRUPTED            => __( 'Interrupted partway through', 'debloater' ),
+			RunState::IDLE                   => __( 'Waiting to start', 'hakeemify-debloater' ),
+			RunState::PLANNING               => __( 'Working out what to change', 'hakeemify-debloater' ),
+			RunState::PREVIEWED              => __( 'Waiting for you to confirm', 'hakeemify-debloater' ),
+			RunState::LOCKED                 => __( 'Holding the site so nothing else changes it', 'hakeemify-debloater' ),
+			RunState::MEASURING_BEFORE       => __( 'Counting what is there now', 'hakeemify-debloater' ),
+			RunState::SNAPSHOTTING           => __( 'Taking a recovery point', 'hakeemify-debloater' ),
+			RunState::APPLYING               => __( 'Applying the changes', 'hakeemify-debloater' ),
+			RunState::APPLIED                => __( 'Changes applied', 'hakeemify-debloater' ),
+			RunState::APPLY_FAILED           => __( 'Something went wrong while applying', 'hakeemify-debloater' ),
+			RunState::VERIFYING              => __( 'Checking the site still works', 'hakeemify-debloater' ),
+			RunState::VERIFIED               => __( 'The site checked out', 'hakeemify-debloater' ),
+			RunState::VERIFIED_WITH_WARNINGS => __( 'The site works, with some checks incomplete', 'hakeemify-debloater' ),
+			RunState::VERIFICATION_FAILED    => __( 'The site did not pass its checks', 'hakeemify-debloater' ),
+			RunState::MEASURING_AFTER        => __( 'Counting what is there now', 'hakeemify-debloater' ),
+			RunState::COMMITTED              => __( 'Done', 'hakeemify-debloater' ),
+			RunState::ROLLING_BACK           => __( 'Putting the site back', 'hakeemify-debloater' ),
+			RunState::ROLLED_BACK            => __( 'Rollback complete', 'hakeemify-debloater' ),
+			RunState::ABORTED                => __( 'Stopped before anything changed', 'hakeemify-debloater' ),
+			RunState::INTERRUPTED            => __( 'Interrupted partway through', 'hakeemify-debloater' ),
 		};
 	}
 }

@@ -106,7 +106,7 @@ final class EmojiScriptRule extends CoreFeatureRule {
 	 * @return string
 	 */
 	protected function title(): string {
-		return __( 'A compatibility script for emoji loads on every page', 'debloater' );
+		return __( 'A compatibility script for emoji loads on every page', 'hakeemify-debloater' );
 	}
 
 	/**
@@ -115,7 +115,7 @@ final class EmojiScriptRule extends CoreFeatureRule {
 	 * @return string
 	 */
 	protected function summary(): string {
-		return __( 'The emoji detection script, its inline styles and a DNS prefetch to s.w.org load on every page of the site.', 'debloater' );
+		return __( 'The emoji detection script, its inline styles and a DNS prefetch to s.w.org load on every page of the site.', 'hakeemify-debloater' );
 	}
 
 	/**
@@ -124,7 +124,7 @@ final class EmojiScriptRule extends CoreFeatureRule {
 	 * @return string
 	 */
 	protected function why(): string {
-		return __( 'The script exists to replace emoji characters with images on browsers that cannot display them. Every browser still receiving updates can display them natively, so on almost every site this is a script, a stylesheet and a third-party DNS lookup spent on a problem that no longer exists.', 'debloater' );
+		return __( 'The script exists to replace emoji characters with images on browsers that cannot display them. Every browser still receiving updates can display them natively, so on almost every site this is a script, a stylesheet and a third-party DNS lookup spent on a problem that no longer exists.', 'hakeemify-debloater' );
 	}
 
 	/**
@@ -133,6 +133,6 @@ final class EmojiScriptRule extends CoreFeatureRule {
 	 * @return string
 	 */
 	protected function evidenceLabel(): string {
-		return __( 'Emoji detection script', 'debloater' );
+		return __( 'Emoji detection script', 'hakeemify-debloater' );
 	}
 }

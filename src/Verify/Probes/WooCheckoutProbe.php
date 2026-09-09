@@ -55,6 +55,6 @@ final class WooCheckoutProbe extends AbstractWooProbe {
 	 * @return string
 	 */
 	protected function describe(): string {
-		return __( 'The checkout', 'debloater' );
+		return __( 'The checkout', 'hakeemify-debloater' );
 	}
 }

@@ -299,7 +299,7 @@ final class Build {
 			'https://example.test',
 			'/var/www/html/',
 			'/var/www/html/wp-content',
-			'/var/www/html/wp-content/plugins/debloater',
+			'/var/www/html/wp-content/plugins/hakeemify-debloater',
 			'6.8.1',
 			'8.2.19',
 			'0.1.0',

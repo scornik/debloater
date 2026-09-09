@@ -20,19 +20,19 @@ import { get, post } from '../api/client';
 const POLL_MS = 1200;
 
 const METRIC_LABELS = {
-	'frontend.requests': __( 'Requests a page asks for', 'debloater' ),
-	'frontend.scripts.count': __( 'Scripts', 'debloater' ),
-	'frontend.styles.count': __( 'Stylesheets', 'debloater' ),
-	'frontend.head_bytes': __( 'Bytes in <head>', 'debloater' ),
-	'frontend.external_hosts': __( 'Other hosts contacted', 'debloater' ),
-	'db.autoload_bytes': __( 'Autoloaded data', 'debloater' ),
-	'db.revisions': __( 'Post revisions', 'debloater' ),
-	'db.transients_expired': __( 'Expired transients', 'debloater' ),
-	'cron.events': __( 'Scheduled events', 'debloater' ),
-	'admin.notices': __( 'Admin notices', 'debloater' ),
+	'frontend.requests': __( 'Requests a page asks for', 'hakeemify-debloater' ),
+	'frontend.scripts.count': __( 'Scripts', 'hakeemify-debloater' ),
+	'frontend.styles.count': __( 'Stylesheets', 'hakeemify-debloater' ),
+	'frontend.head_bytes': __( 'Bytes in <head>', 'hakeemify-debloater' ),
+	'frontend.external_hosts': __( 'Other hosts contacted', 'hakeemify-debloater' ),
+	'db.autoload_bytes': __( 'Autoloaded data', 'hakeemify-debloater' ),
+	'db.revisions': __( 'Post revisions', 'hakeemify-debloater' ),
+	'db.transients_expired': __( 'Expired transients', 'hakeemify-debloater' ),
+	'cron.events': __( 'Scheduled events', 'hakeemify-debloater' ),
+	'admin.notices': __( 'Admin notices', 'hakeemify-debloater' ),
 	admin_ajax_requests_per_hour: __(
 		'Admin polling requests per hour',
-		'debloater'
+		'hakeemify-debloater'
 	),
 };
 
@@ -58,7 +58,7 @@ const Deltas = ( { measurements } ) => {
 			<p className="debloater-field__empty">
 				{ __(
 					'Nothing could be measured before and after, so there are no numbers to report.',
-					'debloater'
+					'hakeemify-debloater'
 				) }
 			</p>
 		);
@@ -68,10 +68,10 @@ const Deltas = ( { measurements } ) => {
 		<table className="debloater-deltas">
 			<thead>
 				<tr>
-					<th scope="col">{ __( 'Measured', 'debloater' ) }</th>
-					<th scope="col">{ __( 'Before', 'debloater' ) }</th>
-					<th scope="col">{ __( 'After', 'debloater' ) }</th>
-					<th scope="col">{ __( 'Change', 'debloater' ) }</th>
+					<th scope="col">{ __( 'Measured', 'hakeemify-debloater' ) }</th>
+					<th scope="col">{ __( 'Before', 'hakeemify-debloater' ) }</th>
+					<th scope="col">{ __( 'After', 'hakeemify-debloater' ) }</th>
+					<th scope="col">{ __( 'Change', 'hakeemify-debloater' ) }</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -87,7 +87,7 @@ const Deltas = ( { measurements } ) => {
 							{ delta.direction === 'unknown' && (
 								<span className="debloater-deltas__unknown">
 									{ delta.reason ||
-										__( 'Not measured', 'debloater' ) }
+										__( 'Not measured', 'hakeemify-debloater' ) }
 								</span>
 							) }
 							{ delta.direction !== 'unknown' && (
@@ -142,7 +142,7 @@ const Report = ( { run, scoreBefore, scoreAfter, onDone } ) => {
 	if ( rolledBack ) {
 		return (
 			<div className="debloater-report is-rolled-back">
-				<h2>{ __( 'The change was undone', 'debloater' ) }</h2>
+				<h2>{ __( 'The change was undone', 'hakeemify-debloater' ) }</h2>
 
 				{ failedProbes.length > 0 && (
 					<ul className="debloater-list">
@@ -156,12 +156,12 @@ const Report = ( { run, scoreBefore, scoreAfter, onDone } ) => {
 				) }
 
 				<p className="debloater-report__reassurance">
-					<strong>{ __( 'Rollback complete.', 'debloater' ) }</strong>{ ' ' }
-					{ __( 'Previous configuration restored.', 'debloater' ) }
+					<strong>{ __( 'Rollback complete.', 'hakeemify-debloater' ) }</strong>{ ' ' }
+					{ __( 'Previous configuration restored.', 'hakeemify-debloater' ) }
 				</p>
 
 				<Button variant="primary" onClick={ onDone }>
-					{ __( 'Back to the overview', 'debloater' ) }
+					{ __( 'Back to the overview', 'hakeemify-debloater' ) }
 				</Button>
 			</div>
 		);
@@ -176,7 +176,7 @@ const Report = ( { run, scoreBefore, scoreAfter, onDone } ) => {
 						'%d optimization applied',
 						'%d optimizations applied',
 						applied.length,
-						'debloater'
+						'hakeemify-debloater'
 					),
 					applied.length
 				) }
@@ -184,7 +184,7 @@ const Report = ( { run, scoreBefore, scoreAfter, onDone } ) => {
 
 			{ ( scoreBefore !== null || scoreAfter !== null ) && (
 				<p className="debloater-report__score">
-					{ __( 'Debloat score', 'debloater' ) }{ ' ' }
+					{ __( 'Debloat score', 'hakeemify-debloater' ) }{ ' ' }
 					<strong>{ scoreBefore ?? '—' }</strong>
 					{ ' → ' }
 					<strong>{ scoreAfter ?? '—' }</strong>
@@ -201,18 +201,18 @@ const Report = ( { run, scoreBefore, scoreAfter, onDone } ) => {
 				</Notice>
 			) ) }
 
-			<h3>{ __( 'Measured before and after', 'debloater' ) }</h3>
+			<h3>{ __( 'Measured before and after', 'hakeemify-debloater' ) }</h3>
 			<Deltas measurements={ run.measurements } />
 
 			<p className="debloater-report__note">
 				{ __(
 					'These are counts, measured on this site before and after the change. Debloater does not report time, because it cannot measure yours.',
-					'debloater'
+					'hakeemify-debloater'
 				) }
 			</p>
 
 			<Button variant="primary" onClick={ onDone }>
-				{ __( 'Back to the overview', 'debloater' ) }
+				{ __( 'Back to the overview', 'hakeemify-debloater' ) }
 			</Button>
 		</div>
 	);
@@ -283,7 +283,7 @@ export const Run = ( { runId, scoreBefore, onDone } ) => {
 	if ( ! run ) {
 		return (
 			<p className="debloater-loading">
-				<Spinner /> { __( 'Starting…', 'debloater' ) }
+				<Spinner /> { __( 'Starting…', 'hakeemify-debloater' ) }
 			</p>
 		);
 	}

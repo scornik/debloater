@@ -1,10 +1,10 @@
-=== Debloater ===
+=== Hakeemify Debloater ===
 Contributors: hakeemify
 Tags: bloat, debloat, performance, cleanup, optimization
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 0.2.0
+Stable tag: 0.3.0
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -208,6 +208,23 @@ LiteSpeed Cache and WP Super Cache.
 
 == Changelog ==
 
+= 0.3.0 =
+* Renamed to Hakeemify Debloater. The plugin folder and text domain change
+  with it; your settings, recovery points and `wp debloater` commands do not.
+* Nothing is compiled to disk any more. Your selection used to be written to a
+  PHP file under wp-content and loaded by a must-use plugin; it is read from
+  the database now and the handlers are loaded directly. Nothing about what
+  gets applied to your site changes, and an upgrade removes the old files.
+* Fixed: a check that loads your dashboard could follow a redirect off your
+  site while carrying your sign-in cookie. Signed-in checks are no longer
+  redirected at all, and a redirect to another host is reported as a failure.
+* Fixed: on a site where WordPress lives in a subdirectory, assets could not
+  be traced back to the plugin or theme serving them.
+* Fixed: plugin and theme assets loaded with a root-relative URL were reported
+  as belonging to WordPress itself.
+* `wp debloater export` and `wp debloater profile export` now write into
+  `wp-content/uploads/debloater/` by default. `--file` still takes a path, and
+  `--file=-` prints.
 
 = 0.2.0 =
 * Profiles: save what a site has under a name, export it, and import it

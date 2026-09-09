@@ -170,6 +170,11 @@ final class AdminScreenTest extends IntegrationTestCase {
 
 			foreach ( $wp_filter[ $hook ]->callbacks as $callbacks ) {
 				foreach ( array_keys( $callbacks ) as $identifier ) {
+					// The prefix, not the slug. Callback identifiers are built
+					// from `debloater_` and from the `Debloater\` namespace,
+					// neither of which the 0.3.0 rename touched — searching for
+					// `hakeemify-debloater` here would match nothing ever and
+					// the check would pass without checking.
 					$this->assertStringNotContainsStringIgnoringCase(
 						'debloater',
 						(string) $identifier,

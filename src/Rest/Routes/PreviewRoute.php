@@ -72,19 +72,19 @@ final class PreviewRoute implements RouteInterface {
 	public function args(): array {
 		return array(
 			'profile' => array(
-				'description' => __( 'Which profile to plan with.', 'debloater' ),
+				'description' => __( 'Which profile to plan with.', 'hakeemify-debloater' ),
 				'type'        => 'string',
 				'enum'        => array_keys( $this->plugin->registry()->profiles() ),
 				'required'    => false,
 			),
 			'run_id'  => array(
-				'description' => __( 'Plan from a specific scan instead of the most recent one.', 'debloater' ),
+				'description' => __( 'Plan from a specific scan instead of the most recent one.', 'hakeemify-debloater' ),
 				'type'        => 'integer',
 				'minimum'     => 1,
 				'required'    => false,
 			),
 			'tweaks'  => array(
-				'description' => __( 'Plan these specific changes instead of a profile.', 'debloater' ),
+				'description' => __( 'Plan these specific changes instead of a profile.', 'hakeemify-debloater' ),
 				'type'        => 'array',
 				'items'       => array( 'type' => 'string' ),
 				'required'    => false,
@@ -110,7 +110,7 @@ final class PreviewRoute implements RouteInterface {
 		if ( null === $result ) {
 			return new WP_Error(
 				'debloater_not_scanned',
-				__( 'There is nothing to preview yet. Run a scan first.', 'debloater' ),
+				__( 'There is nothing to preview yet. Run a scan first.', 'hakeemify-debloater' ),
 				array( 'status' => 409 )
 			);
 		}

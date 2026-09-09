@@ -88,19 +88,19 @@ final class StoredRevisionsRule extends AbstractRule {
 				'category' => Category::DATABASE,
 				'severity' => $revisions >= self::SUBSTANTIAL_COUNT ? Severity::MEDIUM : Severity::LOW,
 				'risk'     => Risk::MEDIUM,
-				'title'    => __( 'A lot of old post revisions are stored', 'debloater' ),
+				'title'    => __( 'A lot of old post revisions are stored', 'hakeemify-debloater' ),
 				'summary'  => sprintf(
 					/* translators: %s: number of revisions. */
-					__( '%s revisions are stored across this site.', 'debloater' ),
+					__( '%s revisions are stored across this site.', 'hakeemify-debloater' ),
 					number_format_i18n( $revisions )
 				),
 				'why'      => __(
 					'Every time a post is saved, WordPress keeps the previous version as a revision. They live in the posts table alongside the posts themselves, so they are in every backup, every export and every query that scans that table. Deleting the older ones keeps the recent history and removes the rest — but a revision is somebody\'s earlier draft, so nothing here is deleted without a full copy being taken first.',
-					'debloater'
+					'hakeemify-debloater'
 				),
 				'evidence' => $this->evidence( $facts )
-					->fact( __( 'Revisions stored', 'debloater' ), 'db.revisions.count' )
-					->optional( __( 'Database size', 'debloater' ), 'db.size_bytes' )
+					->fact( __( 'Revisions stored', 'hakeemify-debloater' ), 'db.revisions.count' )
+					->optional( __( 'Database size', 'hakeemify-debloater' ), 'db.size_bytes' )
 					->build(),
 				'impact'   => $this->measurable( 'db.revisions', (float) $revisions, 'rows' ),
 				'tweak_id' => 'db.clean_revisions',

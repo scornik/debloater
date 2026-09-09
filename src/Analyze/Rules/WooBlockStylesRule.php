@@ -85,23 +85,23 @@ final class WooBlockStylesRule extends AbstractRule {
 						'WooCommerce block styles load on %d page with no WooCommerce block on it',
 						'WooCommerce block styles load on %d pages with no WooCommerce block on them',
 						count( $pages ),
-						'debloater'
+						'hakeemify-debloater'
 					),
 					count( $pages )
 				),
 				'summary'  => sprintf(
 					/* translators: %s: comma-separated page paths. */
-					__( 'Loaded on: %s.', 'debloater' ),
+					__( 'Loaded on: %s.', 'hakeemify-debloater' ),
 					implode( ', ', array_slice( array_map( 'strval', $pages ), 0, 10 ) )
 				),
 				'why'      => __(
 					'This change keeps the block stylesheets on every WooCommerce page and on any page whose content contains a WooCommerce block, and drops them elsewhere. It is a stylesheet rather than a request per visitor, so the saving is modest; what earns the medium risk is the other direction, because a block living in a template part or a page builder is not visible from the page markup and would lose its styling.',
-					'debloater'
+					'hakeemify-debloater'
 				),
 				'evidence' => $this->evidence( $facts )
-					->fact( __( 'Pages loading the stylesheets', 'debloater' ), 'woo.block_styles_on_other' )
-					->optional( __( 'Pages that are part of the shop', 'debloater' ), 'woo.shop_pages' )
-					->optional( __( 'Pages sampled', 'debloater' ), 'woo.pages_sampled' )
+					->fact( __( 'Pages loading the stylesheets', 'hakeemify-debloater' ), 'woo.block_styles_on_other' )
+					->optional( __( 'Pages that are part of the shop', 'hakeemify-debloater' ), 'woo.shop_pages' )
+					->optional( __( 'Pages sampled', 'hakeemify-debloater' ), 'woo.pages_sampled' )
 					->build(),
 			)
 		);

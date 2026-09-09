@@ -73,14 +73,14 @@ final class WelcomePanelRule extends AbstractRule {
 				'severity' => Severity::LOW,
 				'risk'     => Risk::SAFE,
 				'tweak_id' => 'admin.remove_welcome_panel',
-				'title'    => __( 'The dashboard welcome panel is still being shown', 'debloater' ),
-				'summary'  => __( 'WordPress is still printing the "Welcome to WordPress!" panel on the dashboard.', 'debloater' ),
+				'title'    => __( 'The dashboard welcome panel is still being shown', 'hakeemify-debloater' ),
+				'summary'  => __( 'WordPress is still printing the "Welcome to WordPress!" panel on the dashboard.', 'hakeemify-debloater' ),
 				'why'      => __(
 					'Everyone can dismiss this for themselves, but the dismissal is stored per person, so on a site with several people each of them has to do it — and every new colleague meets it again on their first day. Removing it changes nobody\'s stored preference, so putting it back leaves everyone exactly where they were.',
-					'debloater'
+					'hakeemify-debloater'
 				),
 				'evidence' => $this->evidence( $facts )
-					->fact( __( 'Welcome panel', 'debloater' ), 'admin.welcome_panel' )
+					->fact( __( 'Welcome panel', 'hakeemify-debloater' ), 'admin.welcome_panel' )
 					->build(),
 			)
 		);

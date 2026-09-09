@@ -21,8 +21,8 @@ namespace Debloater\Snapshot;
 // credentials when it cannot write directly, which during an apply means a
 // credentials prompt in the middle of a change that is already underway.
 //
-// Everything written here goes inside wp-content/debloater or mu-plugins, along
-// paths this plugin builds itself (BUILD-SPEC §13 rule 6), and
+// Everything written here goes inside uploads/debloater/backups, along paths
+// this plugin builds itself (BUILD-SPEC §13 rule 6), and
 // tests/Integration/SecurityRulesTest.php asserts that boundary.
 
 // phpcs:disable WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception messages never reach output raw. Rest\Controller::guard() escapes
@@ -34,6 +34,7 @@ use RuntimeException;
 use Debloater\Contracts\Context;
 use Debloater\Contracts\Json;
 use Debloater\Contracts\SnapshotItem;
+use Debloater\Storage\Uploads;
 
 /**
  * Gzipped newline-delimited JSON under wp-content/debloater/backups (§4, §8).
@@ -61,11 +62,6 @@ final class SpillFile {
 	private const FILE_MODE = 0600;
 
 	/**
-	 * Permissions for the backups directory.
-	 */
-	private const DIR_MODE = 0755;
-
-	/**
 	 * Site context.
 	 *
 	 * @var Context
@@ -91,7 +87,7 @@ final class SpillFile {
 	 * @return string
 	 */
 	public function pathFor( int $snapshot_id ): string {
-		return $this->context->backupsDir() . '/snapshot-' . $snapshot_id . '.ndjson.gz';
+		return Uploads::base() . '/backups/snapshot-' . $snapshot_id . '.ndjson.gz';
 	}
 
 	/**
@@ -245,32 +241,25 @@ final class SpillFile {
 	 * @throws RuntimeException When it cannot be created or written to.
 	 */
 	private function prepareDirectory(): string {
-		$directory = $this->context->backupsDir();
+		return Uploads::directory( 'backups' );
+	}
 
-		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_mkdir -- WP_Filesystem may need credentials we do not have during an apply; the directory is inside wp-content/debloater and nowhere else.
-		if ( ! is_dir( $directory ) && ! mkdir( $directory, self::DIR_MODE, true ) && ! is_dir( $directory ) ) {
-			throw new RuntimeException( sprintf( 'Could not create the backups directory: %s', $directory ) );
-		}
-
-		if ( ! is_writable( $directory ) ) {
-			throw new RuntimeException( sprintf( 'The backups directory is not writable: %s', $directory ) );
-		}
-
-		$guards = array(
-			'index.php' => "<?php\n// Silence is golden.\n",
-			'.htaccess' => "Require all denied\n<IfModule !mod_authz_core.c>\nDeny from all\n</IfModule>\n",
-		);
-
-		foreach ( $guards as $name => $contents ) {
-			$path = $directory . '/' . $name;
-
-			if ( ! file_exists( $path ) ) {
-				// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- Writing a static guard file into our own directory.
-				file_put_contents( $path, $contents );
-			}
-		}
-
-		return $directory;
+	/**
+	 * The old location, kept readable.
+	 *
+	 * Spills written before 0.3.0 are in `wp-content/debloater/backups`, and
+	 * their absolute paths are recorded in the snapshot rows. Moving the
+	 * directory without this would orphan every recovery point a site had
+	 * open at the moment it upgraded — which is the one file this plugin
+	 * cannot afford to lose track of.
+	 *
+	 * Nothing is written here. It exists so `read()` and `delete()` can still
+	 * reach what an older version left.
+	 *
+	 * @return string
+	 */
+	private function legacyDirectory(): string {
+		return $this->context->legacyDataDir() . '/backups';
 	}
 
 	/**
@@ -284,8 +273,7 @@ final class SpillFile {
 	 * @throws RuntimeException When the path is outside the backups directory.
 	 */
 	private function assertInsideBackupsDir( string $path ): void {
-		$directory = realpath( $this->context->backupsDir() );
-		$resolved  = realpath( $path );
+		$resolved = realpath( $path );
 
 		if ( false === $resolved ) {
 			// The file does not exist; check the directory it would sit in.
@@ -293,10 +281,27 @@ final class SpillFile {
 			$resolved = false === $resolved ? '' : $resolved . '/' . basename( $path );
 		}
 
-		if ( false === $directory || '' === $resolved || ! str_starts_with( $resolved, $directory ) ) {
+		if ( '' === $resolved ) {
 			throw new RuntimeException(
 				sprintf( 'Refusing to touch a recovery file outside the backups directory: %s', $path )
 			);
 		}
+
+		$resolved = str_replace( '\\', '/', $resolved );
+
+		// Two directories, not one: the current location under uploads, and the
+		// pre-0.3.0 one under wp-content, whose absolute paths are recorded in
+		// snapshot rows that are still restorable.
+		foreach ( array( Uploads::base() . '/backups', $this->legacyDirectory() ) as $candidate ) {
+			$directory = realpath( $candidate );
+
+			if ( false !== $directory && str_starts_with( $resolved, str_replace( '\\', '/', $directory ) ) ) {
+				return;
+			}
+		}
+
+		throw new RuntimeException(
+			sprintf( 'Refusing to touch a recovery file outside the backups directory: %s', $path )
+		);
 	}
 }

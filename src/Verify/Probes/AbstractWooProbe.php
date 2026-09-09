@@ -66,7 +66,7 @@ abstract class AbstractWooProbe extends AbstractHttpProbe {
 				ProbeStatus::NOT_TESTED,
 				sprintf(
 					/* translators: %s: the name of a WooCommerce page. */
-					__( 'This store has no %s page, so there was nothing to check.', 'debloater' ),
+					__( 'This store has no %s page, so there was nothing to check.', 'hakeemify-debloater' ),
 					$this->describe()
 				)
 			);
@@ -94,7 +94,7 @@ abstract class AbstractWooProbe extends AbstractHttpProbe {
 				ProbeStatus::FAIL,
 				sprintf(
 					/* translators: 1: the name of a WooCommerce page, 2: comma-separated markers. */
-					__( '%1$s loaded, but what makes it work is missing from it: %2$s.', 'debloater' ),
+					__( '%1$s loaded, but what makes it work is missing from it: %2$s.', 'hakeemify-debloater' ),
 					$this->describe(),
 					implode( ', ', $missing )
 				),

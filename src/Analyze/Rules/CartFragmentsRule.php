@@ -92,25 +92,25 @@ final class CartFragmentsRule extends AbstractRule {
 						'Cart fragments load on %d page that is not part of the shop',
 						'Cart fragments load on %d pages that are not part of the shop',
 						count( $pages ),
-						'debloater'
+						'hakeemify-debloater'
 					),
 					count( $pages )
 				),
 				'summary'  => sprintf(
 					/* translators: 1: comma-separated page paths, 2: number of pages sampled. */
-					__( 'Loaded on: %1$s. Of %2$d pages sampled.', 'debloater' ),
+					__( 'Loaded on: %1$s. Of %2$d pages sampled.', 'hakeemify-debloater' ),
 					implode( ', ', array_slice( array_map( 'strval', $pages ), 0, 10 ) ),
 					$sampled
 				),
 				'why'      => __(
 					'The cart-fragments script asks the server what is in the cart every time a page loads, and that request cannot be served from a cache because the answer is different for every visitor. On a shop page it is doing its job. On a blog post it is a round trip for a cart the page never shows. This change keeps the script on every WooCommerce page and drops it elsewhere, deciding page by page as each one is built. If anything on your site shows a cart away from the shop — a total in the header, a widget in a sidebar — Debloater will decline this change instead of offering it.',
-					'debloater'
+					'hakeemify-debloater'
 				),
 				'evidence' => $this->evidence( $facts )
-					->fact( __( 'Non-shop pages loading cart fragments', 'debloater' ), 'woo.fragments_on_other' )
-					->fact( __( 'Pages sampled', 'debloater' ), 'woo.pages_sampled' )
-					->optional( __( 'Pages that are part of the shop', 'debloater' ), 'woo.shop_pages' )
-					->optional( __( 'Pages showing a cart', 'debloater' ), 'woo.mini_cart_pages' )
+					->fact( __( 'Non-shop pages loading cart fragments', 'hakeemify-debloater' ), 'woo.fragments_on_other' )
+					->fact( __( 'Pages sampled', 'hakeemify-debloater' ), 'woo.pages_sampled' )
+					->optional( __( 'Pages that are part of the shop', 'hakeemify-debloater' ), 'woo.shop_pages' )
+					->optional( __( 'Pages showing a cart', 'hakeemify-debloater' ), 'woo.mini_cart_pages' )
 					->build(),
 			)
 		);

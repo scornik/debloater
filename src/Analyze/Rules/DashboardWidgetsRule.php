@@ -104,18 +104,18 @@ final class DashboardWidgetsRule extends AbstractRule {
 						'%d widget is registered on the dashboard',
 						'%d widgets are registered on the dashboard',
 						count( $widgets ),
-						'debloater'
+						'hakeemify-debloater'
 					),
 					count( $widgets )
 				),
 				'summary'  => $this->bySource( $by_source ),
 				'why'      => __(
 					'You can take any of these off the dashboard, and put them back just as easily — nothing is uninstalled and no data is touched. Debloater does not choose for you, and nothing here is preselected: which of these is worth reading is not something a plugin can work out, and the ones that look most removable are sometimes the first thing somebody checks every morning.',
-					'debloater'
+					'hakeemify-debloater'
 				),
 				'evidence' => $this->evidence( $facts )
-					->fact( __( 'Dashboard widgets', 'debloater' ), 'admin.dashboard_widgets' )
-					->optional( __( 'Dashboard widget count', 'debloater' ), 'admin.dashboard_widgets.count' )
+					->fact( __( 'Dashboard widgets', 'hakeemify-debloater' ), 'admin.dashboard_widgets' )
+					->optional( __( 'Dashboard widget count', 'hakeemify-debloater' ), 'admin.dashboard_widgets.count' )
 					->build(),
 			)
 		);
@@ -133,7 +133,7 @@ final class DashboardWidgetsRule extends AbstractRule {
 		foreach ( $by_source as $source => $count ) {
 			$parts[] = sprintf(
 				/* translators: 1: plugin or component name, 2: how many widgets it registers. */
-				__( '%1$s (%2$d)', 'debloater' ),
+				__( '%1$s (%2$d)', 'hakeemify-debloater' ),
 				$source,
 				$count
 			);

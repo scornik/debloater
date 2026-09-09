@@ -94,7 +94,7 @@ final class Cf7AssetsRule extends AbstractRule {
 				'severity' => Severity::INFO,
 				'title'    => sprintf(
 					/* translators: 1: pages that loaded the assets, 2: pages that had a form. */
-					__( 'Contact Form 7 assets loaded on %1$d pages, forms on %2$d', 'debloater' ),
+					__( 'Contact Form 7 assets loaded on %1$d pages, forms on %2$d', 'hakeemify-debloater' ),
 					$with_assets,
 					$with_forms
 				),
@@ -104,7 +104,7 @@ final class Cf7AssetsRule extends AbstractRule {
 						'Of %1$d page sampled, %2$d loaded Contact Form 7\'s script and stylesheet and %3$d actually contained a form.',
 						'Of %1$d pages sampled, %2$d loaded Contact Form 7\'s script and stylesheet and %3$d actually contained a form.',
 						$sampled,
-						'debloater'
+						'hakeemify-debloater'
 					),
 					$sampled,
 					$with_assets,
@@ -112,13 +112,13 @@ final class Cf7AssetsRule extends AbstractRule {
 				),
 				'why'      => __(
 					'Contact Form 7 enqueues its script and stylesheet on every page by default, whether or not the page has a form on it. Contact Form 7 has its own supported setting for this — the WPCF7_LOAD_JS and WPCF7_LOAD_CSS constants — which is a better place to change it than anything Debloater could hook around it. Read the numbers as what they are: this looked at a sample of pages, not at your whole site, and a page nobody sampled was not measured.',
-					'debloater'
+					'hakeemify-debloater'
 				),
 				'evidence' => $this->evidence( $facts )
-					->fact( __( 'Pages that loaded the assets', 'debloater' ), 'assets.cf7_asset_pages' )
-					->fact( __( 'Pages that contained a form', 'debloater' ), 'assets.cf7_form_pages' )
-					->fact( __( 'Pages sampled', 'debloater' ), 'assets.pages_sampled' )
-					->optional( __( 'Post types sampled', 'debloater' ), 'assets.post_types' )
+					->fact( __( 'Pages that loaded the assets', 'hakeemify-debloater' ), 'assets.cf7_asset_pages' )
+					->fact( __( 'Pages that contained a form', 'hakeemify-debloater' ), 'assets.cf7_form_pages' )
+					->fact( __( 'Pages sampled', 'hakeemify-debloater' ), 'assets.pages_sampled' )
+					->optional( __( 'Post types sampled', 'hakeemify-debloater' ), 'assets.post_types' )
 					->build(),
 			)
 		);

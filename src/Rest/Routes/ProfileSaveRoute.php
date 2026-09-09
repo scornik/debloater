@@ -72,7 +72,7 @@ final class ProfileSaveRoute implements RouteInterface {
 	public function args(): array {
 		return array(
 			'name' => array(
-				'description'       => __( 'What to call the profile.', 'debloater' ),
+				'description'       => __( 'What to call the profile.', 'hakeemify-debloater' ),
 				'type'              => 'string',
 				'required'          => true,
 				'minLength'         => 1,
@@ -112,7 +112,7 @@ final class ProfileSaveRoute implements RouteInterface {
 		if ( null === $profile ) {
 			return new WP_Error(
 				'debloater_profile_not_saved',
-				__( 'The profile could not be saved.', 'debloater' ),
+				__( 'The profile could not be saved.', 'hakeemify-debloater' ),
 				array( 'status' => 500 )
 			);
 		}

@@ -77,15 +77,15 @@ final class WooAnalyticsRule extends AbstractRule {
 				'severity' => Severity::LOW,
 				'risk'     => Risk::MEDIUM,
 				'tweak_id' => 'woo.disable_admin_analytics',
-				'title'    => __( 'WooCommerce Analytics is running', 'debloater' ),
-				'summary'  => __( 'The Analytics section of WooCommerce Admin is enabled, with the scheduled imports that keep its tables up to date.', 'debloater' ),
+				'title'    => __( 'WooCommerce Analytics is running', 'hakeemify-debloater' ),
+				'summary'  => __( 'The Analytics section of WooCommerce Admin is enabled, with the scheduled imports that keep its tables up to date.', 'hakeemify-debloater' ),
 				'why'      => __(
 					'WooCommerce Analytics maintains its own set of lookup tables and schedules a job to update them whenever an order changes. If you read those reports, that is simply what the feature costs and this is not worth doing. If you read your numbers somewhere else, it is a background job and a set of tables working for nobody. Turning it off hides the reports and stops the imports; it deletes nothing, and turning it back on restores the section with its history, though WooCommerce will need to catch up on whatever it missed.',
-					'debloater'
+					'hakeemify-debloater'
 				),
 				'evidence' => $this->evidence( $facts )
-					->fact( __( 'Analytics enabled', 'debloater' ), 'woo.admin_analytics' )
-					->optional( __( 'WooCommerce version', 'debloater' ), 'woo.version' )
+					->fact( __( 'Analytics enabled', 'hakeemify-debloater' ), 'woo.admin_analytics' )
+					->optional( __( 'WooCommerce version', 'hakeemify-debloater' ), 'woo.version' )
 					->build(),
 			)
 		);

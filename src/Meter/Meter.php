@@ -219,7 +219,7 @@ final class Meter {
 		if ( array() === $available ) {
 			$reason = __(
 				'None of the pages could be fetched, so nothing about them was measured.',
-				'debloater'
+				'hakeemify-debloater'
 			);
 
 			return array(
@@ -373,7 +373,7 @@ final class Meter {
 			return Measurement::unavailable(
 				'admin_ajax_requests_per_hour',
 				self::UNITS['admin_ajax_requests_per_hour'],
-				__( 'The Heartbeat interval could not be read.', 'debloater' )
+				__( 'The Heartbeat interval could not be read.', 'hakeemify-debloater' )
 			);
 		}
 
@@ -385,7 +385,7 @@ final class Meter {
 			self::UNITS['admin_ajax_requests_per_hour'],
 			sprintf(
 				/* translators: 1: seconds between beats, 2: number of administrators. */
-				__( 'every %1$d seconds, %2$d signed-in administrators', 'debloater' ),
+				__( 'every %1$d seconds, %2$d signed-in administrators', 'hakeemify-debloater' ),
 				$interval,
 				$admins
 			)

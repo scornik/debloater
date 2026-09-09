@@ -4,7 +4,7 @@ includes:
 parameters:
 	level: 6
 	paths:
-		- debloater.php
+		- hakeemify-debloater.php
 		- src
 		- runtime-handlers
 	excludePaths:

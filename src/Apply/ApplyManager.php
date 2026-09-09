@@ -213,7 +213,7 @@ final class ApplyManager {
 			return $this->abort(
 				$run,
 				$machine,
-				__( 'Another change is already in progress on this site. Wait for it to finish and try again.', 'debloater' )
+				__( 'Another change is already in progress on this site. Wait for it to finish and try again.', 'hakeemify-debloater' )
 			);
 		}
 
@@ -326,7 +326,7 @@ final class ApplyManager {
 				array(),
 				array(),
 				null,
-				__( 'Another change is in progress on this site. Wait for it to finish and try again.', 'debloater' )
+				__( 'Another change is in progress on this site. Wait for it to finish and try again.', 'hakeemify-debloater' )
 			);
 		}
 
@@ -375,7 +375,7 @@ final class ApplyManager {
 				array(),
 				$ids,
 				null,
-				__( 'Rolled back on request. The previous configuration has been restored.', 'debloater' )
+				__( 'Rolled back on request. The previous configuration has been restored.', 'hakeemify-debloater' )
 			);
 		} finally {
 			$this->lock->release();
@@ -454,7 +454,7 @@ final class ApplyManager {
 					$run->withStatus(
 						RunState::ROLLED_BACK->value,
 						gmdate( 'Y-m-d H:i:s' ),
-						__( 'This change was interrupted before it finished and has been rolled back.', 'debloater' )
+						__( 'This change was interrupted before it finished and has been rolled back.', 'hakeemify-debloater' )
 					)
 				);
 			} catch ( Throwable $error ) {
@@ -464,7 +464,7 @@ final class ApplyManager {
 						gmdate( 'Y-m-d H:i:s' ),
 						sprintf(
 							/* translators: %s: the underlying failure. */
-							__( 'This change was interrupted and could not be rolled back automatically: %s', 'debloater' ),
+							__( 'This change was interrupted and could not be rolled back automatically: %s', 'hakeemify-debloater' ),
 							$this->describe( $error )
 						)
 					)
@@ -759,7 +759,7 @@ final class ApplyManager {
 			// rollback failure is what they need to act on. Both are reported.
 			$message = sprintf(
 				/* translators: 1: the original failure, 2: the rollback failure. */
-				__( '%1$s The rollback then failed as well: %2$s', 'debloater' ),
+				__( '%1$s The rollback then failed as well: %2$s', 'hakeemify-debloater' ),
 				$error,
 				$this->describe( $rollback_error )
 			);
@@ -821,7 +821,7 @@ final class ApplyManager {
 
 		return sprintf(
 			/* translators: %s: the failed checks, already sentence-formed. */
-			__( 'The site did not pass its checks after the change, so it was put back. %s', 'debloater' ),
+			__( 'The site did not pass its checks after the change, so it was put back. %s', 'hakeemify-debloater' ),
 			implode( ' ', $messages )
 		);
 	}

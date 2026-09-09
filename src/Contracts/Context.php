@@ -226,31 +226,20 @@ final class Context {
 	}
 
 	/**
-	 * The directory generated artefacts are written to.
+	 * Where versions before 0.3.0 wrote, kept only so their files can be found.
 	 *
-	 * Everything Debloater writes lives under this one directory
-	 * (BUILD-SPEC §13 rule 6), which is what makes the filesystem boundary
-	 * testable.
+	 * This plugin writes nothing under wp-content any more: the generated
+	 * runtime is gone (D-0070) and the Level B spill moved to
+	 * `uploads/debloater/backups` (D-0072). Recovery points taken before that
+	 * move recorded absolute paths in here and are still restorable, so
+	 * `Snapshot\SpillFile` reads from it and `uninstall.php` cleans it.
+	 *
+	 * Nothing writes to it. If something starts to, that is the bug.
 	 *
 	 * @return string
 	 */
-	public function dataDir(): string {
+	public function legacyDataDir(): string {
 		return $this->content_dir . '/debloater';
-	}
-
-	/**
-	 * The Level B spill directory.
-	 *
-	 * The one thing this plugin still writes under wp-content, and it is data:
-	 * gzipped NDJSON rows of a recovery point too large to sit in the database,
-	 * behind an index.php and a .htaccess. No PHP is written here or anywhere
-	 * else (D-0070), and removing it would remove the recovery that BUILD-SPEC
-	 * §13 rule 8 requires before a destructive change.
-	 *
-	 * @return string
-	 */
-	public function backupsDir(): string {
-		return $this->dataDir() . '/backups';
 	}
 
 	/**

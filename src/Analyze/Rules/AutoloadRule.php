@@ -90,19 +90,19 @@ final class AutoloadRule extends AbstractRule {
 		$severity = $bytes >= self::SUBSTANTIAL_BYTES ? Severity::MEDIUM : Severity::LOW;
 
 		$evidence = $this->evidence( $facts )
-			->fact( __( 'Loaded on every request', 'debloater' ), 'db.autoload.bytes' )
-			->optional( __( 'Largest autoloaded options', 'debloater' ), 'db.autoload.top' )
+			->fact( __( 'Loaded on every request', 'hakeemify-debloater' ), 'db.autoload.bytes' )
+			->optional( __( 'Largest autoloaded options', 'hakeemify-debloater' ), 'db.autoload.top' )
 			->build();
 
 		$summary = sprintf(
 			/* translators: %s: amount of autoloaded data, already formatted. */
-			__( '%s of options are loaded into memory on every request.', 'debloater' ),
+			__( '%s of options are loaded into memory on every request.', 'hakeemify-debloater' ),
 			size_format( $bytes )
 		);
 
 		$why = __(
 			'WordPress reads every option marked to autoload before it does anything else, on every single request, whether or not that request needs them. Most of it belongs to plugins and is genuinely needed early; some of it is cache timeouts and per-visitor session data that is only read when something asks for it.',
-			'debloater'
+			'hakeemify-debloater'
 		);
 
 		// Only propose the change when there is something on the allowlist to
@@ -113,11 +113,11 @@ final class AutoloadRule extends AbstractRule {
 				array(
 					'category' => Category::DATABASE,
 					'severity' => Severity::INFO,
-					'title'    => __( 'A lot is loaded on every request', 'debloater' ),
+					'title'    => __( 'A lot is loaded on every request', 'hakeemify-debloater' ),
 					'summary'  => $summary,
 					'why'      => $why . ' ' . __(
 						'None of it matches the small set of options Debloater knows to be safe to defer, so there is nothing to propose here — only something to be aware of.',
-						'debloater'
+						'hakeemify-debloater'
 					),
 					'evidence' => $evidence,
 					'impact'   => $this->measurable( 'db.autoload_bytes', (float) $bytes, 'bytes' ),
@@ -130,7 +130,7 @@ final class AutoloadRule extends AbstractRule {
 				'category' => Category::DATABASE,
 				'severity' => $severity,
 				'risk'     => Risk::LOW,
-				'title'    => __( 'A lot is loaded on every request', 'debloater' ),
+				'title'    => __( 'A lot is loaded on every request', 'hakeemify-debloater' ),
 				'summary'  => $summary,
 				'why'      => $why,
 				'evidence' => $evidence,

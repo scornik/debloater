@@ -175,7 +175,7 @@ final class RegistryUpdater {
 			return $this->unavailable(
 				__(
 					'The registry update check is off, so nothing was requested. Nothing leaves this server unless you ask for it.',
-					'debloater'
+					'hakeemify-debloater'
 				)
 			);
 		}
@@ -287,7 +287,7 @@ final class RegistryUpdater {
 					/* translators: 1: number of bytes received, 2: number of bytes expected. */
 					__(
 						'The registry signature is %1$d bytes; a signature is %2$d. Nothing was installed.',
-						'debloater'
+						'hakeemify-debloater'
 					),
 					strlen( $signature ),
 					self::SIGNATURE_BYTES
@@ -313,7 +313,7 @@ final class RegistryUpdater {
 			throw new RuntimeException(
 				__(
 					'The registry release is not signed with the key this plugin trusts. Nothing was installed.',
-					'debloater'
+					'hakeemify-debloater'
 				)
 			);
 		}
@@ -327,7 +327,7 @@ final class RegistryUpdater {
 			throw new RuntimeException(
 				__(
 					'The registry manifest is signed but is not a JSON document. Nothing was installed.',
-					'debloater'
+					'hakeemify-debloater'
 				)
 			);
 		}
@@ -340,7 +340,7 @@ final class RegistryUpdater {
 				UpdateCheck::CURRENT,
 				$this->current_tag,
 				$manifest->tag,
-				__( 'The registry is already the newest release.', 'debloater' )
+				__( 'The registry is already the newest release.', 'hakeemify-debloater' )
 			);
 		}
 
@@ -350,7 +350,7 @@ final class RegistryUpdater {
 			$manifest->tag,
 			sprintf(
 				/* translators: 1: offered tag, 2: current tag. */
-				__( 'Registry release %1$s is available and its signature checks out. This site has %2$s.', 'debloater' ),
+				__( 'Registry release %1$s is available and its signature checks out. This site has %2$s.', 'hakeemify-debloater' ),
 				$manifest->tag,
 				$this->current_tag
 			)

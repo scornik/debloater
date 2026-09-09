@@ -165,10 +165,10 @@ final class ConfidenceCalculator {
 
 		foreach ( array_keys( $this->penalties( $dependencies_detected ) ) as $reason ) {
 			$reasons[] = match ( $reason ) {
-				'unknown_host' => __( 'This host was not recognised, so we cannot tell what it already optimises.', 'debloater' ),
-				'cache_plugin' => __( 'A page-cache plugin is active, so what visitors receive may differ from what WordPress generates.', 'debloater' ),
-				'dependents'   => __( 'Something installed on this site depends on what this change would alter.', 'debloater' ),
-				'custom_code'  => __( 'This site has custom must-use plugins, which we cannot inspect.', 'debloater' ),
+				'unknown_host' => __( 'This host was not recognised, so we cannot tell what it already optimises.', 'hakeemify-debloater' ),
+				'cache_plugin' => __( 'A page-cache plugin is active, so what visitors receive may differ from what WordPress generates.', 'hakeemify-debloater' ),
+				'dependents'   => __( 'Something installed on this site depends on what this change would alter.', 'hakeemify-debloater' ),
+				'custom_code'  => __( 'This site has custom must-use plugins, which we cannot inspect.', 'hakeemify-debloater' ),
 				default        => $reason,
 			};
 		}

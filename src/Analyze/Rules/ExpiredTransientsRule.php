@@ -89,19 +89,19 @@ final class ExpiredTransientsRule extends AbstractRule {
 				'category' => Category::DATABASE,
 				'severity' => $expired >= self::SUBSTANTIAL_COUNT ? Severity::MEDIUM : Severity::LOW,
 				'risk'     => Risk::LOW,
-				'title'    => __( 'Expired transients are sitting in the options table', 'debloater' ),
+				'title'    => __( 'Expired transients are sitting in the options table', 'hakeemify-debloater' ),
 				'summary'  => sprintf(
 					/* translators: %s: number of expired transients. */
-					__( '%s transients have passed their expiry time and are still stored.', 'debloater' ),
+					__( '%s transients have passed their expiry time and are still stored.', 'hakeemify-debloater' ),
 					number_format_i18n( $expired )
 				),
 				'why'      => __(
 					'A transient is a cached value with an expiry date. WordPress deletes an expired one the next time something asks for it — which means the ones still here are the ones nothing will ask for again. They stay in the options table until something removes them, taking up space in every backup and every scan of that table.',
-					'debloater'
+					'hakeemify-debloater'
 				),
 				'evidence' => $this->evidence( $facts )
-					->fact( __( 'Expired transients', 'debloater' ), 'db.transients.expired' )
-					->optional( __( 'Transients in total', 'debloater' ), 'db.transients.count' )
+					->fact( __( 'Expired transients', 'hakeemify-debloater' ), 'db.transients.expired' )
+					->optional( __( 'Transients in total', 'hakeemify-debloater' ), 'db.transients.count' )
 					->build(),
 				'impact'   => $this->measurable( 'db.transients_expired', (float) $expired, 'rows' ),
 				'tweak_id' => 'db.clean_expired_transients',

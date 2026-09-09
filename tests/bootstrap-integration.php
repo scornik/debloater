@@ -49,7 +49,7 @@ require_once $debloater_tests_dir . '/includes/functions.php';
 tests_add_filter(
 	'muplugins_loaded',
 	static function () use ( $debloater_plugin_dir ): void {
-		require_once $debloater_plugin_dir . '/debloater.php';
+		require_once $debloater_plugin_dir . '/hakeemify-debloater.php';
 	}
 );
 

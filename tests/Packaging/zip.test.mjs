@@ -29,7 +29,7 @@
  *
  * It installs under a **throwaway slug**, and that is not fastidiousness. This
  * repository is bind-mounted into wp-env at
- * `wp-content/plugins/debloater` (see `.wp-env.json`). An earlier version of
+ * `wp-content/plugins/hakeemify-debloater` (see `.wp-env.json`). An earlier version of
  * this file ran `wp plugin delete debloater` to reach a clean install state,
  * and WP-CLI deleted the plugin directory *through the mount* — which is to say
  * it deleted the working tree, including `.git`. The repository had to be
@@ -71,11 +71,11 @@ const VERSION = JSON.parse(
 const PLUGINS = [
 	{
 		key: 'free',
-		slug: 'debloater',
-		installAs: 'debloater-pkgtest',
-		entry: 'debloater.php',
-		name: 'Debloater',
-		textDomain: 'debloater',
+		slug: 'hakeemify-debloater',
+		installAs: 'hakeemify-debloater-pkgtest',
+		entry: 'hakeemify-debloater.php',
+		name: 'Hakeemify Debloater',
+		textDomain: 'hakeemify-debloater',
 		requiresPlugins: null,
 		mustContain: [ 'src/Plugin.php', 'readme.txt', 'uninstall.php', 'vendor/autoload.php' ],
 		mustNotContain: [ 'src/Pro.php', 'pro/' ],
@@ -469,7 +469,7 @@ for ( const plugin of PLUGINS ) {
  * zip.
  */
 test( 'the free zip builds byte for byte the same twice', () => {
-	const archive = path.join( DIST, `debloater-${ VERSION }.zip` );
+	const archive = path.join( DIST, `hakeemify-debloater-${ VERSION }.zip` );
 	const first = crypto.createHash( 'sha256' ).update( fs.readFileSync( archive ) ).digest( 'hex' );
 
 	execFileSync( process.execPath, [ path.join( ROOT, 'scripts', 'plugin-zip.mjs' ), 'free' ], {
@@ -505,11 +505,11 @@ test( 'the free zip builds byte for byte the same twice', () => {
  * exactly what this file exists to notice. What cannot be asserted is bytes.
  */
 const GENERATED = new Set( [
-	'debloater/build/index.js',
-	'debloater/build/index.asset.php',
-	'debloater/vendor/autoload.php',
-	'debloater/vendor/composer/autoload_real.php',
-	'debloater/vendor/composer/autoload_static.php',
+	'hakeemify-debloater/build/index.js',
+	'hakeemify-debloater/build/index.asset.php',
+	'hakeemify-debloater/vendor/autoload.php',
+	'hakeemify-debloater/vendor/composer/autoload_real.php',
+	'hakeemify-debloater/vendor/composer/autoload_static.php',
 ] );
 
 /**
@@ -554,7 +554,7 @@ test( 'the free zip ships exactly the content recorded', () => {
 		fs.readFileSync( path.join( ROOT, 'tests', 'Packaging', 'free-plugin-content.json' ), 'utf8' )
 	);
 
-	const archive = path.join( DIST, `debloater-${ VERSION }.zip` );
+	const archive = path.join( DIST, `hakeemify-debloater-${ VERSION }.zip` );
 	const names = rawEntryNames( archive )
 		.map( ( n ) => n.toString( 'utf8' ) )
 		.filter( ( n ) => ! n.endsWith( '/' ) );
@@ -624,11 +624,11 @@ test( 'only the five unreproducible files are exempt from content hashing', () =
 	assert.deepEqual(
 		recorded.generated.slice().sort(),
 		[
-			'debloater/build/index.asset.php',
-			'debloater/build/index.js',
-			'debloater/vendor/autoload.php',
-			'debloater/vendor/composer/autoload_real.php',
-			'debloater/vendor/composer/autoload_static.php',
+			'hakeemify-debloater/build/index.asset.php',
+			'hakeemify-debloater/build/index.js',
+			'hakeemify-debloater/vendor/autoload.php',
+			'hakeemify-debloater/vendor/composer/autoload_real.php',
+			'hakeemify-debloater/vendor/composer/autoload_static.php',
 		],
 		'the set of files exempt from content hashing changed'
 	);
@@ -637,15 +637,15 @@ test( 'only the five unreproducible files are exempt from content hashing', () =
 	// exemption is a list of names rather than "anything under vendor/".
 	// ClassLoader.php is code that runs on a site.
 	for ( const pinned of [
-		'debloater/vendor/composer/ClassLoader.php',
-		'debloater/vendor/composer/autoload_classmap.php',
-		'debloater/vendor/composer/autoload_psr4.php',
-		'debloater/build/style-index.css',
-		'debloater/debloater.php',
-		'debloater/uninstall.php',
-		'debloater/src/Plugin.php',
-		'debloater/readme.txt',
-		'debloater/composer.json',
+		'hakeemify-debloater/vendor/composer/ClassLoader.php',
+		'hakeemify-debloater/vendor/composer/autoload_classmap.php',
+		'hakeemify-debloater/vendor/composer/autoload_psr4.php',
+		'hakeemify-debloater/build/style-index.css',
+		'hakeemify-debloater/hakeemify-debloater.php',
+		'hakeemify-debloater/uninstall.php',
+		'hakeemify-debloater/src/Plugin.php',
+		'hakeemify-debloater/readme.txt',
+		'hakeemify-debloater/composer.json',
 	] ) {
 		assert.ok(
 			pinned in recorded.entries,
@@ -662,7 +662,7 @@ test( 'only the five unreproducible files are exempt from content hashing', () =
 	// somebody's site.
 	const hashedNames = Object.keys( recorded.entries );
 
-	for ( const tree of [ 'debloater/runtime-handlers/', 'debloater/registry/', 'debloater/src/' ] ) {
+	for ( const tree of [ 'hakeemify-debloater/runtime-handlers/', 'hakeemify-debloater/registry/', 'hakeemify-debloater/src/' ] ) {
 		assert.ok(
 			hashedNames.some( ( n ) => n.startsWith( tree ) ),
 			`${ tree } should be pinned by content`
@@ -680,9 +680,9 @@ test( 'the guard refuses a mapped slug', () => {
 	// be asserted, or it is a comment.
 	const mapped = mappedSlugs();
 
-	assert.ok( mapped.has( 'debloater' ), '.wp-env.json should map the free plugin' );
+	assert.ok( mapped.has( 'hakeemify-debloater' ), '.wp-env.json should map the free plugin' );
 	assert.throws(
-		() => assertNotMapped( 'debloater' ),
+		() => assertNotMapped( 'hakeemify-debloater' ),
 		/Refusing to install or delete/,
 		'a mapped slug must be refused'
 	);
@@ -756,7 +756,9 @@ test( 'WordPress extracts and activates each zip', { concurrency: 1 }, async ( t
 		assertNotMapped( plugin.installAs );
 
 		const zip = `${ plugin.slug }-${ VERSION }.zip`;
-		const source = `${ plugins }/debloater/dist/${ zip }`;
+		// Where wp-env maps this checkout, which is the plugin slug and not
+		// the directory name on the host (.wp-env.json).
+		const source = `${ plugins }/hakeemify-debloater/dist/${ zip }`;
 		const workspace = `/tmp/pkgtest-${ plugin.installAs }`;
 		const target = `${ plugins }/${ plugin.installAs }`;
 
@@ -829,7 +831,7 @@ test( 'WordPress extracts and activates each zip', { concurrency: 1 }, async ( t
 			//
 			// `get_plugins()` scans the plugins directory one level deep: for
 			// each plugin folder it lists the `.php` files *directly inside*
-			// it. So `debloater/debloater.php` is a plugin and
+			// it. So `hakeemify-debloater/hakeemify-debloater.php` is a plugin and
 			// `debloater/mu-loader/debloater-loader.php` is not, because it is
 			// one level further down.
 			//

@@ -244,13 +244,13 @@ final class Screen {
 	 */
 	public function render(): void {
 		if ( ! Capabilities::currentUserCanManage() ) {
-			wp_die( esc_html__( 'You do not have permission to manage Debloater on this site.', 'debloater' ) );
+			wp_die( esc_html__( 'You do not have permission to manage Debloater on this site.', 'hakeemify-debloater' ) );
 		}
 
 		printf(
 			'<div class="wrap"><h1 class="screen-reader-text">%s</h1><div id="debloater-root">%s</div></div>',
 			esc_html( Brand::FULL_TITLE ),
-			esc_html__( 'Loading Debloater…', 'debloater' )
+			esc_html__( 'Loading Debloater…', 'hakeemify-debloater' )
 		);
 	}
 

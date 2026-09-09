@@ -231,7 +231,7 @@ final class ConfigDocument {
 			if ( ! $registry->has( $tweak_id ) ) {
 				$problems[ $tweak_id ] = __(
 					'This version of Debloater does not know that change, so it cannot be applied here.',
-					'debloater'
+					'hakeemify-debloater'
 				);
 
 				continue;

@@ -162,7 +162,7 @@ final class Command {
 				$this->io->success(
 					sprintf(
 						/* translators: 1: number of facts, 2: number of findings. */
-						__( 'Scanned the site: %1$d facts, %2$d findings.', 'debloater' ),
+						__( 'Scanned the site: %1$d facts, %2$d findings.', 'hakeemify-debloater' ),
 						count( $run->facts()->toArray() ),
 						count( $findings )
 					)
@@ -211,7 +211,7 @@ final class Command {
 				$run = $this->plugin->latestScan();
 
 				if ( null === $run ) {
-					$this->io->error( __( 'There is no scan to read. Run `wp debloater scan` first.', 'debloater' ) );
+					$this->io->error( __( 'There is no scan to read. Run `wp debloater scan` first.', 'hakeemify-debloater' ) );
 
 					return self::EXIT_ERROR;
 				}
@@ -226,7 +226,7 @@ final class Command {
 						$this->io->error(
 							sprintf(
 								/* translators: %s: the value given. */
-								__( '"%s" is not a risk level. Use low, medium or high.', 'debloater' ),
+								__( '"%s" is not a risk level. Use low, medium or high.', 'hakeemify-debloater' ),
 								$risk
 							)
 						);
@@ -256,7 +256,7 @@ final class Command {
 				}
 
 				if ( array() === $findings ) {
-					$this->io->line( __( 'Nothing to report.', 'debloater' ) );
+					$this->io->line( __( 'Nothing to report.', 'hakeemify-debloater' ) );
 
 					return self::EXIT_OK;
 				}
@@ -388,7 +388,7 @@ final class Command {
 				}
 
 				if ( $result->plan->isEmpty() ) {
-					$this->io->warning( __( 'There is nothing to apply: the plan is empty.', 'debloater' ) );
+					$this->io->warning( __( 'There is nothing to apply: the plan is empty.', 'hakeemify-debloater' ) );
 
 					return self::EXIT_OK;
 				}
@@ -470,9 +470,9 @@ final class Command {
 	 * @return void
 	 */
 	private function printE2eInstructions(): void {
-		$this->io->line( __( 'The end-to-end suite is part of the Debloater repository and is not shipped with the plugin.', 'debloater' ) );
+		$this->io->line( __( 'The end-to-end suite is part of the Debloater repository and is not shipped with the plugin.', 'hakeemify-debloater' ) );
 		$this->io->line( '' );
-		$this->io->line( __( 'To run it from a checkout:', 'debloater' ) );
+		$this->io->line( __( 'To run it from a checkout:', 'hakeemify-debloater' ) );
 		$this->io->line( '' );
 		$this->io->line( '    npm install' );
 		$this->io->line( '    npm run test:e2e:install     # downloads the browser, once' );
@@ -481,9 +481,9 @@ final class Command {
 		$this->io->line( '    npm run test:e2e:seed        # a product, a form and an Elementor page' );
 		$this->io->line( '    npm run test:e2e' );
 		$this->io->line( '' );
-		$this->io->line( __( 'It also runs nightly in CI, and on a pull request labelled "e2e".', 'debloater' ) );
+		$this->io->line( __( 'It also runs nightly in CI, and on a pull request labelled "e2e".', 'hakeemify-debloater' ) );
 		$this->io->line( '' );
-		$this->io->line( __( 'To check this site instead, run `wp debloater verify` with no flag.', 'debloater' ) );
+		$this->io->line( __( 'To check this site instead, run `wp debloater verify` with no flag.', 'hakeemify-debloater' ) );
 	}
 
 	/**
@@ -540,8 +540,8 @@ final class Command {
 					$this->io->line(
 						sprintf(
 							/* translators: 1: registry tag, 2: number of changes. */
-							__( 'Registry %1$s, %2$d changes.', 'debloater' ),
-							'' === $tag ? __( 'unversioned', 'debloater' ) : $tag,
+							__( 'Registry %1$s, %2$d changes.', 'hakeemify-debloater' ),
+							'' === $tag ? __( 'unversioned', 'hakeemify-debloater' ) : $tag,
 							$registry->count()
 						)
 					);
@@ -677,7 +677,7 @@ final class Command {
 				}
 
 				if ( ! isset( $args[1] ) || ! ctype_digit( (string) $args[1] ) ) {
-					$this->io->error( __( 'Give the id of the recovery point.', 'debloater' ) );
+					$this->io->error( __( 'Give the id of the recovery point.', 'hakeemify-debloater' ) );
 
 					return self::EXIT_ERROR;
 				}
@@ -688,7 +688,7 @@ final class Command {
 					$this->io->error(
 						sprintf(
 							/* translators: %s: the id given. */
-							__( 'There is no recovery point with the id %s.', 'debloater' ),
+							__( 'There is no recovery point with the id %s.', 'hakeemify-debloater' ),
 							$args[1]
 						)
 					);
@@ -711,7 +711,7 @@ final class Command {
 				$this->io->success(
 					sprintf(
 						/* translators: %d: the id deleted. */
-						__( 'Deleted recovery point %d. That change can no longer be undone.', 'debloater' ),
+						__( 'Deleted recovery point %d. That change can no longer be undone.', 'hakeemify-debloater' ),
 						(int) $snapshot->id
 					)
 				);
@@ -756,7 +756,7 @@ final class Command {
 				$this->io->line(
 					sprintf(
 						/* translators: 1: plugin version, 2: registry hash. */
-						__( 'Debloater %1$s, registry %2$s', 'debloater' ),
+						__( 'Debloater %1$s, registry %2$s', 'hakeemify-debloater' ),
 						$document['plugin_version'],
 						substr( (string) $document['registry_hash'], 0, 12 )
 					)
@@ -765,7 +765,7 @@ final class Command {
 				$this->io->line(
 					sprintf(
 						/* translators: %d: number of selected changes. */
-						_n( '%d change selected', '%d changes selected', (int) $document['selection_count'], 'debloater' ),
+						_n( '%d change selected', '%d changes selected', (int) $document['selection_count'], 'hakeemify-debloater' ),
 						(int) $document['selection_count']
 					)
 				);
@@ -777,16 +777,16 @@ final class Command {
 					$runtime['present']
 						? sprintf(
 							/* translators: 1: runtime hash, 2: loader mode. */
-							__( 'Runtime %1$s, loaded by the %2$s', 'debloater' ),
+							__( 'Runtime %1$s, loaded by the %2$s', 'hakeemify-debloater' ),
 							substr( (string) $runtime['hash'], 0, 12 ),
 							(string) ( is_array( $document['loader'] ) ? $document['loader']['mode'] : '' )
 						)
-						: __( 'No runtime file: nothing is being changed on the front end.', 'debloater' )
+						: __( 'No runtime file: nothing is being changed on the front end.', 'hakeemify-debloater' )
 				);
 
 				if ( ! $runtime['matches_state'] ) {
 					$this->io->warning(
-						__( 'The runtime file on disk is not the one Debloater generated.', 'debloater' )
+						__( 'The runtime file on disk is not the one Debloater generated.', 'hakeemify-debloater' )
 					);
 				}
 
@@ -874,7 +874,7 @@ final class Command {
 
 					default:
 						$this->io->error(
-							__( 'Use: profile list|save <name>|export <name>|import <file>|apply <name> --yes', 'debloater' )
+							__( 'Use: profile list|save <name>|export <name>|import <file>|apply <name> --yes', 'hakeemify-debloater' )
 						);
 
 						return self::EXIT_ERROR;
@@ -898,8 +898,8 @@ final class Command {
 				'name'    => $entry['profile']->name,
 				'changes' => (string) $entry['profile']->count(),
 				'source'  => $entry['builtin']
-					? __( 'built in', 'debloater' )
-					: __( 'saved here', 'debloater' ),
+					? __( 'built in', 'hakeemify-debloater' )
+					: __( 'saved here', 'hakeemify-debloater' ),
 			);
 		}
 
@@ -922,7 +922,7 @@ final class Command {
 	 */
 	private function profileSave( string $name ): int {
 		if ( '' === $name ) {
-			$this->io->error( __( 'A profile needs a name: profile save "Client baseline"', 'debloater' ) );
+			$this->io->error( __( 'A profile needs a name: profile save "Client baseline"', 'hakeemify-debloater' ) );
 
 			return self::EXIT_ERROR;
 		}
@@ -941,7 +941,7 @@ final class Command {
 		$this->io->success(
 			sprintf(
 				/* translators: 1: profile name, 2: profile id, 3: number of changes. */
-				__( 'Saved "%1$s" as %2$s, with %3$d changes.', 'debloater' ),
+				__( 'Saved "%1$s" as %2$s, with %3$d changes.', 'hakeemify-debloater' ),
 				$name,
 				$id,
 				count( $document->selection )
@@ -991,7 +991,7 @@ final class Command {
 			$this->io->error(
 				sprintf(
 					/* translators: %s: file path. */
-					__( 'Could not write %s.', 'debloater' ),
+					__( 'Could not write %s.', 'hakeemify-debloater' ),
 					$path
 				)
 			);
@@ -1002,7 +1002,7 @@ final class Command {
 		$this->io->success(
 			sprintf(
 				/* translators: 1: profile name, 2: file path. */
-				__( 'Wrote "%1$s" to %2$s.', 'debloater' ),
+				__( 'Wrote "%1$s" to %2$s.', 'hakeemify-debloater' ),
 				$profile->name,
 				$path
 			)
@@ -1024,7 +1024,7 @@ final class Command {
 	 */
 	private function profileImport( string $path, array $assoc_args ): int {
 		if ( '' === $path ) {
-			$this->io->error( __( 'Which file? profile import <file>', 'debloater' ) );
+			$this->io->error( __( 'Which file? profile import <file>', 'hakeemify-debloater' ) );
 
 			return self::EXIT_ERROR;
 		}
@@ -1033,7 +1033,7 @@ final class Command {
 			$this->io->error(
 				sprintf(
 					/* translators: %s: file path. */
-					__( 'Cannot read %s.', 'debloater' ),
+					__( 'Cannot read %s.', 'hakeemify-debloater' ),
 					$path
 				)
 			);
@@ -1054,7 +1054,7 @@ final class Command {
 			$this->io->warning(
 				sprintf(
 					/* translators: %s: comma-separated tweak ids. */
-					__( 'This profile names changes this site does not have, and they were left out: %s', 'debloater' ),
+					__( 'This profile names changes this site does not have, and they were left out: %s', 'hakeemify-debloater' ),
 					implode( ', ', $unknown )
 				)
 			);
@@ -1064,7 +1064,7 @@ final class Command {
 
 		if ( ! $profile->matchesRegistry( $this->plugin->registry() ) ) {
 			$this->io->warning(
-				__( 'This profile was written against a different registry, so a change may mean something slightly different now. The preview shows what it would do here.', 'debloater' )
+				__( 'This profile was written against a different registry, so a change may mean something slightly different now. The preview shows what it would do here.', 'hakeemify-debloater' )
 			);
 		}
 
@@ -1073,7 +1073,7 @@ final class Command {
 		$this->io->success(
 			sprintf(
 				/* translators: 1: profile name, 2: profile id. */
-				__( 'Imported "%1$s" as %2$s. Nothing has been applied — run `profile apply %2$s --yes` when you have read the preview.', 'debloater' ),
+				__( 'Imported "%1$s" as %2$s. Nothing has been applied — run `profile apply %2$s --yes` when you have read the preview.', 'hakeemify-debloater' ),
 				$profile->name,
 				$id
 			)
@@ -1141,7 +1141,7 @@ final class Command {
 			}
 
 			if ( null === $builtin ) {
-				$this->io->warning( __( 'That profile selects nothing this site has, so there is nothing to apply.', 'debloater' ) );
+				$this->io->warning( __( 'That profile selects nothing this site has, so there is nothing to apply.', 'hakeemify-debloater' ) );
 
 				return self::EXIT_OK;
 			}
@@ -1152,13 +1152,13 @@ final class Command {
 		}
 
 		if ( null === $result ) {
-			$this->io->error( __( 'There is no scan to plan from. Run `wp debloater scan` first.', 'debloater' ) );
+			$this->io->error( __( 'There is no scan to plan from. Run `wp debloater scan` first.', 'hakeemify-debloater' ) );
 
 			return self::EXIT_ERROR;
 		}
 
 		if ( $result->plan->isEmpty() ) {
-			$this->io->warning( __( 'There is nothing to apply: the plan is empty.', 'debloater' ) );
+			$this->io->warning( __( 'There is nothing to apply: the plan is empty.', 'hakeemify-debloater' ) );
 
 			return self::EXIT_OK;
 		}
@@ -1185,7 +1185,7 @@ final class Command {
 	 */
 	private function profileNamed( string $name ): ?Profile {
 		if ( '' === $name ) {
-			$this->io->error( __( 'Which profile? Run `profile list` to see them.', 'debloater' ) );
+			$this->io->error( __( 'Which profile? Run `profile list` to see them.', 'hakeemify-debloater' ) );
 
 			return null;
 		}
@@ -1206,7 +1206,7 @@ final class Command {
 		$this->io->error(
 			sprintf(
 				/* translators: %s: the name given. */
-				__( 'No profile called "%s". Run `profile list` to see them.', 'debloater' ),
+				__( 'No profile called "%s". Run `profile list` to see them.', 'hakeemify-debloater' ),
 				$name
 			)
 		);
@@ -1269,7 +1269,7 @@ final class Command {
 					$this->io->error(
 						sprintf(
 							/* translators: %s: file path. */
-							__( 'Could not write to %s.', 'debloater' ),
+							__( 'Could not write to %s.', 'hakeemify-debloater' ),
 							$path
 						)
 					);
@@ -1280,7 +1280,7 @@ final class Command {
 				$this->io->success(
 					sprintf(
 						/* translators: 1: number of changes, 2: file path. */
-						__( 'Wrote %1$d changes to %2$s.', 'debloater' ),
+						__( 'Wrote %1$d changes to %2$s.', 'hakeemify-debloater' ),
 						$document->count(),
 						$path
 					)
@@ -1328,7 +1328,7 @@ final class Command {
 					$this->io->error(
 						sprintf(
 							/* translators: %s: file path. */
-							__( 'Cannot read %s.', 'debloater' ),
+							__( 'Cannot read %s.', 'hakeemify-debloater' ),
 							'' === $path ? '(no file given)' : $path
 						)
 					);
@@ -1344,7 +1344,7 @@ final class Command {
 					$this->io->error(
 						sprintf(
 							/* translators: %s: file path. */
-							__( '%s is not valid JSON.', 'debloater' ),
+							__( '%s is not valid JSON.', 'hakeemify-debloater' ),
 							$path
 						)
 					);
@@ -1358,7 +1358,7 @@ final class Command {
 					$this->io->error(
 						sprintf(
 							/* translators: 1: file path, 2: the first problem. */
-							__( '%1$s is not a Debloater configuration file: %2$s', 'debloater' ),
+							__( '%1$s is not a Debloater configuration file: %2$s', 'hakeemify-debloater' ),
 							$path,
 							$errors[0]
 						)
@@ -1374,7 +1374,7 @@ final class Command {
 					$this->io->warning(
 						__(
 							'This file was written against a different version of the change registry. Check the plan before applying it.',
-							'debloater'
+							'hakeemify-debloater'
 						)
 					);
 				}
@@ -1401,7 +1401,7 @@ final class Command {
 					$this->io->success(
 						sprintf(
 							/* translators: %d: number of changes. */
-							__( 'The file is valid and carries %d changes. Add --apply --yes to put them in place.', 'debloater' ),
+							__( 'The file is valid and carries %d changes. Add --apply --yes to put them in place.', 'hakeemify-debloater' ),
 							$usable->count()
 						)
 					);
@@ -1478,7 +1478,7 @@ final class Command {
 				$this->io->error(
 					sprintf(
 						/* translators: %s: comma-separated tweak ids. */
-						__( 'No such change: %s', 'debloater' ),
+						__( 'No such change: %s', 'hakeemify-debloater' ),
 						implode( ', ', $unknown )
 					)
 				);
@@ -1492,7 +1492,7 @@ final class Command {
 		}
 
 		if ( null === $result ) {
-			$this->io->error( __( 'There is no scan to plan from. Run `wp debloater scan` first.', 'debloater' ) );
+			$this->io->error( __( 'There is no scan to plan from. Run `wp debloater scan` first.', 'hakeemify-debloater' ) );
 
 			return null;
 		}
@@ -1514,7 +1514,7 @@ final class Command {
 				$this->io->error(
 					sprintf(
 						/* translators: %s: the id given. */
-						__( 'There is no recovery point with the id %s.', 'debloater' ),
+						__( 'There is no recovery point with the id %s.', 'hakeemify-debloater' ),
 						$args[0]
 					)
 				);
@@ -1528,7 +1528,7 @@ final class Command {
 		$snapshot = $this->plugin->snapshots()->latestRestorable( \Debloater\Contracts\SnapshotLevel::A );
 
 		if ( null === $snapshot ) {
-			$this->io->error( __( 'There is nothing to roll back to.', 'debloater' ) );
+			$this->io->error( __( 'There is nothing to roll back to.', 'hakeemify-debloater' ) );
 
 			return null;
 		}
@@ -1560,7 +1560,7 @@ final class Command {
 		}
 
 		if ( array() === $snapshots ) {
-			$this->io->line( __( 'There are no recovery points yet.', 'debloater' ) );
+			$this->io->line( __( 'There are no recovery points yet.', 'hakeemify-debloater' ) );
 
 			return self::EXIT_OK;
 		}
@@ -1655,9 +1655,9 @@ final class Command {
 	 */
 	private function printPlan( PlanResult $result ): void {
 		if ( $result->plan->isEmpty() ) {
-			$this->io->line( __( 'Nothing would change.', 'debloater' ) );
+			$this->io->line( __( 'Nothing would change.', 'hakeemify-debloater' ) );
 		} else {
-			$this->io->line( __( 'This would change:', 'debloater' ) );
+			$this->io->line( __( 'This would change:', 'hakeemify-debloater' ) );
 
 			foreach ( $result->plan->will_change as $line ) {
 				$this->io->line( '  · ' . $line );
@@ -1665,7 +1665,7 @@ final class Command {
 		}
 
 		if ( array() !== $result->plan->will_not ) {
-			$this->io->line( __( 'This would not change:', 'debloater' ) );
+			$this->io->line( __( 'This would not change:', 'hakeemify-debloater' ) );
 
 			foreach ( $result->plan->will_not as $line ) {
 				$this->io->line( '  · ' . $line );
@@ -1673,7 +1673,7 @@ final class Command {
 		}
 
 		if ( $result->plan->destructive ) {
-			$this->io->warning( __( 'This plan deletes data. A full recovery point is taken first.', 'debloater' ) );
+			$this->io->warning( __( 'This plan deletes data. A full recovery point is taken first.', 'hakeemify-debloater' ) );
 		}
 	}
 
@@ -1688,7 +1688,7 @@ final class Command {
 			$this->io->success(
 				sprintf(
 					/* translators: %d: number of changes applied. */
-					_n( 'Applied %d change.', 'Applied %d changes.', count( $result->applied ), 'debloater' ),
+					_n( 'Applied %d change.', 'Applied %d changes.', count( $result->applied ), 'hakeemify-debloater' ),
 					count( $result->applied )
 				)
 			);
@@ -1727,18 +1727,18 @@ final class Command {
 		$this->io->table( $rows, array( 'check', 'status', 'detail' ) );
 
 		if ( $result->isFailure() ) {
-			$this->io->error( __( 'The site did not pass its checks.', 'debloater' ) );
+			$this->io->error( __( 'The site did not pass its checks.', 'hakeemify-debloater' ) );
 
 			return;
 		}
 
 		if ( ProbeStatus::PASS === $result->status ) {
-			$this->io->success( __( 'Everything checked out.', 'debloater' ) );
+			$this->io->success( __( 'Everything checked out.', 'hakeemify-debloater' ) );
 
 			return;
 		}
 
-		$this->io->warning( __( 'The site works, but some checks could not be completed.', 'debloater' ) );
+		$this->io->warning( __( 'The site works, but some checks could not be completed.', 'hakeemify-debloater' ) );
 	}
 
 	/**
@@ -1755,7 +1755,7 @@ final class Command {
 		$this->io->line(
 			sprintf(
 				/* translators: %s: the score out of 100. */
-				__( 'Debloat score: %s / 100', 'debloater' ),
+				__( 'Debloat score: %s / 100', 'hakeemify-debloater' ),
 				(string) $score['headline']
 			)
 		);
@@ -1790,7 +1790,7 @@ final class Command {
 			return true;
 		}
 
-		$this->io->error( __( 'This changes the site. Add --yes to confirm.', 'debloater' ) );
+		$this->io->error( __( 'This changes the site. Add --yes to confirm.', 'hakeemify-debloater' ) );
 
 		return false;
 	}

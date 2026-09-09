@@ -58,7 +58,7 @@ final class RestProbe extends AbstractHttpProbe {
 					ProbeStatus::WARN,
 					sprintf(
 						/* translators: 1: URL, 2: HTTP status code. */
-						__( 'The REST API refused an anonymous request to %1$s with HTTP %2$d. If that is deliberate, nothing is wrong.', 'debloater' ),
+						__( 'The REST API refused an anonymous request to %1$s with HTTP %2$d. If that is deliberate, nothing is wrong.', 'hakeemify-debloater' ),
 						$url,
 						$response->status
 					),
@@ -72,7 +72,7 @@ final class RestProbe extends AbstractHttpProbe {
 					ProbeStatus::FAIL,
 					sprintf(
 						/* translators: 1: URL, 2: HTTP status code. */
-						__( 'The REST API returned HTTP %2$d for %1$s.', 'debloater' ),
+						__( 'The REST API returned HTTP %2$d for %1$s.', 'hakeemify-debloater' ),
 						$url,
 						$response->status
 					),
@@ -86,7 +86,7 @@ final class RestProbe extends AbstractHttpProbe {
 					ProbeStatus::FAIL,
 					sprintf(
 						/* translators: %s: URL. */
-						__( 'The REST API answered %s with something that is not valid JSON, which usually means output from somewhere else got into the response.', 'debloater' ),
+						__( 'The REST API answered %s with something that is not valid JSON, which usually means output from somewhere else got into the response.', 'hakeemify-debloater' ),
 						$url
 					),
 					array_merge(
@@ -100,7 +100,7 @@ final class RestProbe extends AbstractHttpProbe {
 		return new ProbeResult(
 			$this->name(),
 			ProbeStatus::PASS,
-			__( 'The REST API answered normally.', 'debloater' ),
+			__( 'The REST API answered normally.', 'hakeemify-debloater' ),
 			array( 'routes_checked' => 2 )
 		);
 	}
@@ -111,6 +111,6 @@ final class RestProbe extends AbstractHttpProbe {
 	 * @return string
 	 */
 	protected function describe(): string {
-		return __( 'The REST API', 'debloater' );
+		return __( 'The REST API', 'hakeemify-debloater' );
 	}
 }

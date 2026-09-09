@@ -100,7 +100,7 @@ final class GeneratorTagRule extends CoreFeatureRule {
 	 * @return string
 	 */
 	protected function title(): string {
-		return __( 'The exact WordPress version is published on every page', 'debloater' );
+		return __( 'The exact WordPress version is published on every page', 'hakeemify-debloater' );
 	}
 
 	/**
@@ -109,7 +109,7 @@ final class GeneratorTagRule extends CoreFeatureRule {
 	 * @return string
 	 */
 	protected function summary(): string {
-		return __( 'Every page and every feed carries a meta tag naming the WordPress version this site runs.', 'debloater' );
+		return __( 'Every page and every feed carries a meta tag naming the WordPress version this site runs.', 'hakeemify-debloater' );
 	}
 
 	/**
@@ -118,7 +118,7 @@ final class GeneratorTagRule extends CoreFeatureRule {
 	 * @return string
 	 */
 	protected function why(): string {
-		return __( 'Knowing the version does not let anyone in, but it does let an automated scanner skip straight to the exploits that work against it. Removing the tag costs nothing and removes the site from that shortlist.', 'debloater' );
+		return __( 'Knowing the version does not let anyone in, but it does let an automated scanner skip straight to the exploits that work against it. Removing the tag costs nothing and removes the site from that shortlist.', 'hakeemify-debloater' );
 	}
 
 	/**
@@ -127,6 +127,6 @@ final class GeneratorTagRule extends CoreFeatureRule {
 	 * @return string
 	 */
 	protected function evidenceLabel(): string {
-		return __( 'Generator tag', 'debloater' );
+		return __( 'Generator tag', 'hakeemify-debloater' );
 	}
 }

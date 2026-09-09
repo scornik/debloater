@@ -59,7 +59,7 @@ final class SnapshotSpillTest extends IntegrationTestCase {
 	 * @return void
 	 */
 	public function tear_down(): void {
-		$files = glob( $this->context()->backupsDir() . '/snapshot-*.ndjson.gz' );
+		$files = glob( \Debloater\Storage\Uploads::base() . '/backups/snapshot-*.ndjson.gz' );
 
 		foreach ( is_array( $files ) ? $files : array() as $file ) {
 			unlink( $file );
@@ -203,8 +203,8 @@ final class SnapshotSpillTest extends IntegrationTestCase {
 
 		$this->plugin->apply( $this->transientPlan() );
 
-		$this->assertFileExists( $this->context()->backupsDir() . '/index.php' );
-		$this->assertFileExists( $this->context()->backupsDir() . '/.htaccess' );
+		$this->assertFileExists( \Debloater\Storage\Uploads::base() . '/backups/index.php' );
+		$this->assertFileExists( \Debloater\Storage\Uploads::base() . '/backups/.htaccess' );
 	}
 
 	/**
@@ -218,7 +218,7 @@ final class SnapshotSpillTest extends IntegrationTestCase {
 		$this->expectExceptionMessageMatches( '/outside the backups directory/' );
 
 		iterator_to_array(
-			$spill->read( $this->context()->backupsDir() . '/../../wp-config.php' )
+			$spill->read( \Debloater\Storage\Uploads::base() . '/backups/../../../wp-config.php' )
 		);
 	}
 

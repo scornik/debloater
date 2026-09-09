@@ -94,15 +94,15 @@ final class NewsWidgetRule extends AbstractRule {
 				'severity' => Severity::LOW,
 				'risk'     => Risk::SAFE,
 				'tweak_id' => 'admin.remove_wp_news_widget',
-				'title'    => __( 'The Events and News widget is on the dashboard', 'debloater' ),
-				'summary'  => __( 'The WordPress Events and News widget is registered on the dashboard.', 'debloater' ),
+				'title'    => __( 'The Events and News widget is on the dashboard', 'hakeemify-debloater' ),
+				'summary'  => __( 'The WordPress Events and News widget is registered on the dashboard.', 'hakeemify-debloater' ),
 				'why'      => __(
 					'This is the one widget on a default dashboard that fetches something over the network while the page is loading — release news and nearby events, from wordpress.org. If you read it, keep it. If you have never read it, it is doing that on every dashboard load for nobody.',
-					'debloater'
+					'hakeemify-debloater'
 				),
 				'evidence' => $this->evidence( $facts )
-					->fact( __( 'Dashboard widgets', 'debloater' ), 'admin.dashboard_widgets' )
-					->optional( __( 'Dashboard widget count', 'debloater' ), 'admin.dashboard_widgets.count' )
+					->fact( __( 'Dashboard widgets', 'hakeemify-debloater' ), 'admin.dashboard_widgets' )
+					->optional( __( 'Dashboard widget count', 'hakeemify-debloater' ), 'admin.dashboard_widgets.count' )
 					->build(),
 			)
 		);

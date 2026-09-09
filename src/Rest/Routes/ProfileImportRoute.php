@@ -84,7 +84,7 @@ final class ProfileImportRoute implements RouteInterface {
 	public function args(): array {
 		return array(
 			'document' => array(
-				'description' => __( 'The contents of the profile file.', 'debloater' ),
+				'description' => __( 'The contents of the profile file.', 'hakeemify-debloater' ),
 				'type'        => 'string',
 				'required'    => true,
 				'minLength'   => 2,
@@ -111,7 +111,7 @@ final class ProfileImportRoute implements RouteInterface {
 		if ( ! is_array( $decoded ) ) {
 			return new WP_Error(
 				'debloater_profile_unreadable',
-				__( 'That file is not a Debloater profile: it is not a JSON document.', 'debloater' ),
+				__( 'That file is not a Debloater profile: it is not a JSON document.', 'hakeemify-debloater' ),
 				array( 'status' => 400 )
 			);
 		}
@@ -131,7 +131,7 @@ final class ProfileImportRoute implements RouteInterface {
 				'debloater_profile_invalid',
 				sprintf(
 					/* translators: %s: the first thing wrong with the document. */
-					__( 'That file is not a Debloater profile: %s', 'debloater' ),
+					__( 'That file is not a Debloater profile: %s', 'hakeemify-debloater' ),
 					$problems[0]
 				),
 				array(

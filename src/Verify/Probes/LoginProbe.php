@@ -52,7 +52,7 @@ final class LoginProbe extends AbstractHttpProbe {
 			return new ProbeResult(
 				$this->name(),
 				ProbeStatus::WARN,
-				__( 'The login page answered, but no sign-in form was found on it.', 'debloater' ),
+				__( 'The login page answered, but no sign-in form was found on it.', 'hakeemify-debloater' ),
 				$response->evidence()
 			);
 		}
@@ -60,7 +60,7 @@ final class LoginProbe extends AbstractHttpProbe {
 		return new ProbeResult(
 			$this->name(),
 			ProbeStatus::PASS,
-			__( 'The login page loaded normally.', 'debloater' ),
+			__( 'The login page loaded normally.', 'hakeemify-debloater' ),
 			$response->evidence()
 		);
 	}
@@ -71,6 +71,6 @@ final class LoginProbe extends AbstractHttpProbe {
 	 * @return string
 	 */
 	protected function describe(): string {
-		return __( 'The login page', 'debloater' );
+		return __( 'The login page', 'hakeemify-debloater' );
 	}
 }

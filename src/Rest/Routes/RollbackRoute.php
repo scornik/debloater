@@ -73,13 +73,13 @@ final class RollbackRoute implements RouteInterface {
 	public function args(): array {
 		return array(
 			'snapshot_id' => array(
-				'description' => __( 'The recovery point to go back to. Defaults to the most recent one.', 'debloater' ),
+				'description' => __( 'The recovery point to go back to. Defaults to the most recent one.', 'hakeemify-debloater' ),
 				'type'        => 'integer',
 				'minimum'     => 1,
 				'required'    => false,
 			),
 			'confirm'     => array(
-				'description' => __( 'The confirmation token for this recovery point.', 'debloater' ),
+				'description' => __( 'The confirmation token for this recovery point.', 'hakeemify-debloater' ),
 				'type'        => 'string',
 				'required'    => true,
 				'minLength'   => 64,
@@ -104,7 +104,7 @@ final class RollbackRoute implements RouteInterface {
 		if ( null === $snapshot ) {
 			return new WP_Error(
 				'debloater_no_snapshot',
-				__( 'There is no recovery point to restore.', 'debloater' ),
+				__( 'There is no recovery point to restore.', 'hakeemify-debloater' ),
 				array( 'status' => 404 )
 			);
 		}
@@ -112,7 +112,7 @@ final class RollbackRoute implements RouteInterface {
 		if ( ! ConfirmationToken::matchesSnapshot( $snapshot, (string) $request->get_param( 'confirm' ) ) ) {
 			return new WP_Error(
 				'debloater_stale_confirmation',
-				__( 'That confirmation does not match this recovery point. Reload the list and try again.', 'debloater' ),
+				__( 'That confirmation does not match this recovery point. Reload the list and try again.', 'hakeemify-debloater' ),
 				array( 'status' => 409 )
 			);
 		}

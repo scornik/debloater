@@ -131,23 +131,23 @@ final class PluginNoticesRule extends AbstractRule {
 						'%d admin notice comes from a plugin whose notices you can hide',
 						'%d admin notices come from plugins whose notices you can hide',
 						$count,
-						'debloater'
+						'hakeemify-debloater'
 					),
 					$count
 				),
 				'summary'  => sprintf(
 					/* translators: %s: comma-separated plugin names. */
-					__( 'From: %s.', 'debloater' ),
+					__( 'From: %s.', 'hakeemify-debloater' ),
 					implode( ', ', $labels )
 				),
 				'why'      => __(
 					'These plugins print into the admin notice area on every screen. Hiding them is offered because the interruption is real — but read this first: it hides everything they say there, not only the marketing. These plugins send upgrade prompts and warnings about pending database updates or expiring licences down the same channel, and nothing reliably tells them apart. Nothing is uninstalled or switched off, and unselecting this brings the notices straight back.',
-					'debloater'
+					'hakeemify-debloater'
 				),
 				'evidence' => $this->evidence( $facts )
-					->fact( __( 'Notices by source', 'debloater' ), 'admin.notices' )
-					->fact( __( 'Plugins whose notices can be hidden', 'debloater' ), 'admin.notice_vendors' )
-					->optional( __( 'Total notice callbacks', 'debloater' ), 'admin.notices.count' )
+					->fact( __( 'Notices by source', 'hakeemify-debloater' ), 'admin.notices' )
+					->fact( __( 'Plugins whose notices can be hidden', 'hakeemify-debloater' ), 'admin.notice_vendors' )
+					->optional( __( 'Total notice callbacks', 'hakeemify-debloater' ), 'admin.notices.count' )
 					->build(),
 			)
 		);

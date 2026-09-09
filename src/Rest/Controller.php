@@ -132,7 +132,7 @@ final class Controller {
 				'debloater_unexpected_error',
 				sprintf(
 					/* translators: %s: the error reported by the plugin. */
-					__( 'Debloater could not complete that: %s', 'debloater' ),
+					__( 'Debloater could not complete that: %s', 'hakeemify-debloater' ),
 					esc_html( $error->getMessage() )
 				),
 				array(
@@ -187,7 +187,7 @@ final class Controller {
 		if ( ! is_string( $nonce ) || false === wp_verify_nonce( $nonce, 'wp_rest' ) ) {
 			return new \WP_Error(
 				'debloater_bad_nonce',
-				__( 'That request could not be verified as coming from this screen. Reload the page and try again.', 'debloater' ),
+				__( 'That request could not be verified as coming from this screen. Reload the page and try again.', 'hakeemify-debloater' ),
 				array( 'status' => 403 )
 			);
 		}
@@ -211,7 +211,7 @@ final class Controller {
 
 		return new \WP_Error(
 			'debloater_forbidden',
-			__( 'You do not have permission to manage Debloater on this site.', 'debloater' ),
+			__( 'You do not have permission to manage Debloater on this site.', 'hakeemify-debloater' ),
 			array( 'status' => is_user_logged_in() ? 403 : 401 )
 		);
 	}

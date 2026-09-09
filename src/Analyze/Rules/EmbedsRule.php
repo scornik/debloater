@@ -101,7 +101,7 @@ final class EmbedsRule extends CoreFeatureRule {
 	 * @return string
 	 */
 	protected function title(): string {
-		return __( 'The site offers its own posts for embedding on other sites', 'debloater' );
+		return __( 'The site offers its own posts for embedding on other sites', 'hakeemify-debloater' );
 	}
 
 	/**
@@ -110,7 +110,7 @@ final class EmbedsRule extends CoreFeatureRule {
 	 * @return string
 	 */
 	protected function summary(): string {
-		return __( 'oEmbed discovery tags are in the page head, and the wp-embed.js script loads with them.', 'debloater' );
+		return __( 'oEmbed discovery tags are in the page head, and the wp-embed.js script loads with them.', 'hakeemify-debloater' );
 	}
 
 	/**
@@ -119,7 +119,7 @@ final class EmbedsRule extends CoreFeatureRule {
 	 * @return string
 	 */
 	protected function why(): string {
-		return __( 'This is the half of oEmbed that lets *other* sites embed *your* posts as a live preview card. Embedding other people\'s content in your own posts is separate and is unaffected. On a site nobody embeds, it is a script and two head tags per page for a feature never used.', 'debloater' );
+		return __( 'This is the half of oEmbed that lets *other* sites embed *your* posts as a live preview card. Embedding other people\'s content in your own posts is separate and is unaffected. On a site nobody embeds, it is a script and two head tags per page for a feature never used.', 'hakeemify-debloater' );
 	}
 
 	/**
@@ -128,6 +128,6 @@ final class EmbedsRule extends CoreFeatureRule {
 	 * @return string
 	 */
 	protected function evidenceLabel(): string {
-		return __( 'oEmbed discovery', 'debloater' );
+		return __( 'oEmbed discovery', 'hakeemify-debloater' );
 	}
 }

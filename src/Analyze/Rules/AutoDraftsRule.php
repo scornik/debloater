@@ -81,18 +81,18 @@ final class AutoDraftsRule extends AbstractRule {
 				'category' => Category::DATABASE,
 				'severity' => Severity::LOW,
 				'risk'     => Risk::LOW,
-				'title'    => __( 'Abandoned auto-drafts are still stored', 'debloater' ),
+				'title'    => __( 'Abandoned auto-drafts are still stored', 'hakeemify-debloater' ),
 				'summary'  => sprintf(
 					/* translators: %s: number of auto-drafts. */
-					__( '%s auto-drafts were created and never written.', 'debloater' ),
+					__( '%s auto-drafts were created and never written.', 'hakeemify-debloater' ),
 					number_format_i18n( $drafts )
 				),
 				'why'      => __(
 					'WordPress creates an auto-draft the moment somebody clicks "Add New", whether or not they type anything. It deletes them itself after a week, but only when its scheduled task runs — on a quiet site that can be a long time. These are rows for posts that were never written.',
-					'debloater'
+					'hakeemify-debloater'
 				),
 				'evidence' => $this->evidence( $facts )
-					->fact( __( 'Auto-drafts stored', 'debloater' ), 'db.autodrafts.count' )
+					->fact( __( 'Auto-drafts stored', 'hakeemify-debloater' ), 'db.autodrafts.count' )
 					->build(),
 				'impact'   => $this->estimated( 'rows', (float) $drafts, 'rows' ),
 				'tweak_id' => 'db.clean_auto_drafts',

@@ -51,7 +51,7 @@ final class RuntimeOverheadTest extends IntegrationTestCase {
 	public function test_no_php_is_written_under_wp_content(): void {
 		$this->selectAndGenerate( array( 'core.remove_generator' => array() ) );
 
-		$directory = $this->context()->dataDir();
+		$directory = $this->context()->legacyDataDir();
 
 		if ( ! is_dir( $directory ) ) {
 			$this->assertDirectoryDoesNotExist( $directory );

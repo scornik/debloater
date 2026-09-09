@@ -811,28 +811,24 @@ final class ContractValidationTest extends TestCase {
 
 		$this->assertSame( 'https://example.test', $context->home_url );
 		$this->assertSame( 'C:/sites/example/', $context->abspath );
-		$this->assertSame( 'C:/sites/example/wp-content/debloater/backups', $context->backupsDir() );
+		$this->assertSame( 'C:/sites/example/wp-content/debloater', $context->legacyDataDir() );
 		$this->assertSame( 12, $context->actorUserId() );
 	}
 
 	/**
-	 * Everything the plugin writes lives under one directory
-	 * (BUILD-SPEC §13 rule 6).
+	 * The pre-0.3.0 directory is reported, and only for finding old files.
 	 *
-	 * There is one path left to check rather than three: no generated runtime,
-	 * no lock beside it, and nothing in mu-plugins (D-0070). The assertion is
-	 * kept anyway, because the rule is about where writes may go and a list of
-	 * one is still a list — the next thing added to it is what this catches.
+	 * There is nothing to assert about where writes go from here: they go under
+	 * `wp_upload_dir()`, which `Context` cannot ask for — it is built without
+	 * WordPress on purpose. `SnapshotSpillTest` and `SecurityRulesTest` assert
+	 * the real directory against the real site instead.
 	 *
 	 * @return void
 	 */
-	public function test_written_paths_are_all_under_the_data_directory(): void {
+	public function test_the_legacy_directory_is_still_nameable(): void {
 		$context = Build::context();
-		$root    = $context->dataDir();
 
-		foreach ( array( $context->backupsDir() ) as $path ) {
-			$this->assertStringStartsWith( $root . '/', $path );
-		}
+		$this->assertStringEndsWith( '/debloater', $context->legacyDataDir() );
 	}
 
 	/**

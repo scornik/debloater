@@ -113,7 +113,7 @@ final class HostOptimizerRule extends AbstractRule {
 						'%s has settings of its own for some of this',
 						'These have settings of their own for some of this: %s',
 						count( $names ),
-						'debloater'
+						'hakeemify-debloater'
 					),
 					implode( ', ', $names )
 				),
@@ -123,17 +123,17 @@ final class HostOptimizerRule extends AbstractRule {
 						'%s is on this site and offers some of the same settings Debloater does. Each finding it overlaps with says so, and says where to find it.',
 						'These are on this site and offer some of the same settings Debloater does: %s. Each finding they overlap with says so, and says where to find it.',
 						count( $names ),
-						'debloater'
+						'hakeemify-debloater'
 					),
 					implode( ', ', $names )
 				),
 				'why'      => __(
 					'Where something else on this site offers a setting for the same thing, Debloater says so on the finding itself, so you can choose which one to use rather than ending up with both. This does not mean the other tool has that setting turned on: Debloater cannot read another plugin\'s settings and will not guess, and where you are seeing a finding at all, the scan has just observed that whatever it is about is still happening.',
-					'debloater'
+					'hakeemify-debloater'
 				),
 				'evidence' => $this->evidence( $facts )
-					->fact( __( 'Other optimizers on this site', 'debloater' ), 'plugins.host_optimizers' )
-					->optional( __( 'Host', 'debloater' ), 'env.host_vendor' )
+					->fact( __( 'Other optimizers on this site', 'hakeemify-debloater' ), 'plugins.host_optimizers' )
+					->optional( __( 'Host', 'hakeemify-debloater' ), 'env.host_vendor' )
 					->build(),
 			)
 		);

@@ -100,7 +100,7 @@ final class ShortlinkRule extends CoreFeatureRule {
 	 * @return string
 	 */
 	protected function title(): string {
-		return __( 'Every page publishes its numeric URL as well as its real one', 'debloater' );
+		return __( 'Every page publishes its numeric URL as well as its real one', 'hakeemify-debloater' );
 	}
 
 	/**
@@ -109,7 +109,7 @@ final class ShortlinkRule extends CoreFeatureRule {
 	 * @return string
 	 */
 	protected function summary(): string {
-		return __( 'WordPress emits a rel="shortlink" tag in the head and a matching Link: HTTP header, both giving the ?p=<id> form of the page.', 'debloater' );
+		return __( 'WordPress emits a rel="shortlink" tag in the head and a matching Link: HTTP header, both giving the ?p=<id> form of the page.', 'hakeemify-debloater' );
 	}
 
 	/**
@@ -118,7 +118,7 @@ final class ShortlinkRule extends CoreFeatureRule {
 	 * @return string
 	 */
 	protected function why(): string {
-		return __( 'The shortlink is a leftover from an era of character limits. It exposes the internal post id of every page, adds a head tag and an HTTP header to every request, and almost nothing consumes it.', 'debloater' );
+		return __( 'The shortlink is a leftover from an era of character limits. It exposes the internal post id of every page, adds a head tag and an HTTP header to every request, and almost nothing consumes it.', 'hakeemify-debloater' );
 	}
 
 	/**
@@ -127,6 +127,6 @@ final class ShortlinkRule extends CoreFeatureRule {
 	 * @return string
 	 */
 	protected function evidenceLabel(): string {
-		return __( 'Shortlink tag and header', 'debloater' );
+		return __( 'Shortlink tag and header', 'hakeemify-debloater' );
 	}
 }

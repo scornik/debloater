@@ -239,7 +239,7 @@ final class DontTouchRules {
 				'%s is installed and depends on this, so changing it would break something you are using.',
 				'These are installed and depend on this, so changing it would break something you are using: %s.',
 				count( $names ),
-				'debloater'
+				'hakeemify-debloater'
 			),
 			implode( ', ', $names )
 		);
@@ -277,7 +277,7 @@ final class DontTouchRules {
 			/* translators: %d: number of people who edited content in the last seven days. */
 			__(
 				'%d people edited content here in the last week and this is a WooCommerce store. Heartbeat is what warns them they are about to overwrite each other, and what keeps a checkout session from expiring mid-order. Slowing it down here would cost more than it saves.',
-				'debloater'
+				'hakeemify-debloater'
 			),
 			$editors
 		);
@@ -309,7 +309,7 @@ final class DontTouchRules {
 		if ( array() === $pages ) {
 			return __(
 				'Something on this site shows a cart away from the shop, so the cart-fragments script is needed on every page to keep it correct. Making it conditional here would leave a cart total that never updates.',
-				'debloater'
+				'hakeemify-debloater'
 			);
 		}
 
@@ -319,7 +319,7 @@ final class DontTouchRules {
 				'This page shows a cart away from the shop: %s. The cart-fragments script is what keeps that total correct, so it is needed on every page; making it conditional would leave a number that never updates.',
 				'These pages show a cart away from the shop: %s. The cart-fragments script is what keeps those totals correct, so it is needed on every page; making it conditional would leave numbers that never update.',
 				count( $pages ),
-				'debloater'
+				'hakeemify-debloater'
 			),
 			implode( ', ', array_slice( $pages, 0, 5 ) )
 		);

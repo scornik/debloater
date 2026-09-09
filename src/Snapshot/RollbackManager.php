@@ -173,7 +173,7 @@ final class RollbackManager {
 				throw new RuntimeException(
 					sprintf(
 						/* translators: 1: snapshot id, 2: why it cannot be restored. */
-						__( 'Recovery point %1$d could not be restored, so the rollback stopped: %2$s', 'debloater' ),
+						__( 'Recovery point %1$d could not be restored, so the rollback stopped: %2$s', 'hakeemify-debloater' ),
 						(int) $snapshot->id,
 						$refusal
 					)
@@ -196,18 +196,18 @@ final class RollbackManager {
 		if ( ! hash_equals( $snapshot->site_hash, $this->context->siteHash() ) ) {
 			return __(
 				'This recovery point was taken on a different site. Restoring it here would write another site\'s settings over this one.',
-				'debloater'
+				'hakeemify-debloater'
 			);
 		}
 
 		if ( SnapshotStatus::CORRUPT === $snapshot->status ) {
-			return __( 'This recovery point did not verify, so it will not be restored.', 'debloater' );
+			return __( 'This recovery point did not verify, so it will not be restored.', 'hakeemify-debloater' );
 		}
 
 		if ( ! $snapshot->status->isRestorable() ) {
 			return sprintf(
 				/* translators: %s: snapshot status. */
-				__( 'This recovery point is %s, so there is nothing to restore from it.', 'debloater' ),
+				__( 'This recovery point is %s, so there is nothing to restore from it.', 'hakeemify-debloater' ),
 				$snapshot->status->value
 			);
 		}

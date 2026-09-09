@@ -102,7 +102,7 @@ final class JqueryMigrateRule extends CoreFeatureRule {
 	 * @return string
 	 */
 	protected function title(): string {
-		return __( 'jQuery Migrate loads alongside jQuery on every page', 'debloater' );
+		return __( 'jQuery Migrate loads alongside jQuery on every page', 'hakeemify-debloater' );
 	}
 
 	/**
@@ -111,7 +111,7 @@ final class JqueryMigrateRule extends CoreFeatureRule {
 	 * @return string
 	 */
 	protected function summary(): string {
-		return __( 'The registered jQuery bundle still includes jquery-migrate, so both scripts load wherever jQuery does.', 'debloater' );
+		return __( 'The registered jQuery bundle still includes jquery-migrate, so both scripts load wherever jQuery does.', 'hakeemify-debloater' );
 	}
 
 	/**
@@ -120,7 +120,7 @@ final class JqueryMigrateRule extends CoreFeatureRule {
 	 * @return string
 	 */
 	protected function why(): string {
-		return __( 'Migrate exists to keep code written for jQuery 1.x working on modern jQuery. A site whose theme and plugins are current does not need it. A site where something still uses the old APIs breaks quietly without it: no error page, just JavaScript that stops running.', 'debloater' );
+		return __( 'Migrate exists to keep code written for jQuery 1.x working on modern jQuery. A site whose theme and plugins are current does not need it. A site where something still uses the old APIs breaks quietly without it: no error page, just JavaScript that stops running.', 'hakeemify-debloater' );
 	}
 
 	/**
@@ -129,6 +129,6 @@ final class JqueryMigrateRule extends CoreFeatureRule {
 	 * @return string
 	 */
 	protected function evidenceLabel(): string {
-		return __( 'jQuery Migrate in the jQuery bundle', 'debloater' );
+		return __( 'jQuery Migrate in the jQuery bundle', 'hakeemify-debloater' );
 	}
 }

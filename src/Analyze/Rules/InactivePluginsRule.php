@@ -84,21 +84,21 @@ final class InactivePluginsRule extends AbstractRule {
 				'severity' => Severity::INFO,
 				'title'    => sprintf(
 					/* translators: %d: number of deactivated plugins. */
-					_n( '%d deactivated plugin is still installed', '%d deactivated plugins are still installed', $count, 'debloater' ),
+					_n( '%d deactivated plugin is still installed', '%d deactivated plugins are still installed', $count, 'hakeemify-debloater' ),
 					$count
 				),
 				'summary'  => sprintf(
 					/* translators: %s: comma-separated list of plugin files. */
-					__( 'Installed but not active: %s.', 'debloater' ),
+					__( 'Installed but not active: %s.', 'hakeemify-debloater' ),
 					implode( ', ', array_slice( $inactive, 0, 10 ) )
 				),
 				'why'      => __(
 					'A deactivated plugin is not loaded, so it costs nothing on any request. Its files are still on the server, though, and still get security advisories nobody is watching for a plugin that stopped being used. Whether to delete it is a decision only you can make, and it is not one this plugin will make for you.',
-					'debloater'
+					'hakeemify-debloater'
 				),
 				'evidence' => $this->evidence( $facts )
-					->fact( __( 'Deactivated plugins', 'debloater' ), 'plugins.inactive' )
-					->optional( __( 'Active plugins', 'debloater' ), 'plugins.active' )
+					->fact( __( 'Deactivated plugins', 'hakeemify-debloater' ), 'plugins.inactive' )
+					->optional( __( 'Active plugins', 'hakeemify-debloater' ), 'plugins.active' )
 					->build(),
 			)
 		);

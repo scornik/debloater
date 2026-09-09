@@ -11,7 +11,7 @@
 declare( strict_types = 1 );
 
 define( 'DEBLOATER_DIR', __DIR__ . '/../' );
-define( 'DEBLOATER_URL', 'https://example.test/wp-content/plugins/debloater/' );
+define( 'DEBLOATER_URL', 'https://example.test/wp-content/plugins/hakeemify-debloater/' );
 define( 'DEBLOATER_DISABLE', false );
 define( 'DEBLOATER_LOADER_MODE', 'mu-plugin' );
 define( 'WP_CLI', false );

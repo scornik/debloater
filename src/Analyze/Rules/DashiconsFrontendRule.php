@@ -103,7 +103,7 @@ final class DashiconsFrontendRule extends CoreFeatureRule {
 	 * @return string
 	 */
 	protected function title(): string {
-		return __( 'The admin icon font loads for visitors', 'debloater' );
+		return __( 'The admin icon font loads for visitors', 'hakeemify-debloater' );
 	}
 
 	/**
@@ -112,7 +112,7 @@ final class DashiconsFrontendRule extends CoreFeatureRule {
 	 * @return string
 	 */
 	protected function summary(): string {
-		return __( 'Dashicons is being loaded on the front end, where logged-out visitors download the whole icon font.', 'debloater' );
+		return __( 'Dashicons is being loaded on the front end, where logged-out visitors download the whole icon font.', 'hakeemify-debloater' );
 	}
 
 	/**
@@ -121,7 +121,7 @@ final class DashiconsFrontendRule extends CoreFeatureRule {
 	 * @return string
 	 */
 	protected function why(): string {
-		return __( 'Dashicons is WordPress\'s admin icon font. Core loads it on the front end only for the admin bar, which logged-out visitors never see — but themes and plugins often enqueue it for a menu toggle or a search icon, and then every visitor downloads a font for two glyphs.', 'debloater' );
+		return __( 'Dashicons is WordPress\'s admin icon font. Core loads it on the front end only for the admin bar, which logged-out visitors never see — but themes and plugins often enqueue it for a menu toggle or a search icon, and then every visitor downloads a font for two glyphs.', 'hakeemify-debloater' );
 	}
 
 	/**
@@ -130,6 +130,6 @@ final class DashiconsFrontendRule extends CoreFeatureRule {
 	 * @return string
 	 */
 	protected function evidenceLabel(): string {
-		return __( 'Dashicons on the front end', 'debloater' );
+		return __( 'Dashicons on the front end', 'hakeemify-debloater' );
 	}
 }

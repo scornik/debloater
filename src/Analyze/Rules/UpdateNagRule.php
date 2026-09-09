@@ -83,21 +83,21 @@ final class UpdateNagRule extends AbstractRule {
 				'severity' => Severity::LOW,
 				'risk'     => Risk::SAFE,
 				'tweak_id' => 'admin.hide_update_nags_non_admins',
-				'title'    => __( 'The core update notice is shown to people who cannot update', 'debloater' ),
+				'title'    => __( 'The core update notice is shown to people who cannot update', 'hakeemify-debloater' ),
 				'summary'  => sprintf(
 					/* translators: 1: number of people who edited content recently, 2: number of administrators. */
-					__( '%1$d people edited content here in the last week and %2$d of the accounts are administrators.', 'debloater' ),
+					__( '%1$d people edited content here in the last week and %2$d of the accounts are administrators.', 'hakeemify-debloater' ),
 					$editors,
 					$admins
 				),
 				'why'      => __(
 					'"WordPress x.y is available" goes to everyone who can open the admin, including authors, editors and shop managers, none of whom can act on it. What they can do is worry about it, or interrupt somebody. Hiding it from them leaves it exactly where it needs to be: anyone who can actually run the update still sees it, every time, and that part is not configurable.',
-					'debloater'
+					'hakeemify-debloater'
 				),
 				'evidence' => $this->evidence( $facts )
-					->fact( __( 'Core update notice registered', 'debloater' ), 'admin.update_nag' )
-					->fact( __( 'Administrators', 'debloater' ), 'users.admin_count' )
-					->optional( __( 'People who edited content in the last week', 'debloater' ), 'users.recent_editors_7d' )
+					->fact( __( 'Core update notice registered', 'hakeemify-debloater' ), 'admin.update_nag' )
+					->fact( __( 'Administrators', 'hakeemify-debloater' ), 'users.admin_count' )
+					->optional( __( 'People who edited content in the last week', 'hakeemify-debloater' ), 'users.recent_editors_7d' )
 					->build(),
 			)
 		);

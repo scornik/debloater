@@ -1,5 +1,66 @@
 # RENAME-MAP.md
 
+Two renames, recorded in the order they happened.
+
+**0.3.0 — `Debloater` → `Hakeemify Debloater`** is at the top. It is a much
+smaller change than the one below it: four things move and everything else is
+deliberately left alone.
+
+**Phase 18a — `WP Debloat` → `Debloater`** is the original, kept in full below.
+It renamed nearly every identifier in the plugin, and the reasoning is worth
+having when somebody wonders why a prefix and a slug disagree.
+
+---
+
+## 0.3.0 — Hakeemify Debloater
+
+wordpress.org review, round one. See `docs/DECISIONS.md` D-0071.
+
+### What changed
+
+| Kind | Old | New |
+|---|---|---|
+| Display name | Debloater | Hakeemify Debloater |
+| Slug | `debloater` | `hakeemify-debloater` |
+| Text domain | `debloater` | `hakeemify-debloater` |
+| Plugin folder | `hakeemify-debloater/` (was `debloater/`) | as shipped in the zip |
+| Entry file | `debloater.php` | `hakeemify-debloater.php` |
+| POT file | `languages/debloater.pot` | `languages/hakeemify-debloater.pot` |
+| Pro's dependency | `Requires Plugins: debloater` | `Requires Plugins: hakeemify-debloater` |
+
+### What deliberately did not change
+
+Everything else. The brief was explicit, and the reasoning is that nothing
+requires these to match the slug — WordPress does not — while changing them
+would move data, break saved links and invalidate every recorded snapshot for
+no benefit at all.
+
+| Kind | Value | Why it stays |
+|---|---|---|
+| Function/hook prefix | `debloater_` | Extensions hook these by name |
+| Constant prefix | `DEBLOATER_` | `DEBLOATER_DISABLE` is documented for wp-config |
+| Tables | `{prefix}debloater_*` | Renaming a table is a migration, not a rename |
+| State option | `debloater_state` | The same, with the same risk |
+| Runtime option | `debloater_runtime` | Added in 0.3.0, named for the prefix |
+| Capability | `debloater_manage` | Roles on live sites already grant it |
+| REST namespace | `debloater/v1` | A published URL contract |
+| WP-CLI command | `wp debloater` | Typed by people and written into scripts |
+| Admin menu slug | `debloater` | `?page=debloater&debloater_profile=…` is the URL contract Pro uses |
+| Kill-switch query | `?debloater=off` | Documented, and typed in an emergency |
+| Handler class prefix | `Debloater_Handler_` | Not user-visible, no reason to churn |
+| PHP namespace | `Debloater\` | The same |
+| Uploads folder | `wp-content/uploads/debloater/` | Named for the prefix, like the rest |
+
+### Not this rename's doing
+
+The **git checkout** is `debloater`, and stays: Pro's `phpstan.neon` resolves
+the free plugin as `../debloater`, and the folder that matters to WordPress is
+the one inside the zip.
+
+---
+
+## Phase 18a — Debloater
+
 The Phase 18a rename, one row per token. See `docs/DECISIONS.md` D-0047 for why.
 
 Every replacement below was **case-sensitive** and applied as a whole token.
@@ -48,11 +109,11 @@ deliberate non-renames are listed at the end.
 | Bypass nonce action | `wpdebloat_bypass` | `debloater_bypass` |
 | Verification header | `X-WPDebloat-Verify` | `X-Debloater-Verify` |
 | Generated directory | `wp-content/wpdebloat/` | `wp-content/debloater/` |
-| Generated runtime | `wp-content/wpdebloat/runtime.php` | `wp-content/debloater/runtime.php` |
-| Runtime lock | `wp-content/wpdebloat/runtime.lock` | `wp-content/debloater/runtime.lock` |
+| Generated runtime | `wp-content/wpdebloat/runtime.php` | `wp-content/debloater/runtime.php` — *removed entirely in 0.3.0, D-0070* |
+| Runtime lock | `wp-content/wpdebloat/runtime.lock` | `wp-content/debloater/runtime.lock` — *removed in 0.3.0* |
 | Spill directory | `wp-content/wpdebloat/backups/` | `wp-content/debloater/backups/` |
-| Must-use loader | `mu-plugins/wp-debloat-loader.php` | `mu-plugins/debloater-loader.php` |
-| Loader source | `mu-loader/wp-debloat-loader.php` | `mu-loader/debloater-loader.php` |
+| Must-use loader | `mu-plugins/wp-debloat-loader.php` | `mu-plugins/debloater-loader.php` — *removed in 0.3.0* |
+| Loader source | `mu-loader/wp-debloat-loader.php` | `mu-loader/debloater-loader.php` — *removed in 0.3.0* |
 | Handler class prefix | `WPDebloat_Handler_` | `Debloater_Handler_` |
 | Kill-switch guard class | `WPDebloat_Runtime_Guard` | `Debloater_Runtime_Guard` |
 | POT file | `languages/wp-debloat.pot` | `languages/debloater.pot` |
@@ -97,11 +158,11 @@ compatibility data were untouched apart from the `$id` host in
    redirect, which is a courtesy GitHub offers and not a guarantee.
 3. **Update the CI badge** in `README.md` — nothing to do: `README.md` contains
    no GitHub URL and no badge.
-4. **Rename the local working directory** from `WP Debloat` to `Debloater`. The
-   directory name is not referenced by anything — `.wp-env.json` maps `.` — so
-   this is cosmetic, but it stops the next person wondering which one is real.
-   Still outstanding.
-5. **Reserve `debloater` on wordpress.org** by submitting the plugin. Submission
+4. ~~**Rename the local working directory** from `WP Debloat` to `Debloater`.~~
+   **Done, 2026-09-07** — it is `debloater`, which is also what Pro's
+   `phpstan.neon` expects as a sibling.
+5. **Reserve `hakeemify-debloater` on wordpress.org** by submitting the plugin.
+   The slug changed in 0.3.0; `debloater` was never reserved. Submission
    is outside this build's boundary (see D-0045 for the same reasoning about the
    registry repository). Still outstanding.
 

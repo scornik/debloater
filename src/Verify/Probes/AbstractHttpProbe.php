@@ -79,9 +79,9 @@ abstract class AbstractHttpProbe implements ProbeInterface {
 				/* translators: %s: the host name the redirect pointed at. */
 				__(
 					'A signed-in check was sent to %s, which is not this site. The request was stopped and the sign-in cookie was not sent there. Something on this site is redirecting off-site, which is worth looking at whatever else is going on.',
-					'debloater'
+					'hakeemify-debloater'
 				),
-				'' === $host ? __( 'another site', 'debloater' ) : $host
+				'' === $host ? __( 'another site', 'hakeemify-debloater' ) : $host
 			),
 			array_merge(
 				$response->evidence(),
@@ -110,7 +110,7 @@ abstract class AbstractHttpProbe implements ProbeInterface {
 			ProbeStatus::UNKNOWN,
 			sprintf(
 				/* translators: %s: the underlying connection error. */
-				__( 'This site could not reach itself over HTTP, so this check could not run: %s', 'debloater' ),
+				__( 'This site could not reach itself over HTTP, so this check could not run: %s', 'hakeemify-debloater' ),
 				$response->error
 			),
 			array_merge( $response->evidence(), array( 'error' => $response->error ) )
@@ -133,7 +133,7 @@ abstract class AbstractHttpProbe implements ProbeInterface {
 					ProbeStatus::FAIL,
 					sprintf(
 						/* translators: %s: page description. */
-						__( '%s redirected in a loop and never arrived anywhere.', 'debloater' ),
+						__( '%s redirected in a loop and never arrived anywhere.', 'hakeemify-debloater' ),
 						$this->describe()
 					),
 					array_merge( $response->evidence(), array( 'error' => $response->error ) )
@@ -151,7 +151,7 @@ abstract class AbstractHttpProbe implements ProbeInterface {
 				ProbeStatus::FAIL,
 				sprintf(
 					/* translators: 1: page description, 2: the marker found. */
-					__( '%1$s returned an error page containing "%2$s".', 'debloater' ),
+					__( '%1$s returned an error page containing "%2$s".', 'hakeemify-debloater' ),
 					$this->describe(),
 					$fatal
 				),
@@ -165,7 +165,7 @@ abstract class AbstractHttpProbe implements ProbeInterface {
 				ProbeStatus::FAIL,
 				sprintf(
 					/* translators: 1: page description, 2: HTTP status code. */
-					__( '%1$s returned HTTP %2$d.', 'debloater' ),
+					__( '%1$s returned HTTP %2$d.', 'hakeemify-debloater' ),
 					$this->describe(),
 					$response->status
 				),
@@ -179,7 +179,7 @@ abstract class AbstractHttpProbe implements ProbeInterface {
 				ProbeStatus::FAIL,
 				sprintf(
 					/* translators: %s: page description. */
-					__( '%s returned an empty page.', 'debloater' ),
+					__( '%s returned an empty page.', 'hakeemify-debloater' ),
 					$this->describe()
 				),
 				$response->evidence()
@@ -207,7 +207,7 @@ abstract class AbstractHttpProbe implements ProbeInterface {
 				ProbeStatus::WARN,
 				sprintf(
 					/* translators: 1: page description, 2: comma-separated markers. */
-					__( '%1$s loaded, but the page looks incomplete: %2$s not found.', 'debloater' ),
+					__( '%1$s loaded, but the page looks incomplete: %2$s not found.', 'hakeemify-debloater' ),
 					$this->describe(),
 					implode( ', ', $missing )
 				),
@@ -220,7 +220,7 @@ abstract class AbstractHttpProbe implements ProbeInterface {
 			ProbeStatus::PASS,
 			sprintf(
 				/* translators: %s: page description. */
-				__( '%s loaded normally.', 'debloater' ),
+				__( '%s loaded normally.', 'hakeemify-debloater' ),
 				$this->describe()
 			),
 			$response->evidence()

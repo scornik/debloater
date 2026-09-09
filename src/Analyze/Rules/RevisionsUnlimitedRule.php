@@ -101,21 +101,21 @@ final class RevisionsUnlimitedRule extends AbstractRule {
 				'category' => Category::DATABASE,
 				'severity' => $count >= self::SUBSTANTIAL_COUNT ? Severity::MEDIUM : Severity::LOW,
 				'risk'     => Risk::LOW,
-				'title'    => __( 'Every revision of every post is kept forever', 'debloater' ),
+				'title'    => __( 'Every revision of every post is kept forever', 'hakeemify-debloater' ),
 				'summary'  => sprintf(
 					/* translators: 1: number of revisions, 2: revisions to keep per post. */
-					__( 'WordPress is keeping every revision, and there are now %1$s of them. Keeping the most recent %2$d per post would stop the number growing.', 'debloater' ),
+					__( 'WordPress is keeping every revision, and there are now %1$s of them. Keeping the most recent %2$d per post would stop the number growing.', 'hakeemify-debloater' ),
 					number_format_i18n( $count ),
 					self::KEEP_PER_POST
 				),
 				'why'      => __(
 					'Each revision is a full copy of the post in the posts table, with its own meta. On a site edited regularly they outnumber the real content several times over, which makes every backup larger and every query over the posts table slower. Capping the number changes what happens from now on: nothing is deleted, and WordPress prunes the oldest revisions of a post the next time that post is saved.',
-					'debloater'
+					'hakeemify-debloater'
 				),
 				'evidence' => $this->evidence( $facts )
-					->formatted( __( 'Revision limit', 'debloater' ), __( 'Unlimited', 'debloater' ), 'wp.revisions_limit' )
-					->fact( __( 'Revisions stored', 'debloater' ), 'db.revisions.count' )
-					->optional( __( 'Database size', 'debloater' ), 'db.size_bytes' )
+					->formatted( __( 'Revision limit', 'hakeemify-debloater' ), __( 'Unlimited', 'hakeemify-debloater' ), 'wp.revisions_limit' )
+					->fact( __( 'Revisions stored', 'hakeemify-debloater' ), 'db.revisions.count' )
+					->optional( __( 'Database size', 'hakeemify-debloater' ), 'db.size_bytes' )
 					->build(),
 				'impact'   => $this->estimated( 'db.revisions', (float) $count, 'rows' ),
 				'tweak_id' => 'core.limit_revisions',

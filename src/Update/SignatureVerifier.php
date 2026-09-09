@@ -85,13 +85,13 @@ final class SignatureVerifier {
 		if ( ! function_exists( 'sodium_crypto_sign_verify_detached' ) ) {
 			return __(
 				'This server has no libsodium, so a signed registry update cannot be checked. Debloater will not install one it cannot verify.',
-				'debloater'
+				'hakeemify-debloater'
 			);
 		}
 
 		return __(
 			'No registry signing key is pinned in this build, so there is nothing to check a signed update against.',
-			'debloater'
+			'hakeemify-debloater'
 		);
 	}
 

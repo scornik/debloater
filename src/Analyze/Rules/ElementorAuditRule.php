@@ -129,7 +129,7 @@ final class ElementorAuditRule extends AbstractRule {
 				'confidence' => $this->confidence( $facts ),
 				'title'      => sprintf(
 					/* translators: 1: number of addon packs, 2: widgets available, 3: widgets seen in use, 4: widgets potentially unused. */
-					__( '%1$d addon packs, %2$d widgets available, %3$d detected in use, %4$d potentially unused', 'debloater' ),
+					__( '%1$d addon packs, %2$d widgets available, %3$d detected in use, %4$d potentially unused', 'hakeemify-debloater' ),
 					count( $packs ),
 					$available,
 					$used,
@@ -138,13 +138,13 @@ final class ElementorAuditRule extends AbstractRule {
 				'summary'    => $this->summary( $packs ),
 				'why'        => $this->why( $facts ),
 				'evidence'   => $this->evidence( $facts )
-					->fact( __( 'Widgets registered, by plugin', 'debloater' ), 'elementor.packs' )
-					->fact( __( 'Widget types found in your designs', 'debloater' ), 'elementor.widgets_in_use' )
-					->optional( __( 'Designs read', 'debloater' ), 'elementor.documents' )
-					->optional( __( 'Templates', 'debloater' ), 'elementor.templates' )
-					->optional( __( 'Dynamic tags present', 'debloater' ), 'elementor.dynamic_tags' )
-					->optional( __( 'Shortcode widgets present', 'debloater' ), 'elementor.shortcodes' )
-					->optional( __( 'Custom code widgets present', 'debloater' ), 'elementor.custom_code' )
+					->fact( __( 'Widgets registered, by plugin', 'hakeemify-debloater' ), 'elementor.packs' )
+					->fact( __( 'Widget types found in your designs', 'hakeemify-debloater' ), 'elementor.widgets_in_use' )
+					->optional( __( 'Designs read', 'hakeemify-debloater' ), 'elementor.documents' )
+					->optional( __( 'Templates', 'hakeemify-debloater' ), 'elementor.templates' )
+					->optional( __( 'Dynamic tags present', 'hakeemify-debloater' ), 'elementor.dynamic_tags' )
+					->optional( __( 'Shortcode widgets present', 'hakeemify-debloater' ), 'elementor.shortcodes' )
+					->optional( __( 'Custom code widgets present', 'hakeemify-debloater' ), 'elementor.custom_code' )
 					->build(),
 			)
 		);
@@ -202,7 +202,7 @@ final class ElementorAuditRule extends AbstractRule {
 
 			$parts[] = sprintf(
 				/* translators: 1: plugin or component name, 2: how many widgets it registers. */
-				__( '%1$s (%2$d)', 'debloater' ),
+				__( '%1$s (%2$d)', 'hakeemify-debloater' ),
 				(string) ( $pack['source'] ?? '' ),
 				(int) ( $pack['count'] ?? 0 )
 			);
@@ -246,25 +246,25 @@ final class ElementorAuditRule extends AbstractRule {
 	private function why( FactSet $facts ): string {
 		$why = __(
 			'Every registered widget is code Elementor loads, whether or not anything on your site uses it — which is what makes an addon pack installed for one slider expensive. The word here is "potentially": the widgets counted as in use are the ones your saved designs name directly, and there is no supported way to unregister somebody else\'s widget anyway, so Debloater will not offer to. What this is for is deciding whether a pack is still worth having.',
-			'debloater'
+			'hakeemify-debloater'
 		);
 
 		$caveats = array();
 
 		if ( true === $facts->value( 'elementor.dynamic_tags' ) ) {
-			$caveats[] = __( 'dynamic tags, which resolve when a page is rendered', 'debloater' );
+			$caveats[] = __( 'dynamic tags, which resolve when a page is rendered', 'hakeemify-debloater' );
 		}
 
 		if ( true === $facts->value( 'elementor.shortcodes' ) ) {
-			$caveats[] = __( 'shortcode widgets, whose contents belong to another plugin', 'debloater' );
+			$caveats[] = __( 'shortcode widgets, whose contents belong to another plugin', 'hakeemify-debloater' );
 		}
 
 		if ( true === $facts->value( 'elementor.custom_code' ) ) {
-			$caveats[] = __( 'HTML or custom code widgets, which can contain anything', 'debloater' );
+			$caveats[] = __( 'HTML or custom code widgets, which can contain anything', 'hakeemify-debloater' );
 		}
 
 		if ( (int) $facts->value( 'elementor.templates', 0 ) > 0 ) {
-			$caveats[] = __( 'theme-builder templates, which are documents nothing links to directly', 'debloater' );
+			$caveats[] = __( 'theme-builder templates, which are documents nothing links to directly', 'hakeemify-debloater' );
 		}
 
 		if ( array() === $caveats ) {
@@ -273,7 +273,7 @@ final class ElementorAuditRule extends AbstractRule {
 
 		return $why . ' ' . sprintf(
 			/* translators: %s: comma-separated list of things that hide a widget from the count. */
-			__( 'This site also has %s, so treat the "in use" figure as a floor rather than a total. That is why this finding is not more confident than it is.', 'debloater' ),
+			__( 'This site also has %s, so treat the "in use" figure as a floor rather than a total. That is why this finding is not more confident than it is.', 'hakeemify-debloater' ),
 			implode( ', ', $caveats )
 		);
 	}

@@ -73,15 +73,15 @@ final class FileEditorRule extends AbstractRule {
 			array(
 				'category' => Category::CONFIGURATION,
 				'severity' => Severity::LOW,
-				'title'    => __( 'Theme and plugin files can be edited from the dashboard', 'debloater' ),
-				'summary'  => __( 'The built-in file editor is available under Appearance and Plugins.', 'debloater' ),
+				'title'    => __( 'Theme and plugin files can be edited from the dashboard', 'hakeemify-debloater' ),
+				'summary'  => __( 'The built-in file editor is available under Appearance and Plugins.', 'hakeemify-debloater' ),
 				'why'      => __(
 					'The file editor lets anyone with administrator access rewrite PHP that runs on every request. That is convenient once and dangerous every other day: it turns a stolen administrator password into the ability to run code, and it makes it easy to break the site with a typo and no way back. Adding define( \'DISALLOW_FILE_EDIT\', true ); to wp-config.php removes it. Debloater does not edit wp-config.php — a plugin that rewrites the file every request depends on can take a site offline by getting one line wrong.',
-					'debloater'
+					'hakeemify-debloater'
 				),
 				'evidence' => $this->evidence( $facts )
-					->formatted( __( 'File editor', 'debloater' ), __( 'Available', 'debloater' ), 'wp.file_editor_enabled' )
-					->optional( __( 'Administrators', 'debloater' ), 'users.admin_count' )
+					->formatted( __( 'File editor', 'hakeemify-debloater' ), __( 'Available', 'hakeemify-debloater' ), 'wp.file_editor_enabled' )
+					->optional( __( 'Administrators', 'hakeemify-debloater' ), 'users.admin_count' )
 					->build(),
 			)
 		);

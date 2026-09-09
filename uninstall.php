@@ -56,12 +56,13 @@ require_once __DIR__ . '/vendor/autoload.php';
  * the plugin during its own uninstall — and the one thing that must work here is
  * the part that runs when everything else is already half gone.
  *
- * Since 0.3.0 the only thing written under wp-content is the Level B spill, so
- * the backups directory below is all there is. The three paths that used to be
- * removed first — runtime.php, runtime.lock and the mu-plugins loader — are
- * still removed, because a site upgrading from 0.2.x has them and an uninstall
- * that leaves an orphaned mu-plugin behind is an uninstall that leaves the site
- * running our hooks forever (D-0070).
+ * Since 0.3.0 this plugin writes nothing under wp-content at all: the runtime
+ * is gone (D-0070) and the Level B spill moved to uploads (D-0072). What is
+ * removed here is therefore two directories rather than one — the current
+ * location, and everything an older version left behind. A site upgrading from
+ * 0.2.x still has runtime.php, runtime.lock and the mu-plugins loader, and an
+ * uninstall that leaves an orphaned mu-plugin behind leaves the site running
+ * our hooks forever.
  *
  * @return void
  */
@@ -88,11 +89,32 @@ function debloater_uninstall_runtime(): void {
 		}
 	}
 
-	// The backups directory and its guards, then the directory itself. Only
-	// files this plugin is responsible for: the loop removes what it recognises
-	// and leaves anything it does not, and rmdir() refuses a directory that
-	// still has something in it.
-	$backups = $content . '/debloater/backups';
+	// Both backup directories: the current one under uploads, and the one
+	// versions before 0.3.0 wrote to. Only files this plugin is responsible
+	// for: the loop removes what it recognises and leaves anything it does
+	// not, and rmdir() refuses a directory that still has something in it.
+	$uploads = wp_upload_dir();
+	$roots   = array( $content . '/debloater' );
+
+	if ( empty( $uploads['error'] ) && isset( $uploads['basedir'] ) ) {
+		$basedir = str_replace( DIRECTORY_SEPARATOR, '/', (string) $uploads['basedir'] );
+
+		$roots[] = rtrim( $basedir, '/' ) . '/debloater';
+	}
+
+	foreach ( $roots as $root ) {
+		debloater_uninstall_directory( $root );
+	}
+}
+
+/**
+ * Remove one of this plugin's directories, and nothing else.
+ *
+ * @param string $root Directory to clear.
+ * @return void
+ */
+function debloater_uninstall_directory( string $root ): void {
+	$backups = $root . '/backups';
 
 	if ( is_dir( $backups ) ) {
 		foreach ( array( 'index.php', '.htaccess' ) as $guard ) {
@@ -111,12 +133,15 @@ function debloater_uninstall_runtime(): void {
 	}
 
 	foreach ( array( 'index.php', '.htaccess' ) as $guard ) {
-		if ( is_file( $content . '/debloater/' . $guard ) ) {
-			wp_delete_file( $content . '/debloater/' . $guard );
+		if ( is_file( $root . '/' . $guard ) ) {
+			wp_delete_file( $root . '/' . $guard );
 		}
 	}
 
-	@rmdir( $content . '/debloater' ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- As above.
+	// Exports the operator asked for are left alone. They were written where
+	// somebody chose to put them and are not this plugin's to delete; rmdir()
+	// refuses the directory while they are there, which is the right outcome.
+	@rmdir( $root ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- As above.
 }
 
 /**

@@ -20,9 +20,9 @@ import Run from './screens/Run';
 import Runs from './screens/Runs';
 
 const VIEWS = [
-	{ id: 'dashboard', label: __( 'Overview', 'debloater' ) },
-	{ id: 'findings', label: __( 'Findings', 'debloater' ) },
-	{ id: 'runs', label: __( 'Changes & recovery', 'debloater' ) },
+	{ id: 'dashboard', label: __( 'Overview', 'hakeemify-debloater' ) },
+	{ id: 'findings', label: __( 'Findings', 'hakeemify-debloater' ) },
+	{ id: 'runs', label: __( 'Changes & recovery', 'hakeemify-debloater' ) },
 ];
 
 export const App = () => {
@@ -39,7 +39,7 @@ export const App = () => {
 			<Notice status="error" isDismissible={ false }>
 				{ __(
 					'You do not have permission to manage Debloater on this site.',
-					'debloater'
+					'hakeemify-debloater'
 				) }
 			</Notice>
 		);
@@ -60,18 +60,18 @@ export const App = () => {
 		<div className="debloater-app">
 			<header className="debloater-app__header">
 				<h1 className="debloater-app__title">
-					{ __( 'Debloater', 'debloater' ) }
+					{ __( 'Debloater', 'hakeemify-debloater' ) }
 				</h1>
 				<p className="debloater-app__tagline">
 					{ __(
 						'What this site is actually doing, and what can safely stop.',
-						'debloater'
+						'hakeemify-debloater'
 					) }
 				</p>
 
 				<nav
 					className="debloater-tabs"
-					aria-label={ __( 'Sections', 'debloater' ) }
+					aria-label={ __( 'Sections', 'hakeemify-debloater' ) }
 				>
 					{ VIEWS.map( ( item ) => (
 						<Button
@@ -143,7 +143,7 @@ export const App = () => {
 					tweaks={ previewTweaks }
 					title={
 						previewTweaks
-							? __( 'Review the profile', 'debloater' )
+							? __( 'Review the profile', 'hakeemify-debloater' )
 							: undefined
 					}
 					onClose={ () => {

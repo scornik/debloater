@@ -271,13 +271,20 @@ final class SecurityRulesTest extends IntegrationTestCase {
 
 		$this->selectAndGenerate( array( 'core.remove_generator' => array() ) );
 
-		$allowed = str_replace( '\\', '/', WP_CONTENT_DIR . '/debloater/' );
-		$written = str_replace( '\\', '/', $this->context()->backupsDir() );
+		$uploads = wp_upload_dir();
+		$allowed = str_replace( '\\', '/', rtrim( (string) $uploads['basedir'], '/' ) . '/debloater/' );
+		$written = str_replace( '\\', '/', \Debloater\Storage\Uploads::base() . '/backups' );
 
 		$this->assertStringStartsWith(
 			$allowed,
 			$written,
 			'§13 rule 6: the spill directory is outside the one allowed place'
+		);
+
+		// And nothing is written under wp-content any more at all (D-0072).
+		$this->assertStringNotContainsString(
+			str_replace( '\\', '/', WP_CONTENT_DIR ) . '/debloater/',
+			$written
 		);
 
 		// And nothing was installed into mu-plugins, which is the half of this
@@ -672,7 +679,7 @@ final class SecurityRulesTest extends IntegrationTestCase {
 			}
 		}
 
-		foreach ( array( 'uninstall.php', 'debloater.php' ) as $relative ) {
+		foreach ( array( 'uninstall.php', 'hakeemify-debloater.php' ) as $relative ) {
 			$sources[ $relative ] = (string) file_get_contents( DEBLOATER_TESTS_ROOT . '/' . $relative );
 		}
 

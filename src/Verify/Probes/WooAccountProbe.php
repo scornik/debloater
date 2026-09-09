@@ -51,6 +51,6 @@ final class WooAccountProbe extends AbstractWooProbe {
 	 * @return string
 	 */
 	protected function describe(): string {
-		return __( 'The account page', 'debloater' );
+		return __( 'The account page', 'hakeemify-debloater' );
 	}
 }

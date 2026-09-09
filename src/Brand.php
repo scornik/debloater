@@ -25,7 +25,7 @@ final class Brand {
 	/**
 	 * Product name shown to users. Not translated: it is a proper noun.
 	 */
-	public const NAME = 'Debloater';
+	public const NAME = 'Hakeemify Debloater';
 
 	/**
 	 * What the product is, in one line.
@@ -68,12 +68,27 @@ final class Brand {
 	/**
 	 * Plugin slug, used for the directory, text domain and asset handles.
 	 */
-	public const SLUG = 'debloater';
+	public const SLUG = 'hakeemify-debloater';
 
 	/**
 	 * Text domain for translation.
 	 */
-	public const TEXT_DOMAIN = 'debloater';
+	public const TEXT_DOMAIN = 'hakeemify-debloater';
+
+	/**
+	 * The product name a registry manifest must carry.
+	 *
+	 * Not the slug, and deliberately left behind when the slug changed in
+	 * 0.3.0. The registry is a separate repository with its own releases and its
+	 * own signing key; its manifests say `debloater` and are signed saying so.
+	 * Renaming this would mean re-cutting and re-signing every registry release
+	 * to match a plugin rename that the registry has no stake in — churn with a
+	 * cryptographic blast radius, for an identifier nobody sees.
+	 *
+	 * It has to keep matching what `scornik/debloater-registry` publishes, which
+	 * is the only thing it is for.
+	 */
+	public const REGISTRY_PRODUCT = 'debloater';
 
 	/**
 	 * Prefix for options, tables, hooks and functions.

@@ -63,7 +63,7 @@ final class ContentPageProbe extends AbstractHttpProbe {
 			return new ProbeResult(
 				$this->name(),
 				ProbeStatus::NOT_TESTED,
-				__( 'This site has no published posts or pages, so there was no content page to check.', 'debloater' )
+				__( 'This site has no published posts or pages, so there was no content page to check.', 'hakeemify-debloater' )
 			);
 		}
 
@@ -78,7 +78,7 @@ final class ContentPageProbe extends AbstractHttpProbe {
 	 * @return string
 	 */
 	protected function describe(): string {
-		return __( 'The most recent post or page', 'debloater' );
+		return __( 'The most recent post or page', 'hakeemify-debloater' );
 	}
 
 	/**

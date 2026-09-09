@@ -11,28 +11,28 @@ import { useResource } from '../api/useResource';
 import { DecisionBadge, RiskBadge, SeverityBadge } from '../components/Badges';
 
 const RISKS = [
-	{ value: '', label: __( 'Any risk', 'debloater' ) },
-	{ value: 'low', label: __( 'Low', 'debloater' ) },
-	{ value: 'medium', label: __( 'Medium', 'debloater' ) },
-	{ value: 'high', label: __( 'High', 'debloater' ) },
+	{ value: '', label: __( 'Any risk', 'hakeemify-debloater' ) },
+	{ value: 'low', label: __( 'Low', 'hakeemify-debloater' ) },
+	{ value: 'medium', label: __( 'Medium', 'hakeemify-debloater' ) },
+	{ value: 'high', label: __( 'High', 'hakeemify-debloater' ) },
 ];
 
 const DECISIONS = [
-	{ value: '', label: __( 'Any decision', 'debloater' ) },
-	{ value: 'recommend', label: __( 'Recommended', 'debloater' ) },
-	{ value: 'dont_touch', label: __( 'Leave alone', 'debloater' ) },
-	{ value: 'info', label: __( 'No action recommended', 'debloater' ) },
+	{ value: '', label: __( 'Any decision', 'hakeemify-debloater' ) },
+	{ value: 'recommend', label: __( 'Recommended', 'hakeemify-debloater' ) },
+	{ value: 'dont_touch', label: __( 'Leave alone', 'hakeemify-debloater' ) },
+	{ value: 'info', label: __( 'No action recommended', 'hakeemify-debloater' ) },
 ];
 
 const CATEGORIES = [
-	{ value: '', label: __( 'Any category', 'debloater' ) },
-	{ value: 'wordpress', label: __( 'WordPress', 'debloater' ) },
-	{ value: 'configuration', label: __( 'Configuration', 'debloater' ) },
-	{ value: 'database', label: __( 'Database', 'debloater' ) },
-	{ value: 'plugins', label: __( 'Plugins', 'debloater' ) },
-	{ value: 'maintenance', label: __( 'Maintenance', 'debloater' ) },
-	{ value: 'admin', label: __( 'Admin', 'debloater' ) },
-	{ value: 'assets', label: __( 'Assets', 'debloater' ) },
+	{ value: '', label: __( 'Any category', 'hakeemify-debloater' ) },
+	{ value: 'wordpress', label: __( 'WordPress', 'hakeemify-debloater' ) },
+	{ value: 'configuration', label: __( 'Configuration', 'hakeemify-debloater' ) },
+	{ value: 'database', label: __( 'Database', 'hakeemify-debloater' ) },
+	{ value: 'plugins', label: __( 'Plugins', 'hakeemify-debloater' ) },
+	{ value: 'maintenance', label: __( 'Maintenance', 'hakeemify-debloater' ) },
+	{ value: 'admin', label: __( 'Admin', 'hakeemify-debloater' ) },
+	{ value: 'assets', label: __( 'Assets', 'hakeemify-debloater' ) },
 ];
 
 export const Findings = ( { onOpenFinding } ) => {
@@ -51,21 +51,21 @@ export const Findings = ( { onOpenFinding } ) => {
 		<div className="debloater-findings">
 			<div className="debloater-filters">
 				<SelectControl
-					label={ __( 'Risk', 'debloater' ) }
+					label={ __( 'Risk', 'hakeemify-debloater' ) }
 					value={ risk }
 					options={ RISKS }
 					onChange={ setRisk }
 					__nextHasNoMarginBottom
 				/>
 				<SelectControl
-					label={ __( 'Category', 'debloater' ) }
+					label={ __( 'Category', 'hakeemify-debloater' ) }
 					value={ category }
 					options={ CATEGORIES }
 					onChange={ setCategory }
 					__nextHasNoMarginBottom
 				/>
 				<SelectControl
-					label={ __( 'Decision', 'debloater' ) }
+					label={ __( 'Decision', 'hakeemify-debloater' ) }
 					value={ decision }
 					options={ DECISIONS }
 					onChange={ setDecision }
@@ -75,13 +75,13 @@ export const Findings = ( { onOpenFinding } ) => {
 
 			{ findings.status === 'loading' && (
 				<p className="debloater-loading">
-					<Spinner /> { __( 'Reading the findings…', 'debloater' ) }
+					<Spinner /> { __( 'Reading the findings…', 'hakeemify-debloater' ) }
 				</p>
 			) }
 
 			{ findings.status === 'ready' && items.length === 0 && (
 				<p className="debloater-findings__empty">
-					{ __( 'No findings match those filters.', 'debloater' ) }
+					{ __( 'No findings match those filters.', 'hakeemify-debloater' ) }
 				</p>
 			) }
 
@@ -94,7 +94,7 @@ export const Findings = ( { onOpenFinding } ) => {
 								'%d finding',
 								'%d findings',
 								items.length,
-								'debloater'
+								'hakeemify-debloater'
 							),
 							items.length
 						) }

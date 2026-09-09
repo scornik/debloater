@@ -75,25 +75,25 @@ final class FindingsRoute implements RouteInterface {
 	public function args(): array {
 		return array(
 			'risk'     => array(
-				'description' => __( 'Only findings at this risk level.', 'debloater' ),
+				'description' => __( 'Only findings at this risk level.', 'hakeemify-debloater' ),
 				'type'        => 'string',
 				'enum'        => array_map( static fn ( Risk $risk ): string => $risk->value, Risk::cases() ),
 				'required'    => false,
 			),
 			'decision' => array(
-				'description' => __( 'Only findings with this decision.', 'debloater' ),
+				'description' => __( 'Only findings with this decision.', 'hakeemify-debloater' ),
 				'type'        => 'string',
 				'enum'        => array_map( static fn ( Decision $decision ): string => $decision->value, Decision::cases() ),
 				'required'    => false,
 			),
 			'category' => array(
-				'description' => __( 'Only findings in this category.', 'debloater' ),
+				'description' => __( 'Only findings in this category.', 'hakeemify-debloater' ),
 				'type'        => 'string',
 				'enum'        => array_map( static fn ( Category $category ): string => $category->value, Category::cases() ),
 				'required'    => false,
 			),
 			'run_id'   => array(
-				'description' => __( 'Read a specific scan run instead of the most recent one.', 'debloater' ),
+				'description' => __( 'Read a specific scan run instead of the most recent one.', 'hakeemify-debloater' ),
 				'type'        => 'integer',
 				'minimum'     => 1,
 				'required'    => false,
@@ -114,7 +114,7 @@ final class FindingsRoute implements RouteInterface {
 			return new WP_REST_Response(
 				array(
 					'scanned'  => false,
-					'message'  => __( 'This site has not been scanned yet.', 'debloater' ),
+					'message'  => __( 'This site has not been scanned yet.', 'hakeemify-debloater' ),
 					'findings' => array(),
 				),
 				200
@@ -126,7 +126,7 @@ final class FindingsRoute implements RouteInterface {
 		if ( ! is_array( $analysis ) ) {
 			return new WP_Error(
 				'debloater_unreadable_run',
-				__( 'That scan was recorded by a different version and cannot be read.', 'debloater' ),
+				__( 'That scan was recorded by a different version and cannot be read.', 'hakeemify-debloater' ),
 				array( 'status' => 409 )
 			);
 		}

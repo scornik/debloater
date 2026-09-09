@@ -75,7 +75,7 @@ const normalise = ( error ) => {
 	return new RequestError(
 		__(
 			'The site did not answer. Check that it is reachable and try again.',
-			'debloater'
+			'hakeemify-debloater'
 		)
 	);
 };

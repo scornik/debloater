@@ -68,7 +68,7 @@ final class AdminProbe extends AbstractHttpProbe {
 				ProbeStatus::UNKNOWN,
 				__(
 					'The dashboard could not be checked, because there was no signed-in user to check it as.',
-					'debloater'
+					'hakeemify-debloater'
 				)
 			);
 		}
@@ -117,7 +117,7 @@ final class AdminProbe extends AbstractHttpProbe {
 				ProbeStatus::UNKNOWN,
 				__(
 					'The dashboard answered with the login form rather than a redirect, which usually means something between this site and itself removed the sign-in cookie. This check could not confirm whether the dashboard renders.',
-					'debloater'
+					'hakeemify-debloater'
 				),
 				array_merge( $response->evidence(), array( 'cookie_reached_core' => 'no' ) )
 			);
@@ -131,7 +131,7 @@ final class AdminProbe extends AbstractHttpProbe {
 				ProbeStatus::WARN,
 				sprintf(
 					/* translators: %s: comma-separated markers. */
-					__( 'The dashboard loaded, but parts of it are missing: %s not found.', 'debloater' ),
+					__( 'The dashboard loaded, but parts of it are missing: %s not found.', 'hakeemify-debloater' ),
 					implode( ', ', $missing )
 				),
 				array_merge( $response->evidence(), array( 'missing_markers' => implode( ',', $missing ) ) )
@@ -150,7 +150,7 @@ final class AdminProbe extends AbstractHttpProbe {
 				ProbeStatus::WARN,
 				sprintf(
 					/* translators: %s: comma-separated markers. */
-					__( 'The dashboard loaded, but not as a signed-in user: %s not found.', 'debloater' ),
+					__( 'The dashboard loaded, but not as a signed-in user: %s not found.', 'hakeemify-debloater' ),
 					implode( ', ', $anonymous )
 				),
 				array_merge( $response->evidence(), array( 'missing_markers' => implode( ',', $anonymous ) ) )
@@ -160,7 +160,7 @@ final class AdminProbe extends AbstractHttpProbe {
 		return new ProbeResult(
 			$this->name(),
 			ProbeStatus::PASS,
-			__( 'The dashboard loaded normally, signed in.', 'debloater' ),
+			__( 'The dashboard loaded normally, signed in.', 'hakeemify-debloater' ),
 			$response->evidence()
 		);
 	}
@@ -186,13 +186,13 @@ final class AdminProbe extends AbstractHttpProbe {
 				/* translators: %s: the cookie scheme, either secure_auth or auth. */
 				__(
 					'The dashboard sent this check back to the sign-in page, so WordPress read the sign-in cookie and would not accept it. The usual cause is the address: the cookie was signed for %s, and an admin reached over the other scheme rejects it. This check could not confirm whether the dashboard renders.',
-					'debloater'
+					'hakeemify-debloater'
 				),
 				$scheme
 			)
 			: __(
 				'The dashboard sent this check back to the sign-in page, because there was no sign-in cookie to send: this site had no session for the person making the change. This check could not confirm whether the dashboard renders.',
-				'debloater'
+				'hakeemify-debloater'
 			);
 
 		return new ProbeResult(
@@ -216,6 +216,6 @@ final class AdminProbe extends AbstractHttpProbe {
 	 * @return string
 	 */
 	protected function describe(): string {
-		return __( 'The dashboard', 'debloater' );
+		return __( 'The dashboard', 'hakeemify-debloater' );
 	}
 }

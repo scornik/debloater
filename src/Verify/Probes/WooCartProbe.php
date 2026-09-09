@@ -52,6 +52,6 @@ final class WooCartProbe extends AbstractWooProbe {
 	 * @return string
 	 */
 	protected function describe(): string {
-		return __( 'The cart', 'debloater' );
+		return __( 'The cart', 'hakeemify-debloater' );
 	}
 }

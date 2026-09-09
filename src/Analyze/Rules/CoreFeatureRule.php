@@ -140,7 +140,7 @@ abstract class CoreFeatureRule extends AbstractRule {
 				'summary'  => $this->summary(),
 				'why'      => $this->why(),
 				'evidence' => $this->evidence( $facts )
-					->formatted( $this->evidenceLabel(), __( 'Enabled', 'debloater' ), $this->fact() )
+					->formatted( $this->evidenceLabel(), __( 'Enabled', 'hakeemify-debloater' ), $this->fact() )
 					->build(),
 				'impact'   => $this->impact(),
 				'tweak_id' => $this->tweakId(),

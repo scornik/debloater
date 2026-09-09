@@ -118,13 +118,13 @@ final class AbandonedPluginsRule extends AbstractRule {
 				'summary'    => $this->summary( $stale ),
 				'why'        => $this->why( $from_wp_org ),
 				'evidence'   => $this->evidence( $facts )
-					->fact( __( 'Where this reading came from', 'debloater' ), 'plugins.update_source' )
+					->fact( __( 'Where this reading came from', 'hakeemify-debloater' ), 'plugins.update_source' )
 					->formatted(
-						__( 'Plugins with no sign of life', 'debloater' ),
+						__( 'Plugins with no sign of life', 'hakeemify-debloater' ),
 						$this->summary( $stale ),
 						'plugins.meta'
 					)
-					->optional( __( 'Active plugins', 'debloater' ), 'plugins.active' )
+					->optional( __( 'Active plugins', 'hakeemify-debloater' ), 'plugins.active' )
 					->build(),
 			)
 		);
@@ -215,7 +215,7 @@ final class AbandonedPluginsRule extends AbstractRule {
 					'%d active plugin has had no release in two years',
 					'%d active plugins have had no release in two years',
 					$count,
-					'debloater'
+					'hakeemify-debloater'
 				),
 				$count
 			);
@@ -227,7 +227,7 @@ final class AbandonedPluginsRule extends AbstractRule {
 				'%d active plugin has not been updated on this server in two years',
 				'%d active plugins have not been updated on this server in two years',
 				$count,
-				'debloater'
+				'hakeemify-debloater'
 			),
 			$count
 		);
@@ -245,7 +245,7 @@ final class AbandonedPluginsRule extends AbstractRule {
 		foreach ( $stale as $name => $date ) {
 			$parts[] = sprintf(
 				/* translators: 1: plugin name, 2: ISO date. */
-				__( '%1$s (%2$s)', 'debloater' ),
+				__( '%1$s (%2$s)', 'hakeemify-debloater' ),
 				$name,
 				$date
 			);
@@ -264,13 +264,13 @@ final class AbandonedPluginsRule extends AbstractRule {
 		if ( $from_wp_org ) {
 			return __(
 				'A plugin with no release in two years is one nobody is watching for security advisories, and one that has not been tested against anything WordPress has shipped since. That is worth knowing. It is not automatically a problem: small plugins that do one thing are sometimes simply finished. This is a reason to go and look, not a recommendation, and Debloater will not deactivate or delete anything.',
-				'debloater'
+				'hakeemify-debloater'
 			);
 		}
 
 		return __(
 			'You did not ask Debloater to check wordpress.org on this scan, so nothing left your server and this reading is the weaker one: when each plugin\'s files last changed here. That is not a release date. Moving a site by copying files resets it, so a genuinely abandoned plugin can look new; and a plugin whose author has shipped releases you never installed looks abandoned when what is actually stale is your copy. Either way it is worth a look. Run the scan with the wordpress.org check if you want the real release dates.',
-			'debloater'
+			'hakeemify-debloater'
 		);
 	}
 }

@@ -217,7 +217,7 @@ final class RecommendationEngine {
 		if ( ! $this->registry->has( $recommendation->tweak_id ) ) {
 			return sprintf(
 				/* translators: %s: tweak id. */
-				__( 'The tweak "%s" is not in this version of the registry.', 'debloater' ),
+				__( 'The tweak "%s" is not in this version of the registry.', 'hakeemify-debloater' ),
 				$recommendation->tweak_id
 			);
 		}

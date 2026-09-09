@@ -51,10 +51,10 @@ export const Runs = () => {
 				message: result.ok
 					? __(
 							'The previous configuration has been restored.',
-							'debloater'
+							'hakeemify-debloater'
 					  )
 					: result.result?.error ||
-					  __( 'The restore did not complete.', 'debloater' ),
+					  __( 'The restore did not complete.', 'hakeemify-debloater' ),
 			} );
 
 			await data.reload();
@@ -69,7 +69,7 @@ export const Runs = () => {
 	if ( data.status === 'loading' ) {
 		return (
 			<p className="debloater-loading">
-				<Spinner /> { __( 'Reading the history…', 'debloater' ) }
+				<Spinner /> { __( 'Reading the history…', 'hakeemify-debloater' ) }
 			</p>
 		);
 	}
@@ -98,14 +98,14 @@ export const Runs = () => {
 
 			<section aria-labelledby="debloater-runs-heading">
 				<h2 id="debloater-runs-heading">
-					{ __( 'Changes', 'debloater' ) }
+					{ __( 'Changes', 'hakeemify-debloater' ) }
 				</h2>
 
 				{ runs.length === 0 ? (
 					<p>
 						{ __(
 							'Nothing has been applied on this site yet.',
-							'debloater'
+							'hakeemify-debloater'
 						) }
 					</p>
 				) : (
@@ -119,13 +119,13 @@ export const Runs = () => {
 
 			<section aria-labelledby="debloater-snapshots-heading">
 				<h2 id="debloater-snapshots-heading">
-					{ __( 'Recovery points', 'debloater' ) }
+					{ __( 'Recovery points', 'hakeemify-debloater' ) }
 				</h2>
 
 				<p className="debloater-panel__lede">
 					{ __(
 						'One is taken before every change. Nothing removes them on a schedule.',
-						'debloater'
+						'hakeemify-debloater'
 					) }
 				</p>
 
@@ -133,28 +133,28 @@ export const Runs = () => {
 					<p>
 						{ __(
 							'There are no recovery points yet.',
-							'debloater'
+							'hakeemify-debloater'
 						) }
 					</p>
 				) : (
 					<table className="debloater-snapshots">
 						<thead>
 							<tr>
-								<th scope="col">{ __( 'Id', 'debloater' ) }</th>
+								<th scope="col">{ __( 'Id', 'hakeemify-debloater' ) }</th>
 								<th scope="col">
-									{ __( 'Change', 'debloater' ) }
+									{ __( 'Change', 'hakeemify-debloater' ) }
 								</th>
 								<th scope="col">
-									{ __( 'Level', 'debloater' ) }
+									{ __( 'Level', 'hakeemify-debloater' ) }
 								</th>
 								<th scope="col">
-									{ __( 'Rows', 'debloater' ) }
+									{ __( 'Rows', 'hakeemify-debloater' ) }
 								</th>
 								<th scope="col">
-									{ __( 'Taken', 'debloater' ) }
+									{ __( 'Taken', 'hakeemify-debloater' ) }
 								</th>
 								<th scope="col">
-									{ __( 'Restore', 'debloater' ) }
+									{ __( 'Restore', 'hakeemify-debloater' ) }
 								</th>
 							</tr>
 						</thead>
@@ -174,7 +174,7 @@ export const Runs = () => {
 													setConfirming( snapshot )
 												}
 											>
-												{ __( 'Restore', 'debloater' ) }
+												{ __( 'Restore', 'hakeemify-debloater' ) }
 											</Button>
 										) : (
 											<span className="debloater-snapshots__refusal">
@@ -191,7 +191,7 @@ export const Runs = () => {
 
 			{ confirming && (
 				<Modal
-					title={ __( 'Restore this recovery point?', 'debloater' ) }
+					title={ __( 'Restore this recovery point?', 'hakeemify-debloater' ) }
 					onRequestClose={ () => setConfirming( null ) }
 				>
 					<p>
@@ -199,7 +199,7 @@ export const Runs = () => {
 							/* translators: 1: snapshot id, 2: run id. */
 							__(
 								'Recovery point %1$d belongs to change #%2$d. The whole change will be undone — restoring half of one would leave the site in a state nothing has a name for.',
-								'debloater'
+								'hakeemify-debloater'
 							),
 							confirming.id,
 							confirming.run_id
@@ -208,7 +208,7 @@ export const Runs = () => {
 					<p>
 						{ __(
 							'The configuration this change replaced will be put back, and any rows it removed will be restored exactly as they were.',
-							'debloater'
+							'hakeemify-debloater'
 						) }
 					</p>
 					<div className="debloater-actions">
@@ -218,13 +218,13 @@ export const Runs = () => {
 							disabled={ working }
 							onClick={ restore }
 						>
-							{ __( 'Restore it', 'debloater' ) }
+							{ __( 'Restore it', 'hakeemify-debloater' ) }
 						</Button>
 						<Button
 							variant="tertiary"
 							onClick={ () => setConfirming( null ) }
 						>
-							{ __( 'Cancel', 'debloater' ) }
+							{ __( 'Cancel', 'hakeemify-debloater' ) }
 						</Button>
 					</div>
 				</Modal>

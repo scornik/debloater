@@ -10,22 +10,22 @@
 import { __ } from '@wordpress/i18n';
 
 const RISK_LABELS = {
-	low: __( 'Low risk', 'debloater' ),
-	medium: __( 'Medium risk', 'debloater' ),
-	high: __( 'High risk', 'debloater' ),
+	low: __( 'Low risk', 'hakeemify-debloater' ),
+	medium: __( 'Medium risk', 'hakeemify-debloater' ),
+	high: __( 'High risk', 'hakeemify-debloater' ),
 };
 
 const SEVERITY_LABELS = {
-	info: __( 'Info', 'debloater' ),
-	low: __( 'Low', 'debloater' ),
-	medium: __( 'Medium', 'debloater' ),
-	high: __( 'High', 'debloater' ),
+	info: __( 'Info', 'hakeemify-debloater' ),
+	low: __( 'Low', 'hakeemify-debloater' ),
+	medium: __( 'Medium', 'hakeemify-debloater' ),
+	high: __( 'High', 'hakeemify-debloater' ),
 };
 
 const DECISION_LABELS = {
-	recommend: __( 'Recommended', 'debloater' ),
-	dont_touch: __( 'Leave alone', 'debloater' ),
-	info: __( 'No action recommended', 'debloater' ),
+	recommend: __( 'Recommended', 'hakeemify-debloater' ),
+	dont_touch: __( 'Leave alone', 'hakeemify-debloater' ),
+	info: __( 'No action recommended', 'hakeemify-debloater' ),
 };
 
 export const RiskBadge = ( { risk } ) => (
@@ -56,7 +56,7 @@ export const Confidence = ( { value } ) => {
 	return (
 		<span className="debloater-confidence">
 			{ /* translators: %d: confidence as a percentage. */ }
-			{ __( 'Confidence', 'debloater' ) } <strong>{ percent }%</strong>
+			{ __( 'Confidence', 'hakeemify-debloater' ) } <strong>{ percent }%</strong>
 		</span>
 	);
 };

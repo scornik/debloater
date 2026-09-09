@@ -47,7 +47,7 @@ final class ReleaseReadinessTest extends TestCase {
 	 * @return void
 	 */
 	public function test_the_plugin_header_is_complete(): void {
-		$header = $this->file( 'debloater.php' );
+		$header = $this->file( 'hakeemify-debloater.php' );
 
 		$expected = array(
 			'Plugin Name'       => Brand::NAME,
@@ -160,10 +160,10 @@ final class ReleaseReadinessTest extends TestCase {
 	 * @return void
 	 */
 	public function test_the_header_and_the_readme_agree_on_the_name(): void {
-		$header = $this->headerField( $this->file( 'debloater.php' ), 'Plugin Name' );
+		$header = $this->headerField( $this->file( 'hakeemify-debloater.php' ), 'Plugin Name' );
 
 		$this->assertSame(
-			'Debloater',
+			'Hakeemify Debloater',
 			$header,
 			'wordpress.org derives the slug from this header, so it must be the short name alone.'
 		);
@@ -300,7 +300,7 @@ final class ReleaseReadinessTest extends TestCase {
 	 * @return void
 	 */
 	public function test_every_file_agrees_on_the_version(): void {
-		$plugin  = $this->file( 'debloater.php' );
+		$plugin  = $this->file( 'hakeemify-debloater.php' );
 		$version = $this->headerField( $plugin, 'Version' );
 
 		$this->assertMatchesRegularExpression(
@@ -387,7 +387,7 @@ final class ReleaseReadinessTest extends TestCase {
 
 		// And the requirements agree with the plugin header, which is the pair
 		// most often left to drift.
-		$header = $this->file( 'debloater.php' );
+		$header = $this->file( 'hakeemify-debloater.php' );
 
 		$this->assertSame( $this->headerField( $header, 'Requires at least' ), $this->readmeField( 'Requires at least' ) );
 		$this->assertSame( $this->headerField( $header, 'Requires PHP' ), $this->readmeField( 'Requires PHP' ) );
@@ -435,7 +435,7 @@ final class ReleaseReadinessTest extends TestCase {
 		$expected = 'GPL-2.0-or-later';
 
 		$this->assertSame( $expected, $this->readmeField( 'License' ) );
-		$this->assertSame( $expected, $this->headerField( $this->file( 'debloater.php' ), 'License' ) );
+		$this->assertSame( $expected, $this->headerField( $this->file( 'hakeemify-debloater.php' ), 'License' ) );
 
 		$composer = json_decode( $this->file( 'composer.json' ), true );
 		$package  = json_decode( $this->file( 'package.json' ), true );
@@ -510,7 +510,14 @@ final class ReleaseReadinessTest extends TestCase {
 	 */
 	public function test_the_slug_agrees_with_the_packaging(): void {
 		$this->assertSame( Brand::SLUG, Brand::TEXT_DOMAIN, 'wordpress.org derives the text domain from the slug.' );
-		$this->assertSame( Brand::SLUG, Brand::MENU_SLUG );
+
+		// The menu slug is deliberately *not* the plugin slug, since 0.3.0.
+		// `?page=debloater&debloater_profile=<id>` is a URL contract Pro builds
+		// and `admin-ui/src/components/Profiles.js` reads back, so moving it
+		// would break every saved link and every extension for no gain — nothing
+		// in WordPress requires the two to match. D-0071.
+		$this->assertSame( 'debloater', Brand::MENU_SLUG );
+		$this->assertNotSame( Brand::SLUG, Brand::MENU_SLUG );
 
 		$package = json_decode( $this->file( 'package.json' ), true );
 
@@ -839,7 +846,7 @@ final class ReleaseReadinessTest extends TestCase {
 			}
 		}
 
-		foreach ( array( 'uninstall.php', 'debloater.php' ) as $relative ) {
+		foreach ( array( 'uninstall.php', 'hakeemify-debloater.php' ) as $relative ) {
 			$files[ $relative ] = $this->file( $relative );
 		}
 

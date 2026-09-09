@@ -99,14 +99,14 @@ final class RiskEngine {
 		if ( $this->hasDependents( $tweak, $finding ) ) {
 			$reasons[] = __(
 				'Something installed on this site depends on what this change would alter.',
-				'debloater'
+				'hakeemify-debloater'
 			);
 		}
 
 		if ( 'unknown' === $this->facts->value( 'env.host_vendor', 'unknown' ) ) {
 			$reasons[] = __(
 				'This host was not recognised, so we cannot tell what it already changes for you.',
-				'debloater'
+				'hakeemify-debloater'
 			);
 		}
 

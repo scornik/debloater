@@ -13,7 +13,7 @@
  *
  *     node tools/record-shipped-content.mjs --why "Phase 20 added the X route"
  *
- * It reads `dist/debloater-<version>.zip`, so build first — `composer
+ * It reads `dist/hakeemify-debloater-<version>.zip`, so build first — `composer
  * check:packaging` does both in the right order.
  */
 
@@ -27,7 +27,7 @@ const ROOT = path.resolve( path.dirname( fileURLToPath( import.meta.url ) ), '..
 const TARGET = path.join( ROOT, 'tests', 'Packaging', 'free-plugin-content.json' );
 
 const VERSION = JSON.parse( fs.readFileSync( path.join( ROOT, 'package.json' ), 'utf8' ) ).version;
-const ARCHIVE = path.join( ROOT, 'dist', `debloater-${ VERSION }.zip` );
+const ARCHIVE = path.join( ROOT, 'dist', `hakeemify-debloater-${ VERSION }.zip` );
 
 /**
  * The files whose bytes a second machine cannot reproduce.
@@ -40,11 +40,11 @@ const ARCHIVE = path.join( ROOT, 'dist', `debloater-${ VERSION }.zip` );
  */
 const isGenerated = ( name ) =>
 	[
-		'debloater/build/index.js',
-		'debloater/build/index.asset.php',
-		'debloater/vendor/autoload.php',
-		'debloater/vendor/composer/autoload_real.php',
-		'debloater/vendor/composer/autoload_static.php',
+		'hakeemify-debloater/build/index.js',
+		'hakeemify-debloater/build/index.asset.php',
+		'hakeemify-debloater/vendor/autoload.php',
+		'hakeemify-debloater/vendor/composer/autoload_real.php',
+		'hakeemify-debloater/vendor/composer/autoload_static.php',
 	].includes( name );
 
 const why = ( () => {

@@ -96,6 +96,17 @@ the entry-point invariant that never read the entry point, and the private-key
 grep that matched nothing: all three described a check rather than performing
 one.*
 
+**P9. Suppress in the file, never in the config. A config suppression is
+invisible to whoever runs the tool without it.**
+`phpcs.xml.dist` is ours; Plugin Check, wordpress.org's reviewer and anybody
+running the bare standard never load it. Everything excluded there is silently
+re-included for exactly the audience whose opinion decides whether the plugin
+ships. An inline `phpcs:disable` with a reason travels with the code and is read
+by every run of every tool.
+*From wordpress.org review round 1: twelve errors, all of them already excluded
+in `phpcs.xml.dist` under `D-0004` and all of them reported anyway. The
+exclusions were not wrong — they were unreachable.*
+
 ---
 
 ## This file is authoritative
@@ -298,6 +309,13 @@ container runs 8.2.
 ---
 
 ## D-0004 — Coding-standard exclusions and their justification
+
+> **Amended in 0.3.0.** The exclusions below are still right about *why* each
+> sniff does not apply. They were in the wrong place: `phpcs.xml.dist` is not
+> loaded by Plugin Check or by wordpress.org's reviewer, so twelve findings
+> excluded here were reported to them in full. Sniffs that a reviewer will run
+> are now suppressed inline, in the file, with the reason attached — see **P9**.
+> This file stays for the repository-wide ones nobody outside it runs.
 
 - **Phase:** 0
 - **Date:** 2026-09-02
@@ -3686,3 +3704,130 @@ was to executable PHP — the same round's instruction to default CLI exports in
 `RuntimeOverheadTest::test_no_php_is_written_under_wp_content` walks the
 directory after a real apply and fails on any `.php` file this plugin put there,
 so the property is asserted rather than remembered (**P8**).
+
+---
+
+## D-0071 – the public name is Hakeemify Debloater, and almost nothing else moves
+
+- **Phase:** 0.3.0, wordpress.org review round 1
+- **Date:** 2026-09-08
+- **Status:** accepted
+- **Supersedes:** `D-0056`, on the public name and slug only.
+- **Spec:** `BUILD-SPEC.md` §16 requires the public name and wp.org slug to be
+  recorded here.
+
+### The identifiers
+
+**Public name:** Hakeemify Debloater
+**Slug and text domain:** `hakeemify-debloater`
+**Plugin folder and entry file:** `hakeemify-debloater/hakeemify-debloater.php`
+
+`debloater` was never reserved on wordpress.org — D-0045's submission step is
+still outstanding — so nothing was lost by changing it, and the vendor prefix
+makes the listing unambiguous.
+
+### What did not move, and why that is the decision
+
+Everything else: the `debloater_` function and hook prefix, the `DEBLOATER_`
+constants, the table names, `debloater_state` and `debloater_runtime`, the
+`debloater_manage` capability, the `debloater/v1` REST namespace, the
+`wp debloater` command, the `debloater` admin menu slug, `?debloater=off`, the
+`Debloater_Handler_` class prefix, the `Debloater\` PHP namespace, and
+`wp-content/uploads/debloater/`.
+
+**Nothing in WordPress requires any of them to match the slug.** A plugin's
+folder, its text domain and its option names are independent, and treating a
+rename as licence to change all of them at once is how a rename becomes a
+migration.
+
+Each one that stayed would have cost something real to move:
+
+- **Tables and options** would need a migration, on live sites, to rename data
+  that nothing reads by its name.
+- **The capability** is granted to roles on sites we cannot see. Renaming it
+  silently removes access from whoever was given it.
+- **The REST namespace and the menu slug** are published URLs. Pro builds
+  `?page=debloater&debloater_profile=<id>` and the free plugin's React reads it
+  back — a contract pinned by literal on both sides (**P4**) — and every
+  bookmark and every documented link would break.
+- **The CLI command** is typed by people and written into other people's
+  scripts.
+- **`?debloater=off`** is typed by somebody whose site is broken. That is the
+  worst possible moment for a documented escape hatch to have been renamed.
+
+### One identifier that had to be told apart from the slug
+
+`Update\Manifest::PRODUCT` was `Brand::SLUG`. It is the name a registry
+manifest must carry, and the registry is a separate repository with its own
+releases and its own signing key: its manifests say `debloater` and are signed
+saying so. Following the plugin's rename would have meant re-cutting and
+re-signing every registry release to match a change the registry has no stake
+in.
+
+So `Brand::REGISTRY_PRODUCT` exists now, holding `debloater`, and the manifest
+check reads that. The two constants were the same string until this release,
+which is exactly why the distinction is worth a name: a future reader who finds
+them equal again should not assume they may be merged.
+
+### What this cost
+
+`ReleaseReadinessTest::test_the_slug_agrees_with_the_packaging` asserted
+`Brand::SLUG === Brand::MENU_SLUG`. That was true when it was written and is
+now false on purpose, so the test pins the menu slug's literal value instead and
+says why. An assertion that encodes an assumption is fine until the assumption
+is deliberately broken; then it has to be rewritten rather than deleted.
+
+---
+
+## D-0072 – the recovery spill moves to uploads, and old ones stay readable
+
+- **Phase:** 0.3.0, wordpress.org review round 1
+- **Date:** 2026-09-09
+- **Status:** accepted
+- **Completes:** `D-0070`, which removed the generated PHP but left the
+  directory it lived in.
+
+### What moved
+
+Level B recovery spills — gzipped NDJSON rows of a recovery point too large for
+the database — were written to `wp-content/debloater/backups/`. They are written
+to `wp-content/uploads/debloater/backups/` now, created on demand behind an
+`index.php` and a `.htaccess`, by the same `Storage\Uploads` the CLI exports use.
+
+### Why, when it was already allowed
+
+`D-0070` removed the executable PHP, which was the actual objection. What was
+left was data, and data under `wp-content` is something plugins do — but it left
+the reviewer's question standing: *why does this plugin write outside uploads at
+all?* There was no answer worth giving. `wp_upload_dir()` is the directory
+WordPress guarantees is writable, it moves with `UPLOADS` and its filters, and
+it is where a site's generated files are expected to be.
+
+The plugin now writes nothing under `wp-content` outside uploads. That is a
+sentence somebody can check, which the previous position was not.
+
+### The part that mattered more than the move
+
+**Recovery points taken before this are still restorable.**
+
+Spill files record their absolute path in the snapshot row. Moving the directory
+without provision would have left every open recovery point pointing at a file
+the plugin no longer looks for — silently, and precisely at the moment somebody
+upgraded, which is a moment people choose *because* they are about to change
+something.
+
+So writes go to uploads and reads accept both. `Snapshot\SpillFile` keeps a
+`legacyDirectory()`, `assertInsideBackupsDir()` admits either, and `uninstall.php`
+clears both roots. `Contracts\Context::backupsDir()` is gone;
+`legacyDataDir()` replaces it and says in its docblock that nothing writes there
+and that something starting to would be the bug.
+
+### What it cost
+
+An extra directory in the read path, and a second root in two guards, both of
+which are dead weight on a site that never ran 0.2.x. That is the price of not
+orphaning somebody's rollback, and it is not a close call.
+
+Exports the operator asked for are left alone on uninstall: `rmdir()` refuses a
+directory that still has their files in it, which is the correct outcome rather
+than an error to report.

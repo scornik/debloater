@@ -2,7 +2,7 @@
 <ruleset name="Debloater">
 	<description>Coding standards for Debloater.</description>
 
-	<file>debloater.php</file>
+	<file>hakeemify-debloater.php</file>
 	<file>src</file>
 	<file>runtime-handlers</file>
 	<file>tests</file>
@@ -72,6 +72,10 @@
 				<element value="Debloater"/>
 			</property>
 		</properties>
+		<!-- Still `debloater`, not the 0.3.0 slug. Function, hook, option and
+		     table prefixes did not move with the rename (D-0071): nothing in
+		     WordPress requires them to match the slug, and moving them would be
+		     a data migration wearing a rename's clothes. -->
 		<!-- Tests fire core hooks and touch core globals in order to observe them.
 		     They are not defining a plugin API. -->
 		<exclude-pattern>tests/*</exclude-pattern>
@@ -88,7 +92,7 @@
 				"debloater-pro", for the same reason.
 			-->
 			<property name="text_domain" type="array">
-				<element value="debloater"/>
+				<element value="hakeemify-debloater"/>
 			</property>
 		</properties>
 	</rule>

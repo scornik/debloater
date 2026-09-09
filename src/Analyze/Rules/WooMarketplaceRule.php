@@ -78,14 +78,14 @@ final class WooMarketplaceRule extends AbstractRule {
 				'severity' => Severity::LOW,
 				'risk'     => Risk::SAFE,
 				'tweak_id' => 'woo.suppress_marketplace_suggestions',
-				'title'    => __( 'WooCommerce is showing extension suggestions in your admin', 'debloater' ),
-				'summary'  => __( 'Marketplace suggestions appear on the products, orders and settings screens.', 'debloater' ),
+				'title'    => __( 'WooCommerce is showing extension suggestions in your admin', 'hakeemify-debloater' ),
+				'summary'  => __( 'Marketplace suggestions appear on the products, orders and settings screens.', 'hakeemify-debloater' ),
 				'why'      => __(
 					'These are the panels recommending paid extensions. WooCommerce has its own documented switches for them, which is what this change uses, and nothing operational goes through the same channel — notices about your store itself are untouched, so a pending database update or a gateway that needs configuring still reaches you. That is why this one is safe where hiding a plugin\'s admin notices wholesale is not.',
-					'debloater'
+					'hakeemify-debloater'
 				),
 				'evidence' => $this->evidence( $facts )
-					->fact( __( 'Marketplace suggestions enabled', 'debloater' ), 'woo.marketplace_suggestions' )
+					->fact( __( 'Marketplace suggestions enabled', 'hakeemify-debloater' ), 'woo.marketplace_suggestions' )
 					->build(),
 			)
 		);

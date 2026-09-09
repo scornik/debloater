@@ -85,20 +85,20 @@ final class OrphanMetaRule extends AbstractRule {
 				'category' => Category::DATABASE,
 				'severity' => Severity::LOW,
 				'risk'     => Risk::MEDIUM,
-				'title'    => __( 'Metadata is left over from content that no longer exists', 'debloater' ),
+				'title'    => __( 'Metadata is left over from content that no longer exists', 'hakeemify-debloater' ),
 				'summary'  => sprintf(
 					/* translators: %s: number of orphaned meta rows. */
-					__( '%s metadata rows belong to a post, term or user that has been deleted.', 'debloater' ),
+					__( '%s metadata rows belong to a post, term or user that has been deleted.', 'hakeemify-debloater' ),
 					number_format_i18n( $total )
 				),
 				'why'      => __(
 					'Deleting content does not always delete everything attached to it. Rows left behind are unreachable through WordPress but still in the database, in every backup and every query against those tables. What counts as orphaned here is deliberately narrow: a row is only included when the table WordPress itself looks in has no matching owner.',
-					'debloater'
+					'hakeemify-debloater'
 				),
 				'evidence' => $this->evidence( $facts )
-					->fact( __( 'Orphaned post metadata', 'debloater' ), 'db.orphan_postmeta.count' )
-					->optional( __( 'Orphaned term metadata', 'debloater' ), 'db.orphan_termmeta.count' )
-					->optional( __( 'Orphaned user metadata', 'debloater' ), 'db.orphan_usermeta.count' )
+					->fact( __( 'Orphaned post metadata', 'hakeemify-debloater' ), 'db.orphan_postmeta.count' )
+					->optional( __( 'Orphaned term metadata', 'hakeemify-debloater' ), 'db.orphan_termmeta.count' )
+					->optional( __( 'Orphaned user metadata', 'hakeemify-debloater' ), 'db.orphan_usermeta.count' )
 					->build(),
 				'impact'   => $this->estimated( 'rows', (float) $total, 'rows' ),
 				'tweak_id' => 'db.clean_orphan_meta',

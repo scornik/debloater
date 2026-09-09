@@ -9,6 +9,7 @@ declare( strict_types = 1 );
 
 namespace Debloater\Cli;
 
+use Debloater\Storage\Uploads;
 use RuntimeException;
 
 /**
@@ -52,8 +53,11 @@ final class ExportDestination {
 
 	/**
 	 * The folder created inside the uploads directory.
+	 *
+	 * Kept as an alias of `Storage\Uploads::FOLDER` because the tests and the
+	 * readme name it, and one definition is enough.
 	 */
-	public const FOLDER = 'debloater';
+	public const FOLDER = Uploads::FOLDER;
 
 	/**
 	 * Resolve a destination for an export.
@@ -78,31 +82,7 @@ final class ExportDestination {
 	 * @throws RuntimeException When it cannot be created or written to.
 	 */
 	public function directory(): string {
-		$uploads = wp_upload_dir();
-
-		if ( ! empty( $uploads['error'] ) || ! isset( $uploads['basedir'] ) ) {
-			throw new RuntimeException(
-				sprintf(
-					'The uploads directory is not usable: %s',
-					is_string( $uploads['error'] ?? null ) ? $uploads['error'] : 'unknown error'
-				)
-			);
-		}
-
-		$directory = rtrim( str_replace( '\\', '/', (string) $uploads['basedir'] ), '/' ) . '/' . self::FOLDER;
-
-		if ( ! is_dir( $directory ) && ! wp_mkdir_p( $directory ) ) {
-			throw new RuntimeException( sprintf( 'Could not create the export directory: %s', $directory ) );
-		}
-
-		// phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.file_ops_is_writable -- This is the uploads directory, which is the writable one VIP documents; the check is here so the CLI can say so rather than failing on the write.
-		if ( ! is_writable( $directory ) ) {
-			throw new RuntimeException( sprintf( 'The export directory is not writable: %s', $directory ) );
-		}
-
-		$this->guard( $directory );
-
-		return $directory;
+		return Uploads::directory();
 	}
 
 	/**
@@ -129,27 +109,5 @@ final class ExportDestination {
 			gmdate( 'Ymd-His' ),
 			bin2hex( random_bytes( 4 ) )
 		);
-	}
-
-	/**
-	 * Put the guards in place, if they are not already.
-	 *
-	 * @param string $directory The export directory.
-	 * @return void
-	 */
-	private function guard( string $directory ): void {
-		$guards = array(
-			'index.php' => "<?php\n// Silence is golden.\n",
-			'.htaccess' => "Require all denied\n<IfModule !mod_authz_core.c>\nDeny from all\n</IfModule>\n",
-		);
-
-		foreach ( $guards as $name => $contents ) {
-			$path = $directory . '/' . $name;
-
-			if ( ! file_exists( $path ) ) {
-				// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents, WordPressVIPMinimum.Functions.RestrictedFunctions.file_ops_file_put_contents -- A static guard file inside uploads, written from the CLI where WP_Filesystem would ask for credentials nobody can answer.
-				file_put_contents( $path, $contents );
-			}
-		}
 	}
 }

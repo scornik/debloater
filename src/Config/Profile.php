@@ -9,6 +9,15 @@ declare( strict_types = 1 );
 
 namespace Debloater\Config;
 
+// phpcs:disable WordPress.Security.EscapeOutput.ExceptionNotEscaped -- A thrown message is not output.
+// Rest\Controller::guard() escapes every Throwable at the REST edge and Cli\Command catches at the CLI edge,
+// which is where BUILD-SPEC §13 rule 4 puts escaping; tests/Integration/ExceptionBoundaryTest.php holds both.
+// Escaping at the throw site would double-escape whatever the boundary escapes next.
+//
+// Inline rather than in phpcs.xml.dist: Plugin Check runs the standard without this
+// repository's config, so a suppression there is no suppression at all for the
+// reviewer (D-0004, P9).
+
 use Debloater\Contracts\ContractViolation;
 use Debloater\Contracts\Json;
 use Debloater\Recommend\IntentProfile;

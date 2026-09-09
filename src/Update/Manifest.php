@@ -59,8 +59,12 @@ final class Manifest {
 	 * A correctly signed manifest for a *different* product is still not this
 	 * product's registry, and swapping one for the other must not be possible
 	 * just because the same key signed both.
+	 *
+	 * `Brand::REGISTRY_PRODUCT`, not `Brand::SLUG`. They were the same string
+	 * until 0.3.0 and the difference matters: this one names what the registry
+	 * repository publishes, and that did not change when the plugin was renamed.
 	 */
-	public const PRODUCT = Brand::SLUG;
+	public const PRODUCT = Brand::REGISTRY_PRODUCT;
 
 	/**
 	 * Format version.

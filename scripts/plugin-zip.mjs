@@ -102,12 +102,15 @@ const ENTRY_DATE = new Date( Date.UTC( 2024, 0, 1, 0, 0, 0 ) );
  */
 const PLUGINS = {
 	free: {
-		slug: 'debloater',
+		// The folder inside the archive, and the archive's own name. This is
+		// what wordpress.org reads the slug from, so it is the one string here
+		// that has to be the plugin slug rather than anything convenient.
+		slug: 'hakeemify-debloater',
 		root: ROOT,
-		entry: 'debloater.php',
+		entry: 'hakeemify-debloater.php',
 		requiresBuild: true,
 		ship: [
-			{ from: 'debloater.php' },
+			{ from: 'hakeemify-debloater.php' },
 			{ from: 'uninstall.php' },
 			{ from: 'readme.txt' },
 			{ from: 'composer.json' },

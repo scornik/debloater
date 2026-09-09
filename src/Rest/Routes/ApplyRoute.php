@@ -73,19 +73,19 @@ final class ApplyRoute implements RouteInterface {
 	public function args(): array {
 		return array(
 			'profile'     => array(
-				'description' => __( 'Which profile to apply.', 'debloater' ),
+				'description' => __( 'Which profile to apply.', 'hakeemify-debloater' ),
 				'type'        => 'string',
 				'enum'        => array_keys( $this->plugin->registry()->profiles() ),
 				'required'    => false,
 			),
 			'tweaks'      => array(
-				'description' => __( 'Specific changes to apply, instead of a profile.', 'debloater' ),
+				'description' => __( 'Specific changes to apply, instead of a profile.', 'hakeemify-debloater' ),
 				'type'        => 'array',
 				'items'       => array( 'type' => 'string' ),
 				'required'    => false,
 			),
 			'confirm'     => array(
-				'description' => __( 'The confirmation token from the preview of this exact plan.', 'debloater' ),
+				'description' => __( 'The confirmation token from the preview of this exact plan.', 'hakeemify-debloater' ),
 				'type'        => 'string',
 				'required'    => true,
 				'minLength'   => 64,
@@ -94,7 +94,7 @@ final class ApplyRoute implements RouteInterface {
 			'attestation' => array(
 				'description' => __(
 					'The user states they have their own external backup. Recorded, and never a substitute for the recovery point Debloater takes itself.',
-					'debloater'
+					'hakeemify-debloater'
 				),
 				'type'        => 'boolean',
 				'required'    => false,
@@ -118,7 +118,7 @@ final class ApplyRoute implements RouteInterface {
 		if ( null === $result ) {
 			return new WP_Error(
 				'debloater_not_scanned',
-				__( 'There is nothing to apply yet. Run a scan first.', 'debloater' ),
+				__( 'There is nothing to apply yet. Run a scan first.', 'hakeemify-debloater' ),
 				array( 'status' => 409 )
 			);
 		}
@@ -126,7 +126,7 @@ final class ApplyRoute implements RouteInterface {
 		if ( $result->plan->isEmpty() ) {
 			return new WP_Error(
 				'debloater_empty_plan',
-				__( 'There is nothing to apply: this plan is empty.', 'debloater' ),
+				__( 'There is nothing to apply: this plan is empty.', 'hakeemify-debloater' ),
 				array( 'status' => 409 )
 			);
 		}
@@ -138,7 +138,7 @@ final class ApplyRoute implements RouteInterface {
 				'debloater_stale_confirmation',
 				__(
 					'This site has changed since that preview, so the plan is no longer the one you agreed to. Preview it again to see what is different.',
-					'debloater'
+					'hakeemify-debloater'
 				),
 				array( 'status' => 409 )
 			);

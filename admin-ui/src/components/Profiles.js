@@ -175,13 +175,13 @@ export default function Profiles( { onPreview, epoch } ) {
 	return (
 		<section className="debloater-panel debloater-profiles">
 			<h2 className="debloater-panel__title">
-				{ __( 'Profiles', 'debloater' ) }
+				{ __( 'Profiles', 'hakeemify-debloater' ) }
 			</h2>
 
 			<p className="debloater-panel__lede">
 				{ __(
 					'A profile is a named set of changes. Save what this site has, take it to another site, or bring one back — importing shows you a preview and applies nothing on its own.',
-					'debloater'
+					'hakeemify-debloater'
 				) }
 			</p>
 
@@ -203,7 +203,7 @@ export default function Profiles( { onPreview, epoch } ) {
 				>
 					{ sprintf(
 						/* translators: %s: profile name. */
-						__( 'Saved "%s".', 'debloater' ),
+						__( 'Saved "%s".', 'hakeemify-debloater' ),
 						saved
 					) }
 				</Notice>
@@ -222,7 +222,7 @@ export default function Profiles( { onPreview, epoch } ) {
 							/* translators: %s: profile name. */
 							__(
 								'Read "%s". Nothing has been applied — the preview below is where that is decided.',
-								'debloater'
+								'hakeemify-debloater'
 							),
 							imported.name
 						) }
@@ -234,7 +234,7 @@ export default function Profiles( { onPreview, epoch } ) {
 								/* translators: %s: comma-separated change ids. */
 								__(
 									'This site does not have these changes, so they were left out: %s',
-									'debloater'
+									'hakeemify-debloater'
 								),
 								imported.skipped.join( ', ' )
 							) }
@@ -245,7 +245,7 @@ export default function Profiles( { onPreview, epoch } ) {
 						<p>
 							{ __(
 								'It was written against a different version of the change list, so a change may mean something slightly different here. The preview shows what it would do.',
-								'debloater'
+								'hakeemify-debloater'
 							) }
 						</p>
 					) }
@@ -255,7 +255,7 @@ export default function Profiles( { onPreview, epoch } ) {
 							variant="primary"
 							onClick={ () => onPreview( imported.selection ) }
 						>
-							{ __( 'Preview these changes', 'debloater' ) }
+							{ __( 'Preview these changes', 'hakeemify-debloater' ) }
 						</Button>
 					) }
 				</Notice>
@@ -263,10 +263,10 @@ export default function Profiles( { onPreview, epoch } ) {
 
 			<div className="debloater-profiles__save">
 				<TextControl
-					label={ __( 'Save this setup as a profile', 'debloater' ) }
+					label={ __( 'Save this setup as a profile', 'hakeemify-debloater' ) }
 					help={ __(
 						'Records the changes this site has applied, under a name you choose.',
-						'debloater'
+						'hakeemify-debloater'
 					) }
 					value={ name }
 					onChange={ setName }
@@ -280,7 +280,7 @@ export default function Profiles( { onPreview, epoch } ) {
 					onClick={ save }
 					disabled={ busy || name.trim() === '' }
 				>
-					{ __( 'Save profile', 'debloater' ) }
+					{ __( 'Save profile', 'hakeemify-debloater' ) }
 				</Button>
 			</div>
 
@@ -290,7 +290,7 @@ export default function Profiles( { onPreview, epoch } ) {
 					onClick={ () => fileInput.current?.click() }
 					disabled={ busy }
 				>
-					{ __( 'Import a profile…', 'debloater' ) }
+					{ __( 'Import a profile…', 'hakeemify-debloater' ) }
 				</Button>
 				<input
 					ref={ fileInput }
@@ -305,7 +305,7 @@ export default function Profiles( { onPreview, epoch } ) {
 
 			{ profiles.status === 'loading' && (
 				<p className="debloater-loading">
-					<Spinner /> { __( 'Reading profiles…', 'debloater' ) }
+					<Spinner /> { __( 'Reading profiles…', 'hakeemify-debloater' ) }
 				</p>
 			) }
 
@@ -313,9 +313,9 @@ export default function Profiles( { onPreview, epoch } ) {
 				<table className="debloater-profiles__list widefat striped">
 					<thead>
 						<tr>
-							<th>{ __( 'Profile', 'debloater' ) }</th>
-							<th>{ __( 'Changes', 'debloater' ) }</th>
-							<th>{ __( 'Actions', 'debloater' ) }</th>
+							<th>{ __( 'Profile', 'hakeemify-debloater' ) }</th>
+							<th>{ __( 'Changes', 'hakeemify-debloater' ) }</th>
+							<th>{ __( 'Actions', 'hakeemify-debloater' ) }</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -325,7 +325,7 @@ export default function Profiles( { onPreview, epoch } ) {
 									{ row.name }
 									{ row.builtin && (
 										<span className="debloater-profiles__builtin">
-											{ __( 'built in', 'debloater' ) }
+											{ __( 'built in', 'hakeemify-debloater' ) }
 										</span>
 									) }
 								</td>
@@ -340,7 +340,7 @@ export default function Profiles( { onPreview, epoch } ) {
 											)
 										}
 									>
-										{ __( 'Export', 'debloater' ) }
+										{ __( 'Export', 'hakeemify-debloater' ) }
 									</Button>
 									{ row.selection.length > 0 && (
 										<Button
@@ -349,7 +349,7 @@ export default function Profiles( { onPreview, epoch } ) {
 												onPreview( row.selection )
 											}
 										>
-											{ __( 'Preview', 'debloater' ) }
+											{ __( 'Preview', 'hakeemify-debloater' ) }
 										</Button>
 									) }
 								</td>

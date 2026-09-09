@@ -46,7 +46,7 @@ import { fileURLToPath } from 'node:url';
 const ROOT = path.resolve( path.dirname( fileURLToPath( import.meta.url ) ), '..' );
 
 const RECORD = path.join( ROOT, 'tests', 'Packaging', 'free-plugin-content.json' );
-const ENTRY = path.join( ROOT, 'debloater.php' );
+const ENTRY = path.join( ROOT, 'hakeemify-debloater.php' );
 const README = path.join( ROOT, 'readme.txt' );
 const PACKAGE = path.join( ROOT, 'package.json' );
 
@@ -209,7 +209,7 @@ const constant = fs
 	.match( /const DEBLOATER_VERSION = '([^']+)'/ );
 
 if ( ! constant ) {
-	refuse( [ 'debloater.php has no DEBLOATER_VERSION constant.' ] );
+	refuse( [ 'hakeemify-debloater.php has no DEBLOATER_VERSION constant.' ] );
 }
 
 if ( constant[ 1 ] !== version ) {
@@ -226,7 +226,7 @@ if ( disagreements.length > 0 ) {
 	] );
 }
 
-const archive = path.join( ROOT, 'dist', `debloater-${ version }.zip` );
+const archive = path.join( ROOT, 'dist', `hakeemify-debloater-${ version }.zip` );
 
 if ( ! fs.existsSync( archive ) ) {
 	refuse( [

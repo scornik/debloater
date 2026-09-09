@@ -49,6 +49,6 @@ final class HomeProbe extends AbstractHttpProbe {
 	 * @return string
 	 */
 	protected function describe(): string {
-		return __( 'The home page', 'debloater' );
+		return __( 'The home page', 'hakeemify-debloater' );
 	}
 }

@@ -185,16 +185,16 @@ final class Comparison {
 	private function whyUnknown( Measurement $before, ?Measurement $after ): string {
 		if ( ! $before->isAvailable() ) {
 			return '' === $before->unavailable_because
-				? __( 'This was not measured before the change.', 'debloater' )
+				? __( 'This was not measured before the change.', 'hakeemify-debloater' )
 				: $before->unavailable_because;
 		}
 
 		if ( null === $after ) {
-			return __( 'This was not measured after the change.', 'debloater' );
+			return __( 'This was not measured after the change.', 'hakeemify-debloater' );
 		}
 
 		return '' === $after->unavailable_because
-			? __( 'This could not be measured after the change.', 'debloater' )
+			? __( 'This could not be measured after the change.', 'hakeemify-debloater' )
 			: $after->unavailable_because;
 	}
 }

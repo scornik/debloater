@@ -9,6 +9,15 @@ declare( strict_types = 1 );
 
 namespace Debloater\Config;
 
+// phpcs:disable WordPress.Security.EscapeOutput.ExceptionNotEscaped -- A thrown message is not output.
+// Rest\Controller::guard() escapes every Throwable at the REST edge and Cli\Command catches at the CLI edge,
+// which is where BUILD-SPEC §13 rule 4 puts escaping; tests/Integration/ExceptionBoundaryTest.php holds both.
+// Escaping at the throw site would double-escape whatever the boundary escapes next.
+//
+// Inline rather than in phpcs.xml.dist: Plugin Check runs the standard without this
+// repository's config, so a suppression there is no suppression at all for the
+// reviewer (D-0004, P9).
+
 use Debloater\Contracts\ContractViolation;
 use Debloater\Contracts\Json;
 use Debloater\Recommend\IntentProfile;
@@ -206,7 +215,7 @@ final class ProfileStore {
 			throw new ContractViolation(
 				self::class,
 				'id',
-				__( 'The profiles Debloater ships with cannot be changed. Save a copy under your own name instead.', 'debloater' )
+				__( 'The profiles Debloater ships with cannot be changed. Save a copy under your own name instead.', 'hakeemify-debloater' )
 			);
 		}
 
@@ -222,7 +231,7 @@ final class ProfileStore {
 				'',
 				sprintf(
 					/* translators: %d: the maximum number of profiles. */
-					__( 'This site already has %d saved profiles, which is the most it keeps. Delete one first.', 'debloater' ),
+					__( 'This site already has %d saved profiles, which is the most it keeps. Delete one first.', 'hakeemify-debloater' ),
 					self::MAX
 				)
 			);
@@ -247,7 +256,7 @@ final class ProfileStore {
 			throw new ContractViolation(
 				self::class,
 				'id',
-				__( 'The profiles Debloater ships with cannot be deleted.', 'debloater' )
+				__( 'The profiles Debloater ships with cannot be deleted.', 'hakeemify-debloater' )
 			);
 		}
 
@@ -350,7 +359,7 @@ final class ProfileStore {
 			throw new ContractViolation(
 				Profile::class,
 				'',
-				__( 'That file is not a Debloater profile: it is not a JSON document.', 'debloater' )
+				__( 'That file is not a Debloater profile: it is not a JSON document.', 'hakeemify-debloater' )
 			);
 		}
 

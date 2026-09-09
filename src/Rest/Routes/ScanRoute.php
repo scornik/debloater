@@ -70,7 +70,7 @@ final class ScanRoute implements RouteInterface {
 			'check_plugin_updates' => array(
 				'description' => __(
 					'Look up plugin release dates at wordpress.org for this scan. This is the only thing Debloater sends off the server, it happens only when this is true, and it is not remembered: the next scan asks again.',
-					'debloater'
+					'hakeemify-debloater'
 				),
 				'type'        => 'boolean',
 				'required'    => false,

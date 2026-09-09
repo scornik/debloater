@@ -78,18 +78,18 @@ final class TrashRule extends AbstractRule {
 				'category' => Category::DATABASE,
 				'severity' => Severity::LOW,
 				'risk'     => Risk::MEDIUM,
-				'title'    => __( 'Content is waiting in the trash', 'debloater' ),
+				'title'    => __( 'Content is waiting in the trash', 'hakeemify-debloater' ),
 				'summary'  => sprintf(
 					/* translators: %s: number of trashed items. */
-					__( '%s items are in the trash.', 'debloater' ),
+					__( '%s items are in the trash.', 'hakeemify-debloater' ),
 					number_format_i18n( $trashed )
 				),
 				'why'      => __(
 					'Trashed content is still in the posts table, with its metadata and its terms, until something empties the trash. WordPress does that itself after thirty days when its scheduled task runs. Emptying it deletes the content permanently, so only items that have been there a while are touched — something trashed this morning is very often something about to be untrashed.',
-					'debloater'
+					'hakeemify-debloater'
 				),
 				'evidence' => $this->evidence( $facts )
-					->fact( __( 'Items in the trash', 'debloater' ), 'db.trash.count' )
+					->fact( __( 'Items in the trash', 'hakeemify-debloater' ), 'db.trash.count' )
 					->build(),
 				'impact'   => $this->estimated( 'rows', (float) $trashed, 'rows' ),
 				'tweak_id' => 'db.empty_trash',
