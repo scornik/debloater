@@ -126,31 +126,6 @@ its own escaping.
 
 ---
 
-### `debloater_registry_origin`
-
-```php
-apply_filters( 'debloater_registry_origin', string $base ): string
-```
-
-Where registry updates are fetched from. Return a base URL with no trailing
-slash.
-
-Exists so a Pro priority channel can point at a different repository without the
-free plugin knowing anything about channels.
-
-**It cannot relax anything.** `RegistryOrigin` refuses a base that is not HTTPS
-and rejects path segments it does not like, so a base this filter cannot
-construct is a base nothing fetches from — and a filter that returns something
-unusable falls back to the shipped origin rather than switching updates off. The
-manifest from wherever it points still has to pass Ed25519 signature
-verification, the same traversal checks and the same size and count ceilings
-before a single file is written.
-
-It also does not turn updates on. The registry fetch is opt-in
-(`BUILD-SPEC.md` §13 rule 9) and stays opt-in.
-
----
-
 ### `debloater_required_capability`
 
 ```php

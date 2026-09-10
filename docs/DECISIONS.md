@@ -3831,3 +3831,91 @@ orphaning somebody's rollback, and it is not a close call.
 Exports the operator asked for are left alone on uninstall: `rmdir()` refuses a
 directory that still has their files in it, which is the correct outcome rather
 than an error to report.
+
+---
+
+## D-0073 – the free plugin fetches nothing; the fetch moves to Pro
+
+- **Phase:** 0.4.0, wordpress.org review round 2
+- **Date:** 2026-09-10
+- **Status:** accepted
+- **Supersedes:** `D-0059` (signed registry releases) and the fetch half of
+  `D-0045`, for the free plugin only. Both still describe Pro.
+
+### The finding
+
+> Offloading images, js, css, and other scripts to your servers or any remote
+> service is disallowed. When you call remote data you introduce an unnecessary
+> dependency on another site.
+>
+> `src/Update/RegistryOrigin.php:47 public const DEFAULT_BASE = 'https://raw.githubusercontent.com/scornik/debloater-registry'`
+
+The exception is for a plugin performing a *service*. Fetching our own rule
+documents from our own GitHub repository is not a service in that sense — it is
+the plugin pulling data it could ship, which is the case the rule names.
+
+### What was removed from free
+
+`Update\RegistryOrigin`, `Update\RegistryUpdater`, `Update\UpdateCheck`,
+`Update\SignatureVerifier`, the `debloater_registry_origin` filter,
+`Plugin::registryUpdater()`, the `--check-updates` flag on `wp debloater
+registry`, and the readme's disclosure of GitHub as an external service.
+
+`Update\Manifest` stays: it reads the *vendored* `registry/manifest.json` to
+report which registry a build carries, and touches no network.
+
+### How new rules reach a site now
+
+In a plugin release. The registry is vendored, and a registry change becomes a
+site's change when that site updates the plugin — the same path as any other
+part of it, through wordpress.org's own update system rather than around it.
+
+This is slower and it is the correct trade. The alternative was a plugin that
+downloads behaviour from a host wordpress.org does not control, which is the
+thing being objected to, and "but it is signed" answers a different objection
+than the one that was raised.
+
+### Phase 21 now feeds releases
+
+The pipeline is unchanged in what it does — watch, observe, verify, analyse,
+propose — and changed in where its output goes. A proposal lands in
+`scornik/debloater-registry`; a registry release is picked up by the next
+*plugin* release rather than by sites polling for one. `docs/PIPELINE.md` there
+carries the same note so the two repositories do not disagree about it.
+
+### Where the fetch went
+
+Pro. It is distributed through Freemius, not wordpress.org, so the guideline
+does not reach it, and it already sold "priority registry updates" as a feature
+(`D-0064`, `Features\RegistryChannel`). Everything that made the fetch
+defensible came with it: Ed25519 verification against a pinned key,
+verification *before* parsing (`D-0059`), fail-closed on anything unexpected,
+and opt-in.
+
+That is a real asymmetry between the two plugins and it is worth stating
+plainly: a free site gets new rules when it updates, a Pro site can ask for them
+sooner. It is not a safety difference — every rule reaches both, and §13 rule 15
+still holds, because nothing about *applying* a change differs. It is a latency
+difference, which is what a paid channel is allowed to sell.
+
+### What is asserted
+
+`NoRemoteCallsTest` runs a whole scan → analyse → preview → apply → roll back
+cycle behind a `pre_http_request` spy and fails on any request to a host that is
+not the site's own. It also greps every shipped PHP file for
+`raw.githubusercontent.com`, `RegistryUpdater`, `RegistryOrigin` and the filter
+name, because a fetch behind a flag nobody sets is still a fetch and the
+reviewer reads the source.
+
+The spy is required to have recorded *something* first. "No off-site requests"
+is a sentence about a pipeline that made no requests at all, otherwise (**P3**).
+
+### The one outbound call that remains
+
+The plugin release-date lookup against `api.wordpress.org`, used to spot
+abandoned plugins. It is WordPress's own API, off unless a scan is asked for it,
+never remembered, and disclosed in readme.txt.
+`ReleaseReadinessTest::test_every_outbound_host_is_disclosed` reads the hosts
+out of the files that can make requests and requires the readme to name each
+one — a list written by the code rather than by hand, because the readme
+already drifted from the code once and that is how it was found.

@@ -12,7 +12,6 @@ namespace Debloater\Tests\Integration;
 use WP_REST_Request;
 use Debloater\Brand;
 use Debloater\Security\Capabilities;
-use Debloater\Update\SignatureVerifier;
 
 /**
  * BUILD-SPEC §13, §17 Phase 18.
@@ -388,14 +387,18 @@ final class SecurityRulesTest extends IntegrationTestCase {
 			);
 		}
 
+		// The scan has to have asked for something, or the loop above is a
+		// loop over nothing (**P3**).
+		$this->assertNotSame( array(), $requests, 'the scan made no requests at all' );
+
 		$this->assertFalse(
 			$this->plugin->wpOrgUpdates()->enabled(),
 			'§13 rule 9: the wordpress.org check is opt-in.'
 		);
-		$this->assertFalse(
-			$this->plugin->registryUpdater()->enabled(),
-			'§13 rule 9: the registry fetch is opt-in.'
-		);
+
+		// The registry fetch is not opt-in any more — it does not exist.
+		// `NoRemoteCallsTest` covers the whole pipeline and the absence of the
+		// code; this is the scan-only half of rule 9 (D-0073).
 	}
 
 	/**
@@ -591,22 +594,18 @@ final class SecurityRulesTest extends IntegrationTestCase {
 			);
 		}
 
-		// A public verification key may ship, and now does. What rule 15
-		// forbids is the private half, so the assertion is about which half
-		// this is: an Ed25519 public key is 32 bytes and a secret key is 64.
+		// There is no signing key here to assert anything about. The free
+		// plugin fetches nothing, so it verifies nothing: `SignatureVerifier`
+		// and the pinned public key moved to Pro with the fetch (D-0073), and
+		// what used to be checked here is checked there.
 		//
-		// This used to assert the constant was empty, which was true while no
-		// signing key existed and would now be a test asserting the feature is
-		// switched off.
-		$pinned = SignatureVerifier::PUBLIC_KEY_HEX;
-
-		$this->assertMatchesRegularExpression( '/^[0-9a-f]{64}$/', $pinned );
-		$this->assertSame( 32, strlen( (string) sodium_hex2bin( $pinned ) ) );
-		$this->assertTrue( ( new SignatureVerifier() )->isAvailable() );
-
-		// And emptying it still fails closed rather than open, which is the
-		// property the old assertion was really protecting.
-		$this->assertFalse( ( new SignatureVerifier( '' ) )->isAvailable() );
+		// Rule 15 is unchanged and still enforced above — what it forbids is a
+		// *private* key shipping, and the surest way to keep that true is to
+		// ship no key at all.
+		$this->assertFileDoesNotExist(
+			DEBLOATER_TESTS_ROOT . '/src/Update/SignatureVerifier.php',
+			'the signature verifier belongs to Pro now'
+		);
 	}
 
 	/**

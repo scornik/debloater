@@ -39,8 +39,6 @@ use Debloater\Recommend\PreviewPlanner;
 use Debloater\Recommend\RecommendationEngine;
 use Debloater\Registry\Loader;
 use Debloater\Update\Manifest;
-use Debloater\Update\RegistryOrigin;
-use Debloater\Update\RegistryUpdater;
 use Debloater\Registry\Profile;
 use Debloater\Registry\Registry;
 use Debloater\Registry\SchemaValidator;
@@ -424,51 +422,6 @@ final class Plugin {
 
 			return '';
 		}
-	}
-
-	/**
-	 * The registry update check, off unless asked.
-	 *
-	 * @return RegistryUpdater
-	 */
-	public function registryUpdater(): RegistryUpdater {
-		return $this->service(
-			'registry_updater',
-			function (): RegistryUpdater {
-				/**
-				 * Where registry updates are fetched from.
-				 *
-				 * Exists so a Pro priority channel can point at a different
-				 * repository without the free plugin knowing anything about
-				 * channels. What it cannot do is relax the rules: RegistryOrigin
-				 * refuses anything that is not HTTPS and rejects a path segment
-				 * it does not like, and a base this filter cannot construct is a
-				 * base nothing can fetch from. So the worst an extension can do
-				 * is point at a different HTTPS repository — whose manifest
-				 * still has to pass signature verification before a single file
-				 * is written (BUILD-SPEC §13 rule 9, §17 Phase 17).
-				 *
-				 * @since 0.1.0
-				 *
-				 * @param string $base The base URL, with no trailing slash.
-				 */
-				$base = apply_filters( 'debloater_registry_origin', RegistryOrigin::DEFAULT_BASE );
-
-				try {
-					$origin = new RegistryOrigin( is_string( $base ) ? $base : RegistryOrigin::DEFAULT_BASE );
-				} catch ( \Throwable $error ) {
-					// A filter that produced something unusable falls back to
-					// the shipped origin rather than switching updates off. An
-					// extension breaking its own channel must not take the
-					// plugin's own with it.
-					unset( $error );
-
-					$origin = new RegistryOrigin();
-				}
-
-				return new RegistryUpdater( $this->registryTag(), $origin );
-			}
-		);
 	}
 
 	/**

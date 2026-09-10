@@ -255,20 +255,33 @@ other is a key somebody changed without saying so.
 
 ## What the plugin does with it
 
-In this order, and the order is the point:
+**The free plugin does not fetch anything.** The registry it uses is the copy
+vendored in `registry/`, and that is the only one it has. A newer registry
+reaches a site the way every other part of the plugin does: in a plugin release.
 
-1. Fetch `manifest.sig`. Refuse anything that is not exactly 64 bytes.
-2. Fetch `manifest.json`. Refuse a non-200, an empty body, or more than a
-   megabyte.
-3. **Verify those bytes against the pinned key.** Nothing has been parsed yet.
-4. Parse the manifest.
-5. Fetch each file it lists and check its SHA-256 against the manifest.
-6. Stage.
+That changed in 0.4.0, on wordpress.org's instruction — a plugin may not pull
+code or data from a third-party host, and `raw.githubusercontent.com` is a
+third-party host however well the bytes are signed (`D-0073`).
 
-A failure at any step leaves the vendored registry untouched and says which
-step failed. Verification before parsing is deliberate: it keeps a JSON parser
-out of the trust boundary, so untrusted bytes never reach `json_decode()` on the
-strength of nothing.
+The fetch itself was not thrown away. It moved to Pro, which is distributed
+through Freemius rather than wordpress.org and already sold a priority registry
+channel, and it kept everything that made it defensible: signature verification
+against a pinned key, verify-before-parse, fail-closed on anything unexpected,
+and opt-in.
 
-The fetch remains **opt-in and off by default**, reachable only by running a
-WP-CLI command. Signing a release does not make anything download one.
+### What that means for a release
+
+Signing a registry release still matters — Pro verifies it, and anybody can
+check a tag by hand. What has changed is who downloads one:
+
+| | Before 0.4.0 | Now |
+|---|---|---|
+| Free plugin | vendored copy, optional WP-CLI fetch | vendored copy only |
+| Pro | the same fetch, priority channel | the fetch, priority channel |
+| How a free site gets new rules | fetch, or a plugin update | a plugin update |
+
+The Phase 21 pipeline is unaffected in what it does and changed in what it
+feeds: its proposals land in the registry repository, and a registry release is
+picked up by the *next plugin release* rather than by sites polling for one.
+`docs/PIPELINE.md` in `scornik/debloater-registry` carries the same note.
+

@@ -13,7 +13,6 @@ use Debloater\Contracts\ApplyResult;
 use Debloater\Contracts\PreviewPlan;
 use Debloater\Contracts\Run;
 use Debloater\Plugin;
-use Debloater\Update\RegistryOrigin;
 
 /**
  * BUILD-SPEC §17 Phase 19.
@@ -36,7 +35,6 @@ final class ExtensionPointsTest extends IntegrationTestCase {
 	 */
 	public function tear_down(): void {
 		remove_all_filters( 'debloater_dashboard_panels' );
-		remove_all_filters( 'debloater_registry_origin' );
 		remove_all_actions( 'debloater_scan_complete' );
 		remove_all_actions( 'debloater_apply_complete' );
 
@@ -262,64 +260,6 @@ final class ExtensionPointsTest extends IntegrationTestCase {
 		);
 
 		$this->assertCount( 5, $this->panels() );
-	}
-
-	/**
-	 * The registry origin filter changes where updates come from.
-	 *
-	 * @return void
-	 */
-	public function test_registry_origin_can_be_redirected(): void {
-		$elsewhere = 'https://raw.githubusercontent.com/scornik/somewhere-else';
-
-		add_filter( 'debloater_registry_origin', static fn (): string => $elsewhere );
-
-		$this->plugin->resetServices();
-
-		$this->assertStringStartsWith(
-			$elsewhere,
-			$this->plugin->registryUpdater()->originBase()
-		);
-	}
-
-	/**
-	 * An origin the free plugin would refuse falls back rather than breaking.
-	 *
-	 * @return void
-	 */
-	public function test_an_unusable_origin_falls_back(): void {
-		foreach ( array( 'http://insecure.example.com', 'not a url at all', '' ) as $bad ) {
-			remove_all_filters( 'debloater_registry_origin' );
-
-			add_filter( 'debloater_registry_origin', static fn (): string => $bad );
-
-			$this->plugin->resetServices();
-
-			$this->assertSame(
-				RegistryOrigin::DEFAULT_BASE,
-				$this->plugin->registryUpdater()->originBase(),
-				sprintf( 'An origin of "%s" should fall back to the shipped one.', $bad )
-			);
-		}
-	}
-
-	/**
-	 * The origin filter cannot switch updates on.
-	 *
-	 * @return void
-	 */
-	public function test_redirecting_the_origin_does_not_enable_updates(): void {
-		add_filter(
-			'debloater_registry_origin',
-			static fn (): string => 'https://raw.githubusercontent.com/scornik/somewhere-else'
-		);
-
-		$this->plugin->resetServices();
-
-		$this->assertFalse(
-			$this->plugin->registryUpdater()->enabled(),
-			'Pointing at a different channel must not opt a site into fetching from it.'
-		);
 	}
 
 	/**

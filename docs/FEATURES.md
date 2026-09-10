@@ -46,8 +46,7 @@ back**. Nothing skips a stage.
 
 | Capability | One line | Where | Reached by | Tested by |
 |---|---|---|---|---|
-| Vendored snapshot | The plugin ships its own copy; a site with no network is missing nothing | `registry/` | automatic | `RegistryPinnedReleaseTest` |
-| Signed updates | Opt-in fetch, Ed25519 signature verified against a pinned key before parsing | `src/Update/` | `wp debloater registry` | `RegistryUpdaterTest`, `RegistryPinnedReleaseTest` |
+| Vendored snapshot | The plugin ships its own copy and fetches nothing; new rules arrive with a plugin release (D-0073) | `registry/` | automatic | `NoRemoteCallsTest` |
 | Schema validation | Every document validated as it loads | `src/Registry/` | automatic | `ScannerTest`, `AnalyzerTest` |
 
 ### Interfaces
@@ -136,7 +135,7 @@ documented hooks. **It adds no tweaks and no safety features**, asserted by
 | Drift detection | What changed between the last two scans | `src/Features/DriftDetector.php` | Pro screen, a text panel on the free dashboard | `ProIntegrationTest` |
 | Before/after report | A printable document per applied change, with the agency's name on it | `src/Features/BeforeAfterReport.php` | Pro screen → Open | `ProScreenTest` |
 | Portable profiles | Save a setup once and take it to every site you manage: apply, export, duplicate, rename, delete, with built-ins always listed. Applying opens Debloater's preview — Pro has no apply path of its own (D-0068) | `src/Admin/ProfilesPanel.php` | Pro screen | `ProProfilesPanelTest`, `ProArchitectureTest` |
-| Registry channel | Priority registry updates | `src/Features/RegistryChannel.php` | automatic | `ProIntegrationTest` |
+| Registry channel | Priority registry updates, and since 0.4.0 the only registry fetch there is | `src/Features/RegistryChannel.php` | automatic | `ProIntegrationTest` |
 | Licence display | Plan, quota and a way to release the site, on Pro's own screen | `src/Admin/Screen.php` | Pro screen | `ProScreenTest` |
 | Entitlement | Freemius behind an interface, cached and offline-tolerant | `src/Entitlement/` | automatic | `EntitlementTest`, `FreemiusIntegrationTest` |
 | Cloud client | Optional; with the cloud unreachable Pro degrades to local features | `src/Cloud/` | automatic | `ProIntegrationTest`, `ProArchitectureTest` |

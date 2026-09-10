@@ -83,9 +83,8 @@ Fonts).
 
 = External services =
 
-Debloater works completely offline. Two optional features reach outside your
-site, neither of them enabled by default, and neither of them sends anything
-about your site.
+Debloater works completely offline. One optional feature reaches outside your
+site, it is not enabled by default, and it sends nothing about your site.
 
 **Plugin release dates, from wordpress.org.** When you tick "check plugin
 update dates" before a scan, Debloater asks
@@ -96,14 +95,9 @@ no user, no site data. The setting is per scan and is not remembered, so it
 never happens without you asking that time. This is WordPress's own API:
 see the [wordpress.org privacy notice](https://wordpress.org/about/privacy/).
 
-**Registry updates, from GitHub.** The rules Debloater reasons with — which
-changes exist, what they touch, how risky they are — ship inside the plugin. A
-newer set can be fetched from
-`https://raw.githubusercontent.com/scornik/debloater-registry`, and only through
-WP-CLI, by running the command yourself. It is a download: nothing about your
-site is sent. The downloaded rules are refused unless they carry a valid
-signature. See GitHub's [terms](https://docs.github.com/en/site-policy/github-terms/github-terms-of-service)
-and [privacy statement](https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement).
+The rules Debloater reasons with — which changes exist, what they touch, how
+risky they are — ship inside the plugin and are never fetched. A newer set
+arrives when you update the plugin, like any other part of it.
 
 Nothing else leaves your server. There is no telemetry, no analytics, no
 licensing call and no usage reporting in this plugin.

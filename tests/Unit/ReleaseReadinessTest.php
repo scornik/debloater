@@ -201,11 +201,16 @@ final class ReleaseReadinessTest extends TestCase {
 	 * Every host the plugin can call is disclosed in readme.txt.
 	 *
 	 * wordpress.org requires a plugin to say which outside services it uses.
-	 * The readme said the one exception to "no outbound requests" was looking
-	 * up release dates at wordpress.org — and there was a second: registry
-	 * updates from `raw.githubusercontent.com`, off by default and reachable
-	 * only through WP-CLI, but real, shipped and undisclosed. Nothing in the
-	 * suite compared the claim against the code, so the claim drifted.
+	 * The readme once claimed the only exception to "no outbound requests" was
+	 * looking up release dates at wordpress.org, while a second existed:
+	 * registry updates from `raw.githubusercontent.com`, off by default and
+	 * reachable only through WP-CLI, but real, shipped and undisclosed. Nothing
+	 * in the suite compared the claim against the code, so the claim drifted.
+	 *
+	 * The registry fetch is gone entirely as of 0.4.0 (D-0073), so there should
+	 * be exactly one host left. This test does not know that number and must
+	 * not: it reads whatever the code can call and requires the readme to say
+	 * so, which is the only version of this check that cannot drift.
 	 *
 	 * This reads the hosts out of the files that actually make requests, and
 	 * requires each one to appear in the readme. It is deliberately not a list
