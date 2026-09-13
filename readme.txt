@@ -4,7 +4,7 @@ Tags: bloat, debloat, performance, cleanup, optimization
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 0.3.0
+Stable tag: 0.4.0
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -201,6 +201,27 @@ LiteSpeed Cache and WP Super Cache.
 
 == Changelog ==
 
+= 0.4.0 =
+* Debloater no longer downloads anything. New rules arrive with plugin
+  updates, the same way the rest of the plugin does. The only requests it
+  makes on its own are to your own site, to check it still works after a
+  change.
+* `wp debloater export` and `wp debloater profile export` write only to
+  `wp-content/uploads/debloater/`. `--file=-` still prints to standard output;
+  a file path is refused, and the command says where the export goes instead.
+* Removed the change that hid WordPress's update notice from people who cannot
+  update. WordPress already shows that notice only to people who can, and a
+  plugin should not interfere with it. If you had it selected, it stops doing
+  anything when you update; nothing else you selected is affected.
+* Fixed: a change you rolled back and then applied again was shown as rolled
+  back, although it was in place.
+* Fixed: hiding a plugin's admin notices did not work when that plugin was
+  installed through a symbolic link.
+* Scripts and stylesheets are traced to the plugin or theme that loads them by
+  their address alone, which also works when your content is served from a
+  CDN. Files in uploads and cache folders are no longer attributed to
+  WordPress. The per-file size is no longer reported.
+
 = 0.3.0 =
 * Renamed to Hakeemify Debloater. The plugin folder and text domain change
   with it; your settings, recovery points and `wp debloater` commands do not.
@@ -233,6 +254,9 @@ LiteSpeed Cache and WP Super Cache.
 Initial wordpress.org release.
 
 == Upgrade Notice ==
+
+= 0.4.0 =
+Debloater no longer downloads anything, and the change that hid WordPress's update notice is removed. If you had it selected, the notice comes back for administrators; nothing else changes.
 
 = 0.1.1 =
 Initial wordpress.org release.

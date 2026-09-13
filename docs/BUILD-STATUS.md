@@ -2398,3 +2398,58 @@ is public, so the two jobs that check it out no longer need a token that was
 never configured, and the invariants asserting "Pro adds nothing to Debloater"
 no longer skip on every run while reporting success. See
 `debloater-pro/docs/DECISIONS.md` D-0065.
+
+---
+
+## 0.4.0 – wordpress.org review round 2
+
+Round 1 (0.3.0: the compiled runtime removed, the rename, the spill moved to
+uploads, redirects refused with credentials) was not entered in this ledger when
+it landed; `CHANGELOG.md` and `docs/DECISIONS.md` D-0070–D-0072 are its record.
+
+### The four findings
+
+| Item | Commit | Decision |
+|---|---|---|
+| Remote calls: the free plugin fetches nothing | `1e4dd63` | D-0073 |
+| CLI file writes: exports to uploads only, `--file` takes only `-` | `69e8cbe` | D-0074 |
+| Paths: assets attributed in URL space, verdict on every path constant | `7b13f02` | D-0076 |
+| Update nags: `admin.hide_update_nags_non_admins` removed | `36faab2` | D-0077 |
+
+### Found while fixing them
+
+- `74bb904` — a rolled-back tweak applied again was recorded as `ROLLED_BACK`
+  while in effect (D-0075). Found by `tools/cli-e2e.sh`, whose status check had
+  been grepping for a field removed in `f98feec` and could not pass.
+- `db5b0e6` — CI activated `debloater`, a slug that no longer exists, and the
+  packaging job looked for the old archive name. Nothing had pushed since the
+  rename, so CI had never run against it.
+- `3a5b3b7` — `uninstall.php` ships and was not in `phpcs.xml.dist`.
+- `cf9f2b9` — `lint:js` had failed since the text-domain rename in `1d5a751`.
+- `8b942ce` — the symlinked-plugin fix the changelog claims, tested.
+- Pro: `3bd6e16` (rename follow-up; its eight architecture invariants had been
+  skipping), `e9cbcca`, `a92a9bd`. Registry: `9d2bef6`, `be5c75d`.
+
+### The gate, on the release tree
+
+| Step | Result |
+|---|---|
+| PHPCS | 0 errors, 0 warnings, 301 files |
+| PHPStan level 6 | no errors |
+| Unit | 1141 pass / 0 fail |
+| JS tests / lint | 23 pass / clean |
+| Integration | 332 + 9 fail-probe pass / 0 fail |
+| WP-CLI end to end | the whole loop ran |
+| Registry manifest | matches all 57 files |
+| Packaging | 13 pass / 0 fail, including install and activate |
+| Version discipline | reconciled at 0.4.0 |
+
+### Open
+
+- `PluginScanner::modifiedAt()` and `WordPressScanner::xmlrpcEnabled()` still
+  read the disk; both are listed as open in D-0076 pending a decision.
+- Pro's `test_the_priority_channel_needs_an_entitlement` fails: it tests a
+  filter removed from free in `1e4dd63`. What Pro's registry channel becomes is
+  an open product decision (the fetch it would port never discovered a newer
+  release, and the priority repository does not exist).
+- Not pushed, not tagged. `docs/RELEASING.md` step 7 is a person's call.

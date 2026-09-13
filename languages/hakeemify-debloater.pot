@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-09-08T11:22:46+00:00\n"
+"POT-Creation-Date: 2026-09-13T08:08:03+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: hakeemify-debloater\n"
@@ -487,7 +487,6 @@ msgstr ""
 
 #: src/Analyze/Rules/FileEditorRule.php:84
 #: src/Analyze/Rules/HeartbeatIntervalRule.php:114
-#: src/Analyze/Rules/UpdateNagRule.php:99
 msgid "Administrators"
 msgstr ""
 
@@ -804,28 +803,6 @@ msgstr ""
 msgid "Items in the trash"
 msgstr ""
 
-#: src/Analyze/Rules/UpdateNagRule.php:86
-msgid "The core update notice is shown to people who cannot update"
-msgstr ""
-
-#. translators: 1: number of people who edited content recently, 2: number of administrators.
-#: src/Analyze/Rules/UpdateNagRule.php:89
-#, php-format
-msgid "%1$d people edited content here in the last week and %2$d of the accounts are administrators."
-msgstr ""
-
-#: src/Analyze/Rules/UpdateNagRule.php:93
-msgid "\"WordPress x.y is available\" goes to everyone who can open the admin, including authors, editors and shop managers, none of whom can act on it. What they can do is worry about it, or interrupt somebody. Hiding it from them leaves it exactly where it needs to be: anyone who can actually run the update still sees it, every time, and that part is not configurable."
-msgstr ""
-
-#: src/Analyze/Rules/UpdateNagRule.php:98
-msgid "Core update notice registered"
-msgstr ""
-
-#: src/Analyze/Rules/UpdateNagRule.php:100
-msgid "People who edited content in the last week"
-msgstr ""
-
 #: src/Analyze/Rules/WelcomePanelRule.php:76
 msgid "The dashboard welcome panel is still being shown"
 msgstr ""
@@ -943,13 +920,13 @@ msgid "This change was interrupted and could not be rolled back automatically: %
 msgstr ""
 
 #. translators: 1: the original failure, 2: the rollback failure.
-#: src/Apply/ApplyManager.php:762
+#: src/Apply/ApplyManager.php:764
 #, php-format
 msgid "%1$s The rollback then failed as well: %2$s"
 msgstr ""
 
 #. translators: %s: the failed checks, already sentence-formed.
-#: src/Apply/ApplyManager.php:824
+#: src/Apply/ApplyManager.php:826
 #, php-format
 msgid "The site did not pass its checks after the change, so it was put back. %s"
 msgstr ""
@@ -975,7 +952,7 @@ msgid "Nothing to report."
 msgstr ""
 
 #: src/Cli/Command.php:391
-#: src/Cli/Command.php:1161
+#: src/Cli/Command.php:1142
 msgid "There is nothing to apply: the plan is empty."
 msgstr ""
 
@@ -996,40 +973,40 @@ msgid "To check this site instead, run `wp debloater verify` with no flag."
 msgstr ""
 
 #. translators: 1: registry tag, 2: number of changes.
-#: src/Cli/Command.php:543
+#: src/Cli/Command.php:538
 #, php-format
 msgid "Registry %1$s, %2$d changes."
 msgstr ""
 
-#: src/Cli/Command.php:544
+#: src/Cli/Command.php:539
 msgid "unversioned"
 msgstr ""
 
-#: src/Cli/Command.php:680
+#: src/Cli/Command.php:656
 msgid "Give the id of the recovery point."
 msgstr ""
 
 #. translators: %s: the id given.
-#: src/Cli/Command.php:691
-#: src/Cli/Command.php:1517
+#: src/Cli/Command.php:667
+#: src/Cli/Command.php:1504
 #, php-format
 msgid "There is no recovery point with the id %s."
 msgstr ""
 
 #. translators: %d: the id deleted.
-#: src/Cli/Command.php:714
+#: src/Cli/Command.php:690
 #, php-format
 msgid "Deleted recovery point %d. That change can no longer be undone."
 msgstr ""
 
 #. translators: 1: plugin version, 2: registry hash.
-#: src/Cli/Command.php:759
+#: src/Cli/Command.php:735
 #, php-format
 msgid "Debloater %1$s, registry %2$s"
 msgstr ""
 
 #. translators: %d: number of selected changes.
-#: src/Cli/Command.php:768
+#: src/Cli/Command.php:744
 #, php-format
 msgid "%d change selected"
 msgid_plural "%d changes selected"
@@ -1037,192 +1014,198 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: 1: runtime hash, 2: loader mode.
-#: src/Cli/Command.php:780
+#: src/Cli/Command.php:756
 #, php-format
 msgid "Runtime %1$s, loaded by the %2$s"
 msgstr ""
 
-#: src/Cli/Command.php:784
+#: src/Cli/Command.php:760
 msgid "No runtime file: nothing is being changed on the front end."
 msgstr ""
 
-#: src/Cli/Command.php:789
+#: src/Cli/Command.php:765
 msgid "The runtime file on disk is not the one Debloater generated."
 msgstr ""
 
-#: src/Cli/Command.php:877
+#: src/Cli/Command.php:854
 msgid "Use: profile list|save <name>|export <name>|import <file>|apply <name> --yes"
 msgstr ""
 
-#: src/Cli/Command.php:901
+#: src/Cli/Command.php:878
 #: build/index.js:8
 msgid "built in"
 msgstr ""
 
-#: src/Cli/Command.php:902
+#: src/Cli/Command.php:879
 msgid "saved here"
 msgstr ""
 
-#: src/Cli/Command.php:925
+#: src/Cli/Command.php:902
 msgid "A profile needs a name: profile save \"Client baseline\""
 msgstr ""
 
 #. translators: 1: profile name, 2: profile id, 3: number of changes.
-#: src/Cli/Command.php:944
+#: src/Cli/Command.php:921
 #, php-format
 msgid "Saved \"%1$s\" as %2$s, with %3$d changes."
 msgstr ""
 
 #. translators: %s: file path.
-#: src/Cli/Command.php:994
+#: src/Cli/Command.php:975
 #, php-format
 msgid "Could not write %s."
 msgstr ""
 
 #. translators: 1: profile name, 2: file path.
-#: src/Cli/Command.php:1005
+#: src/Cli/Command.php:986
 #, php-format
 msgid "Wrote \"%1$s\" to %2$s."
 msgstr ""
 
-#: src/Cli/Command.php:1027
+#: src/Cli/Command.php:1008
 msgid "Which file? profile import <file>"
 msgstr ""
 
 #. translators: %s: file path.
-#: src/Cli/Command.php:1036
-#: src/Cli/Command.php:1331
+#: src/Cli/Command.php:1017
+#: src/Cli/Command.php:1318
 #, php-format
 msgid "Cannot read %s."
 msgstr ""
 
 #. translators: %s: comma-separated tweak ids.
-#: src/Cli/Command.php:1057
+#: src/Cli/Command.php:1038
 #, php-format
 msgid "This profile names changes this site does not have, and they were left out: %s"
 msgstr ""
 
-#: src/Cli/Command.php:1067
+#: src/Cli/Command.php:1048
 msgid "This profile was written against a different registry, so a change may mean something slightly different now. The preview shows what it would do here."
 msgstr ""
 
 #. translators: 1: profile name, 2: profile id.
-#: src/Cli/Command.php:1076
+#: src/Cli/Command.php:1057
 #, php-format
 msgid "Imported \"%1$s\" as %2$s. Nothing has been applied — run `profile apply %2$s --yes` when you have read the preview."
 msgstr ""
 
-#: src/Cli/Command.php:1144
+#: src/Cli/Command.php:1125
 msgid "That profile selects nothing this site has, so there is nothing to apply."
 msgstr ""
 
-#: src/Cli/Command.php:1155
-#: src/Cli/Command.php:1495
+#: src/Cli/Command.php:1136
+#: src/Cli/Command.php:1482
 msgid "There is no scan to plan from. Run `wp debloater scan` first."
 msgstr ""
 
-#: src/Cli/Command.php:1188
+#: src/Cli/Command.php:1169
 msgid "Which profile? Run `profile list` to see them."
 msgstr ""
 
 #. translators: %s: the name given.
-#: src/Cli/Command.php:1209
+#: src/Cli/Command.php:1190
 #, php-format
 msgid "No profile called \"%s\". Run `profile list` to see them."
 msgstr ""
 
 #. translators: %s: file path.
-#: src/Cli/Command.php:1272
+#: src/Cli/Command.php:1259
 #, php-format
 msgid "Could not write to %s."
 msgstr ""
 
 #. translators: 1: number of changes, 2: file path.
-#: src/Cli/Command.php:1283
+#: src/Cli/Command.php:1270
 #, php-format
 msgid "Wrote %1$d changes to %2$s."
 msgstr ""
 
 #. translators: %s: file path.
-#: src/Cli/Command.php:1347
+#: src/Cli/Command.php:1334
 #, php-format
 msgid "%s is not valid JSON."
 msgstr ""
 
 #. translators: 1: file path, 2: the first problem.
-#: src/Cli/Command.php:1361
+#: src/Cli/Command.php:1348
 #, php-format
 msgid "%1$s is not a Debloater configuration file: %2$s"
 msgstr ""
 
-#: src/Cli/Command.php:1375
+#: src/Cli/Command.php:1362
 msgid "This file was written against a different version of the change registry. Check the plan before applying it."
 msgstr ""
 
 #. translators: %d: number of changes.
-#: src/Cli/Command.php:1404
+#: src/Cli/Command.php:1391
 #, php-format
 msgid "The file is valid and carries %d changes. Add --apply --yes to put them in place."
 msgstr ""
 
 #. translators: %s: comma-separated tweak ids.
-#: src/Cli/Command.php:1481
+#: src/Cli/Command.php:1468
 #, php-format
 msgid "No such change: %s"
 msgstr ""
 
-#: src/Cli/Command.php:1531
+#: src/Cli/Command.php:1518
 msgid "There is nothing to roll back to."
 msgstr ""
 
-#: src/Cli/Command.php:1563
+#: src/Cli/Command.php:1550
 #: build/index.js:12
 msgid "There are no recovery points yet."
 msgstr ""
 
-#: src/Cli/Command.php:1658
+#. translators: 1: the path the operator asked for, 2: the directory exports go to.
+#: src/Cli/Command.php:1613
+#, php-format
+msgid "Exports cannot be written to %1$s. They go to %2$s, and `--file=-` prints to standard output."
+msgstr ""
+
+#: src/Cli/Command.php:1672
 msgid "Nothing would change."
 msgstr ""
 
-#: src/Cli/Command.php:1660
+#: src/Cli/Command.php:1674
 msgid "This would change:"
 msgstr ""
 
-#: src/Cli/Command.php:1668
+#: src/Cli/Command.php:1682
 msgid "This would not change:"
 msgstr ""
 
-#: src/Cli/Command.php:1676
+#: src/Cli/Command.php:1690
 msgid "This plan deletes data. A full recovery point is taken first."
 msgstr ""
 
 #. translators: %d: number of changes applied.
-#: src/Cli/Command.php:1691
+#: src/Cli/Command.php:1705
 #, php-format
 msgid "Applied %d change."
 msgid_plural "Applied %d changes."
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/Cli/Command.php:1730
+#: src/Cli/Command.php:1744
 msgid "The site did not pass its checks."
 msgstr ""
 
-#: src/Cli/Command.php:1736
+#: src/Cli/Command.php:1750
 msgid "Everything checked out."
 msgstr ""
 
-#: src/Cli/Command.php:1741
+#: src/Cli/Command.php:1755
 msgid "The site works, but some checks could not be completed."
 msgstr ""
 
 #. translators: %s: the score out of 100.
-#: src/Cli/Command.php:1758
+#: src/Cli/Command.php:1772
 #, php-format
 msgid "Debloat score: %s / 100"
 msgstr ""
 
-#: src/Cli/Command.php:1793
+#: src/Cli/Command.php:1807
 msgid "This changes the site. Add --yes to confirm."
 msgstr ""
 
@@ -1230,21 +1213,21 @@ msgstr ""
 msgid "This version of Debloater does not know that change, so it cannot be applied here."
 msgstr ""
 
-#: src/Config/ProfileStore.php:209
+#: src/Config/ProfileStore.php:218
 msgid "The profiles Debloater ships with cannot be changed. Save a copy under your own name instead."
 msgstr ""
 
 #. translators: %d: the maximum number of profiles.
-#: src/Config/ProfileStore.php:225
+#: src/Config/ProfileStore.php:234
 #, php-format
 msgid "This site already has %d saved profiles, which is the most it keeps. Delete one first."
 msgstr ""
 
-#: src/Config/ProfileStore.php:250
+#: src/Config/ProfileStore.php:259
 msgid "The profiles Debloater ships with cannot be deleted."
 msgstr ""
 
-#: src/Config/ProfileStore.php:353
+#: src/Config/ProfileStore.php:362
 #: src/Rest/Routes/ProfileImportRoute.php:114
 msgid "That file is not a Debloater profile: it is not a JSON document."
 msgstr ""
@@ -1588,42 +1571,6 @@ msgstr ""
 #: src/Snapshot/RollbackManager.php:210
 #, php-format
 msgid "This recovery point is %s, so there is nothing to restore from it."
-msgstr ""
-
-#: src/Update/RegistryUpdater.php:176
-msgid "The registry update check is off, so nothing was requested. Nothing leaves this server unless you ask for it."
-msgstr ""
-
-#. translators: 1: number of bytes received, 2: number of bytes expected.
-#: src/Update/RegistryUpdater.php:288
-#, php-format
-msgid "The registry signature is %1$d bytes; a signature is %2$d. Nothing was installed."
-msgstr ""
-
-#: src/Update/RegistryUpdater.php:314
-msgid "The registry release is not signed with the key this plugin trusts. Nothing was installed."
-msgstr ""
-
-#: src/Update/RegistryUpdater.php:328
-msgid "The registry manifest is signed but is not a JSON document. Nothing was installed."
-msgstr ""
-
-#: src/Update/RegistryUpdater.php:343
-msgid "The registry is already the newest release."
-msgstr ""
-
-#. translators: 1: offered tag, 2: current tag.
-#: src/Update/RegistryUpdater.php:353
-#, php-format
-msgid "Registry release %1$s is available and its signature checks out. This site has %2$s."
-msgstr ""
-
-#: src/Update/SignatureVerifier.php:86
-msgid "This server has no libsodium, so a signed registry update cannot be checked. Debloater will not install one it cannot verify."
-msgstr ""
-
-#: src/Update/SignatureVerifier.php:92
-msgid "No registry signing key is pinned in this build, so there is nothing to check a signed update against."
 msgstr ""
 
 #. translators: %s: the host name the redirect pointed at.

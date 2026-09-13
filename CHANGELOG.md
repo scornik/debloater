@@ -4,6 +4,62 @@ All notable changes to Debloater are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [semantic versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] — 2026-09-13
+
+wordpress.org review, round two. All four findings are fixed as asked, and
+fixing them turned up two bugs that had nothing to do with the review.
+
+### Removed
+
+- **The registry fetch.** The free plugin makes no request to any host but the
+  site itself. The registry it uses is the one it ships, and new rules arrive
+  in plugin releases. `wp debloater registry --check-updates`, the
+  `debloater_registry_origin` filter and the signature verifier are gone with
+  it. `NoRemoteCallsTest` runs a whole scan, apply and rollback and fails on
+  any request that leaves the site. `docs/DECISIONS.md` D-0073.
+- **`--file=<path>` on the export commands.** Exports go to
+  `wp-content/uploads/debloater/` only. `--file=-` still prints to standard
+  output, because a pipe is not a file write; any other value is refused with
+  exit code 1 and a message naming where exports go. D-0074.
+- **`admin.hide_update_nags_non_admins`**, its handler and the finding that
+  recommended it. Suppressing core's update notices interferes with the
+  update-notification system, and core already shows `update_nag` only to users
+  with `update_core`. A site that had it selected keeps the id in its selection,
+  where it does nothing. D-0077.
+- **The per-asset `bytes` field** in `assets.scripts` and `assets.styles`. It
+  was read off the disk by mapping each asset URL to a file, and no rule used
+  it. D-0076.
+
+### Changed
+
+- **Assets are attributed in URL space.** An asset's address is compared with
+  the URLs WordPress reports for plugins, mu-plugins, themes, includes, the
+  admin and content. Nothing is mapped to a filesystem path. Assets in uploads
+  or cache directories are now `unknown` rather than `wordpress`; plugin assets
+  on a CDN-hosted content URL are attributed to their plugin rather than
+  reported as external. D-0076, which also lists every remaining use of
+  `ABSPATH`, `WP_CONTENT_DIR` and `WP_PLUGIN_DIR` with a verdict.
+- **Hiding a plugin's admin notices** decides by `plugin_basename()` rather than
+  by comparing file paths against `WP_PLUGIN_DIR`, and reads no options.
+- **Admin menu attribution** and **mu-plugin detection** no longer build
+  filesystem paths: a page's callback or its slug decides the first, and core's
+  `get_mu_plugins()` the second, which also follows a relocated
+  `WPMU_PLUGIN_DIR`.
+
+### Fixed
+
+- **A rolled-back change applied again was recorded as rolled back.** The
+  lifecycle started from the stored state; `ROLLED_BACK` is terminal, so the
+  second apply found no route forward and left the record alone while the
+  change was in effect. Every site that had used rollback once was affected.
+  `ROLLED_BACK` now ends one application of a change, and selecting it again
+  starts another. D-0075.
+- **Notice suppression missed symlinked plugins**, whose files do not live
+  under `WP_PLUGIN_DIR` by path.
+- **`[--file=-]` was not a valid WP-CLI synopsis**, which made WP-CLI reject
+  every `--file`. The integration suite calls commands directly and could not
+  see it; `tools/cli-e2e.sh` did.
+
 ## [0.3.0] — 2026-09-08
 
 wordpress.org review, round one. Three of these are fixes to things that were
