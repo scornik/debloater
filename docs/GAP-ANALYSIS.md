@@ -182,6 +182,28 @@ resolves to the container, so `assets.available` is `false` and the asset facts
 are absent rather than wrong. `WP_HOME` is a `wp-config` constant in another
 process, so no filter reaches it. On a real site this does not apply.
 
+### Pro's feature rows keep needing correction
+
+Three of the four features Pro's plan sells today have had to be corrected, and
+a fifth was withdrawn. Written down together because one of these is an
+oversight and three is a pattern: a row was written as a promise, and what
+shipped underneath it was narrower.
+
+| Sold as | What was there | What was done |
+|---|---|---|
+| Priority registry updates | A filter pointing a check that could not discover a newer release at a repository that was never created | **Withdrawn**, not rebuilt (Pro D-0078) |
+| White-label before/after reports | A report that never carried a vendor name to replace, so "white-label" promised a substitution that does not happen — and collided with the licence flag that word already means here (Pro D-0061). It also named no site, so an agency's reports for two clients differed only by a run id and a timestamp | **Reworded** to "before/after reports with your name on them", in the setting's description and the docs; the site's name and home URL added to the report (Pro 0.3.2) |
+| Bulk apply of a saved profile | Built and reachable from nothing | **Deleted** and replaced by portable profiles, which preview and confirm on each site (Pro D-0068) |
+| Scheduled scans, drift detection | As described | — |
+
+What each correction had in common: the claim was written from the feature's
+intent, and nothing compared it against the code afterwards. The rows are
+storefront content in the Freemius dashboard, which no test in either repository
+can read — so the check that would have caught all three does not exist here and
+cannot. The nearest thing available is that the plugin's own description of a
+feature is tested: `DisplayNameTest` pins the display name, and
+`ReportEndpointTest` asserts the report is what the row says it is.
+
 ### Pro integration coverage
 
 Ran only on one machine from the split until this week. It now runs in Pro's CI
