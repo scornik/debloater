@@ -234,22 +234,33 @@ final class AdminScanner extends AbstractScanner {
 			return Sources::UNKNOWN;
 		}
 
-		// A slug that is a core admin file is core, and has no page callback to
-		// reflect on.
-		if ( false !== strpos( $slug, '.php' ) && file_exists( ABSPATH . 'wp-admin/' . $slug ) ) {
-			return Sources::CORE;
-		}
+		// A page somebody added has a callback on its hook, and the callback
+		// says whose it is. Asked first, so that a plugin page whose slug
+		// happens to look like a file name is still that plugin's.
+		if ( function_exists( 'get_plugin_page_hookname' ) ) {
+			foreach ( $this->callbacks( get_plugin_page_hookname( $slug, '' ) ) as $callback ) {
+				$source = Sources::of( $callback );
 
-		if ( ! function_exists( 'get_plugin_page_hookname' ) ) {
-			return Sources::UNKNOWN;
-		}
-
-		foreach ( $this->callbacks( get_plugin_page_hookname( $slug, '' ) ) as $callback ) {
-			$source = Sources::of( $callback );
-
-			if ( Sources::UNKNOWN !== $source ) {
-				return $source;
+				if ( Sources::UNKNOWN !== $source ) {
+					return $source;
+				}
 			}
+		}
+
+		// No callback, and the slug is a bare admin file name: `index.php`,
+		// `edit.php`, `options-general.php`. That is how core's own menu is
+		// built — each item names the wp-admin screen that renders it — so it
+		// is core.
+		//
+		// This used to confirm it with `file_exists( ABSPATH . 'wp-admin/' .
+		// $slug )`, building a filesystem path out of a menu slug that any
+		// plugin can set. The slug's shape answers the same question without
+		// the disk: a plugin cannot have a top-level page with no callback
+		// unless it points at an existing admin screen, and a slug with a query
+		// string (`edit.php?post_type=product`) or a path in it is not a bare
+		// file name and stays unknown, as it did before.
+		if ( 1 === preg_match( '/^[a-z0-9-]+\.php$/', $slug ) ) {
+			return Sources::CORE;
 		}
 
 		return Sources::UNKNOWN;

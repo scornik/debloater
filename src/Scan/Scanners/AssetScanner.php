@@ -168,7 +168,6 @@ final class AssetScanner extends AbstractScanner {
 					'kind'   => $asset['kind'],
 					'handle' => $asset['handle'],
 					'source' => Sources::fromUrl( $url ),
-					'bytes'  => Sources::bytesOfUrl( $url ),
 					'pages'  => 0,
 				);
 			}
@@ -186,7 +185,6 @@ final class AssetScanner extends AbstractScanner {
 				'handle' => $row['handle'],
 				'source' => $row['source'],
 				'pages'  => $row['pages'],
-				'bytes'  => $row['bytes'],
 			);
 
 			if ( AssetParser::SCRIPT === $row['kind'] ) {

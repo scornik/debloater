@@ -12,7 +12,14 @@ namespace Debloater\Tests\Integration;
 use Debloater\Scan\Sources;
 
 /**
- * wordpress.org review round 1: `ABSPATH . $root_relative_url` is wrong.
+ * wordpress.org review rounds 1 and 2: asset attribution without the disk.
+ *
+ * Round 2 went further than round 1 below: asset URLs are no longer mapped to
+ * filesystem paths at all, but compared with the URLs WordPress reports for
+ * its own directories (D-0076). The round-1 cases still stand, and the tests
+ * after them pin what the URL-space version has to get right on its own.
+ *
+ * Round 1: `ABSPATH . $root_relative_url` is wrong.
  *
  * A subdirectory install has WordPress in, say, `/blog`. Its ABSPATH ends in
  * `/blog/` and its root-relative URLs *begin* with `/blog`, so gluing the two
@@ -41,6 +48,7 @@ final class SubdirectoryPathsTest extends IntegrationTestCase {
 		remove_all_filters( 'content_url' );
 		remove_all_filters( 'includes_url' );
 		remove_all_filters( 'admin_url' );
+		remove_all_filters( 'plugins_url' );
 
 		Sources::reset();
 
@@ -140,6 +148,119 @@ final class SubdirectoryPathsTest extends IntegrationTestCase {
 			Sources::UNKNOWN,
 			Sources::fromUrl( '/somebody-elses-app/bundle.js' )
 		);
+	}
+
+	/**
+	 * A plugin asset is attributed to that plugin, not merely "not core".
+	 *
+	 * Absolute and root-relative, because the scanners see both.
+	 *
+	 * @return void
+	 */
+	public function test_a_plugin_asset_is_attributed_to_its_plugin(): void {
+		$this->assertSame( 'woocommerce', Sources::fromUrl( plugins_url( 'woocommerce/assets/js/x.js' ) ) );
+
+		$path = (string) wp_parse_url( plugins_url( 'woocommerce/assets/js/x.js' ), PHP_URL_PATH );
+
+		$this->assertSame( 'woocommerce', Sources::fromUrl( $path ) );
+		$this->assertSame( 'woocommerce', Sources::fromUrl( $path . '?ver=9.1' ) );
+	}
+
+	/**
+	 * Themes, includes and the admin, each by the URL WordPress reports.
+	 *
+	 * @return void
+	 */
+	public function test_each_base_is_classified(): void {
+		$this->assertSame( Sources::THEME, Sources::fromUrl( get_theme_root_uri() . '/storefront/style.css' ) );
+		$this->assertSame( Sources::CORE, Sources::fromUrl( includes_url( 'css/dashicons.min.css' ) ) );
+		$this->assertSame( Sources::CORE, Sources::fromUrl( admin_url( 'css/common.min.css' ) ) );
+	}
+
+	/**
+	 * Under wp-content but outside plugins and themes is nobody's.
+	 *
+	 * Uploads and cache directories hold files something generated, and
+	 * nothing records what. The old path mapping called these core, because
+	 * WP_CONTENT_DIR sits inside ABSPATH.
+	 *
+	 * @return void
+	 */
+	public function test_uploads_are_not_attributed(): void {
+		$this->assertSame( Sources::UNKNOWN, Sources::fromUrl( content_url( 'uploads/elementor/css/post-12.css' ) ) );
+	}
+
+	/**
+	 * A prefix match stops at a path segment.
+	 *
+	 * `/wp-content/plugins-extra/` begins with `/wp-content/plugins`.
+	 *
+	 * @return void
+	 */
+	public function test_a_prefix_is_matched_on_a_segment_boundary(): void {
+		$this->assertNotSame( 'x', Sources::fromUrl( plugins_url() . '-extra/x/y.js' ) );
+		$this->assertSame( Sources::UNKNOWN, Sources::fromUrl( plugins_url() . '-extra/x/y.js' ) );
+	}
+
+	/**
+	 * A content URL on another host still attributes.
+	 *
+	 * `WP_CONTENT_URL` pointed at a CDN is a normal configuration. By path
+	 * mapping those assets were "external" and unknown; by URL they are the
+	 * plugins they came from.
+	 *
+	 * @return void
+	 */
+	public function test_a_cdn_content_url_still_attributes(): void {
+		add_filter( 'plugins_url', static fn (): string => 'https://cdn.example.net/wp-content/plugins' );
+
+		Sources::reset();
+
+		$this->assertSame(
+			'contact-form-7',
+			Sources::fromUrl( 'https://cdn.example.net/wp-content/plugins/contact-form-7/includes/js/index.js' )
+		);
+
+		// The scheme is not part of the identity.
+		$this->assertSame(
+			'contact-form-7',
+			Sources::fromUrl( 'http://CDN.example.net/wp-content/plugins/contact-form-7/includes/js/index.js' )
+		);
+	}
+
+	/**
+	 * The asset half of Sources never touches the filesystem.
+	 *
+	 * The reviewer reads the source, so this does too: every method the URL
+	 * attribution goes through, by line range, must not name a directory
+	 * constant or a filesystem function. `of()` and `roots()` are deliberately
+	 * not in the list; see the docblock on `of()` for why.
+	 *
+	 * @return void
+	 */
+	public function test_url_attribution_names_no_filesystem_path(): void {
+		$lines = file( ( new \ReflectionClass( Sources::class ) )->getFileName() );
+
+		$this->assertIsArray( $lines );
+
+		$methods = array( 'fromUrl', 'externalHost', 'classify', 'under', 'withoutScheme', 'bases' );
+		$checked = 0;
+
+		foreach ( $methods as $name ) {
+			$method = new \ReflectionMethod( Sources::class, $name );
+			$body   = implode( '', array_slice( $lines, $method->getStartLine() - 1, $method->getEndLine() - $method->getStartLine() + 1 ) );
+
+			foreach ( array( 'ABSPATH', 'WP_CONTENT_DIR', 'WP_PLUGIN_DIR', 'WPMU_PLUGIN_DIR', 'get_theme_root(', 'is_file', 'filesize', 'file_exists', 'realpath' ) as $needle ) {
+				$this->assertStringNotContainsString( $needle, $body, sprintf( 'Sources::%s() names %s', $name, $needle ) );
+			}
+
+			$checked += strlen( $body );
+		}
+
+		$this->assertGreaterThan( 1000, $checked, 'the method bodies were not read' );
+
+		$this->assertFalse( method_exists( Sources::class, 'bytesOfUrl' ), 'the per-asset size read off the disk is gone' );
+		$this->assertFalse( method_exists( Sources::class, 'pathOfUrl' ), 'URLs are not mapped to paths' );
 	}
 
 	/**

@@ -322,6 +322,89 @@ final class AdminIntelligenceTest extends IntegrationTestCase {
 	}
 
 	/**
+	 * A menu item is attributed by its callback, then by its slug's shape.
+	 *
+	 * Nothing pinned this until the filesystem check came out of it. The
+	 * cases are the ones that check used to decide, and one it did not: a
+	 * plugin page whose slug looks like a file name.
+	 *
+	 * @return void
+	 */
+	public function test_menu_items_are_attributed_without_the_disk(): void {
+		require_once ABSPATH . 'wp-admin/includes/plugin.php';
+
+		$scanner = new \Debloater\Scan\Scanners\AdminScanner( $this->plugin->registry() );
+		$method  = new \ReflectionMethod( $scanner, 'menuSource' );
+		$method->setAccessible( true );
+
+		$ours = Sources::fromPath( __FILE__ );
+
+		add_menu_page( 'Probe', 'Probe', 'read', 'debloater-menu-probe', array( self::class, 'print_nothing' ) );
+		add_menu_page( 'Probe', 'Probe', 'read', 'looks-like-core.php', array( self::class, 'print_nothing' ) );
+
+		$this->assertSame( Sources::CORE, $method->invoke( $scanner, 'index.php' ) );
+		$this->assertSame( Sources::CORE, $method->invoke( $scanner, 'options-general.php' ) );
+		$this->assertSame( $ours, $method->invoke( $scanner, 'debloater-menu-probe' ) );
+		$this->assertSame( $ours, $method->invoke( $scanner, 'looks-like-core.php' ), 'a callback outranks the slug' );
+		$this->assertSame( Sources::UNKNOWN, $method->invoke( $scanner, 'edit.php?post_type=product' ) );
+		$this->assertSame( Sources::UNKNOWN, $method->invoke( $scanner, 'some-plugin/admin.php' ) );
+		$this->assertSame( Sources::UNKNOWN, $method->invoke( $scanner, '' ) );
+
+		remove_menu_page( 'debloater-menu-probe' );
+		remove_menu_page( 'looks-like-core.php' );
+	}
+
+	/**
+	 * And it does hide the selected plugin's notice.
+	 *
+	 * The test above can only ever show a notice surviving, and the test site
+	 * has no WooCommerce: the handler registered nothing and it passed. This is
+	 * the other half, driven through the handler directly with the plugin this
+	 * suite runs from — this file is inside it, so a notice registered from here
+	 * belongs to it.
+	 *
+	 * The handler is called directly rather than through the registry because
+	 * the tweak's allow-list does not include this plugin, correctly.
+	 *
+	 * @return void
+	 */
+	public function test_suppression_hides_the_selected_plugin(): void {
+		$slug = Sources::fromPath( __FILE__ );
+
+		$this->assertNotSame( Sources::UNKNOWN, $slug, 'this file should be inside a plugin directory' );
+
+		// Loaded directly: this test does not go through the runtime, and run
+		// alone nothing else would have required the handler.
+		require_once DEBLOATER_TESTS_ROOT . '/runtime-handlers/admin-suppress-promo-notices.php';
+
+		$ours = array( self::class, 'print_nothing' );
+
+		add_action( 'admin_notices', $ours );
+
+		// A slug that names no plugin matches no file, so nothing is hidden.
+		\Debloater_Handler_Admin_Suppress_Promo_Notices::register( array( 'sources' => array( 'no-plugin-is-called-this' ) ) );
+		\Debloater_Handler_Admin_Suppress_Promo_Notices::hide_notices();
+
+		$this->assertNotFalse( has_action( 'admin_notices', $ours ), 'a slug that names nothing hides nothing' );
+
+		\Debloater_Handler_Admin_Suppress_Promo_Notices::unregister();
+
+		// The plugin this file is in: its notice goes.
+		\Debloater_Handler_Admin_Suppress_Promo_Notices::register( array( 'sources' => array( $slug ) ) );
+
+		$this->assertNotFalse(
+			has_action( 'admin_head', array( \Debloater_Handler_Admin_Suppress_Promo_Notices::class, 'hide_notices' ) ),
+			'a selected plugin should arm the handler'
+		);
+
+		\Debloater_Handler_Admin_Suppress_Promo_Notices::hide_notices();
+
+		$this->assertFalse( has_action( 'admin_notices', $ours ), 'the selected plugin\'s notice should be hidden' );
+
+		\Debloater_Handler_Admin_Suppress_Promo_Notices::unregister();
+	}
+
+	/**
 	 * A source outside the allowlist is refused before it reaches generated
 	 * code.
 	 *

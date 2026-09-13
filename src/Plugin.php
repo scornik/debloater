@@ -612,17 +612,17 @@ final class Plugin {
 	 * @return bool
 	 */
 	public function hasCustomMuPlugins(): bool {
-		$directory = $this->context()->content_dir . '/mu-plugins';
-
-		if ( ! is_dir( $directory ) ) {
-			return false;
+		// Core's own list, rather than a glob of a directory this built the
+		// path to. It also finds mu-plugins where `WPMU_PLUGIN_DIR` has been
+		// moved, which `wp-content/mu-plugins` did not, and it ignores the
+		// silence-is-golden index.php that some hosts drop in.
+		if ( ! function_exists( 'get_mu_plugins' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/plugin.php';
 		}
 
-		$files = glob( $directory . '/*.php' );
-
-		// Every .php file here is now somebody else's: this plugin no longer
-		// installs one (D-0070).
-		return array() !== ( false === $files ? array() : $files );
+		// Every one is somebody else's: this plugin no longer installs one
+		// (D-0070).
+		return array() !== get_mu_plugins();
 	}
 
 	/**

@@ -67,7 +67,11 @@ require_once __DIR__ . '/vendor/autoload.php';
  * @return void
  */
 function debloater_uninstall_runtime(): void {
-	$content = defined( 'WP_CONTENT_DIR' ) ? WP_CONTENT_DIR : ABSPATH . 'wp-content';
+	// Always defined here: uninstall.php is only ever reached through
+	// uninstall_plugin(), long after wp-settings.php has run
+	// wp_initial_constants(), which defines it. The fallback this replaced
+	// guessed at a layout WordPress had already told us about.
+	$content = WP_CONTENT_DIR;
 
 	// The runtime is this option now, and BUILD-SPEC §13 rule 10 says the
 	// runtime goes on uninstall whatever the user chose about their data. It is

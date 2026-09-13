@@ -23,11 +23,29 @@ if ( ! class_exists( 'Debloater_Handler_Admin_Suppress_Promo_Notices', false ) )
 	 *
 	 * Two things keep the blast radius where it belongs.
 	 *
-	 * - A callback is removed only when the file it is defined in lives inside
-	 *   one of the plugin directories that were passed in. A plugin cannot
-	 *   silence another plugin, and a slug the user invented silences nothing.
+	 * - A callback is removed only when `plugin_basename()` places the file it
+	 *   is defined in under one of the selected slugs. A plugin cannot silence
+	 *   another plugin, and a slug the user invented matches no file and
+	 *   silences nothing. `plugin_basename()` is core's own answer to "which
+	 *   plugin is this file in", including for symlinked plugins, which a
+	 *   comparison against a directory string got wrong. It also strips the
+	 *   mu-plugins directory, so a mu-plugin kept in a folder named after the
+	 *   selected plugin counts as that plugin — the same vendor's loader, in
+	 *   practice.
 	 * - Nothing is uninstalled, disabled or written to. The notice is not shown
 	 *   on this request; unselecting the change brings it back on the next one.
+	 *
+	 * ## No path, and no option
+	 *
+	 * This used to check `is_dir( WP_PLUGIN_DIR . '/' . $slug )` before arming
+	 * itself, which wordpress.org's round 2 review asked to replace. The
+	 * obvious replacement, "is that plugin active", reads `active_plugins` —
+	 * and a runtime handler reads no options (BUILD-SPEC §10, invariant 4;
+	 * `LoaderTest` greps for it and caught the first attempt). Neither check
+	 * was doing anything attribution does not already do: a plugin that is not
+	 * active has not loaded, so it has no callbacks to match, and a slug that
+	 * names nothing matches no file. So there is no check at all. The cost is
+	 * one `admin_head` callback on a request where nothing matches.
 	 */
 	final class Debloater_Handler_Admin_Suppress_Promo_Notices {
 
@@ -44,11 +62,11 @@ if ( ! class_exists( 'Debloater_Handler_Admin_Suppress_Promo_Notices', false ) )
 		);
 
 		/**
-		 * Absolute plugin directories whose notices are hidden.
+		 * Slugs of the plugins whose notices are hidden.
 		 *
 		 * @var array<int,string>
 		 */
-		private static $directories = array();
+		private static $slugs = array();
 
 		/**
 		 * Register the handler's hooks.
@@ -57,7 +75,7 @@ if ( ! class_exists( 'Debloater_Handler_Admin_Suppress_Promo_Notices', false ) )
 		 * @return void
 		 */
 		public static function register( $params = array() ) {
-			self::$directories = array();
+			self::$slugs = array();
 
 			$sources = isset( $params['sources'] ) && is_array( $params['sources'] ) ? $params['sources'] : array();
 
@@ -69,14 +87,10 @@ if ( ! class_exists( 'Debloater_Handler_Admin_Suppress_Promo_Notices', false ) )
 					continue;
 				}
 
-				$directory = WP_PLUGIN_DIR . '/' . $slug;
-
-				if ( is_dir( $directory ) ) {
-					self::$directories[] = str_replace( '\\', '/', $directory ) . '/';
-				}
+				self::$slugs[] = $slug;
 			}
 
-			if ( array() === self::$directories ) {
+			if ( array() === self::$slugs ) {
 				return;
 			}
 
@@ -96,7 +110,7 @@ if ( ! class_exists( 'Debloater_Handler_Admin_Suppress_Promo_Notices', false ) )
 		public static function unregister() {
 			remove_action( 'admin_head', array( __CLASS__, 'hide_notices' ), 1 );
 
-			self::$directories = array();
+			self::$slugs = array();
 		}
 
 		/**
@@ -142,13 +156,18 @@ if ( ! class_exists( 'Debloater_Handler_Admin_Suppress_Promo_Notices', false ) )
 				return false;
 			}
 
-			foreach ( self::$directories as $directory ) {
-				if ( 0 === strpos( $file, $directory ) ) {
-					return true;
-				}
+			$basename = plugin_basename( $file );
+
+			// plugin_basename() hands back the path itself, trimmed of slashes,
+			// when the file is in no plugin directory. That is core or a theme,
+			// and it is never ours to remove.
+			if ( trim( wp_normalize_path( $file ), '/' ) === $basename ) {
+				return false;
 			}
 
-			return false;
+			$slug = strtok( $basename, '/' );
+
+			return false !== $slug && in_array( $slug, self::$slugs, true );
 		}
 
 		/**

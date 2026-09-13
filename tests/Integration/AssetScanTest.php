@@ -202,29 +202,33 @@ final class AssetScanTest extends IntegrationTestCase {
 	}
 
 	/**
-	 * An asset served from this site has its size read off the disk.
+	 * An asset row is a handle, an owner and a page count. No size.
+	 *
+	 * This used to assert the opposite: that a local asset carried its size,
+	 * read off the disk. Reading it meant turning the asset's URL into a file
+	 * path, which is what wordpress.org round 2 refused, and no analyzer rule
+	 * ever read the field. It was removed rather than refetched over loopback,
+	 * which would have been a request per asset for a number nobody uses
+	 * (D-0076).
+	 *
+	 * Pinned as the exact key set, so a size put back by any route — the disk,
+	 * a HEAD request, a header — has to be a decision and not an addition.
 	 *
 	 * @return void
 	 */
-	public function test_local_assets_carry_their_size(): void {
+	public function test_asset_rows_carry_no_size(): void {
 		$facts = $this->scan();
+		$rows  = array_merge( $facts->value( 'assets.scripts', array() ), $facts->value( 'assets.styles', array() ) );
 
-		$sizes = array();
+		// Not vacuous: the fixture site prints both core and external assets.
+		$this->assertNotSame( array(), $rows, 'the scan should have found assets to check' );
 
-		foreach ( $facts->value( 'assets.scripts', array() ) as $asset ) {
-			$sizes[ $asset['handle'] ] = $asset['bytes'];
+		foreach ( $rows as $row ) {
+			$keys = array_keys( $row );
+			sort( $keys );
+
+			$this->assertSame( array( 'handle', 'pages', 'source' ), $keys, (string) wp_json_encode( $row ) );
 		}
-
-		$this->assertIsInt( $sizes['jquery-core'] ?? null, 'core ships this file, so its size is knowable' );
-		$this->assertGreaterThan( 0, $sizes['jquery-core'] );
-
-		// `??` would treat the null we are looking for as an absence, so ask
-		// whether the key is there before asking what is in it.
-		$this->assertArrayHasKey( 'analytics', $sizes );
-		$this->assertNull(
-			$sizes['analytics'],
-			'a file on somebody else\'s server has no size we can read, and inventing one would need a request nobody asked for'
-		);
 	}
 
 	/**

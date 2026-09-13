@@ -4067,3 +4067,101 @@ roll back, apply; the state is `COMMITTED`, and the second run's journal is the
 five §9.1 edges from `SELECTED` with no skip rows. `tools/cli-e2e.sh` now checks
 that every selected tweak is `COMMITTED` after an apply, on a site that has
 been through the loop before.
+
+---
+
+## D-0076 – assets are attributed in URL space, and every path constant has a verdict
+
+- **Phase:** 0.4.0, wordpress.org review round 2
+- **Date:** 2026-09-13
+- **Status:** accepted
+- **Supersedes:** the URL-to-path half of the round-1 fix in `55c81a9`
+
+### The finding
+
+Round 2 named three places that turned something into a filesystem path when
+WordPress already had the answer: `Scan\Sources` mapping asset URLs onto
+`ABSPATH` and `WP_CONTENT_DIR`, `uninstall.php` guessing at `WP_CONTENT_DIR`,
+and the promo-notice handler checking `is_dir( WP_PLUGIN_DIR . '/' . $slug )`.
+
+### Sources: URLs are compared with URLs
+
+`Sources::fromUrl()` matches an asset's address against what WordPress
+reports for its own directories — `plugins_url()`, `WPMU_PLUGIN_URL`,
+`get_theme_root_uri()`, `includes_url()`, `admin_url()`, `content_url()` —
+most specific first, on path-segment boundaries. An absolute URL is compared
+whole (scheme ignored) before anything else, so a `WP_CONTENT_URL` on a CDN
+attributes; a URL on this site, absolute or root-relative, is then compared by
+path, which is what makes subdirectory installs work without a special case.
+
+Two changes of answer, both corrections:
+
+- An asset under `wp-content` but outside plugins and themes — uploads, a cache
+  directory, a page builder's generated CSS — is `unknown`. Path mapping called
+  it `wordpress`, because `WP_CONTENT_DIR` sits inside `ABSPATH`.
+- A plugin asset served from a CDN-hosted content URL is that plugin's. Path
+  mapping called it external and unknown.
+
+`pathOfUrl()` and `bytesOfUrl()` are gone.
+
+### The per-asset size went with it
+
+It was the only thing that needed a URL turned into a file: `assets.scripts[]`
+and `assets.styles[]` carried `bytes`, read off the disk. No analyzer rule read
+it. The alternative was a loopback request per asset for a number nobody uses,
+which is worse than the problem. The field is removed, and
+`AssetScanTest::test_asset_rows_carry_no_size` pins the exact key set so that
+putting a size back by any route is a decision, not an addition.
+
+The vendored `registry/schemas/fact.schema.json` still lists `bytes` as an
+optional property, and its description still mentions size on disk. That file
+is hash-listed in the signed registry manifest, so it changes in the registry
+repository's next release, not here. Nothing required it, so nothing breaks.
+The Phase 21 pipeline was checked for anything that would notice. Its fact
+diff (`pipeline/lib/factdiff.mjs`) names `assets.handles` as a key and reads no
+asset field. The one recorded baseline, `baselines/clean.json`, has
+`assets.available: false` — the loopback sample failed when it was recorded —
+so it carries no asset rows at all; every `bytes` in it belongs to
+`db.autoload.top`. No baseline needs re-recording.
+
+### Verdicts on every remaining site
+
+`git grep -nE "ABSPATH|WP_CONTENT_DIR|WP_PLUGIN_DIR"` over shipped code, plus
+the filesystem calls a name-only grep would miss. Tests and `tools/` are not
+in the archive (`scripts/plugin-zip.mjs` allow-lists `src`, `runtime-handlers`
+and named files) and are not listed.
+
+| Site | What it does | Verdict |
+|---|---|---|
+| `hakeemify-debloater.php:20`, every `runtime-handlers/*.php` | `defined( 'ABSPATH' ) \|\| exit;` | **Stays.** The direct-access guard the guidelines ask for. |
+| `src/Scan/Scanners/{Elementor,Environment,Plugin,WooCommerce}Scanner.php`, `src/Storage/Schema.php`, `src/Plugin.php::hasCustomMuPlugins()`, `uninstall.php` | `require_once ABSPATH . 'wp-admin/includes/…'` | **Stays.** Core's own idiom for loading its admin includes. |
+| `src/Scan/Sources.php::roots()` | Reads `WP_PLUGIN_DIR`, `WPMU_PLUGIN_DIR`, `get_theme_root()`, `ABSPATH` for `Sources::of()` | **Stays.** Attributing a hook callback by reflecting its file path is a filesystem question with no URL form: PHP reports where the code lives as a path, and PHP files are not served. It reads the constants to compare a path PHP already gave it; it never concatenates a URL onto one, and nothing it computes is opened, written or included. The reasoning is in `of()`'s docblock, where a reviewer reading the file will find it. |
+| `src/Plugin.php::context()` | Passes `ABSPATH` and `WP_CONTENT_DIR` into `Context` | **Stays.** `abspath` is one input to `Context::siteHash()`, which refuses cross-site restores; it is never a path to anything. `content_dir` is only `legacyDataDir()`, from which `SpillFile` reads recovery points written by 0.2.x (D-0072) — removing it would strand people's undo data. |
+| `uninstall.php::debloater_uninstall_runtime()` | Removes files 0.2.x wrote under `wp-content` | **Changed** to `WP_CONTENT_DIR` directly. `uninstall_plugin()` runs long after `wp_initial_constants()` defines it; the `ABSPATH . 'wp-content'` fallback guessed at what WordPress had already said. The mu-plugin loader path stays `WP_CONTENT_DIR . '/mu-plugins'` because that is where 0.2.x wrote it (`Context::muPluginsDir()` at `f98feec^`). |
+| `runtime-handlers/admin-suppress-promo-notices.php` | Was `is_dir( WP_PLUGIN_DIR . '/' . $slug )` | **Removed, with no replacement check.** A callback belongs to a selected plugin when `plugin_basename()` says so — core's own answer, which also handles symlinked plugins the directory prefix got wrong. The first attempt replaced the directory check with "is it in `active_plugins`", as the review suggested; `LoaderTest` failed it, because a runtime handler reads no options (invariant 4). Neither check did anything attribution does not: an inactive plugin has not loaded and has no callbacks, and a slug naming nothing matches no file. |
+| `src/Scan/Scanners/AdminScanner.php::menuSource()` | Was `file_exists( ABSPATH . 'wp-admin/' . $slug )` | **Removed.** Built a path out of a menu slug any plugin sets. Now: a callback on the page hook decides first; failing that, a bare `name.php` slug is core, because that is how core's menu names its screens. Not flagged by the review; same shape as what was. |
+| `src/Plugin.php::hasCustomMuPlugins()` | Was `glob( content_dir . '/mu-plugins/*.php' )` | **Removed.** `get_mu_plugins()` is core's list, and unlike the hand-built path it follows a relocated `WPMU_PLUGIN_DIR`. |
+| `src/Scan/Scanners/PluginScanner.php::modifiedAt()` | `filemtime( WP_PLUGIN_DIR . '/' . $plugin_file )` | **Open — needs the disk.** It is the offline staleness reading `AbandonedPluginsRule` falls back to when the user has not opted into release-date lookups (`plugins.update_source = file_mtime`). No URL or in-memory equivalent exists. Kept pending a decision: keep it, or drop the fallback and report staleness only with the opt-in. |
+| `src/Scan/Scanners/WordPressScanner.php::xmlrpcEnabled()` | `file_exists( ABSPATH . 'xmlrpc.php' )` | **Open — needs the disk.** Some hosts delete `xmlrpc.php`; without the check the XML-RPC finding fires on a site where the endpoint is gone. A fixed core file, nothing from data in the path. The only path-free alternative is a loopback request. Kept pending a decision. |
+
+The two open rows were raised before changing anything, as asked: neither
+could be done without either a filesystem read or a behaviour the user has to
+choose.
+
+### What is asserted
+
+- `SubdirectoryPathsTest`: plugin, theme, includes and admin attribution by URL;
+  uploads are unknown; prefixes match on segment boundaries; a CDN content URL
+  attributes; and the source of every method on the URL path is read and must
+  not name a directory constant or a filesystem function. Probes: adding
+  `defined( 'ABSPATH' )` to `fromUrl()`, dropping the segment boundary, and
+  dropping the whole-URL comparison each fail their test.
+- `AssetScanTest::test_asset_rows_carry_no_size`.
+- `AdminIntelligenceTest::test_suppression_hides_the_selected_plugin`: the
+  other half of a test that could only ever see a notice survive, and passed
+  while the handler registered nothing because the test site has no
+  WooCommerce. Probe: a handler that never matches fails "should be hidden".
+- `AdminIntelligenceTest::test_menu_items_are_attributed_without_the_disk`.
+  Probes: slug-before-callback and a loose `.php` match each fail it.
+- `MuPluginDetectionTest`, which did not exist. Probe: detection returning false
+  fails it.
