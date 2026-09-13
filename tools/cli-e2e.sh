@@ -121,7 +121,13 @@ expect_json 'snapshots list --json' $WP debloater snapshots list --json
 
 say 'export and import'
 EXPORT_FILE=/tmp/debloater-e2e.json
-expect_code 0 $WP debloater export --file="$EXPORT_FILE"
+
+# --file=- is a pipe, not a file write; the shell names the file. A path is
+# refused, and that refusal is checked here too, because it is the shape an
+# operator will reach for first (D-0074).
+$WP debloater export --file=- > "$EXPORT_FILE"
+expect_code 0 $WP debloater export
+expect_code 1 $WP debloater export --file="$EXPORT_FILE"
 expect_code 0 $WP debloater import "$EXPORT_FILE"
 expect_code 1 $WP debloater import /tmp/definitely-not-here.json
 

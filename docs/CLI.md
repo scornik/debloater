@@ -107,10 +107,14 @@ What Debloater is doing on this site: the selection, the runtime and whether it
 matches what was generated, the loader mode, the last scan, and whether an apply
 is in progress.
 
-### `wp debloater export [--file=<path>]`
+### `wp debloater export [--file=<dash>]`
 
-Writes this site's configuration as JSON — configuration as code. Without
-`--file`, prints to standard output.
+Writes this site's configuration as JSON — configuration as code — into
+`wp-content/uploads/debloater/`, and prints the path it wrote.
+
+That is the only place it writes. `--file=-` prints to standard output instead,
+so you can pipe or redirect it yourself; any other value is refused (`D-0074`).
+`wp debloater profile export` behaves the same way.
 
 ### `wp debloater import <file> [--apply --yes] [--format=json]`
 
@@ -232,7 +236,7 @@ Configuration promoted from staging to production:
 
 ```bash
 # on staging
-wp debloater export --file=debloater.json
+wp debloater export --file=- > debloater.json
 
 # on production, in review, then applied
 wp debloater import debloater.json

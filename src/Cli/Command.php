@@ -796,9 +796,11 @@ final class Command {
 	 * : The profile to act on, or the name to save under. Not used by `list`;
 	 * for `import` this is the path to the file.
 	 *
-	 * [--file=<path>]
-	 * : Where `export` writes. Defaults to a file in the uploads directory,
-	 * under `debloater/`. Pass `-` to print to standard output instead.
+	 * [--file=<dash>]
+	 * : Pass `-` to print to standard output instead of writing a file. `-` is
+	 * the only value this takes and any other is refused: an export always
+	 * lands in `uploads/debloater/`, and a pipe is not a file write, which is
+	 * why this one is still here.
 	 *
 	 * [--yes]
 	 * : Required by `apply`, which changes the site.
@@ -817,7 +819,6 @@ final class Command {
 	 *     wp debloater profile list
 	 *     wp debloater profile save "Client baseline"
 	 *     wp debloater profile export "Client baseline"
-	 *     wp debloater profile export "Client baseline" --file=baseline.json
 	 *     wp debloater profile export "Client baseline" --file=- > baseline.json
 	 *     wp debloater profile import baseline.json
 	 *     wp debloater profile apply "Client baseline" --yes
@@ -947,16 +948,20 @@ final class Command {
 		$json = $profile->toJson();
 		$path = $this->option( $assoc_args, 'file', '' );
 
-		// `-` is standard output, which is not a write at all. It used to be
-		// what omitting --file did; it is kept because a plugin that cannot be
-		// piped is a plugin somebody writes a wrapper for.
+		// `-` is standard output, which is not a write at all, and is the
+		// only value --file takes. A plugin that cannot be piped is a plugin
+		// somebody writes a wrapper for.
 		if ( '-' === $path ) {
 			$this->io->line( rtrim( $json, "\n" ) );
 
 			return self::EXIT_OK;
 		}
 
-		$path = $this->exportPath( $path, $profile->name );
+		if ( '' !== $path ) {
+			return $this->refuseFilePath( $path );
+		}
+
+		$path = $this->exportPath( $profile->name );
 
 		if ( '' === $path ) {
 			return self::EXIT_ERROR;
@@ -1204,9 +1209,11 @@ final class Command {
 	 *
 	 * ## OPTIONS
 	 *
-	 * [--file=<path>]
-	 * : Where to write. Defaults to a file in the uploads directory, under
-	 * `debloater/`. Pass `-` to print to standard output instead.
+	 * [--file=<dash>]
+	 * : Pass `-` to print to standard output instead of writing a file. `-` is
+	 * the only value this takes and any other is refused: an export always
+	 * lands in `uploads/debloater/`, and a pipe is not a file write, which is
+	 * why this one is still here.
 	 *
 	 * @param array<int,string>    $args       Positional arguments.
 	 * @param array<string,string> $assoc_args Options.
@@ -1232,7 +1239,11 @@ final class Command {
 					return self::EXIT_OK;
 				}
 
-				$path = $this->exportPath( $path, 'config' );
+				if ( '' !== $path ) {
+					return $this->refuseFilePath( $path );
+				}
+
+				$path = $this->exportPath( 'config' );
 
 				if ( '' === $path ) {
 					return self::EXIT_ERROR;
@@ -1560,28 +1571,55 @@ final class Command {
 	}
 
 	/**
-	 * Where an export should be written.
+	 * Where an export is written. There is only one answer.
 	 *
-	 * An explicit `--file` is passed through untouched: it was typed by
-	 * somebody with shell access, who can already write anywhere the web user
-	 * can, and refusing it would break exporting into a deployment pipeline
-	 * while protecting nothing.
+	 * `uploads/debloater/`, created on demand and closed to the web.
 	 *
-	 * Everything else lands in `uploads/debloater/`, created on demand and
-	 * closed to the web.
+	 * 0.3.0 let `--file` name any path, on the reasoning that somebody with
+	 * shell access can already write anywhere the web user can. wordpress.org
+	 * round 2 refused it anyway, and they are right about the thing that
+	 * reasoning missed: a guideline that says "plugins write to uploads" is
+	 * worth more as a rule with no exceptions than as a rule with one good one,
+	 * because the next person to add an export will copy whichever pattern they
+	 * find (D-0074).
 	 *
-	 * @param string $requested The --file value, '' for the default.
-	 * @param string $basename  What to name the default file after.
+	 * @param string $basename What to name the file after.
 	 * @return string The path, or '' when the destination could not be prepared.
 	 */
-	private function exportPath( string $requested, string $basename ): string {
+	private function exportPath( string $basename ): string {
 		try {
-			return ( new ExportDestination() )->resolve( $requested, $basename );
+			return ( new ExportDestination() )->resolve( $basename );
 		} catch ( \RuntimeException $error ) {
 			$this->io->error( esc_html( $error->getMessage() ) );
 
 			return '';
 		}
+	}
+
+	/**
+	 * Say no to a path, and say where the file goes instead.
+	 *
+	 * A refusal rather than silently ignoring it: somebody who typed a path
+	 * expects their file to be there, and writing it somewhere else without
+	 * saying so is how an export goes missing.
+	 *
+	 * @param string $path What they asked for.
+	 * @return int Exit code.
+	 */
+	private function refuseFilePath( string $path ): int {
+		$this->io->error(
+			sprintf(
+				/* translators: 1: the path the operator asked for, 2: the directory exports go to. */
+				__(
+					'Exports cannot be written to %1$s. They go to %2$s, and `--file=-` prints to standard output.',
+					'hakeemify-debloater'
+				),
+				esc_html( $path ),
+				esc_html( 'uploads/' . ExportDestination::FOLDER . '/' )
+			)
+		);
+
+		return self::EXIT_ERROR;
 	}
 
 	/**

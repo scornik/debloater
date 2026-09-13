@@ -15,13 +15,13 @@ use Debloater\Config\ProfileStore;
 use Debloater\Tests\Integration\Support\RecordingIo;
 
 /**
- * wordpress.org review round 1: a plugin should not write to a path it was
- * handed without a default of its own.
+ * wordpress.org review, rounds 1 and 2: where a plugin is allowed to write.
  *
- * The default is `uploads/debloater/`, created on demand and closed to the web.
- * `--file` still takes an explicit path, because it is typed at a shell by
- * somebody who can already write anywhere the web user can — and `--file=-`
- * prints, which is not a write at all.
+ * Round 1 gave exports a home in `uploads/debloater/`, created on demand and
+ * closed to the web, and kept `--file=<path>` for WP-CLI. Round 2 refused the
+ * path as well, so `uploads/debloater/` is now the only destination there is
+ * and `--file=-` — standard output, which is not a write — is the only value
+ * the flag takes (`D-0074`).
  */
 final class CliExportPathTest extends IntegrationTestCase {
 
@@ -142,23 +142,35 @@ final class CliExportPathTest extends IntegrationTestCase {
 	}
 
 	/**
-	 * `--file` still writes exactly where it was told.
+	 * A path is refused, and nothing is written anywhere.
+	 *
+	 * 0.3.0 honoured `--file=<path>` for WP-CLI. wordpress.org round 2 refused
+	 * it, so this is the inverse of the test that used to be here: the same
+	 * command, asserting the opposite, because that is what changed (D-0074).
+	 *
+	 * The refusal is explicit rather than silent. Somebody who typed a path
+	 * expects their file to be there, and writing it elsewhere without saying
+	 * so is how an export goes missing.
 	 *
 	 * @return void
 	 */
-	public function test_an_explicit_file_is_honoured(): void {
+	public function test_a_path_is_refused(): void {
 		$this->saveProfile( 'Client baseline' );
 
-		$target          = get_temp_dir() . 'debloater-explicit-' . bin2hex( random_bytes( 4 ) ) . '.json';
-		$this->written[] = $target;
+		$target = get_temp_dir() . 'debloater-explicit-' . bin2hex( random_bytes( 4 ) ) . '.json';
+		$before = $this->exports();
 
 		$io = $this->runProfile(
 			array( 'export', 'Client baseline' ),
 			array( 'file' => $target )
 		);
 
-		$this->assertSame( Command::EXIT_OK, $io->code, $io->output() );
-		$this->assertFileExists( $target );
+		$this->assertSame( Command::EXIT_ERROR, $io->code );
+		$this->assertFileDoesNotExist( $target );
+		$this->assertStringContainsString( 'uploads/debloater/', $io->output() );
+
+		// And it did not quietly write to the default place instead.
+		$this->assertSame( $before, $this->exports(), 'a refused export must write nothing' );
 	}
 
 	/**

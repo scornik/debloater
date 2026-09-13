@@ -61,7 +61,7 @@ wp debloater verify                              # check the site without changi
 wp debloater rollback --yes                      # put it back
 wp debloater status                              # what is in place right now
 wp debloater snapshots list                      # the recovery points
-wp debloater export --file=debloater.json       # configuration as code
+wp debloater export --file=- > debloater.json    # configuration as code
 wp debloater import debloater.json --apply --yes
 ```
 

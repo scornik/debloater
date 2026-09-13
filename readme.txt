@@ -167,17 +167,16 @@ somewhere under wp-content. Nothing is added to must-use plugins.
 Two things do get written, both of them data:
 
 * A recovery point that is too large for the database spills into
-  `wp-content/debloater/backups/`, so that a change touching thousands of rows
-  can still be undone. The folder is closed to the web.
+  `wp-content/uploads/debloater/backups/`, so that a change touching thousands
+  of rows can still be undone. The folder is closed to the web.
 * `wp debloater export` and `wp debloater profile export` write into
   `wp-content/uploads/debloater/`, also closed to the web, with a random suffix
   on the file name.
 
-Both export commands accept `--file=<path>` to write somewhere else, and
-`--file=-` to print to standard output so you can pipe it. Those are WP-CLI
-only: they need shell access to the server, which is a person who can already
-write files anywhere your site can. Nothing reachable from a browser accepts a
-path.
+Exports go to that folder and nowhere else. `--file=-` prints to standard
+output so you can pipe the JSON somewhere yourself, and that is the only value
+`--file` takes — a path is refused, and the command tells you where the file
+would have gone. Nothing reachable from a browser accepts a path either.
 
 = Does it phone home? =
 

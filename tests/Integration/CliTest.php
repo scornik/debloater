@@ -12,6 +12,7 @@ namespace Debloater\Tests\Integration;
 use WP_Error;
 use Debloater\Apply\Lock;
 use Debloater\Cli\Command;
+use Debloater\Cli\ExportDestination;
 use Debloater\Config\ConfigDocument;
 use Debloater\Registry\SchemaValidator;
 use Debloater\Tests\Integration\Support\RecordingIo;
@@ -407,14 +408,26 @@ final class CliTest extends IntegrationTestCase {
 		$this->applySafePlan();
 
 		$selection = $this->plugin->state()->selection();
-		$path      = sys_get_temp_dir() . '/debloater-cli-export.json';
+
+		// Exports have one destination, uploads/debloater/ (D-0074), so the file
+		// is found as the one that appeared there rather than named in advance.
+		$uploads = wp_upload_dir();
+		$pattern = $uploads['basedir'] . '/' . ExportDestination::FOLDER . '/config-*.json';
+		$before  = glob( $pattern );
+		$before  = is_array( $before ) ? $before : array();
 
 		$export = new RecordingIo();
 
-		( new Command( $this->plugin, $export ) )->export( array(), array( 'file' => $path ) );
+		( new Command( $this->plugin, $export ) )->export( array(), array() );
 
 		$this->assertSame( Command::EXIT_OK, $export->code, $export->output() );
-		$this->assertFileExists( $path );
+
+		$after = glob( $pattern );
+		$new   = array_values( array_diff( is_array( $after ) ? $after : array(), $before ) );
+
+		$this->assertCount( 1, $new, 'exactly one export should have been written' );
+
+		$path = $new[0];
 
 		$decoded = json_decode( (string) file_get_contents( $path ), true );
 
@@ -454,6 +467,8 @@ final class CliTest extends IntegrationTestCase {
 
 		$this->assertSame( Command::EXIT_OK, $apply->code, $apply->output() );
 		$this->assertSame( array_keys( $selection ), array_keys( $this->plugin->state()->selection() ) );
+
+		wp_delete_file( $path );
 	}
 
 	/**

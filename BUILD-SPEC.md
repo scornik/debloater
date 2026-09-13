@@ -735,7 +735,7 @@ Tests: each probe PASS on wp-env; fixture responses with fatal markers produce F
 ```
 
 ### PHASE 7 — WP-CLI
-**Commands:** `wp debloater scan [--json]`, `findings [--risk=] [--json]`, `preview [--profile=safe|performance|maximum] [--tweaks=a,b]`, `apply [--profile] [--tweaks] --yes`, `verify`, `rollback [<snapshot-id>] --yes`, `snapshots [list|show <id>|delete <id>]`, `status`, `export [--file]`, `import <file> [--apply --yes]`. Actor `cli`; exit codes: 0 ok, 1 error, 2 verification FAIL/rolled back, 3 verification WARN.
+**Commands:** `wp debloater scan [--json]`, `findings [--risk=] [--json]`, `preview [--profile=safe|performance|maximum] [--tweaks=a,b]`, `apply [--profile] [--tweaks] --yes`, `verify`, `rollback [<snapshot-id>] --yes`, `snapshots [list|show <id>|delete <id>]`, `status`, `export [--file=<dash>]`, `import <file> [--apply --yes]`. Actor `cli`; exit codes: 0 ok, 1 error, 2 verification FAIL/rolled back, 3 verification WARN.
 **Tests:** integration via `wp-env run cli`; JSON outputs validate against schemas.
 **Exit:** whole MVP loop runnable from CLI on the fixture site.
 

@@ -17,7 +17,7 @@ use RuntimeException;
  *
  * ## Why there is a default at all
  *
- * `profile export` and `export` used to write only where `--file` pointed, and
+ * `profile export` and `export` once wrote wherever `--file` pointed, and
  * to print to standard output otherwise. wordpress.org's review asked for a
  * default destination the plugin owns, so that the ordinary case does not
  * require the operator to pick a path and does not put a plugin's output
@@ -27,17 +27,17 @@ use RuntimeException;
  * guarantees is writable, it moves with the site when `UPLOADS` or a filter
  * says so, and it is where a site's own generated files belong.
  *
- * ## Why `--file` survives
+ * ## There is no way to write anywhere else
  *
- * Because the objection was never to a plugin writing a file. It was to a
- * plugin writing one to an arbitrary path chosen by something that is not the
- * operator. `--file` is typed by a person with shell access to the server, at a
- * prompt, on their own machine — somebody who can already write anywhere the
- * web user can. Refusing it would remove the ability to export into a
- * deployment pipeline and protect nothing at all.
+ * 0.3.0 kept `--file=<path>` for WP-CLI, reasoning that somebody at a shell can
+ * already write wherever the web user can. wordpress.org round 2 refused that,
+ * and the refusal is better than the reasoning: a rule with no exceptions
+ * survives contact with the next person to add an export, and a rule with one
+ * good exception does not (`D-0074`).
  *
- * That is a claim about WP-CLI specifically, and it does not extend to the REST
- * routes or the admin screen, neither of which accepts a path from anybody.
+ * `--file=-` still prints to standard output, because a pipe is not a file
+ * write and losing it would mean everybody wrapping the command in a shell
+ * script that redirects.
  *
  * ## Closed to the web
  *
@@ -62,16 +62,11 @@ final class ExportDestination {
 	/**
 	 * Resolve a destination for an export.
 	 *
-	 * @param string $requested The `--file` value, or '' for the default.
-	 * @param string $basename  A name to build the default file from.
+	 * @param string $basename A name to build the file from.
 	 * @return string Absolute path to write to.
-	 * @throws RuntimeException When the default directory cannot be prepared.
+	 * @throws RuntimeException When the directory cannot be prepared.
 	 */
-	public function resolve( string $requested, string $basename ): string {
-		if ( '' !== $requested ) {
-			return $requested;
-		}
-
+	public function resolve( string $basename ): string {
 		return $this->directory() . '/' . $this->filename( $basename );
 	}
 

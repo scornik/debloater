@@ -37,7 +37,7 @@ use Debloater\Contracts\SnapshotItem;
 use Debloater\Storage\Uploads;
 
 /**
- * Gzipped newline-delimited JSON under wp-content/debloater/backups (§4, §8).
+ * Gzipped newline-delimited JSON under uploads/debloater/backups (§4, §8, D-0072).
  *
  * A recovery point for a large deletion can be tens of megabytes. Putting that
  * in `wp_options`-adjacent tables as one row per item works, but a single

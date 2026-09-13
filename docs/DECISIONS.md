@@ -3919,3 +3919,92 @@ never remembered, and disclosed in readme.txt.
 out of the files that can make requests and requires the readme to name each
 one — a list written by the code rather than by hand, because the readme
 already drifted from the code once and that is how it was found.
+
+---
+
+## D-0074 – exports go to uploads, and `--file` takes only `-`
+
+- **Phase:** 0.4.0, wordpress.org review round 2
+- **Date:** 2026-09-10
+- **Status:** accepted
+- **Supersedes:** the `--file=<path>` half of the export contract. Round one
+  narrowed it (commit `e6f1cb4`, "exports have a default home, inside uploads")
+  without writing a decision, which is why the reasoning it was narrowed on is
+  restated below rather than cited.
+
+### The finding
+
+> Any files or folders your plugin creates must be created inside the uploads
+> folder.
+>
+> `src/Cli/ExportDestination.php` – `--file` accepts an arbitrary path.
+
+### What round one did, and why it was not enough
+
+Round one gave exports a default home in `uploads/debloater/` and kept
+`--file=<path>` working, on this reasoning: `--file` is typed by a person with
+shell access to the server, who can already write anywhere the web user can, so
+refusing it removes the ability to export into a deployment pipeline and
+protects nothing.
+
+That reasoning is still true and it is still the wrong answer.
+
+It is an argument about *this* flag being harmless. The guideline is not about
+any one flag being harmful; it is about there being one answer to "where does a
+plugin write". A rule with no exceptions survives contact with the next person
+to add an export. A rule with one well-argued exception is a pattern, and the
+next export will be written by copying whichever pattern is in the file — which
+is exactly how the compiled runtime (`D-0070`) came to exist.
+
+It is also unarguable in review. A reviewer reading `ExportDestination` sees a
+plugin that accepts a path; the paragraph explaining why that is fine here is
+the plugin arguing with the reviewer, and we are two rounds in.
+
+### What it is now
+
+| | Before | Now |
+|---|---|---|
+| `export` | `uploads/debloater/<name>-<stamp>-<rand>.json` | unchanged |
+| `export --file=-` | standard output | unchanged |
+| `export --file=<path>` | wrote there | **refused**, exit `1` |
+
+`ExportDestination::resolve()` lost its `$requested` parameter, so there is no
+longer a path *to* pass: the type signature says there is one destination,
+rather than a check saying the second one is not allowed. That is the difference
+between removing a capability and guarding it, and only the first survives
+somebody who does not read the guard.
+
+### Why `--file=-` stays
+
+A pipe is not a file write. `wp debloater export --file=- > config.json` is the
+shell writing a file the operator named, which is what the operator would
+otherwise do by wrapping the command in a script that does the same thing more
+awkwardly. Nothing in the guideline is about standard output, and removing it
+would cost configuration-as-code for no gain.
+
+The command help says so in as many words, so the next reader does not have to
+work out why one value survived.
+
+### The refusal is loud
+
+A path is an error, not a silently-ignored argument. Somebody who typed
+`--file=/backups/x.json` expects their file to be at that path; writing it into
+uploads instead and saying nothing is how an export goes missing at the moment
+somebody needs it. The message names the path they asked for, the directory
+exports go to, and `--file=-`.
+
+### What is asserted
+
+`CliExportPathTest::test_a_path_is_refused()` runs the same command the old
+`test_an_explicit_file_is_honoured()` ran and asserts the opposite: exit
+`EXIT_ERROR`, no file at the path, the message names `uploads/debloater/`, and —
+the part that is easy to forget — the export directory has not grown either, so
+a refusal writes nothing anywhere.
+
+### Related
+
+**P8** — a comment asserting a property is not the property. `ExportDestination`
+carried a section headed "Why `--file` survives" arguing the case above; it
+would have read as a guarantee that the flag still took a path. It is replaced
+by "There is no way to write anywhere else", which is what the signature now
+says, rather than left standing next to code that stopped agreeing with it.
