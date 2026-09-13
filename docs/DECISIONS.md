@@ -116,7 +116,7 @@ plugins. Pro's repository holds only Pro-specific ones, and the registry's holds
 its own; a decision number appears in exactly one file, and a test in each
 repository fails if that stops being true.
 
-**Eight decisions are not here**, all in
+**Nine decisions are not here**, all in
 [`scornik/debloater-pro`](https://github.com/scornik/debloater-pro/blob/main/docs/DECISIONS.md):
 
 | | |
@@ -129,6 +129,7 @@ repository fails if that stops being true.
 | `D-0064` | Pro chooses a profile; Debloater applies it |
 | `D-0065` | Pro's integration suite runs again, from the free plugin's wp-env |
 | `D-0068` | Pro has no apply path, so the unreachable one is deleted |
+| `D-0078` | Pro stops selling priority registry updates |
 
 `D-0067` is in `scornik/debloater-registry`.
 
