@@ -71,7 +71,8 @@ export const Dashboard = ( { onNavigate, onFixSafeIssues, onScore } ) => {
 	if ( status.status === 'loading' || findings.status === 'loading' ) {
 		return (
 			<p className="debloater-loading">
-				<Spinner /> { __( 'Reading this site…', 'hakeemify-debloater' ) }
+				<Spinner />{ ' ' }
+				{ __( 'Reading this site…', 'hakeemify-debloater' ) }
 			</p>
 		);
 	}
@@ -87,7 +88,12 @@ export const Dashboard = ( { onNavigate, onFixSafeIssues, onScore } ) => {
 	if ( ! findings.data?.scanned ) {
 		return (
 			<div className="debloater-empty">
-				<h2>{ __( 'Nothing has been looked at yet', 'hakeemify-debloater' ) }</h2>
+				<h2>
+					{ __(
+						'Nothing has been looked at yet',
+						'hakeemify-debloater'
+					) }
+				</h2>
 				<p>
 					{ __(
 						'A scan reads this site’s configuration and writes down what it finds. It changes nothing.',

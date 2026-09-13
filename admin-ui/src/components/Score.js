@@ -80,7 +80,10 @@ export const Score = ( { score } ) => {
 				<p className="debloater-score__meta">
 					{ sprintf(
 						/* translators: %d: number of findings. */
-						__( 'From %d findings in this scan.', 'hakeemify-debloater' ),
+						__(
+							'From %d findings in this scan.',
+							'hakeemify-debloater'
+						),
 						score.findings_total || 0
 					) }
 				</p>

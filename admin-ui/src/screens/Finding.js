@@ -46,7 +46,9 @@ const Evidence = ( { evidence } ) => {
 					<th scope="col">
 						{ __( 'What was measured', 'hakeemify-debloater' ) }
 					</th>
-					<th scope="col">{ __( 'Value', 'hakeemify-debloater' ) }</th>
+					<th scope="col">
+						{ __( 'Value', 'hakeemify-debloater' ) }
+					</th>
 					<th scope="col">{ __( 'Fact', 'hakeemify-debloater' ) }</th>
 				</tr>
 			</thead>
@@ -86,7 +88,10 @@ const WillChange = ( { tweakId } ) => {
 		return (
 			<p className="debloater-loading">
 				<Spinner />{ ' ' }
-				{ __( 'Working out what this would change…', 'hakeemify-debloater' ) }
+				{ __(
+					'Working out what this would change…',
+					'hakeemify-debloater'
+				) }
 			</p>
 		);
 	}
@@ -200,7 +205,10 @@ export const Finding = ( { finding, onBack, onStarted } ) => {
 					<p>
 						{ sprintf(
 							/* translators: 1: estimated amount, 2: unit, 3: what it affects. */
-							__( 'About %1$s %2$s of %3$s.', 'hakeemify-debloater' ),
+							__(
+								'About %1$s %2$s of %3$s.',
+								'hakeemify-debloater'
+							),
 							impact.estimate,
 							impact.unit,
 							impact.kind

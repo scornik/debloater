@@ -54,7 +54,10 @@ export const Runs = () => {
 							'hakeemify-debloater'
 					  )
 					: result.result?.error ||
-					  __( 'The restore did not complete.', 'hakeemify-debloater' ),
+					  __(
+							'The restore did not complete.',
+							'hakeemify-debloater'
+					  ),
 			} );
 
 			await data.reload();
@@ -69,7 +72,8 @@ export const Runs = () => {
 	if ( data.status === 'loading' ) {
 		return (
 			<p className="debloater-loading">
-				<Spinner /> { __( 'Reading the history…', 'hakeemify-debloater' ) }
+				<Spinner />{ ' ' }
+				{ __( 'Reading the history…', 'hakeemify-debloater' ) }
 			</p>
 		);
 	}
@@ -140,7 +144,9 @@ export const Runs = () => {
 					<table className="debloater-snapshots">
 						<thead>
 							<tr>
-								<th scope="col">{ __( 'Id', 'hakeemify-debloater' ) }</th>
+								<th scope="col">
+									{ __( 'Id', 'hakeemify-debloater' ) }
+								</th>
 								<th scope="col">
 									{ __( 'Change', 'hakeemify-debloater' ) }
 								</th>
@@ -174,7 +180,10 @@ export const Runs = () => {
 													setConfirming( snapshot )
 												}
 											>
-												{ __( 'Restore', 'hakeemify-debloater' ) }
+												{ __(
+													'Restore',
+													'hakeemify-debloater'
+												) }
 											</Button>
 										) : (
 											<span className="debloater-snapshots__refusal">
@@ -191,7 +200,10 @@ export const Runs = () => {
 
 			{ confirming && (
 				<Modal
-					title={ __( 'Restore this recovery point?', 'hakeemify-debloater' ) }
+					title={ __(
+						'Restore this recovery point?',
+						'hakeemify-debloater'
+					) }
 					onRequestClose={ () => setConfirming( null ) }
 				>
 					<p>

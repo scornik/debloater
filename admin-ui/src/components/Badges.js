@@ -56,7 +56,8 @@ export const Confidence = ( { value } ) => {
 	return (
 		<span className="debloater-confidence">
 			{ /* translators: %d: confidence as a percentage. */ }
-			{ __( 'Confidence', 'hakeemify-debloater' ) } <strong>{ percent }%</strong>
+			{ __( 'Confidence', 'hakeemify-debloater' ) }{ ' ' }
+			<strong>{ percent }%</strong>
 		</span>
 	);
 };

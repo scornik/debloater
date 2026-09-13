@@ -21,13 +21,19 @@ const DECISIONS = [
 	{ value: '', label: __( 'Any decision', 'hakeemify-debloater' ) },
 	{ value: 'recommend', label: __( 'Recommended', 'hakeemify-debloater' ) },
 	{ value: 'dont_touch', label: __( 'Leave alone', 'hakeemify-debloater' ) },
-	{ value: 'info', label: __( 'No action recommended', 'hakeemify-debloater' ) },
+	{
+		value: 'info',
+		label: __( 'No action recommended', 'hakeemify-debloater' ),
+	},
 ];
 
 const CATEGORIES = [
 	{ value: '', label: __( 'Any category', 'hakeemify-debloater' ) },
 	{ value: 'wordpress', label: __( 'WordPress', 'hakeemify-debloater' ) },
-	{ value: 'configuration', label: __( 'Configuration', 'hakeemify-debloater' ) },
+	{
+		value: 'configuration',
+		label: __( 'Configuration', 'hakeemify-debloater' ),
+	},
 	{ value: 'database', label: __( 'Database', 'hakeemify-debloater' ) },
 	{ value: 'plugins', label: __( 'Plugins', 'hakeemify-debloater' ) },
 	{ value: 'maintenance', label: __( 'Maintenance', 'hakeemify-debloater' ) },
@@ -75,13 +81,17 @@ export const Findings = ( { onOpenFinding } ) => {
 
 			{ findings.status === 'loading' && (
 				<p className="debloater-loading">
-					<Spinner /> { __( 'Reading the findings…', 'hakeemify-debloater' ) }
+					<Spinner />{ ' ' }
+					{ __( 'Reading the findings…', 'hakeemify-debloater' ) }
 				</p>
 			) }
 
 			{ findings.status === 'ready' && items.length === 0 && (
 				<p className="debloater-findings__empty">
-					{ __( 'No findings match those filters.', 'hakeemify-debloater' ) }
+					{ __(
+						'No findings match those filters.',
+						'hakeemify-debloater'
+					) }
 				</p>
 			) }
 

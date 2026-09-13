@@ -25,7 +25,10 @@ import { useResource } from '../api/useResource';
 const PROFILES = [
 	{
 		value: 'safe',
-		label: __( 'Safe — nothing that could surprise you', 'hakeemify-debloater' ),
+		label: __(
+			'Safe — nothing that could surprise you',
+			'hakeemify-debloater'
+		),
 	},
 	{
 		value: 'performance',
@@ -33,17 +36,26 @@ const PROFILES = [
 	},
 	{
 		value: 'maximum',
-		label: __( 'Maximum — everything this site allows', 'hakeemify-debloater' ),
+		label: __(
+			'Maximum — everything this site allows',
+			'hakeemify-debloater'
+		),
 	},
 ];
 
 const SNAPSHOT_LABELS = {
-	A: __( 'Configuration, so the change can be undone exactly', 'hakeemify-debloater' ),
+	A: __(
+		'Configuration, so the change can be undone exactly',
+		'hakeemify-debloater'
+	),
 	B: __(
 		'Every row that would be removed, stored before anything is',
 		'hakeemify-debloater'
 	),
-	C: __( 'Your own external backup, which you told us about', 'hakeemify-debloater' ),
+	C: __(
+		'Your own external backup, which you told us about',
+		'hakeemify-debloater'
+	),
 };
 
 /**
@@ -136,7 +148,10 @@ export const ApplyDialog = ( { tweak, tweaks, title, onClose, onStarted } ) => {
 			{ preview.status === 'loading' && (
 				<p className="debloater-loading">
 					<Spinner />{ ' ' }
-					{ __( 'Working out what would change…', 'hakeemify-debloater' ) }
+					{ __(
+						'Working out what would change…',
+						'hakeemify-debloater'
+					) }
 				</p>
 			) }
 
@@ -163,7 +178,12 @@ export const ApplyDialog = ( { tweak, tweaks, title, onClose, onStarted } ) => {
 
 					{ plan.will_change?.length > 0 && (
 						<>
-							<h3>{ __( 'What will change', 'hakeemify-debloater' ) }</h3>
+							<h3>
+								{ __(
+									'What will change',
+									'hakeemify-debloater'
+								) }
+							</h3>
 							<ul className="debloater-list debloater-list--change">
 								{ plan.will_change.map( ( line ) => (
 									<li key={ line }>{ line }</li>
@@ -175,7 +195,10 @@ export const ApplyDialog = ( { tweak, tweaks, title, onClose, onStarted } ) => {
 					{ plan.will_not?.length > 0 && (
 						<>
 							<h3>
-								{ __( 'What will not change', 'hakeemify-debloater' ) }
+								{ __(
+									'What will not change',
+									'hakeemify-debloater'
+								) }
 							</h3>
 							<ul className="debloater-list debloater-list--nochange">
 								{ plan.will_not.map( ( line ) => (
@@ -187,7 +210,12 @@ export const ApplyDialog = ( { tweak, tweaks, title, onClose, onStarted } ) => {
 
 					{ excluded.length > 0 && (
 						<>
-							<h3>{ __( 'Left out, and why', 'hakeemify-debloater' ) }</h3>
+							<h3>
+								{ __(
+									'Left out, and why',
+									'hakeemify-debloater'
+								) }
+							</h3>
 							<ul className="debloater-list debloater-list--nochange">
 								{ excluded.map( ( [ id, reason ] ) => (
 									<li key={ id }>
@@ -198,7 +226,9 @@ export const ApplyDialog = ( { tweak, tweaks, title, onClose, onStarted } ) => {
 						</>
 					) }
 
-					<h3>{ __( 'Recovery taken first', 'hakeemify-debloater' ) }</h3>
+					<h3>
+						{ __( 'Recovery taken first', 'hakeemify-debloater' ) }
+					</h3>
 					<ul className="debloater-list">
 						{ levels.map( ( level ) => (
 							<li key={ level }>
@@ -252,7 +282,10 @@ export const ApplyDialog = ( { tweak, tweaks, title, onClose, onStarted } ) => {
 										'Create recovery backup & delete',
 										'hakeemify-debloater'
 								  )
-								: __( 'Create snapshot & apply', 'hakeemify-debloater' ) }
+								: __(
+										'Create snapshot & apply',
+										'hakeemify-debloater'
+								  ) }
 						</Button>
 						<Button
 							variant="tertiary"

@@ -255,7 +255,10 @@ export default function Profiles( { onPreview, epoch } ) {
 							variant="primary"
 							onClick={ () => onPreview( imported.selection ) }
 						>
-							{ __( 'Preview these changes', 'hakeemify-debloater' ) }
+							{ __(
+								'Preview these changes',
+								'hakeemify-debloater'
+							) }
 						</Button>
 					) }
 				</Notice>
@@ -263,7 +266,10 @@ export default function Profiles( { onPreview, epoch } ) {
 
 			<div className="debloater-profiles__save">
 				<TextControl
-					label={ __( 'Save this setup as a profile', 'hakeemify-debloater' ) }
+					label={ __(
+						'Save this setup as a profile',
+						'hakeemify-debloater'
+					) }
 					help={ __(
 						'Records the changes this site has applied, under a name you choose.',
 						'hakeemify-debloater'
@@ -305,7 +311,8 @@ export default function Profiles( { onPreview, epoch } ) {
 
 			{ profiles.status === 'loading' && (
 				<p className="debloater-loading">
-					<Spinner /> { __( 'Reading profiles…', 'hakeemify-debloater' ) }
+					<Spinner />{ ' ' }
+					{ __( 'Reading profiles…', 'hakeemify-debloater' ) }
 				</p>
 			) }
 
@@ -325,7 +332,10 @@ export default function Profiles( { onPreview, epoch } ) {
 									{ row.name }
 									{ row.builtin && (
 										<span className="debloater-profiles__builtin">
-											{ __( 'built in', 'hakeemify-debloater' ) }
+											{ __(
+												'built in',
+												'hakeemify-debloater'
+											) }
 										</span>
 									) }
 								</td>
@@ -340,7 +350,10 @@ export default function Profiles( { onPreview, epoch } ) {
 											)
 										}
 									>
-										{ __( 'Export', 'hakeemify-debloater' ) }
+										{ __(
+											'Export',
+											'hakeemify-debloater'
+										) }
 									</Button>
 									{ row.selection.length > 0 && (
 										<Button
@@ -349,7 +362,10 @@ export default function Profiles( { onPreview, epoch } ) {
 												onPreview( row.selection )
 											}
 										>
-											{ __( 'Preview', 'hakeemify-debloater' ) }
+											{ __(
+												'Preview',
+												'hakeemify-debloater'
+											) }
 										</Button>
 									) }
 								</td>
