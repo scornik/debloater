@@ -544,7 +544,8 @@ final class ApplyManager {
 				$tweak->id,
 				TweakState::SNAPSHOTTED,
 				JournalAction::APPLY,
-				$tweak->params
+				$tweak->params,
+				$this->lifecycle->startOf( $tweak->id )
 			);
 		}
 
@@ -554,7 +555,8 @@ final class ApplyManager {
 				$tweak->id,
 				TweakState::SNAPSHOTTED,
 				JournalAction::APPLY,
-				$tweak->params
+				$tweak->params,
+				$this->lifecycle->startOf( $tweak->id )
 			);
 		}
 

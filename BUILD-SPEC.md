@@ -446,6 +446,7 @@ DISCOVERED → ELIGIBLE → RECOMMENDED → SELECTED → PREVIEWED → SNAPSHOTT
 COMMITTED → REVERT_REQUESTED → ROLLED_BACK   (manual undo)
 ```
 Stored per tweak in `debloater_state.tweak_states`; every transition writes a journal row.
+`ROLLED_BACK` ends one application of a tweak. A plan that takes the tweak up again starts a new application at `SELECTED`; there is no edge out of `ROLLED_BACK` (`docs/DECISIONS.md` D-0075).
 
 ### 9.2 Apply run (`RunStateMachine`)
 ```

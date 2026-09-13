@@ -193,6 +193,63 @@ final class ApplyRollbackTest extends IntegrationTestCase {
 	}
 
 	/**
+	 * A tweak that was rolled back can be applied again, and says so.
+	 *
+	 * `ROLLED_BACK` is terminal in §9.1: it ends one application of a tweak.
+	 * Selecting the tweak again begins another, at `SELECTED`. Before this was
+	 * pinned, the second apply looked for a route out of `ROLLED_BACK`, found
+	 * none, journalled a skip and left the stored state alone — so the change
+	 * was in effect and every surface reported it as undone. Found by
+	 * `tools/cli-e2e.sh` on a site that had been rolled back once, which is
+	 * every site that has used the feature.
+	 *
+	 * @return void
+	 */
+	public function test_a_rolled_back_tweak_can_be_applied_again(): void {
+		$first = $this->plugin->apply( $this->planOf( array( 'core.remove_generator' ) ) );
+
+		$this->assertSame( RunState::COMMITTED, $first->state, (string) $first->error );
+
+		$this->plugin->rollback( $first->run_id );
+
+		$this->assertSame(
+			TweakState::ROLLED_BACK,
+			$this->plugin->state()->tweakStates()['core.remove_generator'] ?? null
+		);
+
+		$second = $this->plugin->apply( $this->planOf( array( 'core.remove_generator' ) ) );
+
+		$this->assertSame( RunState::COMMITTED, $second->state, (string) $second->error );
+		$this->assertArrayHasKey( 'core.remove_generator', $this->plugin->state()->selection() );
+
+		$this->assertSame(
+			TweakState::COMMITTED,
+			$this->plugin->state()->tweakStates()['core.remove_generator'] ?? null,
+			'The tweak is in effect, so its recorded state must say so.'
+		);
+
+		$states = array();
+
+		foreach ( $this->plugin->journal()->forRun( $second->run_id ) as $entry ) {
+			if ( 'core.remove_generator' === $entry['tweak_id'] ) {
+				$states[] = $entry['from_state'] . '->' . $entry['to_state'];
+			}
+		}
+
+		// The whole lifecycle again, from the start, and no skip rows.
+		$this->assertSame(
+			array(
+				'SELECTED->PREVIEWED',
+				'PREVIEWED->SNAPSHOTTED',
+				'SNAPSHOTTED->APPLIED',
+				'APPLIED->VERIFIED',
+				'VERIFIED->COMMITTED',
+			),
+			$states
+		);
+	}
+
+	/**
 	 * The transient cleanup round-trip: rows and timeouts come back exactly.
 	 *
 	 * @return void

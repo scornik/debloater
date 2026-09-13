@@ -67,6 +67,28 @@ final class TweakLifecycle {
 	}
 
 	/**
+	 * Where a tweak's lifecycle starts when a plan takes it up.
+	 *
+	 * `ROLLED_BACK` is terminal in §9.1 because it ends one application of a
+	 * tweak, not the tweak. Selecting it again begins a new application at
+	 * `SELECTED`. Starting from the stored state instead finds no route out of
+	 * a terminal state, journals a skip, and leaves the tweak recorded as
+	 * undone while it is in effect.
+	 *
+	 * `DONT_TOUCH` is terminal too and is deliberately *not* restarted: planning
+	 * never admits one (§13 invariant 5), and if something ever did, the skip
+	 * that follows is the correct refusal.
+	 *
+	 * @param string $tweak_id Tweak id.
+	 * @return TweakState
+	 */
+	public function startOf( string $tweak_id ): TweakState {
+		$stored = $this->current( $tweak_id, TweakState::SELECTED );
+
+		return TweakState::ROLLED_BACK === $stored ? TweakState::SELECTED : $stored;
+	}
+
+	/**
 	 * Move a tweak to the given state, journalling every step of the way.
 	 *
 	 * @param int              $run_id   Run this belongs to.

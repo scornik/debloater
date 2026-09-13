@@ -98,8 +98,28 @@ esac
 say 'status after applying'
 STATUS=$( $WP debloater status --json )
 
-if printf '%s' "$STATUS" | grep -q '"present": true'; then
-	printf '  ok   runtime is in place\n'
+# In place means three things: something is selected, the runtime registered
+# handlers for it, and every selected tweak is recorded as COMMITTED.
+#
+# This used to grep for `"present": true`, a field of the compiled runtime file.
+# The file went in f98feec (D-0070) and the field with it, so the check could
+# not pass, and the loop was not run again until round 2 of the wordpress.org
+# review. The third condition is what that run then found: a tweak applied
+# again after a rollback was recorded as ROLLED_BACK while it was in effect
+# (D-0075).
+if printf '%s' "$STATUS" | php -r '
+	$s = json_decode( stream_get_contents( STDIN ), true );
+	if ( ! is_array( $s ) || $s["selection_count"] < 1 || $s["runtime"]["handlers"] < 1 ) {
+		exit( 1 );
+	}
+	foreach ( $s["selection"] as $id ) {
+		if ( "COMMITTED" !== ( $s["tweak_states"][ $id ] ?? null ) ) {
+			fwrite( STDERR, $id . " is " . ( $s["tweak_states"][ $id ] ?? "unrecorded" ) . PHP_EOL );
+			exit( 1 );
+		}
+	}
+'; then
+	printf '  ok   runtime is in place and every selected tweak is COMMITTED\n'
 else
 	printf '  FAIL runtime is not in place after a successful apply\n%s\n' "$STATUS"
 	FAIL=1

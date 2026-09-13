@@ -4008,3 +4008,62 @@ carried a section headed "Why `--file` survives" arguing the case above; it
 would have read as a guarantee that the flag still took a path. It is replaced
 by "There is no way to write anywhere else", which is what the signature now
 says, rather than left standing next to code that stopped agreeing with it.
+
+---
+
+## D-0075 – selecting a rolled-back tweak again starts a new lifecycle
+
+- **Phase:** 0.4.0, found during wordpress.org review round 2
+- **Date:** 2026-09-13
+- **Status:** accepted
+- **Spec:** §9.1. Clarifies it; changes no edge.
+
+### What was wrong
+
+Apply a tweak, roll it back, apply it again. The second apply succeeds, the
+tweak is selected, the runtime registers its handler, the change is in effect —
+and `status`, the admin screen and every other surface report it as
+`ROLLED_BACK`.
+
+`TweakLifecycle::advance()` starts from the stored state. After a rollback that
+is `ROLLED_BACK`, which is terminal, so the second apply asked for a route from
+`ROLLED_BACK` to `SNAPSHOTTED`, found none, journalled a skip and left the
+stored state alone (D-0018 working exactly as written). Every later step did the
+same.
+
+Not a safety failure — the recovery points, verification and rollback all ran
+— but a record that says the opposite of what is on the site is the kind of
+thing D-0018 exists to prevent, arrived at from the other side.
+
+### Why nothing caught it
+
+`test_every_tweak_transition_is_journalled` applies once, on a fresh site. The
+CLI round trip in `CliTest` applies, rolls back and applies again, but asserts
+the selection and not the state. `tools/cli-e2e.sh` would have caught it on any
+site that had used rollback once, but its status check had been grepping for a
+field removed with the compiled runtime (`f98feec`, D-0070), so it failed for a
+reason nobody looked at and was not run again until this round.
+
+### Decision
+
+`ROLLED_BACK` ends one *application* of a tweak, not the tweak. A plan that takes
+the tweak up again begins a new application at `SELECTED`, and the journal for
+that run reads as the full §9.1 lifecycle from the start.
+
+`TweakLifecycle::startOf()` is the one place that rule lives, and the apply's
+snapshot step — where a plan takes up each tweak — passes it as the start. It is
+not an edge `ROLLED_BACK → SELECTED` in the table: that would make "undone" a
+state the machine can leave on its own, and the journal would record a
+transition nothing performed.
+
+`DONT_TOUCH` is terminal too and is deliberately not restarted. Planning never
+admits one (§13 invariant 5); if something ever did, the skip is the correct
+refusal.
+
+### What is asserted
+
+`ApplyRollbackTest::test_a_rolled_back_tweak_can_be_applied_again`: apply,
+roll back, apply; the state is `COMMITTED`, and the second run's journal is the
+five §9.1 edges from `SELECTED` with no skip rows. `tools/cli-e2e.sh` now checks
+that every selected tweak is `COMMITTED` after an apply, on a site that has
+been through the loop before.
