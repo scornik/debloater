@@ -450,6 +450,47 @@ final class AdminIntelligenceTest extends IntegrationTestCase {
 	}
 
 	/**
+	 * A symlinked plugin's notices are attributed to it.
+	 *
+	 * PHP reports a symlinked plugin's files by their real path, which is not
+	 * under `WP_PLUGIN_DIR`, so the old prefix comparison never matched them.
+	 * Core records each symlinked plugin's real directory in `$wp_plugin_paths`
+	 * as it loads it (`wp_register_plugin_realpath()`), and `plugin_basename()`
+	 * maps back through that. This registers the mapping the way core would:
+	 * a plugin called `linked-plugin` whose real directory is the one this file
+	 * is in.
+	 *
+	 * @return void
+	 */
+	public function test_a_symlinked_plugin_is_attributed_through_core(): void {
+		global $wp_plugin_paths;
+
+		require_once DEBLOATER_TESTS_ROOT . '/runtime-handlers/admin-suppress-promo-notices.php';
+
+		$saved = $wp_plugin_paths;
+
+		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Registering a symlinked plugin is exactly what core's wp_register_plugin_realpath() does to this global; restored below.
+		$wp_plugin_paths[ wp_normalize_path( WP_PLUGIN_DIR . '/linked-plugin' ) ] = wp_normalize_path( DEBLOATER_TESTS_ROOT );
+
+		$ours = array( self::class, 'print_nothing' );
+
+		add_action( 'admin_notices', $ours );
+
+		\Debloater_Handler_Admin_Suppress_Promo_Notices::register( array( 'sources' => array( 'linked-plugin' ) ) );
+		\Debloater_Handler_Admin_Suppress_Promo_Notices::hide_notices();
+
+		$hidden = false === has_action( 'admin_notices', $ours );
+
+		\Debloater_Handler_Admin_Suppress_Promo_Notices::unregister();
+		remove_action( 'admin_notices', $ours );
+
+		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Putting back what was there before the test.
+		$wp_plugin_paths = $saved;
+
+		$this->assertTrue( $hidden, 'a notice from a symlinked plugin should be attributed to that plugin' );
+	}
+
+	/**
 	 * A source outside the allowlist is refused before it reaches generated
 	 * code.
 	 *
