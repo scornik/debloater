@@ -2431,7 +2431,7 @@ it landed; `CHANGELOG.md` and `docs/DECISIONS.md` D-0070–D-0072 are its record
   `f98feec` and logged PHP warnings. Found by the clean-install test of the
   0.4.0 archive with `WP_DEBUG` on; only the JSON form had been tested.
 - Pro: `3bd6e16` (rename follow-up; its eight architecture invariants had been
-  skipping), `e9cbcca`, `a92a9bd`. Registry: `9d2bef6`, `be5c75d`.
+  skipping), `e9cbcca`, `a92a9bd`. Registry: `6b5f8dd`, `9c8623e`.
 
 ### The gate, on the release tree
 

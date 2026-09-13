@@ -4200,7 +4200,7 @@ own:
 ### What was removed
 
 - `registry/tweaks/admin.hide_update_nags_non_admins.json`, in the registry
-  repository first (`debloater-registry` `9d2bef6`) and then here. The vendored
+  repository first (`debloater-registry` `6b5f8dd`) and then here. The vendored
   `registry/manifest.json` is copied from there, so the two stay byte-identical;
   it keeps the tag `v0.1.0`, which on an unreleased change means "the last
   release this content descends from" (registry D-0067). The next signed
