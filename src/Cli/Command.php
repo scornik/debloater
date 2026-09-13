@@ -746,25 +746,27 @@ final class Command {
 					)
 				);
 
+				// What the runtime loads is the stored handler list (D-0070). This
+				// used to describe a generated file — its hash, its loader, whether
+				// it matched — and went on reading those keys after the file was
+				// gone: three PHP warnings on every call, and "No runtime file:
+				// nothing is being changed" printed on a site with changes applied.
+				// Only the JSON form had been updated, and only the JSON form was
+				// tested. `CliTest::test_status_speaks_about_the_runtime_that_exists`
+				// runs this one.
 				/** @var array<string,mixed> $runtime */
-				$runtime = $document['runtime'];
+				$runtime  = $document['runtime'];
+				$handlers = (int) ( $runtime['handlers'] ?? 0 );
 
 				$this->io->line(
-					$runtime['present']
-						? sprintf(
-							/* translators: 1: runtime hash, 2: loader mode. */
-							__( 'Runtime %1$s, loaded by the %2$s', 'hakeemify-debloater' ),
-							substr( (string) $runtime['hash'], 0, 12 ),
-							(string) ( is_array( $document['loader'] ) ? $document['loader']['mode'] : '' )
+					0 === $handlers
+						? __( 'No handlers are loaded: nothing is being changed on the front end or in the admin.', 'hakeemify-debloater' )
+						: sprintf(
+							/* translators: %d: number of runtime handlers. */
+							_n( '%d handler is loaded on every request.', '%d handlers are loaded on every request.', $handlers, 'hakeemify-debloater' ),
+							$handlers
 						)
-						: __( 'No runtime file: nothing is being changed on the front end.', 'hakeemify-debloater' )
 				);
-
-				if ( ! $runtime['matches_state'] ) {
-					$this->io->warning(
-						__( 'The runtime file on disk is not the one Debloater generated.', 'hakeemify-debloater' )
-					);
-				}
 
 				return self::EXIT_OK;
 			}

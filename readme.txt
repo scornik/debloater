@@ -215,6 +215,8 @@ LiteSpeed Cache and WP Super Cache.
   anything when you update; nothing else you selected is affected.
 * Fixed: a change you rolled back and then applied again was shown as rolled
   back, although it was in place.
+* Fixed: `wp debloater status` logged PHP warnings and said nothing was being
+  changed on a site with changes applied.
 * Fixed: hiding a plugin's admin notices did not work when that plugin was
   installed through a symbolic link.
 * Scripts and stylesheets are traced to the plugin or theme that loads them by

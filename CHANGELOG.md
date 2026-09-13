@@ -56,6 +56,11 @@ fixing them turned up two bugs that had nothing to do with the review.
   starts another. D-0075.
 - **Notice suppression missed symlinked plugins**, whose files do not live
   under `WP_PLUGIN_DIR` by path.
+- **`wp debloater status` printed PHP warnings and misreported the runtime.**
+  Its text output still read the fields of the compiled runtime removed in
+  0.3.0, so every call logged three warnings under `WP_DEBUG` and said nothing
+  was being changed on a site with changes applied. The JSON output was right.
+  Found on a clean install with `WP_DEBUG` on.
 - **`[--file=-]` was not a valid WP-CLI synopsis**, which made WP-CLI reject
   every `--file`. The integration suite calls commands directly and could not
   see it; `tools/cli-e2e.sh` did.

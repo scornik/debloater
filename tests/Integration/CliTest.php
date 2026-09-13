@@ -614,6 +614,43 @@ final class CliTest extends IntegrationTestCase {
 	}
 
 	/**
+	 * The human form of `status` describes the runtime as it is now.
+	 *
+	 * Only the JSON form was tested, and the human form went on reading the
+	 * compiled runtime's `present`, `hash`, `matches_state` and `loader` keys
+	 * for two releases after they were removed. On a clean install with
+	 * `WP_DEBUG` on that was three warnings per call, and the text said nothing
+	 * was being changed on a site with six changes applied. Warnings are
+	 * exceptions in this suite, so calling it at all is most of the test.
+	 *
+	 * @return void
+	 */
+	public function test_status_speaks_about_the_runtime_that_exists(): void {
+		$empty = new RecordingIo();
+
+		( new Command( $this->plugin, $empty ) )->status( array(), array() );
+
+		$this->assertSame( Command::EXIT_OK, $empty->code );
+		$this->assertStringContainsString( 'No handlers are loaded', $empty->output() );
+
+		$this->selectAndGenerate(
+			array(
+				'core.remove_generator' => array(),
+				'core.remove_rsd'       => array(),
+			)
+		);
+
+		$applied = new RecordingIo();
+
+		( new Command( $this->plugin, $applied ) )->status( array(), array() );
+
+		$this->assertSame( Command::EXIT_OK, $applied->code );
+		$this->assertStringContainsString( '2 handlers are loaded', $applied->output() );
+		$this->assertStringNotContainsString( 'runtime file', $applied->output() );
+		$this->assertStringNotContainsString( 'nothing is being changed', $applied->output() );
+	}
+
+	/**
 	 * Every run and journal row the CLI creates is attributed to `cli`, not to
 	 * whoever happened to be signed in.
 	 *
