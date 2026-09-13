@@ -56,7 +56,6 @@ final class LoaderTest extends TestCase {
 	public function test_the_shipped_registry_holds_the_mvp_tweak_set(): void {
 		$this->assertSame(
 			array(
-				'admin.hide_update_nags_non_admins',
 				'admin.remove_dashboard_widgets',
 				'admin.remove_welcome_panel',
 				'admin.remove_wp_news_widget',
@@ -128,7 +127,6 @@ final class LoaderTest extends TestCase {
 			'admin.remove_dashboard_widgets'       => Risk::SAFE,
 			'admin.remove_welcome_panel'           => Risk::SAFE,
 			'admin.remove_wp_news_widget'          => Risk::SAFE,
-			'admin.hide_update_nags_non_admins'    => Risk::SAFE,
 			'admin.suppress_promo_notices'         => Risk::MEDIUM,
 
 			// Phase 14. Elementor's own supported filter, and still medium: the

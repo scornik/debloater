@@ -37,7 +37,6 @@ use Debloater\Analyze\Rules\ShortlinkRule;
 use Debloater\Analyze\Rules\SpamCommentsRule;
 use Debloater\Analyze\Rules\StoredRevisionsRule;
 use Debloater\Analyze\Rules\TrashRule;
-use Debloater\Analyze\Rules\UpdateNagRule;
 use Debloater\Analyze\Rules\WelcomePanelRule;
 use Debloater\Analyze\Rules\WooAnalyticsRule;
 use Debloater\Analyze\Rules\WooBlockStylesRule;
@@ -91,7 +90,6 @@ final class Rules {
 			// Admin: what the people who run the site have to look at.
 			new WelcomePanelRule(),
 			new NewsWidgetRule(),
-			new UpdateNagRule(),
 			new PluginNoticesRule(),
 			new DashboardWidgetsRule(),
 

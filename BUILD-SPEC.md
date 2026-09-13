@@ -794,7 +794,7 @@ Tests: fixtures with two SEO plugins and two cache plugins produce duplicate fin
 ```
 
 ### PHASE 12 — Admin intelligence
-**Tasks:** `AdminScanner` v2 (per-source notices, dashboard widgets, admin menu items, admin scripts/styles counts captured on our screen load); config tweaks: `admin.remove_dashboard_widgets` (per widget param), `admin.hide_update_nags_non_admins`, `admin.remove_welcome_panel`, `admin.remove_wp_news_widget`, `admin.suppress_promo_notices` (allowlisted third-party notice hooks from registry: woocommerce, elementor, yoast, rank-math, jetpack); Admin sub-score added to SCORING.md v2.
+**Tasks:** `AdminScanner` v2 (per-source notices, dashboard widgets, admin menu items, admin scripts/styles counts captured on our screen load); config tweaks: `admin.remove_dashboard_widgets` (per widget param), ~~`admin.hide_update_nags_non_admins`~~ (removed in 0.4.0 on wordpress.org's instruction — `docs/DECISIONS.md` D-0077), `admin.remove_welcome_panel`, `admin.remove_wp_news_widget`, `admin.suppress_promo_notices` (allowlisted third-party notice hooks from registry: woocommerce, elementor, yoast, rank-math, jetpack); Admin sub-score added to SCORING.md v2.
 **Exit:** admin findings with evidence; tweaks reversible; no notices from us.
 
 ```

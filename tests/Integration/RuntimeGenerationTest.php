@@ -262,6 +262,58 @@ final class RuntimeGenerationTest extends IntegrationTestCase {
 	}
 
 	/**
+	 * A tweak removed from the plugin, still in a site's selection, does nothing.
+	 *
+	 * `admin.hide_update_nags_non_admins` went in 0.4.0 (D-0077). A site that
+	 * had it selected upgrades with its id in the selection and its file name in
+	 * the runtime option. Written as that site would have it, because the
+	 * upgrade is the case, not a fresh selection.
+	 *
+	 * @return void
+	 */
+	public function test_a_removed_tweak_left_in_a_selection_is_inert(): void {
+		$removed = array(
+			'file'   => 'admin-hide-update-nags-non-admins.php',
+			'class'  => 'Debloater_Handler_Admin_Hide_Update_Nags_Non_Admins',
+			'params' => array(),
+		);
+
+		$this->assertFileDoesNotExist( DEBLOATER_TESTS_ROOT . '/runtime-handlers/' . $removed['file'] );
+
+		$this->plugin->state()->setSelection(
+			array(
+				'admin.hide_update_nags_non_admins' => array(),
+				'core.remove_generator'             => array(),
+			)
+		);
+
+		update_option(
+			Runtime::OPTION,
+			array(
+				'handlers' => array(
+					$removed,
+					array(
+						'file'   => 'core-remove-generator.php',
+						'class'  => 'Debloater_Handler_Core_Remove_Generator',
+						'params' => array(),
+					),
+				),
+			)
+		);
+
+		// The first request: the missing file is skipped, the rest still load.
+		$this->assertSame( 1, $this->plugin->runtime()->load(), 'only the handler that ships should register' );
+		$this->assertFalse( class_exists( $removed['class'], false ) );
+
+		// The next apply or rollback: the id the registry no longer has is dropped.
+		$this->assertSame( 1, $this->plugin->regenerateRuntime() );
+
+		$files = array_column( get_option( Runtime::OPTION )['handlers'], 'file' );
+
+		$this->assertSame( array( 'core-remove-generator.php' ), $files );
+	}
+
+	/**
 	 * `wp_head()` output, for the handlers that filter it.
 	 *
 	 * @return string

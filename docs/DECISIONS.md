@@ -4165,3 +4165,81 @@ choose.
   Probes: slug-before-callback and a loose `.php` match each fail it.
 - `MuPluginDetectionTest`, which did not exist. Probe: detection returning false
   fails it.
+
+---
+
+## D-0077 – nothing hides core's update notice
+
+- **Phase:** 0.4.0, wordpress.org review round 2
+- **Date:** 2026-09-13
+- **Status:** accepted
+- **Removes:** `admin.hide_update_nags_non_admins`, added in Phase 12
+
+### The finding
+
+The tweak hid WordPress's "a new version is available" notice from users who
+cannot update. wordpress.org asked for it to go, and the reason stands on its
+own:
+
+- **Suppressing core update notices interferes with the update-notification
+  system.** Whether, when and to whom WordPress announces an update is core's
+  decision, and a plugin that edits the announcement is a plugin that can make
+  a site miss one.
+- **Core already gates `update_nag` on capability.** It is shown to users with
+  `update_core`. The tweak was solving a problem core had already solved, by
+  reaching into the part of core that most needs to be left alone.
+
+### What was removed
+
+- `registry/tweaks/admin.hide_update_nags_non_admins.json`, in the registry
+  repository first (`debloater-registry` `9d2bef6`) and then here. The vendored
+  `registry/manifest.json` is copied from there, so the two stay byte-identical;
+  it keeps the tag `v0.1.0`, which on an unreleased change means "the last
+  release this content descends from" (registry D-0067). The next signed
+  registry release carries the removal.
+- `runtime-handlers/admin-hide-update-nags-non-admins.php`.
+- `Analyze\Rules\UpdateNagRule` (`admin.update_nag.for_everyone`) and its
+  entry in `Rules::all()`.
+- Its tests in `AdminIntelligenceTest`, `AdminRulesTest` and `LoaderTest`.
+- `tests/Fixtures/registry-signature/`, which item 1 (D-0073) orphaned when it
+  removed the signature tests that read it; it still listed this tweak's hash.
+
+No profile, preset, compatibility rule or detector referenced it, in either
+repository.
+
+The `admin.update_nag` **fact** stays. The scanner reports what is on a site
+and nothing reads it now, but a fact is an observation, not a recommendation
+(invariant 1), and removing it would be a schema change in a signed file for
+no gain.
+
+### Upgrading sites
+
+A site that had the tweak selected still has it in two places after upgrading:
+the selection, and the `debloater_runtime` option naming
+`admin-hide-update-nags-non-admins.php`. Neither does anything.
+
+- `Runtime::registerOne()` skips a handler whose file is not readable, and the
+  file no longer ships, so from the first request on 0.4.0 nothing registers
+  and core's notice is back for whoever core shows it to. The runtime needs no
+  knowledge of the registry to get there (invariant 4).
+- The next `regenerateRuntime()` — any apply or rollback — skips an id the
+  registry does not have, so the stale handler leaves the option then.
+- The id stays in the stored selection until the site's selection is next
+  replaced. A rollback to a pre-0.4.0 recovery point restores a selection that
+  names it, which is the same inert case.
+
+`RuntimeGenerationTest::test_a_removed_tweak_left_in_a_selection_is_inert` holds
+all three.
+
+### What is asserted
+
+- `AdminIntelligenceTest::test_no_admin_tweak_touches_the_core_update_notice`:
+  with every admin tweak applied, running every Debloater handler callback on
+  the admin hooks leaves `update_nag` at priority 3 for an administrator and an
+  author, and no shipped handler names `update_nag`. Probe: a welcome-panel
+  handler that removes the notice for non-updaters, with the name split so the
+  grep cannot see it, fails the behavioural assertion.
+- `AdminRulesTest::test_no_rule_offers_to_hide_the_update_notice`: on the facts
+  where the old rule fired, no rule has `update_nag` in its id or recommends a
+  tweak that does. Probe: restoring `UpdateNagRule` fails it.
+- `LoaderTest`'s pinned tweak list no longer contains it.

@@ -78,12 +78,11 @@ filters `debloater_dashboard_panels`, `debloater_registry_origin`,
 
 ## The tweak registry, as data
 
-27 tweaks. **11 safe, 6 low, 10 medium, 0 high.** Five are destructive and
+26 tweaks. **10 safe, 6 low, 10 medium, 0 high.** Five are destructive and
 require a Level B recovery point.
 
 | Tweak | Risk | Category | |
 |---|---|---|---|
-| `admin.hide_update_nags_non_admins` | safe | admin | |
 | `admin.remove_dashboard_widgets` | safe | admin | |
 | `admin.remove_welcome_panel` | safe | admin | |
 | `admin.remove_wp_news_widget` | safe | admin | |

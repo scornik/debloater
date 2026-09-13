@@ -61,11 +61,11 @@ decision.
 
 = What it can change =
 
-Twenty-seven changes at present, across WordPress core (emoji scripts, embeds,
+Twenty-six changes at present, across WordPress core (emoji scripts, embeds,
 the generator tag, RSD and shortlink headers, jQuery Migrate, heartbeat
 interval, revision limits, self-pingbacks, Dashicons for guests), the admin
-(dashboard widgets, the welcome panel, the news widget, update nags for
-non-administrators, promotional notices), the database (expired transients,
+(dashboard widgets, the welcome panel, the news widget, promotional notices),
+the database (expired transients,
 auto-drafts, orphaned meta, old revisions, spam comments, trash, autoloaded
 options), WooCommerce (cart fragments and block styles loaded only where they
 are needed, admin analytics, marketplace suggestions) and Elementor (Google

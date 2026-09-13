@@ -13,7 +13,6 @@ use PHPUnit\Framework\TestCase;
 use Debloater\Analyze\Rules\DashboardWidgetsRule;
 use Debloater\Analyze\Rules\NewsWidgetRule;
 use Debloater\Analyze\Rules\PluginNoticesRule;
-use Debloater\Analyze\Rules\UpdateNagRule;
 use Debloater\Analyze\Rules\WelcomePanelRule;
 use Debloater\Analyze\Score;
 use Debloater\Contracts\Category;
@@ -68,27 +67,22 @@ final class AdminRulesTest extends TestCase {
 	}
 
 	/**
-	 * The update notice is only worth hiding when somebody would be spared it.
+	 * Nothing offers to hide core's update notice.
+	 *
+	 * There was a rule for it, `admin.update_nag.for_everyone`, recommending a
+	 * tweak that hid the notice from people who cannot update. Both were
+	 * removed in 0.4.0 on wordpress.org's instruction: suppressing core's
+	 * update notices interferes with the update-notification system, and core
+	 * already shows `update_nag` only to people with `update_core` (D-0077).
+	 *
+	 * Asserted against every rule the analyzer runs, on a site where the old
+	 * rule would have fired, so that a rule reintroduced under another name is
+	 * caught by what it does rather than what it is called.
 	 *
 	 * @return void
 	 */
-	public function test_the_update_notice_is_left_alone_on_a_one_person_site(): void {
-		$rule = new UpdateNagRule();
-
-		$alone = Facts::freshInstall(
-			array(
-				'admin.update_nag'        => true,
-				'users.admin_count'       => 1,
-				'users.recent_editors_7d' => 1,
-			)
-		);
-
-		$this->assertNull(
-			$rule->analyze( $alone ),
-			'with nobody to hide it from, offering to hide it would be inventing a problem'
-		);
-
-		$shared = Facts::freshInstall(
+	public function test_no_rule_offers_to_hide_the_update_notice(): void {
+		$facts = Facts::freshInstall(
 			array(
 				'admin.update_nag'        => true,
 				'users.admin_count'       => 1,
@@ -96,11 +90,27 @@ final class AdminRulesTest extends TestCase {
 			)
 		);
 
-		$finding = $rule->analyze( $shared );
+		$checked = 0;
 
-		$this->assertNotNull( $finding );
-		$this->assertSame( 'admin.hide_update_nags_non_admins', $finding->recommendedTweakId() );
-		$this->assertStringContainsString( 'still sees it', $finding->why );
+		foreach ( \Debloater\Analyze\Rules::all() as $rule ) {
+			++$checked;
+
+			$this->assertStringNotContainsString( 'update_nag', $rule->findingId() );
+
+			$finding = $rule->analyze( $facts );
+
+			if ( null === $finding ) {
+				continue;
+			}
+
+			$this->assertStringNotContainsString(
+				'update_nag',
+				(string) $finding->recommendedTweakId(),
+				$rule->findingId() . ' recommends hiding the core update notice'
+			);
+		}
+
+		$this->assertGreaterThan( 10, $checked, 'the rule list was not read' );
 	}
 
 	/**
@@ -203,7 +213,7 @@ final class AdminRulesTest extends TestCase {
 			)
 		);
 
-		foreach ( array( new WelcomePanelRule(), new NewsWidgetRule(), new UpdateNagRule(), new PluginNoticesRule(), new DashboardWidgetsRule() ) as $rule ) {
+		foreach ( array( new WelcomePanelRule(), new NewsWidgetRule(), new PluginNoticesRule(), new DashboardWidgetsRule() ) as $rule ) {
 			$this->assertNull( $rule->analyze( $outside ), $rule->findingId() );
 		}
 	}

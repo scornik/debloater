@@ -29,7 +29,6 @@ final class AdminIntelligenceTest extends IntegrationTestCase {
 		'admin.remove_dashboard_widgets',
 		'admin.remove_welcome_panel',
 		'admin.remove_wp_news_widget',
-		'admin.hide_update_nags_non_admins',
 		'admin.suppress_promo_notices',
 	);
 
@@ -251,40 +250,51 @@ final class AdminIntelligenceTest extends IntegrationTestCase {
 	}
 
 	/**
-	 * The update notice is hidden from people who cannot update, and from
-	 * nobody else.
+	 * With every admin tweak applied, core's update notice is untouched.
+	 *
+	 * This replaced a test that the notice was hidden from people who cannot
+	 * update. The tweak it tested was removed in 0.4.0 (D-0077): hiding core's
+	 * update notices interferes with the update-notification system, and core
+	 * already gates `update_nag` on `update_core`. The property worth keeping is
+	 * the inverse — nothing Debloater applies reaches that notice, for anybody.
 	 *
 	 * @return void
 	 */
-	public function test_the_update_notice_still_reaches_whoever_can_act_on_it(): void {
-		$administrator = get_current_user_id();
-		$author        = self::factory()->user->create( array( 'role' => 'author' ) );
+	public function test_no_admin_tweak_touches_the_core_update_notice(): void {
+		$author = self::factory()->user->create( array( 'role' => 'author' ) );
 
 		add_action( 'admin_notices', 'update_nag', 3 );
 
-		$this->selectAndGenerate( array( 'admin.hide_update_nags_non_admins' => array() ) );
-		$this->loadRuntime();
+		$selection = array();
 
-		wp_set_current_user( $author );
-		\Debloater_Handler_Admin_Hide_Update_Nags_Non_Admins::hide_for_others();
+		foreach ( self::ADMIN_TWEAKS as $tweak_id ) {
+			$selection[ $tweak_id ] = $this->paramsFor( $tweak_id );
+		}
 
-		$this->assertFalse(
-			has_action( 'admin_notices', 'update_nag' ),
-			'an author cannot update, so the instruction is not addressed to them'
-		);
+		$this->selectAndGenerate( $selection );
+		$this->assertTrue( $this->loadRuntime(), 'the admin tweaks should have registered' );
 
-		// Put it back and run again as somebody who can act on it.
-		add_action( 'admin_notices', 'update_nag', 3 );
+		foreach ( array( get_current_user_id(), $author ) as $user ) {
+			wp_set_current_user( $user );
 
-		wp_set_current_user( $administrator );
-		\Debloater_Handler_Admin_Hide_Update_Nags_Non_Admins::hide_for_others();
+			$this->runHandlerCallbacks();
 
-		$this->assertNotFalse(
-			has_action( 'admin_notices', 'update_nag' ),
-			'the person who can run the update must always see it'
-		);
+			$this->assertSame( 3, has_action( 'admin_notices', 'update_nag' ), 'update_nag must stay where core put it' );
+		}
 
-		$this->unregisterHandlers( array( 'admin.hide_update_nags_non_admins' ) );
+		$handlers = glob( DEBLOATER_TESTS_ROOT . '/runtime-handlers/*.php' );
+
+		$this->assertNotEmpty( $handlers, 'the shipped handlers were not found, so none were read' );
+
+		foreach ( (array) $handlers as $handler ) {
+			$this->assertStringNotContainsString(
+				'update_nag',
+				(string) file_get_contents( $handler ),
+				basename( $handler ) . ' names core\'s update notice'
+			);
+		}
+
+		$this->unregisterHandlers( self::ADMIN_TWEAKS );
 
 		remove_action( 'admin_notices', 'update_nag', 3 );
 	}
@@ -319,6 +329,41 @@ final class AdminIntelligenceTest extends IntegrationTestCase {
 		$this->unregisterHandlers( array( 'admin.suppress_promo_notices' ) );
 
 		remove_action( 'admin_notices', $ours );
+	}
+
+	/**
+	 * Run every Debloater handler callback on the admin action hooks.
+	 *
+	 * Only ours. Firing the hooks themselves runs core's callbacks too, which
+	 * print markup and, run alone, reach widget code that needs state other
+	 * tests leave behind — so a test that fired them passed in the suite and
+	 * errored on its own.
+	 *
+	 * @return void
+	 */
+	private function runHandlerCallbacks(): void {
+		global $wp_filter;
+
+		$ran = 0;
+
+		foreach ( array( 'admin_init', 'wp_dashboard_setup', 'admin_head', 'in_admin_header', 'admin_notices', 'all_admin_notices' ) as $hook ) {
+			if ( ! isset( $wp_filter[ $hook ] ) ) {
+				continue;
+			}
+
+			foreach ( $wp_filter[ $hook ]->callbacks as $callbacks ) {
+				foreach ( $callbacks as $registered ) {
+					$function = $registered['function'] ?? null;
+
+					if ( is_array( $function ) && is_string( $function[0] ) && 0 === strpos( $function[0], 'Debloater_Handler_' ) ) {
+						call_user_func( $function );
+						++$ran;
+					}
+				}
+			}
+		}
+
+		$this->assertGreaterThan( 0, $ran, 'no handler callback was found to run, so nothing was checked' );
 	}
 
 	/**
