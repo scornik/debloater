@@ -2447,12 +2447,11 @@ it landed; `CHANGELOG.md` and `docs/DECISIONS.md` D-0070–D-0072 are its record
 | Packaging | 13 pass / 0 fail, including install and activate |
 | Version discipline | reconciled at 0.4.0 |
 
-### Open
+### Decided afterwards
 
-- `PluginScanner::modifiedAt()` and `WordPressScanner::xmlrpcEnabled()` still
-  read the disk; both are listed as open in D-0076 pending a decision.
-- Pro's `test_the_priority_channel_needs_an_entitlement` fails: it tests a
-  filter removed from free in `1e4dd63`. What Pro's registry channel becomes is
-  an open product decision (the fetch it would port never discovered a newer
-  release, and the priority repository does not exist).
-- Not pushed, not tagged. `docs/RELEASING.md` step 7 is a person's call.
+- `PluginScanner::modifiedAt()` and `WordPressScanner::xmlrpcEnabled()` keep
+  their disk reads (D-0076).
+- Pro withdraws priority registry updates instead of porting the fetch
+  (`debloater-pro` D-0078, Pro 0.3.0). No plugin fetches a registry.
+- Pushed and tagged: `v0.4.0` here, Pro `v0.3.0`. The registry repository's
+  `main` is pushed; its next tag needs the offline signing key.

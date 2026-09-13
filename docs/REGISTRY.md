@@ -263,22 +263,21 @@ That changed in 0.4.0, on wordpress.org's instruction — a plugin may not pull
 code or data from a third-party host, and `raw.githubusercontent.com` is a
 third-party host however well the bytes are signed (`D-0073`).
 
-The fetch itself was not thrown away. It moved to Pro, which is distributed
-through Freemius rather than wordpress.org and already sold a priority registry
-channel, and it kept everything that made it defensible: signature verification
-against a pinned key, verify-before-parse, fail-closed on anything unexpected,
-and opt-in.
+Nor does Pro. The fetch was going to move there, and it was withdrawn instead:
+the check had never been able to discover a newer release, nothing installed
+one, and the priority repository it pointed at did not exist
+(`debloater-pro` D-0078).
 
 ### What that means for a release
 
-Signing a registry release still matters — Pro verifies it, and anybody can
-check a tag by hand. What has changed is who downloads one:
+Signing a registry release still matters: the tag is the audit trail, and
+anybody can check one by hand. Nothing downloads it.
 
 | | Before 0.4.0 | Now |
 |---|---|---|
-| Free plugin | vendored copy, optional WP-CLI fetch | vendored copy only |
-| Pro | the same fetch, priority channel | the fetch, priority channel |
-| How a free site gets new rules | fetch, or a plugin update | a plugin update |
+| Free plugin | vendored copy, optional WP-CLI check | vendored copy only |
+| Pro | the same check, pointed at a priority channel | vendored copy only |
+| How any site gets new rules | a plugin update | a plugin update |
 
 The Phase 21 pipeline is unaffected in what it does and changed in what it
 feeds: its proposals land in the registry repository, and a registry release is

@@ -3885,6 +3885,13 @@ carries the same note so the two repositories do not disagree about it.
 
 ### Where the fetch went
 
+> **Superseded, 2026-09-13.** It went nowhere. Porting it to Pro showed the check
+> could never discover a newer release, nothing installed one, and the priority
+> repository did not exist. Pro withdrew the feature instead
+> (`debloater-pro` D-0078). There is no registry fetch in either plugin, and new
+> rules reach every site in a plugin release. The paragraphs below are what was
+> planned, kept because the reasoning about the guideline still stands.
+
 Pro. It is distributed through Freemius, not wordpress.org, so the guideline
 does not reach it, and it already sold "priority registry updates" as a feature
 (`D-0064`, `Features\RegistryChannel`). Everything that made the fetch
@@ -4141,12 +4148,12 @@ and named files) and are not listed.
 | `runtime-handlers/admin-suppress-promo-notices.php` | Was `is_dir( WP_PLUGIN_DIR . '/' . $slug )` | **Removed, with no replacement check.** A callback belongs to a selected plugin when `plugin_basename()` says so — core's own answer, which also handles symlinked plugins the directory prefix got wrong. The first attempt replaced the directory check with "is it in `active_plugins`", as the review suggested; `LoaderTest` failed it, because a runtime handler reads no options (invariant 4). Neither check did anything attribution does not: an inactive plugin has not loaded and has no callbacks, and a slug naming nothing matches no file. |
 | `src/Scan/Scanners/AdminScanner.php::menuSource()` | Was `file_exists( ABSPATH . 'wp-admin/' . $slug )` | **Removed.** Built a path out of a menu slug any plugin sets. Now: a callback on the page hook decides first; failing that, a bare `name.php` slug is core, because that is how core's menu names its screens. Not flagged by the review; same shape as what was. |
 | `src/Plugin.php::hasCustomMuPlugins()` | Was `glob( content_dir . '/mu-plugins/*.php' )` | **Removed.** `get_mu_plugins()` is core's list, and unlike the hand-built path it follows a relocated `WPMU_PLUGIN_DIR`. |
-| `src/Scan/Scanners/PluginScanner.php::modifiedAt()` | `filemtime( WP_PLUGIN_DIR . '/' . $plugin_file )` | **Open — needs the disk.** It is the offline staleness reading `AbandonedPluginsRule` falls back to when the user has not opted into release-date lookups (`plugins.update_source = file_mtime`). No URL or in-memory equivalent exists. Kept pending a decision: keep it, or drop the fallback and report staleness only with the opt-in. |
-| `src/Scan/Scanners/WordPressScanner.php::xmlrpcEnabled()` | `file_exists( ABSPATH . 'xmlrpc.php' )` | **Open — needs the disk.** Some hosts delete `xmlrpc.php`; without the check the XML-RPC finding fires on a site where the endpoint is gone. A fixed core file, nothing from data in the path. The only path-free alternative is a loopback request. Kept pending a decision. |
+| `src/Scan/Scanners/PluginScanner.php::modifiedAt()` | `filemtime( WP_PLUGIN_DIR . '/' . $plugin_file )` | **Stays — needs the disk.** It is the offline staleness reading `AbandonedPluginsRule` falls back to when the user has not opted into release-date lookups (`plugins.update_source = file_mtime`). No URL or in-memory equivalent exists, and dropping it would mean no staleness reading at all for a site that keeps everything local. It reads a file core itself loaded; nothing is written. |
+| `src/Scan/Scanners/WordPressScanner.php::xmlrpcEnabled()` | `file_exists( ABSPATH . 'xmlrpc.php' )` | **Stays — needs the disk.** Some hosts delete `xmlrpc.php`; without the check the XML-RPC finding fires on a site where the endpoint is gone. A fixed core file, nothing from data in the path. The only path-free alternative is a loopback request per scan to find out. |
 
-The two open rows were raised before changing anything, as asked: neither
-could be done without either a filesystem read or a behaviour the user has to
-choose.
+Both of those were raised before anything changed, because neither could be
+removed without either a filesystem read or a behaviour somebody has to choose.
+Decided 2026-09-13: keep both.
 
 ### What is asserted
 
