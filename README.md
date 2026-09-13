@@ -141,7 +141,7 @@ npm run test:integration   # the WordPress suites
 npm run test:cli           # the whole loop through the real `wp` binary
 ```
 
-Debloater Pro, if you have it checked out, runs its own integration suite
+Hakeemify Debloater Pro, if you have it checked out, runs its own integration suite
 against this environment:
 
 ```bash

@@ -1,4 +1,4 @@
-# What Debloater and Debloater Pro actually do
+# What Hakeemify Debloater and Hakeemify Debloater Pro actually do
 
 Derived from the code and the registry as they stand at **0.2.0**, not from
 `BUILD-SPEC.md` and not from memory. Where this disagrees with the
@@ -122,7 +122,7 @@ schemas, plus `admin-notices.json`, `host-optimizers.json` and
 
 ---
 
-## Debloater Pro
+## Hakeemify Debloater Pro
 
 Separate plugin, separate repository, extending the free plugin only through
 documented hooks. **It adds no tweaks and no safety features**, asserted by

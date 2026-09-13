@@ -2,7 +2,7 @@
 
 Every hook Debloater exposes for an extension, and what each one promises.
 
-This is a contract. Debloater Pro reaches the free plugin through these and
+This is a contract. Hakeemify Debloater Pro reaches the free plugin through these and
 nothing else, and `tests/Integration/ExtensionPointsTest.php` asserts each one
 fires with the documented signature — so a refactor that quietly drops one
 fails a test rather than silently breaking whatever depended on it.

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Run Debloater Pro's integration suite against this plugin's wp-env.
+ * Run Hakeemify Debloater Pro's integration suite against this plugin's wp-env.
  *
  * Pro is a separate repository. Its integration tests assert what Pro
  * does to a site running Debloater, so they need both plugins in one
@@ -118,7 +118,7 @@ const mapped = mappedProPath();
 
 if ( ! mapped ) {
 	refuse( [
-		'Debloater Pro is not mapped into this environment, so its integration',
+		'Hakeemify Debloater Pro is not mapped into this environment, so its integration',
 		'tests have nothing to run against.',
 		'',
 		'The mapping is a template here rather than a default, because this',
