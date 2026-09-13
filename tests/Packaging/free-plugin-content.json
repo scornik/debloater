@@ -727,6 +727,16 @@
         "hakeemify-debloater/uninstall.php",
         "hakeemify-debloater/vendor/composer/autoload_classmap.php"
       ]
+    },
+    {
+      "why": "0.4.0: wp debloater status text output read runtime keys removed in 0.3.0 and logged PHP warnings under WP_DEBUG; found on the clean-install test of the 0.4.0 archive. Command.php, readme.txt changelog line, .pot.",
+      "added": [],
+      "removed": [],
+      "changed": [
+        "hakeemify-debloater/languages/hakeemify-debloater.pot",
+        "hakeemify-debloater/readme.txt",
+        "hakeemify-debloater/src/Cli/Command.php"
+      ]
     }
   ],
   "generated": [
@@ -742,8 +752,8 @@
     "hakeemify-debloater/build/style-index.css": "a3a65467e8b7debc329de65b7a62c0530bb4f3f1aa3e88f71f9b52a6172c88c0",
     "hakeemify-debloater/composer.json": "616f2cbe8232cfb86e0de71ffd0e3434700215b1f114d5e9c1ccb95dbe58124b",
     "hakeemify-debloater/hakeemify-debloater.php": "88d1c771c11e8d26c77c4bce873deb891d80801e32b35f620b2ed43797f2361b",
-    "hakeemify-debloater/languages/hakeemify-debloater.pot": "38840d4eb2a70da84e3576fa0f8252d9ac1bcba4f8ee794cfcd6c3c3faa6a43e",
-    "hakeemify-debloater/readme.txt": "f3b4f8b055d9f25b1667288c459a0056741c85086b2164d8609266cff2e5d120",
+    "hakeemify-debloater/languages/hakeemify-debloater.pot": "64e9a4e2c869330635d206d547ac4ad88df019282d4868ab5c4b2ceea90ea84e",
+    "hakeemify-debloater/readme.txt": "9b75cb33a71b5a595f7695141f8e189948bb6e76e4aee3f9a65ea47887be2339",
     "hakeemify-debloater/registry/admin-notices.json": "168502077be40257f7e2271bf526466765bb728bbe3193e23119a62cc1fddfa7",
     "hakeemify-debloater/registry/compatibility/contact-form-7.json": "206dfc65065af55c036aecdd0dce6df571504c4e1c187c627dba7d6e1eb18de6",
     "hakeemify-debloater/registry/compatibility/elementor-pro.json": "94b8d0095404069bbf34d4382cfc68d17cdfe72cb9716203d555f516e8623ab6",
@@ -884,7 +894,7 @@
     "hakeemify-debloater/src/Apply/TweakLifecycle.php": "9f138ccb977a30ac5ac46275b4d696578b5d601cd59ffc95b1494f684050c444",
     "hakeemify-debloater/src/Apply/TweakStateMachine.php": "1a72dfbc0e296e01e9d657057397b6ac2542dc5c774a0dcb4b5549b664f0542c",
     "hakeemify-debloater/src/Brand.php": "a2bc788f43848444923f333de67085a538184d2ef9b3c1bb93ce824a37fc7ad4",
-    "hakeemify-debloater/src/Cli/Command.php": "e4fb1aa3c47374b50bf0055cddc4987d5b4078f524df892819e9d7cf8453a296",
+    "hakeemify-debloater/src/Cli/Command.php": "7f2876e63441647ff88c553ad7edfb24ad3b33018aa38ef927c834d329d2c7aa",
     "hakeemify-debloater/src/Cli/ExportDestination.php": "52aa98ff024491a81c0db28a9e817e50bdfbc64e6ee2ed37a97ab535f309aa49",
     "hakeemify-debloater/src/Cli/Io.php": "fc734a3cbee197d12b3f0132670b6c4b582723396171dc6d06544aa89de2f1a7",
     "hakeemify-debloater/src/Cli/WpCliIo.php": "284cd1f5b5fbb6bc7b064428ffbba17b6cc18ff2b73846f0e405e6e5559bb349",

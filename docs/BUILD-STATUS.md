@@ -2427,6 +2427,9 @@ it landed; `CHANGELOG.md` and `docs/DECISIONS.md` D-0070–D-0072 are its record
 - `3a5b3b7` — `uninstall.php` ships and was not in `phpcs.xml.dist`.
 - `cf9f2b9` — `lint:js` had failed since the text-domain rename in `1d5a751`.
 - `8b942ce` — the symlinked-plugin fix the changelog claims, tested.
+- `d71fdfb` — `wp debloater status` in text form read runtime keys removed in
+  `f98feec` and logged PHP warnings. Found by the clean-install test of the
+  0.4.0 archive with `WP_DEBUG` on; only the JSON form had been tested.
 - Pro: `3bd6e16` (rename follow-up; its eight architecture invariants had been
   skipping), `e9cbcca`, `a92a9bd`. Registry: `9d2bef6`, `be5c75d`.
 
@@ -2438,7 +2441,7 @@ it landed; `CHANGELOG.md` and `docs/DECISIONS.md` D-0070–D-0072 are its record
 | PHPStan level 6 | no errors |
 | Unit | 1141 pass / 0 fail |
 | JS tests / lint | 23 pass / clean |
-| Integration | 332 + 9 fail-probe pass / 0 fail |
+| Integration | 333 + 9 fail-probe pass / 0 fail |
 | WP-CLI end to end | the whole loop ran |
 | Registry manifest | matches all 57 files |
 | Packaging | 13 pass / 0 fail, including install and activate |
