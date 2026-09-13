@@ -174,6 +174,11 @@ which is what a reviewer and every user makes. It is the plugin's `Plugin URI`,
 so that link is dead for everybody but you until the repository is made public
 or the header points at something that is.
 
+> **Resolved.** `scornik/debloater` is public, and so, since 2026-09-13, is
+> `scornik/debloater-pro`. The registry paragraph below is out of date too: the
+> registry repository exists, and since 0.4.0 no plugin fetches from it
+> (D-0073).
+
 **`scornik/debloater-registry` does not exist.** `readme.txt` tells users that
 optional registry updates come from
 `https://raw.githubusercontent.com/scornik/debloater-registry`, and

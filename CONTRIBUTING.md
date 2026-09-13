@@ -36,13 +36,15 @@ npm run test:cli
 
 ## Two repositories
 
-Debloater is public. **Debloater Pro** is a separate, private repository at
+Both are public. **Hakeemify Debloater Pro** is a separate repository at
 `scornik/debloater-pro`, and it extends this plugin through the hooks and URL
 contracts documented in `docs/HOOKS.md`.
 
 Nothing in this repository depends on Pro. The tests, the build and the release
 archive all work with no Pro checkout anywhere, and that is a property worth
-keeping: a contributor without access to Pro must be able to do everything here.
+keeping: a contributor who has cloned only this repository must be able to do
+everything here. (This used to say "without access to Pro", when Pro was
+private. The property is the same.)
 
 If you do have Pro checked out beside this repository, its integration suite
 runs against this environment:

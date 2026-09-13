@@ -2,7 +2,7 @@
 /**
  * Run Debloater Pro's integration suite against this plugin's wp-env.
  *
- * Pro is a separate, private repository. Its integration tests assert what Pro
+ * Pro is a separate repository. Its integration tests assert what Pro
  * does to a site running Debloater, so they need both plugins in one
  * WordPress — and the only WordPress either repository has is this one's.
  *
