@@ -184,20 +184,24 @@ process, so no filter reaches it. On a real site this does not apply.
 
 ### Pro's feature rows keep needing correction
 
-Three of the four features Pro's plan sells today have had to be corrected, and
-a fifth was withdrawn. Written down together because one of these is an
-oversight and three is a pattern: a row was written as a promise, and what
-shipped underneath it was narrower.
+Three of the four features Pro's plan sells today have needed correcting —
+every one except scheduled scans — and a fifth was withdrawn. Written down
+together because one of these is an oversight and four is a pattern: a row was
+written as a promise, and what shipped underneath it was narrower.
 
 | Sold as | What was there | What was done |
 |---|---|---|
 | Priority registry updates | A filter pointing a check that could not discover a newer release at a repository that was never created | **Withdrawn**, not rebuilt (Pro D-0078) |
 | White-label before/after reports | A report that never carried a vendor name to replace, so "white-label" promised a substitution that does not happen — and collided with the licence flag that word already means here (Pro D-0061). It also named no site, so an agency's reports for two clients differed only by a run id and a timestamp | **Reworded** to "before/after reports with your name on them", in the setting's description and the docs; the site's name and home URL added to the report (Pro 0.3.2) |
 | Bulk apply of a saved profile | Built and reachable from nothing | **Deleted** and replaced by portable profiles, which preview and confirm on each site (Pro D-0068) |
-| Scheduled scans, drift detection | As described | — |
+| Drift alerts on WordPress & plugin updates | Two scans' **findings** compared, and nothing else. No rule reads a version, so a WordPress or plugin update was invisible unless it happened to move an unrelated finding, and was never named. Nothing was sent: "alert" meant a panel you had to visit. The version facts were recorded on every scan and read by nobody | **Built and reworded** (Pro 0.4.0). WordPress and each active plugin's version are compared between the two scans, with activations and deactivations, in a block separate from the findings diff. "Alert" removed from everything that ships, with a test that fails if it returns. The theme is not covered: there is no theme version fact |
+| Scheduled scans | As described — but the scheduled event itself had never been fired in a test, nor the entitlement re-check it makes at fire time | **Tested** (Pro 0.4.0): firing the hook records a scan; a lapsed entitlement at fire time does not |
 
 What each correction had in common: the claim was written from the feature's
-intent, and nothing compared it against the code afterwards. The rows are
+intent, and nothing compared it against the code afterwards. The drift row is
+the clearest case: its own class docblock described "drift proper" as the
+feature's point, and that category had no test, while the version change the
+row actually named had no code. The rows are
 storefront content in the Freemius dashboard, which no test in either repository
 can read — so the check that would have caught all three does not exist here and
 cannot. The nearest thing available is that the plugin's own description of a
