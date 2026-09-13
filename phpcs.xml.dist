@@ -3,6 +3,8 @@
 	<description>Coding standards for Debloater.</description>
 
 	<file>hakeemify-debloater.php</file>
+	<!-- Ships, and was not linted until 0.4.0: a file WordPress runs on uninstall is still code. -->
+	<file>uninstall.php</file>
 	<file>src</file>
 	<file>runtime-handlers</file>
 	<file>tests</file>

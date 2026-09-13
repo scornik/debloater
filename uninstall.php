@@ -133,7 +133,8 @@ function debloater_uninstall_directory( string $root ): void {
 			wp_delete_file( $file );
 		}
 
-		@rmdir( $backups ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- A directory somebody else has put something in is theirs; rmdir refuses it and that refusal is the correct outcome, not an error to report during an uninstall.
+		// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPressVIPMinimum.Functions.RestrictedFunctions.directory_rmdir -- A directory somebody else has put something in is theirs; rmdir refuses it and that refusal is the correct outcome, not an error to report during an uninstall. The VIP rule exists because VIP's filesystem is read-only, which a wordpress.org site's uploads directory is not, and this removes only a directory this plugin created.
+		@rmdir( $backups );
 	}
 
 	foreach ( array( 'index.php', '.htaccess' ) as $guard ) {
@@ -142,10 +143,11 @@ function debloater_uninstall_directory( string $root ): void {
 		}
 	}
 
-	// Exports the operator asked for are left alone. They were written where
-	// somebody chose to put them and are not this plugin's to delete; rmdir()
-	// refuses the directory while they are there, which is the right outcome.
-	@rmdir( $root ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- As above.
+	// Exports are left alone. Somebody ran `wp debloater export` to get that
+	// file, and uninstalling the plugin is not a request to delete it; rmdir()
+	// refuses the directory while one is there, which is the right outcome.
+	// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPressVIPMinimum.Functions.RestrictedFunctions.directory_rmdir -- As above.
+	@rmdir( $root );
 }
 
 /**
