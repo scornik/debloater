@@ -2157,7 +2157,7 @@ needs.
 |---|---|
 | Scan on a schedule | Off, daily or weekly, with the next run shown |
 | Saved profile | Which profile "apply" means |
-| Name on reports | The agency name for the white-label report |
+| Name on reports | The agency name, in the before/after report's title and heading |
 | What changed since the last scan | Drift, in full rather than as a summary panel |
 | Before and after | A printable report per apply |
 

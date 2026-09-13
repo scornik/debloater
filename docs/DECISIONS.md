@@ -2740,9 +2740,16 @@ printed and closed.
   agencies rather than an assumed one, the cloud is the place for it — rendering
   server-side through `CloudServiceClient` costs the site nothing and keeps the
   library off it — and that is a Phase 20 conversation, not this one.
-- The report contains only measured deltas (§12 invariant 14). White-label means
-  the agency's name replaces Hakeemify's; it does not mean the numbers change,
-  and where nothing was measured the report says so rather than estimating.
+- The report contains only measured deltas (§12 invariant 14). The agency's name
+  does not change the numbers, and where nothing was measured the report says so
+  rather than estimating.
+
+> **Naming, 2026-09-13.** This decision's title calls it "the white-label
+> report", which is what the feature was called when it was written. It is not
+> called that now: the report never carried a vendor name to replace, and
+> "white-label" in this product means the licence flag in `D-0061`. The feature
+> is "before/after reports with your name on them". The title stays as it is
+> because it is a heading other files cite.
 
 ---
 
