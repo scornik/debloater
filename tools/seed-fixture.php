@@ -8,7 +8,7 @@
  *
  * Run it with:
  *
- *     npx wp-env run cli --env-cwd=wp-content/plugins/debloater wp eval-file tools/seed-fixture.php
+ *     npx wp-env run cli --env-cwd=wp-content/plugins/hakeemify-debloater wp eval-file tools/seed-fixture.php
  *
  * It is idempotent in the sense that running it twice seeds twice; it is a
  * fixture generator, not a migration. Nothing here runs on a real site: the

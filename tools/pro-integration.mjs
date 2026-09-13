@@ -158,7 +158,7 @@ if ( ! fs.existsSync( path.join( resolved, 'debloater-pro.php' ) ) ) {
 const command = [
 	'run',
 	'tests-cli',
-	'--env-cwd=wp-content/plugins/debloater',
+	'--env-cwd=wp-content/plugins/hakeemify-debloater',
 	'php',
 	'tools/phpunit-9.phar',
 	'-c',

@@ -71,7 +71,7 @@ jobs:
       # kind of difference a CI run exists to find: without this every scenario
       # fails on "'debloater' is not a registered wp command".
       - name: Activate Debloater
-        run: npx wp-env run cli wp plugin activate debloater
+        run: npx wp-env run cli wp plugin activate hakeemify-debloater
 
       - name: Seed the fixtures
         run: npm run test:e2e:seed

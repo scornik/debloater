@@ -99,7 +99,7 @@ async function wpCli( args, allowed = [ 0 ] ) {
 				'wp-env',
 				'run',
 				'cli',
-				'--env-cwd=wp-content/plugins/debloater',
+				'--env-cwd=wp-content/plugins/hakeemify-debloater',
 				'wp',
 				...args,
 			],

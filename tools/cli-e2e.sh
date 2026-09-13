@@ -65,7 +65,7 @@ say 'Starting from a clean slate'
 # The fixture site keeps its state between runs, so the plugin may or may not
 # already be active and there may or may not be anything to undo. Neither is a
 # failure; both have to be true before the loop starts.
-$WP plugin activate debloater >/dev/null 2>&1 || true
+$WP plugin activate hakeemify-debloater >/dev/null
 $WP debloater rollback --yes >/dev/null 2>&1 || true
 
 say 'scan'

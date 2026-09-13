@@ -12,8 +12,8 @@ build when they disagree:
 
 | Where | Line |
 |---|---|
-| `debloater.php` | ` * Version:           X.Y.Z` |
-| `debloater.php` | `const DEBLOATER_VERSION = 'X.Y.Z';` |
+| `hakeemify-debloater.php` | ` * Version:           X.Y.Z` |
+| `hakeemify-debloater.php` | `const DEBLOATER_VERSION = 'X.Y.Z';` |
 | `readme.txt` | `Stable tag: X.Y.Z` |
 | `package.json` | `"version": "X.Y.Z"` |
 
@@ -127,7 +127,7 @@ the reasons in `tools/version-discipline.mjs`. The tag is for people.
 
 ### 8. Upload
 
-`dist/debloater-X.Y.Z.zip` goes to wordpress.org. That is a person, with
+`dist/hakeemify-debloater-X.Y.Z.zip` goes to wordpress.org. That is a person, with
 credentials, deliberately — see `docs/DECISIONS.md` D-0045 for the same
 reasoning about the registry.
 

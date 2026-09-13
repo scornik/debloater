@@ -157,7 +157,7 @@ jobs:
       # wp-env activates the plugins listed in .wp-env.json. Debloater is
       # mapped in rather than listed, so on a fresh runner it is installed and
       # inactive — and `wp debloater` is then not a registered command.
-      - run: npx wp-env run cli wp plugin activate debloater
+      - run: npx wp-env run cli wp plugin activate hakeemify-debloater
 
       - run: npm run test:integration
 
@@ -235,7 +235,7 @@ jobs:
         shell: bash
         run: |
           version=$(node -p "require('./package.json').version")
-          free="dist/debloater-${version}.zip"
+          free="dist/hakeemify-debloater-${version}.zip"
 
           for archive in "$free"; do
             if [ ! -f "$archive" ]; then
@@ -260,7 +260,7 @@ jobs:
             $zip->extractTo( "dist/extracted" );
             $zip->close();
           '
-          cd dist/extracted/debloater
+          cd dist/extracted/hakeemify-debloater
           php -r 'require "vendor/autoload.php"; class_exists("Debloater\\Plugin") || exit(1); class_exists("Debloater\\Tests\\Unit\\ReleaseReadinessTest") && exit(1);'
           echo "the zip autoloads the plugin and no test classes"
 
@@ -272,7 +272,7 @@ jobs:
         shell: bash
         run: |
           test -f dist/extracted/hakeemify-debloater/hakeemify-debloater.php || { echo "hakeemify-debloater.php is not a file inside the extracted directory"; exit 1; }
-          test -d dist/extracted/debloater/src             || { echo "src/ did not extract as a directory"; exit 1; }
+          test -d dist/extracted/hakeemify-debloater/src   || { echo "src/ did not extract as a directory"; exit 1; }
           if find dist/extracted -name '*\*' | grep -q .; then
             echo "something extracted with a backslash in its name"
             exit 1
