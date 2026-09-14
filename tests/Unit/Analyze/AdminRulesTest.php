@@ -17,6 +17,7 @@ use Debloater\Analyze\Rules\WelcomePanelRule;
 use Debloater\Analyze\Score;
 use Debloater\Contracts\Category;
 use Debloater\Contracts\Decision;
+use Debloater\Contracts\Severity;
 use Debloater\Contracts\Risk;
 use Debloater\Tests\Unit\Support\Facts;
 
@@ -114,27 +115,23 @@ final class AdminRulesTest extends TestCase {
 	}
 
 	/**
-	 * Notice suppression is offered only for plugins on the allowlist, and only
-	 * once there are enough of them to be worth a medium-risk change.
+	 * Allowlisted plugins printing notices are reported, and nothing is recommended.
+	 *
+	 * The change is not offered from a scan, because a scan cannot see whether it
+	 * worked (D-0079). Pinned so it does not quietly come back as a
+	 * recommendation that `TweakEffectTest` would then catch surviving itself.
 	 *
 	 * @return void
 	 */
-	public function test_suppression_is_offered_for_allowlisted_plugins_only(): void {
-		$rule = new PluginNoticesRule();
-
-		$finding = $rule->analyze( Facts::busyStore() );
+	public function test_notices_from_allowlisted_plugins_are_reported_not_recommended(): void {
+		$finding = ( new PluginNoticesRule() )->analyze( Facts::busyStore() );
 
 		$this->assertNotNull( $finding );
-		$this->assertSame( 'admin.suppress_promo_notices', $finding->recommendedTweakId() );
-		$this->assertSame( Risk::MEDIUM, $finding->risk, 'this must stay out of Fix Safe Issues' );
-
-		$params = $finding->recommendation?->params->toArray() ?? array();
-
-		$this->assertSame(
-			array( 'woocommerce', 'wordpress-seo' ),
-			$params['sources'] ?? array(),
-			'only the sources that are both allowlisted and actually printing notices'
-		);
+		$this->assertSame( Decision::INFO, $finding->decision );
+		$this->assertNull( $finding->recommendation );
+		$this->assertSame( Severity::INFO, $finding->severity, 'no penalty for something not offered' );
+		$this->assertStringContainsString( 'WooCommerce', $finding->summary );
+		$this->assertStringContainsString( 'Yoast SEO', $finding->summary );
 	}
 
 	/**
@@ -147,7 +144,7 @@ final class AdminRulesTest extends TestCase {
 
 		$this->assertNotNull( $finding );
 
-		foreach ( array( 'not only the marketing', 'database updates or expiring licences' ) as $phrase ) {
+		foreach ( array( 'not only the marketing', 'database updates or expiring licences', 'does not offer it from a scan' ) as $phrase ) {
 			$this->assertStringContainsString( $phrase, $finding->why, $phrase );
 		}
 	}

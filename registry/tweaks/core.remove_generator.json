@@ -17,6 +17,10 @@
   "conditions": [],
   "measurements": ["frontend.head_bytes"],
   "probes": ["home", "content_page"],
+  "effect": {
+    "fact": "wp.generator_tag",
+    "equals": false
+  },
   "since_wp": "2.5",
   "docs_url": null
 }

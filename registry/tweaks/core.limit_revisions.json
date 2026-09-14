@@ -25,6 +25,11 @@
   "conditions": [],
   "measurements": ["db.revisions"],
   "probes": ["admin"],
+  "effect": {
+    "fact": "wp.revisions_limit",
+    "min": 0,
+    "max_param": "keep"
+  },
   "since_wp": "3.6",
   "docs_url": null
 }

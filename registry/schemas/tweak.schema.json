@@ -133,6 +133,33 @@
         "pattern": "^[a-z][a-z0-9_]*$"
       }
     },
+    "effect": {
+      "description": "What a request can observe when this config tweak is in effect, checked by verification in a fresh request after an apply. Either a fact and what it must be — equals, equals_param (the fact equals the named parameter), min, max_param (the fact is at most the named parameter) — or observable false with the reason nothing a request reads can show it. Every config tweak declares one; data tweaks declare none.",
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["fact"],
+          "minProperties": 2,
+          "properties": {
+            "fact": { "type": "string", "pattern": "^[a-z][a-z0-9_]*(\\.[a-z0-9][a-z0-9_-]*)+$" },
+            "equals": { "type": ["boolean", "integer", "string", "null"] },
+            "equals_param": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+            "min": { "type": "integer" },
+            "max_param": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["observable", "reason"],
+          "properties": {
+            "observable": { "const": false },
+            "reason": { "type": "string", "minLength": 1 }
+          }
+        }
+      ]
+    },
     "since_wp": {
       "type": ["string", "null"],
       "pattern": "^\\d+(\\.\\d+)*$"

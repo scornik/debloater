@@ -21,6 +21,10 @@
   "probes": [
     "admin"
   ],
+  "effect": {
+    "observable": false,
+    "reason": "Dashboard widgets are built only while the dashboard renders. A request that is not the dashboard has none to count."
+  },
   "since_wp": "4.8",
   "docs_url": null
 }

@@ -32,6 +32,10 @@
     "admin",
     "home"
   ],
+  "effect": {
+    "observable": false,
+    "reason": "Dashboard widgets are built only while the dashboard renders, and which ones go depends on the parameters chosen. A request that is not the dashboard has none to count."
+  },
   "since_wp": "2.7",
   "docs_url": null
 }

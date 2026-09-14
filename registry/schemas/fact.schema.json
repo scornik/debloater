@@ -38,16 +38,22 @@
     },
     "wp.xmlrpc_enabled": { "type": "boolean" },
     "wp.emojis_enabled": { "type": "boolean" },
-    "wp.embeds_enabled": { "type": "boolean" },
+    "wp.embeds_enabled": {
+      "description": "Whether oEmbed discovery links are printed: wp_oembed_add_discovery_links attached to wp_head at priority 10. Core also attaches it at 4 and returns early when the priority-10 attachment is gone, so 10 is what decides on or off.",
+      "type": "boolean"
+    },
     "wp.rss_enabled": { "type": "boolean" },
     "wp.generator_tag": { "type": "boolean" },
     "wp.rsd_link": { "type": "boolean" },
     "wp.shortlink": { "type": "boolean" },
     "wp.self_pingbacks": { "type": "boolean" },
-    "wp.dashicons_frontend": { "type": "boolean" },
+    "wp.dashicons_frontend": {
+      "description": "Not collected since plugin 0.5.0. It asked the scan's own request whether any registered style depended on dashicons, which a REST or WP-CLI request always has, so it was true on every site. Whether visitors load dashicons is read from assets.styles, the pages sampled as a logged-out visitor. Kept in the schema so stored runs that carry it still validate.",
+      "type": "boolean"
+    },
     "wp.jquery_migrate": { "type": "boolean" },
     "wp.revisions_limit": {
-      "description": "WP_POST_REVISIONS: -1 for unlimited, 0 to disable, otherwise the cap.",
+      "description": "The revision limit in effect for a post of type post, from wp_revisions_to_keep() after its filters: -1 for unlimited (any negative), 0 for none kept, otherwise the number kept. Not the WP_POST_REVISIONS constant, which is only the starting value.",
       "type": "integer",
       "minimum": -1
     },
@@ -398,8 +404,14 @@
       "items": { "type": "string", "minLength": 1 }
     },
     "woo.mini_cart": { "type": "boolean" },
-    "woo.admin_analytics": { "type": "boolean" },
-    "woo.marketplace_suggestions": { "type": "boolean" },
+    "woo.admin_analytics": {
+      "description": "Whether WooCommerce Analytics is on, asked as WooCommerce 11.1.0 asks it: the analytics setting, the woocommerce_admin_disabled filter, and whether analytics survives the woocommerce_admin_features filter. Also false when the older woocommerce_admin_disabled_features setting lists it.",
+      "type": "boolean"
+    },
+    "woo.marketplace_suggestions": {
+      "description": "Whether WooCommerce will show marketplace suggestions, asked as WooCommerce asks it: the woocommerce_show_marketplace_suggestions setting, then the woocommerce_allow_marketplace_suggestions filter. The viewer's install_plugins capability, which WooCommerce also checks, is not part of it.",
+      "type": "boolean"
+    },
 
     "elementor.present": {
       "description": "Whether Elementor is active. False is the only fact in this namespace on a site without it: zeroes for the rest would read as an Elementor site with nothing on it.",

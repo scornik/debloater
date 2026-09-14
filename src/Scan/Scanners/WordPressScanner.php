@@ -29,12 +29,19 @@ final class WordPressScanner extends AbstractScanner {
 	/**
 	 * The interval WordPress uses when nothing overrides it.
 	 *
-	 * The Heartbeat API has no server-side default option: the JavaScript falls
-	 * back to 15 seconds in the admin, and `heartbeat_settings` is the only way
-	 * to change it. Applying the filter to an empty array is therefore the
-	 * honest way to ask "what interval will this site actually use?".
+	 * The Heartbeat API has no server-side default option. The JavaScript starts
+	 * from `mainInterval: 60` (`wp-includes/js/heartbeat.js`), and
+	 * `heartbeat_settings` is the only way a site changes that. Applying the
+	 * filter to an empty array is therefore the honest way to ask "what interval
+	 * will this site actually use?", and 60 is the answer when nothing sets one.
+	 *
+	 * This was 15 until 0.5.0, which made `wp.heartbeat.aggressive` (under 60)
+	 * fire on every site that had never touched Heartbeat (`D-0079`). The
+	 * classic editor asks for 10 seconds while a post-lock dialog is showing
+	 * (`wp-admin/js/post.js`); that is a temporary request from one screen, not
+	 * the site's interval, and is not what this reports.
 	 */
-	private const DEFAULT_HEARTBEAT_INTERVAL = 15;
+	private const DEFAULT_HEARTBEAT_INTERVAL = 60;
 
 	/**
 	 * The namespace this scanner owns.
@@ -108,29 +115,30 @@ final class WordPressScanner extends AbstractScanner {
 	}
 
 	/**
-	 * The revision limit: -1 for unlimited, 0 for disabled, otherwise the cap.
+	 * The revision limit WordPress will enforce: -1 for unlimited, 0 for none,
+	 * otherwise the number kept per post.
+	 *
+	 * Read through `wp_revisions_to_keep()`, which is what core itself consults
+	 * when it prunes, rather than from `WP_POST_REVISIONS`. The constant is only
+	 * the starting value: `wp_revisions_to_keep` and the per-post-type filter
+	 * both run after it, and a limit set through either — including
+	 * `core.limit_revisions` — was invisible while this read the constant, so the
+	 * finding recommending that tweak survived the tweak being applied.
+	 *
+	 * Asked for a post of type `post`, because a limit is a per-post answer and
+	 * that is the type revisions matter for on most sites. Core treats any
+	 * negative value as unlimited, so every negative is reported as -1.
 	 *
 	 * @return int
 	 */
 	private function revisionsLimit(): int {
-		if ( ! defined( 'WP_POST_REVISIONS' ) ) {
-			return -1;
-		}
+		$post = new \WP_Post(
+			(object) array(
+				'ID'        => 0,
+				'post_type' => 'post',
+			)
+		);
 
-		$limit = constant( 'WP_POST_REVISIONS' );
-
-		if ( true === $limit ) {
-			return -1;
-		}
-
-		if ( false === $limit ) {
-			return 0;
-		}
-
-		if ( is_numeric( $limit ) ) {
-			return max( -1, (int) $limit );
-		}
-
-		return -1;
+		return max( -1, (int) wp_revisions_to_keep( $post ) );
 	}
 }

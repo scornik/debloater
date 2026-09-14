@@ -111,9 +111,11 @@ final class VerificationTest extends IntegrationTestCase {
 			array(
 				'admin',
 				'content_page',
+				'effects_observed',
 				'home',
 				'login',
 				'rest',
+				'runtime_registered',
 				'woo_account',
 				'woo_cart',
 				'woo_checkout',
@@ -318,13 +320,14 @@ final class VerificationTest extends IntegrationTestCase {
 
 		$this->assertSame( ProbeStatus::PASS, $result->status );
 
-		// And nothing reports on a runtime, because there is no longer a probe
-		// that could: `runtime_loaded` asked whether a generated file was
-		// loaded and matched its hash (D-0070).
-		$this->assertNotContains(
-			'runtime_loaded',
-			array_map( static fn ( $probe ): string => $probe->probe, $result->probes )
-		);
+		// `runtime_loaded` asked whether a generated file was loaded and matched
+		// its hash, and went with the file (D-0070). Its replacement asks
+		// whether the stored handlers registered, and with nothing stored the
+		// answer is a pass that did not need to ask (D-0079).
+		$names = array_map( static fn ( $probe ): string => $probe->probe, $result->probes );
+
+		$this->assertNotContains( 'runtime_loaded', $names );
+		$this->assertSame( ProbeStatus::PASS, $this->probe( $result, 'runtime_registered' )->status );
 	}
 
 	/**
@@ -617,7 +620,7 @@ final class VerificationTest extends IntegrationTestCase {
 	private static function bodyFor( string $url, $plugin ): string {
 		if ( 0 === strpos( $url, rest_url( 'debloater/v1/status' ) ) ) {
 			return (string) wp_json_encode(
-				array( 'runtime' => array( 'handlers' => 0 ) )
+				self::healthyStatus( $plugin )
 			);
 		}
 

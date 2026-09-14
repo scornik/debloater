@@ -754,19 +754,79 @@ final class Command {
 				// Only the JSON form had been updated, and only the JSON form was
 				// tested. `CliTest::test_status_speaks_about_the_runtime_that_exists`
 				// runs this one.
-				/** @var array<string,mixed> $runtime */
-				$runtime  = $document['runtime'];
-				$handlers = (int) ( $runtime['handlers'] ?? 0 );
+				//
+				// Stored and registered are printed separately. They were one
+				// number until 0.5.0, "N handlers are loaded on every request",
+				// which counted what was stored and said it had registered
+				// (D-0079). WP-CLI loads plugins like any request, so what this
+				// process registered is what a request registers.
+				/** @var array{handlers:int,guard:string,stored:array<int,string>,registered:array<int,string>,skipped:array<int,array{class:string,file:string,reason:string}>} $runtime */
+				$runtime = $document['runtime'];
+				$stored  = count( $runtime['stored'] );
+
+				if ( 0 === $stored ) {
+					$this->io->line( __( 'No handlers are stored: nothing is being changed on the front end or in the admin.', 'hakeemify-debloater' ) );
+
+					return self::EXIT_OK;
+				}
 
 				$this->io->line(
-					0 === $handlers
-						? __( 'No handlers are loaded: nothing is being changed on the front end or in the admin.', 'hakeemify-debloater' )
-						: sprintf(
-							/* translators: %d: number of runtime handlers. */
-							_n( '%d handler is loaded on every request.', '%d handlers are loaded on every request.', $handlers, 'hakeemify-debloater' ),
-							$handlers
-						)
+					sprintf(
+						/* translators: 1: handlers registered in this request, 2: handlers stored. */
+						__( '%1$d of %2$d stored handlers registered in this request.', 'hakeemify-debloater' ),
+						count( $runtime['registered'] ),
+						$stored
+					)
 				);
+
+				if ( 'active' !== $runtime['guard'] ) {
+					$this->io->warning( $this->guardMessage( $runtime['guard'] ) );
+				}
+
+				foreach ( $runtime['skipped'] as $skipped ) {
+					$this->io->warning(
+						sprintf(
+							/* translators: 1: handler class, 2: handler file, 3: reason code. */
+							__( '%1$s (%2$s) did not register: %3$s', 'hakeemify-debloater' ),
+							$skipped['class'],
+							$skipped['file'],
+							$skipped['reason']
+						)
+					);
+				}
+
+				// What the registry says each change should look like, read in
+				// this process after its runtime registered (D-0079).
+				/** @var array<int,array{tweak:string,status:string,fact:string|null,expected:string,actual:mixed,reason:string}> $effects */
+				$effects = $document['effects'];
+				$by      = array_count_values( array_column( $effects, 'status' ) );
+
+				if ( array() !== $effects ) {
+					$this->io->line(
+						sprintf(
+							/* translators: 1: changes observed, 2: changes not observed, 3: changes no request can observe. */
+							__( 'Effects: %1$d observed, %2$d not observed, %3$d cannot be observed from a request.', 'hakeemify-debloater' ),
+							$by['observed'] ?? 0,
+							$by['not_observed'] ?? 0,
+							$by['unobservable'] ?? 0
+						)
+					);
+				}
+
+				foreach ( $effects as $effect ) {
+					if ( 'not_observed' === $effect['status'] ) {
+						$this->io->warning(
+							sprintf(
+								/* translators: 1: tweak id, 2: fact key, 3: value read, 4: expected value. */
+								__( 'Applied but not observed: %1$s (%2$s is %3$s, expected %4$s)', 'hakeemify-debloater' ),
+								$effect['tweak'],
+								(string) $effect['fact'],
+								(string) wp_json_encode( $effect['actual'] ),
+								$effect['expected']
+							)
+						);
+					}
+				}
 
 				return self::EXIT_OK;
 			}
@@ -1645,10 +1705,8 @@ final class Command {
 			'selection'       => array_keys( $state->selection() ),
 			'selection_count' => count( $state->selection() ),
 			'tweak_states'    => (object) $states,
-			'runtime'         => array(
-				'handlers'       => count( $this->plugin->runtime()->registeredClasses() ),
-				'selection_hash' => $state->selectionHash(),
-			),
+			'runtime'         => $this->plugin->runtimeStatus(),
+			'effects'         => $this->plugin->effectReport(),
 			'last_scan'       => null === $run
 				? null
 				: array(
@@ -1661,6 +1719,25 @@ final class Command {
 				'holder' => $lock->heldBy(),
 			),
 		);
+	}
+
+	/**
+	 * Why the guard registered nothing, in words.
+	 *
+	 * @param string $guard Guard state from `Runtime::report()`.
+	 * @return string
+	 */
+	private function guardMessage( string $guard ): string {
+		switch ( $guard ) {
+			case 'disabled':
+				return __( 'DEBLOATER_DISABLE is defined, so no handler registers. Every stored change is off.', 'hakeemify-debloater' );
+			case 'guard_missing':
+				return __( 'runtime-handlers/runtime-guard.php could not be read, so no handler registers. Every stored change is off.', 'hakeemify-debloater' );
+			case 'bypassed':
+				return __( 'This request asked to run without Debloater, so no handler registered.', 'hakeemify-debloater' );
+			default:
+				return __( 'The runtime was not loaded in this request, so what registers is not known from here.', 'hakeemify-debloater' );
+		}
 	}
 
 	/**

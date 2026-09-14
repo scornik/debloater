@@ -16,7 +16,17 @@ use Debloater\Contracts\Risk;
 use Debloater\Contracts\Severity;
 
 /**
- * Fires when WordPress keeps every revision and the count has grown.
+ * Fires when no revision limit is in effect and the count has grown.
+ *
+ * "In effect" is `wp.revisions_limit`, which the scanner reads through
+ * `wp_revisions_to_keep()` — so a limit set by the `WP_POST_REVISIONS`
+ * constant, by a filter, or by `core.limit_revisions` all count, and applying
+ * the tweak this recommends clears the finding on the next scan.
+ *
+ * This finding is about the limit, not about the revisions already stored.
+ * Setting a limit deletes nothing; old revisions of a post go only when that
+ * post is next saved. The stored count is `StoredRevisionsRule`'s subject, and
+ * it can stay high after this finding has cleared.
  *
  * Two conditions, not one. Unlimited revisions on a site with forty of them is
  * a setting, not a problem; the finding needs both the setting and the evidence
@@ -101,19 +111,19 @@ final class RevisionsUnlimitedRule extends AbstractRule {
 				'category' => Category::DATABASE,
 				'severity' => $count >= self::SUBSTANTIAL_COUNT ? Severity::MEDIUM : Severity::LOW,
 				'risk'     => Risk::LOW,
-				'title'    => __( 'Every revision of every post is kept forever', 'hakeemify-debloater' ),
+				'title'    => __( 'No revision limit is set', 'hakeemify-debloater' ),
 				'summary'  => sprintf(
 					/* translators: 1: number of revisions, 2: revisions to keep per post. */
-					__( 'WordPress is keeping every revision, and there are now %1$s of them. Keeping the most recent %2$d per post would stop the number growing.', 'hakeemify-debloater' ),
+					__( 'Nothing limits how many revisions WordPress keeps, and %1$s are stored. A limit of %2$d per post stops the number growing. It does not remove the revisions already stored: those go only as each post is next saved.', 'hakeemify-debloater' ),
 					number_format_i18n( $count ),
 					self::KEEP_PER_POST
 				),
 				'why'      => __(
-					'Each revision is a full copy of the post in the posts table, with its own meta. On a site edited regularly they outnumber the real content several times over, which makes every backup larger and every query over the posts table slower. Capping the number changes what happens from now on: nothing is deleted, and WordPress prunes the oldest revisions of a post the next time that post is saved.',
+					'Each revision is a full copy of the post in the posts table, with its own meta. On a site edited regularly they outnumber the real content several times over, which makes every backup larger and every query over the posts table slower. A limit changes what happens from now on: nothing is deleted when it is set, and WordPress prunes the oldest revisions of a post the next time that post is saved. So after the limit is in place this finding goes, but the stored count falls slowly, one saved post at a time.',
 					'hakeemify-debloater'
 				),
 				'evidence' => $this->evidence( $facts )
-					->formatted( __( 'Revision limit', 'hakeemify-debloater' ), __( 'Unlimited', 'hakeemify-debloater' ), 'wp.revisions_limit' )
+					->formatted( __( 'Revision limit in effect', 'hakeemify-debloater' ), __( 'None', 'hakeemify-debloater' ), 'wp.revisions_limit' )
 					->fact( __( 'Revisions stored', 'hakeemify-debloater' ), 'db.revisions.count' )
 					->optional( __( 'Database size', 'hakeemify-debloater' ), 'db.size_bytes' )
 					->build(),

@@ -103,9 +103,11 @@ Nothing expires on its own (see `docs/DECISIONS.md` D-0016).
 
 ### `wp debloater status [--format=json]`
 
-What Debloater is doing on this site: the selection, the runtime and whether it
-matches what was generated, the loader mode, the last scan, and whether an apply
-is in progress.
+What Debloater is doing on this site: the selection; how many handlers are
+stored and how many registered in this process, with the reason for each that
+did not; whether each selected change can be seen working; the last scan; and
+whether an apply is in progress. WP-CLI loads plugins like any request, so what
+registered here is what registers on the site (`D-0079`).
 
 ### `wp debloater export [--file=<dash>]`
 
@@ -205,7 +207,18 @@ deliberately different, and `NOT_TESTED` never counts towards the aggregate.
   "selection": ["core.remove_rsd"],
   "selection_count": 1,
   "tweak_states": { "core.remove_rsd": "COMMITTED" },
-  "runtime": { "handlers": 1, "selection_hash": "…64 hex…" },
+  "runtime": {
+    "handlers": 1,
+    "selection_hash": "…64 hex…",
+    "guard": "active",
+    "stored": ["Debloater_Handler_Core_Remove_Rsd"],
+    "registered": ["Debloater_Handler_Core_Remove_Rsd"],
+    "skipped": []
+  },
+  "effects": [
+    { "tweak": "core.remove_rsd", "status": "observed", "fact": "wp.rsd_link",
+      "expected": "= false", "actual": false, "reason": "" }
+  ],
   "last_scan": { "run_id": 12, "at": "2026-09-03 10:11:12", "findings": 9 },
   "lock": { "held": false, "holder": null }
 }

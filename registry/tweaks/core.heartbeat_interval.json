@@ -25,6 +25,10 @@
   "conditions": [],
   "measurements": ["admin_ajax_requests_per_hour"],
   "probes": ["home", "admin", "rest"],
+  "effect": {
+    "fact": "wp.heartbeat_interval",
+    "equals_param": "interval"
+  },
   "since_wp": "3.6",
   "docs_url": null
 }

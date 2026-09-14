@@ -17,6 +17,10 @@
   "conditions": [],
   "measurements": ["frontend.requests", "frontend.styles.count"],
   "probes": ["home", "content_page"],
+  "effect": {
+    "observable": false,
+    "reason": "Decided while each front-end page is built, for the visitor viewing it. A request to the site's own REST API builds no such page, so there is nothing in it to read; the scan's page sample is where it shows."
+  },
   "since_wp": "3.8",
   "docs_url": null
 }

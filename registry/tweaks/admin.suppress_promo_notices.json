@@ -45,6 +45,10 @@
     "admin",
     "home"
   ],
+  "effect": {
+    "observable": false,
+    "reason": "The handler removes notices on admin_head, while an admin page is being built. No other request reaches that point, so no request can show it."
+  },
   "since_wp": "3.1",
   "docs_url": null
 }

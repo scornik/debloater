@@ -1,6 +1,6 @@
 # Gap analysis: the build against `BUILD-SPEC.md`
 
-At **free 0.4.0** and **Pro 0.4.0**, checked against `docs/CATALOGUE.md` (what
+At **free 0.5.0** and **Pro 0.4.0**, checked against `docs/CATALOGUE.md` (what
 the code does) and `docs/CLAIMS.md` (what the product says it does). Four
 categories:
 
@@ -25,7 +25,7 @@ something is unproven it says unproven rather than done.
 | 3 Analyzer, findings, score | One rule per MVP finding plus the three info findings; evidence, severity, independent risk, confidence; Heartbeat refusal on a collaborative store | `RulesTest`, `AnalyzerTest`. See 2 and 3 for the REST refusal and the score |
 | 4 Recommendation engine | Deterministic; RiskEngine raises one level on dependents or an unknown host; DependencyResolver with fact predicates; PreviewPlanner with will-change / will-not and snapshot levels | `PlanInvariantsTest`, `RecommendationEngineTest`, `DependencyResolverTest` |
 | 5 Snapshot, apply, rollback | Recovery point before every apply; Level B required before destructive execution | `ApplyRollbackTest`, `DestructiveRefusalTest`, `SnapshotSpillTest` |
-| 6 Verification | `home`, `content_page`, `admin`, `rest`, `login`; FAIL rolls back, WARN/UNKNOWN commits with warnings; loopback policy decided (`docs/DECISIONS.md:1165-1195`) | `VerificationTest`, `AdminProbeAuthTest`, `VerificationRollbackTest`. `runtime_loaded` is absent (3) |
+| 6 Verification | `home`, `content_page`, `admin`, `rest`, `login`, and since 0.5.0 `runtime_registered` and `effects_observed`; FAIL rolls back, WARN/UNKNOWN commits with warnings; loopback policy decided (`docs/DECISIONS.md:1165-1195`) | `VerificationTest`, `AdminProbeAuthTest`, `RuntimeRegisteredTest`. `runtime_loaded` itself is replaced (3) |
 | 7 WP-CLI | Twelve subcommands | `CliTest`, `ProfileCliTest`, `tools/cli-e2e.sh`. `wp debloater registry` has no test |
 | 8 React dashboard | | `AdminScreenTest`, JS suite |
 | 9 Preview + Fix Safe Issues | Confirmation token over the canonical plan; safe plan excludes destructive operations twice (planner and profile) | `WriteRoutesTest`, `PlanInvariantsTest` |
@@ -53,7 +53,7 @@ holds 26; `admin.hide_update_nags_non_admins` was removed in the registry
 | 2 Scanner | the facts later phases need to notice change | flags and counts. `admin.notices` and `admin.dashboard_widgets` are enumerated with their sources, **but only when the scan runs inside wp-admin**; a CLI scan records them empty. REST routes are not enumerated. There is no theme version fact. See known gaps | none |
 | 3 DontTouchRules | a dependency on a capability refuses the finding | built (`DontTouchRules::REMOVES_CAPABILITY`), and **inert with the shipped registry**: no compatibility document requires a capability any recommend rule maps to. The REST case the task names is absent (3) | none |
 | 3 Score | §12 rubric | built, but the **Plugins sub-score is always 100** — every plugins rule has info severity — and Assets is still unscored though Phase 13 shipped (`docs/SCORING.md:43-45`) | D-0010 (rubric); nothing on the constant 100 |
-| 12 Admin tweaks | reversible admin tweaks | `admin.remove_welcome_panel`, `admin.remove_wp_news_widget` and `woo.suppress_marketplace_suggestions` **enter Fix Safe Issues**, contrary to the project's own D-0032 ("not in any profile") | D-0032 says the opposite of the code |
+| 12 Admin intelligence | admin notices, widgets and panels scanned and offered | built and tested in an admin context, but **no real scan collects admin facts** (known gaps), so the admin findings never appear on a site. `admin.remove_welcome_panel`, `admin.remove_wp_news_widget` and `woo.suppress_marketplace_suggestions` are admitted to Fix Safe Issues contrary to D-0032, and only the last reaches a real plan. `admin.notices.from_plugins` recommends nothing since 0.5.0 | D-0032 says the opposite of the planner; D-0079 |
 | 17 Registry ecosystem | registry CI runs the plugin's WP/Woo/Elementor matrix | it checks the data that can be checked with nothing installed; the Phase 21 pipeline runs the matrix weekly and on dispatch, not as a gate | D-0045, superseded in reasoning by D-0069 |
 | 19 How Pro attaches | "extends the free plugin only through documented hooks" | two hooks (`debloater_loaded`, `debloater_dashboard_panels`) and a URL contract, **plus direct calls into `Debloater\Plugin`, `Brand`, `Config\*`, `Contracts\*` and `Security\Capabilities`** (CATALOGUE (e)). Pro's D-0050 table says drift uses `debloater_scan_complete` and reporting `debloater_apply_complete`; Pro uses neither | none; D-0050 is stale |
 | 19 Drift detection | diff of findings between runs, surfaced on our screen | findings diff **and**, since Pro 0.4.0, a separate diff of WordPress and active plugin versions, with activations and deactivations. No theme versions | Pro 0.4.0 changelog |
@@ -67,7 +67,7 @@ holds 26; `admin.hide_update_nags_non_admins` was removed in the registry
 | Phase | Specified | Status | Record |
 |---|---|---|---|
 | 3 | "REST becomes dont_touch when any detected plugin has a compatibility rule requiring rest:public" (§17 Phase 3; §6's Contact Form 7 example) | **Absent.** `contact-form-7.json` requires `rest:public`; `DontTouchRules` maps `wp.rest.public`; **no rule emits `wp.rest.public`**, so nothing can be refused. `AnalyzerTest:114` `test_a_declared_dependency_refuses_a_finding` asserts no refusal | not recorded before this document |
-| 6 | the `runtime_loaded` probe | **Absent.** Eight probes exist; this is not one of them | not recorded before this document |
+| 6 | the `runtime_loaded` probe | **Replaced, 0.5.0.** It asked whether a generated file was loaded and matched its hash; the file went in 0.3.0. `runtime_registered` asks whether the stored handlers registered in a fresh request, and fails the run when they did not | D-0070, D-0079 |
 | 17 | registry CI running the plugin's matrix as a gate | see 2 | D-0069 |
 | 18 | wordpress.org submission, prepared | not submitted; an external act needing credentials. The slug to reserve is now `hakeemify-debloater` | `docs/RENAME-MAP.md` |
 | 19 | bulk apply of a saved profile | **deleted** (Pro 0.2.1); portable profiles preview and confirm on each site instead. §17 still lists it | Pro D-0068 |
@@ -158,14 +158,45 @@ scanner has no orphaned comment-meta fact and the finding does not mention it,
 so the count a user is shown is lower than what will be deleted. The rows are
 still backed up first.
 
-### A safe-rated tweak hides WooCommerce extension update notices
+### ~~A safe-rated tweak hides WooCommerce extension update notices~~ — resolved in 0.5.0
 
-`woo.suppress_marketplace_suggestions` also returns true from
-`woocommerce_helper_suppress_admin_notices`, which in WooCommerce 11.1.0
-suppresses the Helper's notices on the Updates screen, including available
-extension updates. Its `breaks` line and handler comment describe only
-recommendations. It is safe, so it is in Fix Safe Issues. Same class of problem
-as D-0077.
+`woo.suppress_marketplace_suggestions` no longer answers
+`woocommerce_helper_suppress_admin_notices`. `LoaderTest` fails if any handler
+names it or `update_nag`. D-0079.
+
+### ~~Applied changes are invisible to the next scan~~ — resolved in 0.5.0, one part left
+
+A real site's rescan recommended three tweaks it had just applied. The tweaks
+worked; the scanner read raw configuration. `TweakEffectTest` now applies every
+config tweak and requires its finding to clear on a fresh scan. It found three
+more: WooCommerce Analytics (same cause), dashicons (a fact true on every site),
+and promo notices (a handler acting on `admin_head`, which no scan reaches). The
+Heartbeat default was 15 seconds instead of core's 60, firing on every site.
+All fixed or, for promo notices, made informational. Every config tweak now
+declares its effect, and verification checks the handlers registered
+(`runtime_registered`, FAIL) and the effects show (`effects_observed`, WARN).
+D-0079.
+
+Left: six config tweaks cannot be exercised by that test. Two are recommended
+by no rule, one no longer is, and three have findings built from pages fetched
+over HTTP, which the test environment cannot fetch. Those three are exactly the
+ones whose effect would most likely surprise somebody.
+
+### No real scan collects admin facts
+
+`AdminScanner` collects only when `is_admin()`. The dashboard scans over REST
+and WP-CLI scans from a terminal, and neither request is an admin request. So
+on every real site the welcome-panel, news-widget and crowded-dashboard findings
+never appear, `admin.remove_welcome_panel` and `admin.remove_wp_news_widget` are
+never recommended, and the Admin sub-score moves only through WooCommerce's two
+admin findings. Stored runs on the dev site carry no `admin.*` fact at all.
+Every admin rule and tweak is tested — in an admin context no production scan
+builds.
+
+Closing it means scanning the admin through an authenticated loopback request
+to an admin page, and deciding what a promo-notice observation would even be,
+since the handler acts on `admin_head`. Found by `TweakEffectTest` (D-0079);
+not built in 0.5.0 by decision.
 
 ### Profiles depend on the host more than the readme says
 
@@ -178,9 +209,12 @@ plan; this was confirmed with a throwaway run over the unit fixtures.
 
 ### D-0032 is not enforced
 
-The decision says admin tweaks are in no profile. Three are in Fix Safe Issues
-(see 2). Either the decision is superseded or a category filter is added; both
-are changes somebody should choose.
+The decision says admin tweaks are in no profile. Three are admitted to Fix Safe
+Issues (see 2). In practice only `woo.suppress_marketplace_suggestions` reaches
+a real plan, because the other two are recommended by admin findings no real
+scan produces. Either the decision is superseded or a category filter is added;
+both are changes somebody should choose, and the answer matters again the day
+admin scanning works.
 
 ### The agency plan unlocks code nothing calls
 
@@ -318,7 +352,7 @@ Ordered by whether it blocks revenue, then by effort.
 3. **Decide D-0032**: enforce it with a category filter, or supersede it.
    Either is a choice about what one click does to other people's dashboards.
 4. **Decide the §17 rows in section 3**: bulk apply, the priority channel, drift
-   email, per-site overrides, the REST refusal and `runtime_loaded`. Minutes
+   email, per-site overrides and the REST refusal. Minutes
    each; the spec owner's call.
 5. **Tests for what is untested**: the four destructive-recommending rules,
    the dependency refusal (with a fixture registry, since the shipped one cannot
@@ -327,6 +361,9 @@ Ordered by whether it blocks revenue, then by effort.
 6. **Request GitHub garbage collection** of the pre-rewrite objects.
 
 ### Improves the product
+
+0. **Admin-context scanning.** Without it, four admin findings and two admin
+   tweaks exist only in tests. D-0079 records it as decided against for 0.5.0.
 
 7. **The REST refusal**: a `wp.rest.public` rule, or deleting the mapping and
    the `rest:public` requirement that nothing reads.

@@ -17,6 +17,10 @@
   "conditions": [],
   "measurements": ["frontend.head_bytes"],
   "probes": ["home", "content_page"],
+  "effect": {
+    "fact": "wp.shortlink",
+    "equals": false
+  },
   "since_wp": "3.0",
   "docs_url": null
 }

@@ -28,6 +28,10 @@
     "home",
     "content_page"
   ],
+  "effect": {
+    "observable": false,
+    "reason": "No fact reads whether Elementor prints Google Fonts: elementor.fonts lists the families the saved designs name, which the change does not alter."
+  },
   "since_wp": "5.0",
   "docs_url": null
 }

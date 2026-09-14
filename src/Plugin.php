@@ -83,6 +83,9 @@ use Debloater\Verify\Probes\ContentPageProbe;
 use Debloater\Verify\Probes\HomeProbe;
 use Debloater\Verify\Probes\LoginProbe;
 use Debloater\Verify\Probes\RestProbe;
+use Debloater\Verify\Probes\RuntimeRegisteredProbe;
+use Debloater\Verify\Probes\EffectsObservedProbe;
+use Debloater\Verify\EffectCheck;
 use Debloater\Verify\Probes\WooAccountProbe;
 use Debloater\Verify\Probes\WooCartProbe;
 use Debloater\Verify\Probes\WooCheckoutProbe;
@@ -276,6 +279,56 @@ final class Plugin {
 	 */
 	public function loadRuntime(): void {
 		$this->runtime()->load();
+	}
+
+	/**
+	 * The runtime section of a status document.
+	 *
+	 * One builder for `GET /status` and `wp debloater status`, so the two cannot
+	 * describe the runtime differently. `handlers` is the stored count, kept
+	 * under its old name for anything that already reads it; `stored`,
+	 * `registered`, `skipped` and `guard` come from `Runtime::report()`.
+	 *
+	 * @return array{handlers:int,selection_hash:string,guard:string,stored:array<int,string>,registered:array<int,string>,skipped:array<int,array{class:string,file:string,reason:string}>}
+	 */
+	public function runtimeStatus(): array {
+		$report = $this->runtime()->report();
+
+		return array(
+			'handlers'       => count( $report['stored'] ),
+			'selection_hash' => $this->state()->selectionHash(),
+			'guard'          => $report['guard'],
+			'stored'         => $report['stored'],
+			'registered'     => $report['registered'],
+			'skipped'        => $report['skipped'],
+		);
+	}
+
+	/**
+	 * The facts a declared tweak effect can name, read in this request.
+	 *
+	 * The scanners whose facts need no page fetch and no database walk: core
+	 * features, WordPress settings, and WooCommerce's settings. Enough for every
+	 * observable effect the registry declares, and cheap enough to answer inside
+	 * `GET /status` (`D-0079`). Nothing is stored.
+	 *
+	 * @return FactSet
+	 */
+	public function effectFacts(): FactSet {
+		$context = $this->context();
+		$facts   = ( new CoreFeatureScanner() )->scan( $context, new FactSet() );
+		$facts   = ( new WordPressScanner() )->scan( $context, $facts );
+
+		return $facts->withNamespaced( 'woo', ( new WooCommerceScanner( $this->sampledPages() ) )->settingFacts() );
+	}
+
+	/**
+	 * Whether each selected change's declared effect shows in this request.
+	 *
+	 * @return array<int,array{tweak:string,status:string,fact:string|null,expected:string,actual:mixed,reason:string}>
+	 */
+	public function effectReport(): array {
+		return EffectCheck::evaluate( $this->registry(), $this->state()->selection(), $this->effectFacts() );
 	}
 
 	/**
@@ -811,6 +864,8 @@ final class Plugin {
 						new AdminProbe( $http ),
 						new RestProbe( $http ),
 						new LoginProbe( $http ),
+						new RuntimeRegisteredProbe( $http, $this->runtime() ),
+						new EffectsObservedProbe( $http, $this->registry(), $this->state() ),
 						new WooCartProbe( $http ),
 						new WooCheckoutProbe( $http ),
 						new WooAccountProbe( $http ),

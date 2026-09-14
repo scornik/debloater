@@ -123,25 +123,41 @@ final class WooCommerceScanner extends AbstractScanner {
 	 * @return array<string,mixed>
 	 */
 	protected function collect( Context $context ): array {
+		$settings = $this->settingFacts();
+
+		if ( true !== $settings['woo.present'] ) {
+			// The only fact that means anything on a site without a shop.
+			return $settings;
+		}
+
+		return array_merge( $settings, $this->classify( $context ) );
+	}
+
+	/**
+	 * The facts that come from WooCommerce's settings and filters, without
+	 * fetching a page.
+	 *
+	 * The half of this scanner a status request can afford: `Plugin::effectFacts()`
+	 * reads it inside the loopback request verification makes, where fetching
+	 * the page sample would mean the site requesting itself from inside a
+	 * request to itself (`D-0079`).
+	 *
+	 * @return array<string,mixed>
+	 */
+	public function settingFacts(): array {
 		if ( ! function_exists( 'is_plugin_active' ) ) {
 			require_once ABSPATH . 'wp-admin/includes/plugin.php';
 		}
 
-		$present = defined( 'WC_VERSION' ) || is_plugin_active( 'woocommerce/woocommerce.php' );
-
-		if ( ! $present ) {
-			// The only fact that means anything on a site without a shop.
+		if ( ! defined( 'WC_VERSION' ) && ! is_plugin_active( 'woocommerce/woocommerce.php' ) ) {
 			return array( 'woo.present' => false );
 		}
 
-		return array_merge(
-			array(
-				'woo.present'                 => true,
-				'woo.version'                 => defined( 'WC_VERSION' ) ? (string) constant( 'WC_VERSION' ) : null,
-				'woo.admin_analytics'         => $this->analyticsEnabled(),
-				'woo.marketplace_suggestions' => $this->marketplaceSuggestionsEnabled(),
-			),
-			$this->classify( $context )
+		return array(
+			'woo.present'                 => true,
+			'woo.version'                 => defined( 'WC_VERSION' ) ? (string) constant( 'WC_VERSION' ) : null,
+			'woo.admin_analytics'         => $this->analyticsEnabled(),
+			'woo.marketplace_suggestions' => $this->marketplaceSuggestionsEnabled(),
 		);
 	}
 
@@ -281,27 +297,80 @@ final class WooCommerceScanner extends AbstractScanner {
 	/**
 	 * Whether WooCommerce Admin's analytics section is switched on.
 	 *
+	 * Asked the way WooCommerce 11.1.0 asks it in
+	 * `Features::is_analytics_enabled()`: the Analytics setting must be on, the
+	 * `woocommerce_admin_disabled` filter must not say otherwise, and
+	 * `analytics` must survive `woocommerce_admin_features`. Reading only the
+	 * settings made `woo.disable_admin_analytics`, which answers through that
+	 * last filter, invisible to the scan that recommended it.
+	 *
+	 * The filter is given `analytics` alone rather than WooCommerce's full list
+	 * of defaults, which is internal to WooCommerce and not a stable thing to
+	 * reproduce here. What is asked is only whether something removes it.
+	 * `woocommerce_admin_disabled_features` is still honoured, for WooCommerce
+	 * versions that stored the switch there.
+	 *
 	 * @return bool
 	 */
 	private function analyticsEnabled(): bool {
-		// WooCommerce stores disabled features as a list of names. A feature
-		// absent from that list is enabled, which is why this asks the question
-		// the way round it does.
 		$disabled = get_option( 'woocommerce_admin_disabled_features', array() );
 
 		if ( is_array( $disabled ) && in_array( 'analytics', $disabled, true ) ) {
 			return false;
 		}
 
-		return 'yes' !== get_option( 'woocommerce_analytics_enabled', 'yes' ) ? false : true;
+		if ( 'yes' !== get_option( 'woocommerce_analytics_enabled', 'yes' ) ) {
+			return false;
+		}
+
+		/**
+		 * WooCommerce's own filter, applied to read its answer rather than to change it.
+		 *
+		 * @param bool $disabled Whether WooCommerce Admin's optional features are disabled.
+		 */
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- WooCommerce's filter, read the way WooCommerce reads it.
+		if ( apply_filters( 'woocommerce_admin_disabled', false ) ) {
+			return false;
+		}
+
+		/**
+		 * WooCommerce's own filter, applied to read its answer rather than to change it.
+		 *
+		 * @param array<int,string> $features WooCommerce Admin feature slugs.
+		 */
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- WooCommerce's filter, read the way WooCommerce reads it.
+		$features = apply_filters( 'woocommerce_admin_features', array( 'analytics' ) );
+
+		return is_array( $features ) && in_array( 'analytics', $features, true );
 	}
 
 	/**
-	 * Whether the marketplace suggestions are switched on.
+	 * Whether WooCommerce will show its marketplace suggestions.
+	 *
+	 * Asked the way WooCommerce asks it in
+	 * `WC_Marketplace_Suggestions::allow_suggestions()`: the store setting can
+	 * switch them off, and if it has not, `woocommerce_allow_marketplace_suggestions`
+	 * has the last word. Reading only the setting made
+	 * `woo.suppress_marketplace_suggestions`, which answers through the filter,
+	 * invisible to the scan that recommended it.
+	 *
+	 * WooCommerce's own check also requires the viewer to be able to install
+	 * plugins. That part is left out on purpose: it is a fact about whoever is
+	 * looking, not about the site, and a scan run from WP-CLI has no viewer.
 	 *
 	 * @return bool
 	 */
 	private function marketplaceSuggestionsEnabled(): bool {
-		return 'no' !== get_option( 'woocommerce_show_marketplace_suggestions', 'yes' );
+		if ( 'no' === get_option( 'woocommerce_show_marketplace_suggestions', 'yes' ) ) {
+			return false;
+		}
+
+		/**
+		 * WooCommerce's own filter, applied to read its answer rather than to change it.
+		 *
+		 * @param bool $allow Whether suggestions may be shown.
+		 */
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- WooCommerce's filter, read the way WooCommerce reads it.
+		return (bool) apply_filters( 'woocommerce_allow_marketplace_suggestions', true );
 	}
 }

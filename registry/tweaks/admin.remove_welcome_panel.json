@@ -21,6 +21,10 @@
   "probes": [
     "admin"
   ],
+  "effect": {
+    "observable": false,
+    "reason": "Admin facts are collected only inside wp-admin, and the request verification reads is a REST request, which is not. The handler's removal is real, but no fact is collected there to show it."
+  },
   "since_wp": "3.3",
   "docs_url": null
 }

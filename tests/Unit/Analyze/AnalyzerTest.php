@@ -92,6 +92,7 @@ final class AnalyzerTest extends TestCase {
 			->analyze(
 				Facts::freshInstall(
 					array(
+						'wp.heartbeat_interval'   => 15,
 						'users.recent_editors_7d' => 4,
 						'users.admin_count'       => 4,
 					)

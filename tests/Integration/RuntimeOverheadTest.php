@@ -31,7 +31,7 @@ final class RuntimeOverheadTest extends IntegrationTestCase {
 	 */
 	public function test_an_empty_selection_resolves_to_nothing(): void {
 		$this->assertSame( 0, $this->selectAndGenerate( array() ) );
-		$this->assertSame( array(), $this->plugin->runtime()->registeredClasses() );
+		$this->assertSame( array(), $this->plugin->runtime()->storedClasses() );
 	}
 
 	/**

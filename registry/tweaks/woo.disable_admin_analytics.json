@@ -27,6 +27,10 @@
     "admin",
     "woo_checkout"
   ],
+  "effect": {
+    "fact": "woo.admin_analytics",
+    "equals": false
+  },
   "since_wp": "5.3",
   "docs_url": null
 }

@@ -44,7 +44,7 @@ final class Facts {
 					'env.cache_plugin'              => 'none',
 					'env.is_multisite'              => false,
 
-					'wp.heartbeat_interval'         => 15,
+					'wp.heartbeat_interval'         => 60,
 					'wp.xmlrpc_enabled'             => true,
 					'wp.emojis_enabled'             => true,
 					'wp.embeds_enabled'             => true,
@@ -53,7 +53,6 @@ final class Facts {
 					'wp.rsd_link'                   => true,
 					'wp.shortlink'                  => true,
 					'wp.self_pingbacks'             => true,
-					'wp.dashicons_frontend'         => false,
 					'wp.jquery_migrate'             => true,
 					'wp.revisions_limit'            => -1,
 					'wp.file_editor_enabled'        => true,
@@ -175,6 +174,9 @@ final class Facts {
 				array(
 					'env.host_vendor'             => 'unknown',
 					'env.cache_plugin'            => 'litespeed-cache',
+					// Something on this store has asked Heartbeat for 15 seconds.
+					// A fresh install uses core's 60 and has no Heartbeat finding.
+					'wp.heartbeat_interval'       => 15,
 					'users.admin_count'           => 4,
 					'users.recent_editors_7d'     => 3,
 					'plugins.active'              => array(

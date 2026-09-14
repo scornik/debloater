@@ -2,14 +2,14 @@
 # This file is distributed under the GPL-2.0-or-later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Hakeemify Debloater 0.4.0\n"
+"Project-Id-Version: Hakeemify Debloater 0.5.0\n"
 "Report-Msgid-Bugs-To: https://github.com/scornik/debloater/issues\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-09-13T09:18:48+00:00\n"
+"POT-Creation-Date: 2026-09-14T07:20:55+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: hakeemify-debloater\n"
@@ -36,7 +36,7 @@ msgstr ""
 
 #: src/Admin/Screen.php:247
 #: src/Rest/Controller.php:214
-#: build/index.js:13
+#: build/index.js:14
 msgid "You do not have permission to manage Debloater on this site."
 msgstr ""
 
@@ -208,6 +208,7 @@ msgstr ""
 
 #: src/Analyze/Rules/CartFragmentsRule.php:111
 #: src/Analyze/Rules/Cf7AssetsRule.php:120
+#: src/Analyze/Rules/DashiconsFrontendRule.php:113
 #: src/Analyze/Rules/WooBlockStylesRule.php:104
 msgid "Pages sampled"
 msgstr ""
@@ -284,20 +285,24 @@ msgstr ""
 msgid "%1$s (%2$d)"
 msgstr ""
 
-#: src/Analyze/Rules/DashiconsFrontendRule.php:106
+#: src/Analyze/Rules/DashiconsFrontendRule.php:94
 msgid "The admin icon font loads for visitors"
 msgstr ""
 
-#: src/Analyze/Rules/DashiconsFrontendRule.php:115
-msgid "Dashicons is being loaded on the front end, where logged-out visitors download the whole icon font."
+#. translators: 1: pages that loaded dashicons, 2: pages sampled.
+#: src/Analyze/Rules/DashiconsFrontendRule.php:97
+#, php-format
+msgid "Dashicons loaded on %1$d of the %2$d page fetched as a logged-out visitor."
+msgid_plural "Dashicons loaded on %1$d of the %2$d pages fetched as a logged-out visitor."
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Analyze/Rules/DashiconsFrontendRule.php:106
+msgid "Dashicons is WordPress's admin icon font. Core loads it on the front end only for the admin bar, which logged-out visitors never see — but themes and plugins often enqueue it for a menu toggle or a search icon, and then every visitor downloads a font for two glyphs. This was measured on a sample of pages, not on every page of the site."
 msgstr ""
 
-#: src/Analyze/Rules/DashiconsFrontendRule.php:124
-msgid "Dashicons is WordPress's admin icon font. Core loads it on the front end only for the admin bar, which logged-out visitors never see — but themes and plugins often enqueue it for a menu toggle or a search icon, and then every visitor downloads a font for two glyphs."
-msgstr ""
-
-#: src/Analyze/Rules/DashiconsFrontendRule.php:133
-msgid "Dashicons on the front end"
+#: src/Analyze/Rules/DashiconsFrontendRule.php:109
+msgid "Sampled pages loading dashicons"
 msgstr ""
 
 #: src/Analyze/Rules/DuplicateFunctionalityRule.php:63
@@ -457,7 +462,7 @@ msgid "A transient is a cached value with an expiry date. WordPress deletes an e
 msgstr ""
 
 #: src/Analyze/Rules/ExpiredTransientsRule.php:103
-#: build/index.js:11
+#: build/index.js:12
 msgid "Expired transients"
 msgstr ""
 
@@ -643,7 +648,7 @@ msgid "Orphaned user metadata"
 msgstr ""
 
 #. translators: %d: number of notice callbacks from plugins on the allowlist.
-#: src/Analyze/Rules/PluginNoticesRule.php:130
+#: src/Analyze/Rules/PluginNoticesRule.php:128
 #, php-format
 msgid "%d admin notice comes from a plugin whose notices you can hide"
 msgid_plural "%d admin notices come from plugins whose notices you can hide"
@@ -651,56 +656,56 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %s: comma-separated plugin names.
-#: src/Analyze/Rules/PluginNoticesRule.php:140
+#: src/Analyze/Rules/PluginNoticesRule.php:138
 #, php-format
 msgid "From: %s."
 msgstr ""
 
-#: src/Analyze/Rules/PluginNoticesRule.php:143
-msgid "These plugins print into the admin notice area on every screen. Hiding them is offered because the interruption is real — but read this first: it hides everything they say there, not only the marketing. These plugins send upgrade prompts and warnings about pending database updates or expiring licences down the same channel, and nothing reliably tells them apart. Nothing is uninstalled or switched off, and unselecting this brings the notices straight back."
+#: src/Analyze/Rules/PluginNoticesRule.php:141
+msgid "These plugins print into the admin notice area. Debloater has a change that hides everything they say there, but it does not offer it from a scan: the change acts while the admin page is being built, where a scan cannot see whether it worked. If you choose it by hand, know that it hides not only the marketing: these plugins send upgrade prompts and warnings about pending database updates or expiring licences down the same channel, and nothing reliably tells them apart."
 msgstr ""
 
-#: src/Analyze/Rules/PluginNoticesRule.php:148
+#: src/Analyze/Rules/PluginNoticesRule.php:146
 msgid "Notices by source"
 msgstr ""
 
-#: src/Analyze/Rules/PluginNoticesRule.php:149
+#: src/Analyze/Rules/PluginNoticesRule.php:147
 msgid "Plugins whose notices can be hidden"
 msgstr ""
 
-#: src/Analyze/Rules/PluginNoticesRule.php:150
+#: src/Analyze/Rules/PluginNoticesRule.php:148
 msgid "Total notice callbacks"
 msgstr ""
 
-#: src/Analyze/Rules/RevisionsUnlimitedRule.php:104
-msgid "Every revision of every post is kept forever"
+#: src/Analyze/Rules/RevisionsUnlimitedRule.php:114
+msgid "No revision limit is set"
 msgstr ""
 
 #. translators: 1: number of revisions, 2: revisions to keep per post.
-#: src/Analyze/Rules/RevisionsUnlimitedRule.php:107
-#, php-format
-msgid "WordPress is keeping every revision, and there are now %1$s of them. Keeping the most recent %2$d per post would stop the number growing."
-msgstr ""
-
-#: src/Analyze/Rules/RevisionsUnlimitedRule.php:111
-msgid "Each revision is a full copy of the post in the posts table, with its own meta. On a site edited regularly they outnumber the real content several times over, which makes every backup larger and every query over the posts table slower. Capping the number changes what happens from now on: nothing is deleted, and WordPress prunes the oldest revisions of a post the next time that post is saved."
-msgstr ""
-
-#: src/Analyze/Rules/RevisionsUnlimitedRule.php:116
-msgid "Revision limit"
-msgstr ""
-
-#: src/Analyze/Rules/RevisionsUnlimitedRule.php:116
-msgid "Unlimited"
-msgstr ""
-
 #: src/Analyze/Rules/RevisionsUnlimitedRule.php:117
-#: src/Analyze/Rules/StoredRevisionsRule.php:102
+#, php-format
+msgid "Nothing limits how many revisions WordPress keeps, and %1$s are stored. A limit of %2$d per post stops the number growing. It does not remove the revisions already stored: those go only as each post is next saved."
+msgstr ""
+
+#: src/Analyze/Rules/RevisionsUnlimitedRule.php:121
+msgid "Each revision is a full copy of the post in the posts table, with its own meta. On a site edited regularly they outnumber the real content several times over, which makes every backup larger and every query over the posts table slower. A limit changes what happens from now on: nothing is deleted when it is set, and WordPress prunes the oldest revisions of a post the next time that post is saved. So after the limit is in place this finding goes, but the stored count falls slowly, one saved post at a time."
+msgstr ""
+
+#: src/Analyze/Rules/RevisionsUnlimitedRule.php:126
+msgid "Revision limit in effect"
+msgstr ""
+
+#: src/Analyze/Rules/RevisionsUnlimitedRule.php:126
+msgid "None"
+msgstr ""
+
+#: src/Analyze/Rules/RevisionsUnlimitedRule.php:127
+#: src/Analyze/Rules/StoredRevisionsRule.php:107
 msgid "Revisions stored"
 msgstr ""
 
-#: src/Analyze/Rules/RevisionsUnlimitedRule.php:118
-#: src/Analyze/Rules/StoredRevisionsRule.php:103
+#: src/Analyze/Rules/RevisionsUnlimitedRule.php:128
+#: src/Analyze/Rules/StoredRevisionsRule.php:108
 msgid "Database size"
 msgstr ""
 
@@ -771,17 +776,17 @@ msgstr ""
 msgid "Comments marked as spam"
 msgstr ""
 
-#: src/Analyze/Rules/StoredRevisionsRule.php:91
+#: src/Analyze/Rules/StoredRevisionsRule.php:96
 msgid "A lot of old post revisions are stored"
 msgstr ""
 
 #. translators: %s: number of revisions.
-#: src/Analyze/Rules/StoredRevisionsRule.php:94
+#: src/Analyze/Rules/StoredRevisionsRule.php:99
 #, php-format
-msgid "%s revisions are stored across this site."
+msgid "%s old revisions are stored across this site. A revision limit does not remove these: WordPress prunes a post's old revisions only when that post is next saved."
 msgstr ""
 
-#: src/Analyze/Rules/StoredRevisionsRule.php:97
+#: src/Analyze/Rules/StoredRevisionsRule.php:102
 msgid "Every time a post is saved, WordPress keeps the previous version as a revision. They live in the posts table alongside the posts themselves, so they are in every backup, every export and every query that scans that table. Deleting the older ones keeps the recent history and removes the rest — but a revision is somebody's earlier draft, so nothing here is deleted without a full copy being taken first."
 msgstr ""
 
@@ -861,19 +866,19 @@ msgstr ""
 msgid "Pages loading the stylesheets"
 msgstr ""
 
-#: src/Analyze/Rules/WooMarketplaceRule.php:81
+#: src/Analyze/Rules/WooMarketplaceRule.php:85
 msgid "WooCommerce is showing extension suggestions in your admin"
 msgstr ""
 
-#: src/Analyze/Rules/WooMarketplaceRule.php:82
+#: src/Analyze/Rules/WooMarketplaceRule.php:86
 msgid "Marketplace suggestions appear on the products, orders and settings screens."
 msgstr ""
 
-#: src/Analyze/Rules/WooMarketplaceRule.php:83
-msgid "These are the panels recommending paid extensions. WooCommerce has its own documented switches for them, which is what this change uses, and nothing operational goes through the same channel — notices about your store itself are untouched, so a pending database update or a gateway that needs configuring still reaches you. That is why this one is safe where hiding a plugin's admin notices wholesale is not."
+#: src/Analyze/Rules/WooMarketplaceRule.php:87
+msgid "These are the panels recommending paid extensions. The change uses WooCommerce's own filter for them, which removes most of them but not all: WooCommerce's own \"Show Suggestions\" setting, under Settings → Advanced → WooCommerce.com, still decides the extension link on the Shipping settings tab and the recommendations its newer admin screens load, and only that setting turns those off. Notices about your store, and the note that extension updates are waiting, are untouched."
 msgstr ""
 
-#: src/Analyze/Rules/WooMarketplaceRule.php:88
+#: src/Analyze/Rules/WooMarketplaceRule.php:92
 msgid "Marketplace suggestions enabled"
 msgstr ""
 
@@ -952,7 +957,7 @@ msgid "Nothing to report."
 msgstr ""
 
 #: src/Cli/Command.php:391
-#: src/Cli/Command.php:1144
+#: src/Cli/Command.php:1204
 msgid "There is nothing to apply: the plan is empty."
 msgstr ""
 
@@ -988,7 +993,7 @@ msgstr ""
 
 #. translators: %s: the id given.
 #: src/Cli/Command.php:667
-#: src/Cli/Command.php:1506
+#: src/Cli/Command.php:1566
 #, php-format
 msgid "There is no recovery point with the id %s."
 msgstr ""
@@ -1013,197 +1018,229 @@ msgid_plural "%d changes selected"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/Cli/Command.php:763
-msgid "No handlers are loaded: nothing is being changed on the front end or in the admin."
+#: src/Cli/Command.php:768
+msgid "No handlers are stored: nothing is being changed on the front end or in the admin."
 msgstr ""
 
-#. translators: %d: number of runtime handlers.
-#: src/Cli/Command.php:766
+#. translators: 1: handlers registered in this request, 2: handlers stored.
+#: src/Cli/Command.php:776
 #, php-format
-msgid "%d handler is loaded on every request."
-msgid_plural "%d handlers are loaded on every request."
-msgstr[0] ""
-msgstr[1] ""
+msgid "%1$d of %2$d stored handlers registered in this request."
+msgstr ""
 
-#: src/Cli/Command.php:856
+#. translators: 1: handler class, 2: handler file, 3: reason code.
+#: src/Cli/Command.php:790
+#, php-format
+msgid "%1$s (%2$s) did not register: %3$s"
+msgstr ""
+
+#. translators: 1: changes observed, 2: changes not observed, 3: changes no request can observe.
+#: src/Cli/Command.php:808
+#, php-format
+msgid "Effects: %1$d observed, %2$d not observed, %3$d cannot be observed from a request."
+msgstr ""
+
+#. translators: 1: tweak id, 2: fact key, 3: value read, 4: expected value.
+#: src/Cli/Command.php:821
+#, php-format
+msgid "Applied but not observed: %1$s (%2$s is %3$s, expected %4$s)"
+msgstr ""
+
+#: src/Cli/Command.php:916
 msgid "Use: profile list|save <name>|export <name>|import <file>|apply <name> --yes"
 msgstr ""
 
-#: src/Cli/Command.php:880
-#: build/index.js:8
+#: src/Cli/Command.php:940
+#: build/index.js:9
 msgid "built in"
 msgstr ""
 
-#: src/Cli/Command.php:881
+#: src/Cli/Command.php:941
 msgid "saved here"
 msgstr ""
 
-#: src/Cli/Command.php:904
+#: src/Cli/Command.php:964
 msgid "A profile needs a name: profile save \"Client baseline\""
 msgstr ""
 
 #. translators: 1: profile name, 2: profile id, 3: number of changes.
-#: src/Cli/Command.php:923
+#: src/Cli/Command.php:983
 #, php-format
 msgid "Saved \"%1$s\" as %2$s, with %3$d changes."
 msgstr ""
 
 #. translators: %s: file path.
-#: src/Cli/Command.php:977
+#: src/Cli/Command.php:1037
 #, php-format
 msgid "Could not write %s."
 msgstr ""
 
 #. translators: 1: profile name, 2: file path.
-#: src/Cli/Command.php:988
+#: src/Cli/Command.php:1048
 #, php-format
 msgid "Wrote \"%1$s\" to %2$s."
 msgstr ""
 
-#: src/Cli/Command.php:1010
+#: src/Cli/Command.php:1070
 msgid "Which file? profile import <file>"
 msgstr ""
 
 #. translators: %s: file path.
-#: src/Cli/Command.php:1019
-#: src/Cli/Command.php:1320
+#: src/Cli/Command.php:1079
+#: src/Cli/Command.php:1380
 #, php-format
 msgid "Cannot read %s."
 msgstr ""
 
 #. translators: %s: comma-separated tweak ids.
-#: src/Cli/Command.php:1040
+#: src/Cli/Command.php:1100
 #, php-format
 msgid "This profile names changes this site does not have, and they were left out: %s"
 msgstr ""
 
-#: src/Cli/Command.php:1050
+#: src/Cli/Command.php:1110
 msgid "This profile was written against a different registry, so a change may mean something slightly different now. The preview shows what it would do here."
 msgstr ""
 
 #. translators: 1: profile name, 2: profile id.
-#: src/Cli/Command.php:1059
+#: src/Cli/Command.php:1119
 #, php-format
 msgid "Imported \"%1$s\" as %2$s. Nothing has been applied — run `profile apply %2$s --yes` when you have read the preview."
 msgstr ""
 
-#: src/Cli/Command.php:1127
+#: src/Cli/Command.php:1187
 msgid "That profile selects nothing this site has, so there is nothing to apply."
 msgstr ""
 
-#: src/Cli/Command.php:1138
-#: src/Cli/Command.php:1484
+#: src/Cli/Command.php:1198
+#: src/Cli/Command.php:1544
 msgid "There is no scan to plan from. Run `wp debloater scan` first."
 msgstr ""
 
-#: src/Cli/Command.php:1171
+#: src/Cli/Command.php:1231
 msgid "Which profile? Run `profile list` to see them."
 msgstr ""
 
 #. translators: %s: the name given.
-#: src/Cli/Command.php:1192
+#: src/Cli/Command.php:1252
 #, php-format
 msgid "No profile called \"%s\". Run `profile list` to see them."
 msgstr ""
 
 #. translators: %s: file path.
-#: src/Cli/Command.php:1261
+#: src/Cli/Command.php:1321
 #, php-format
 msgid "Could not write to %s."
 msgstr ""
 
 #. translators: 1: number of changes, 2: file path.
-#: src/Cli/Command.php:1272
+#: src/Cli/Command.php:1332
 #, php-format
 msgid "Wrote %1$d changes to %2$s."
 msgstr ""
 
 #. translators: %s: file path.
-#: src/Cli/Command.php:1336
+#: src/Cli/Command.php:1396
 #, php-format
 msgid "%s is not valid JSON."
 msgstr ""
 
 #. translators: 1: file path, 2: the first problem.
-#: src/Cli/Command.php:1350
+#: src/Cli/Command.php:1410
 #, php-format
 msgid "%1$s is not a Debloater configuration file: %2$s"
 msgstr ""
 
-#: src/Cli/Command.php:1364
+#: src/Cli/Command.php:1424
 msgid "This file was written against a different version of the change registry. Check the plan before applying it."
 msgstr ""
 
 #. translators: %d: number of changes.
-#: src/Cli/Command.php:1393
+#: src/Cli/Command.php:1453
 #, php-format
 msgid "The file is valid and carries %d changes. Add --apply --yes to put them in place."
 msgstr ""
 
 #. translators: %s: comma-separated tweak ids.
-#: src/Cli/Command.php:1470
+#: src/Cli/Command.php:1530
 #, php-format
 msgid "No such change: %s"
 msgstr ""
 
-#: src/Cli/Command.php:1520
+#: src/Cli/Command.php:1580
 msgid "There is nothing to roll back to."
 msgstr ""
 
-#: src/Cli/Command.php:1552
-#: build/index.js:12
+#: src/Cli/Command.php:1612
+#: build/index.js:13
 msgid "There are no recovery points yet."
 msgstr ""
 
 #. translators: 1: the path the operator asked for, 2: the directory exports go to.
-#: src/Cli/Command.php:1615
+#: src/Cli/Command.php:1675
 #, php-format
 msgid "Exports cannot be written to %1$s. They go to %2$s, and `--file=-` prints to standard output."
 msgstr ""
 
-#: src/Cli/Command.php:1674
+#: src/Cli/Command.php:1733
+msgid "DEBLOATER_DISABLE is defined, so no handler registers. Every stored change is off."
+msgstr ""
+
+#: src/Cli/Command.php:1735
+msgid "runtime-handlers/runtime-guard.php could not be read, so no handler registers. Every stored change is off."
+msgstr ""
+
+#: src/Cli/Command.php:1737
+msgid "This request asked to run without Debloater, so no handler registered."
+msgstr ""
+
+#: src/Cli/Command.php:1739
+msgid "The runtime was not loaded in this request, so what registers is not known from here."
+msgstr ""
+
+#: src/Cli/Command.php:1751
 msgid "Nothing would change."
 msgstr ""
 
-#: src/Cli/Command.php:1676
+#: src/Cli/Command.php:1753
 msgid "This would change:"
 msgstr ""
 
-#: src/Cli/Command.php:1684
+#: src/Cli/Command.php:1761
 msgid "This would not change:"
 msgstr ""
 
-#: src/Cli/Command.php:1692
+#: src/Cli/Command.php:1769
 msgid "This plan deletes data. A full recovery point is taken first."
 msgstr ""
 
 #. translators: %d: number of changes applied.
-#: src/Cli/Command.php:1707
+#: src/Cli/Command.php:1784
 #, php-format
 msgid "Applied %d change."
 msgid_plural "Applied %d changes."
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/Cli/Command.php:1746
+#: src/Cli/Command.php:1823
 msgid "The site did not pass its checks."
 msgstr ""
 
-#: src/Cli/Command.php:1752
+#: src/Cli/Command.php:1829
 msgid "Everything checked out."
 msgstr ""
 
-#: src/Cli/Command.php:1757
+#: src/Cli/Command.php:1834
 msgid "The site works, but some checks could not be completed."
 msgstr ""
 
 #. translators: %s: the score out of 100.
-#: src/Cli/Command.php:1774
+#: src/Cli/Command.php:1851
 #, php-format
 msgid "Debloat score: %s / 100"
 msgstr ""
 
-#: src/Cli/Command.php:1809
+#: src/Cli/Command.php:1886
 msgid "This changes the site. Add --yes to confirm."
 msgstr ""
 
@@ -1681,6 +1718,36 @@ msgstr ""
 msgid "The most recent post or page"
 msgstr ""
 
+#: src/Verify/Probes/EffectsObservedProbe.php:97
+msgid "No selected change has an effect a request can observe, so there was nothing to check."
+msgstr ""
+
+#: src/Verify/Probes/EffectsObservedProbe.php:106
+msgid "Whether the changes can be seen working could not be checked, because there was no signed-in user to ask as."
+msgstr ""
+
+#. translators: %d: HTTP status code.
+#: src/Verify/Probes/EffectsObservedProbe.php:131
+#, php-format
+msgid "The status endpoint did not report effects (HTTP %d), so whether the changes can be seen working is not known."
+msgstr ""
+
+#. translators: %s: semicolon-separated list of changes and what was read.
+#: src/Verify/Probes/EffectsObservedProbe.php:177
+#, php-format
+msgid "Applied but not observed: %s"
+msgstr ""
+
+#. translators: 1: changes observed, 2: changes no request can observe.
+#: src/Verify/Probes/EffectsObservedProbe.php:189
+#, php-format
+msgid "%1$d changes observed working in a fresh request; %2$d cannot be observed from a request."
+msgstr ""
+
+#: src/Verify/Probes/EffectsObservedProbe.php:203
+msgid "The applied changes"
+msgstr ""
+
 #: src/Verify/Probes/HomeProbe.php:52
 msgid "The home page"
 msgstr ""
@@ -1721,6 +1788,42 @@ msgstr ""
 
 #: src/Verify/Probes/RestProbe.php:114
 msgid "The REST API"
+msgstr ""
+
+#: src/Verify/Probes/RuntimeRegisteredProbe.php:83
+msgid "No handlers are stored, so there is nothing that needed to register."
+msgstr ""
+
+#: src/Verify/Probes/RuntimeRegisteredProbe.php:92
+msgid "Whether the stored changes registered could not be checked, because there was no signed-in user to ask as."
+msgstr ""
+
+#: src/Verify/Probes/RuntimeRegisteredProbe.php:111
+msgid "The status endpoint refused the signed-in check, so whether the stored changes registered is not known."
+msgstr ""
+
+#. translators: %d: HTTP status code.
+#: src/Verify/Probes/RuntimeRegisteredProbe.php:125
+#, php-format
+msgid "The status endpoint did not say what registered (HTTP %d), so the stored changes cannot be shown to be in effect."
+msgstr ""
+
+#. translators: %d: number of handlers.
+#: src/Verify/Probes/RuntimeRegisteredProbe.php:158
+#, php-format
+msgid "%d stored change registered in a fresh request."
+msgid_plural "All %d stored changes registered in a fresh request."
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: 1: number of handlers that did not register, 2: number stored, 3: comma-separated handler names.
+#: src/Verify/Probes/RuntimeRegisteredProbe.php:175
+#, php-format
+msgid "%1$d of %2$d stored changes did not register in a fresh request, so they are not in effect: %3$s"
+msgstr ""
+
+#: src/Verify/Probes/RuntimeRegisteredProbe.php:190
+msgid "The stored changes"
 msgstr ""
 
 #: src/Verify/Probes/WooAccountProbe.php:54
@@ -1808,7 +1911,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: build/index.js:2
-#: build/index.js:11
+#: build/index.js:12
 msgid "What will change"
 msgstr ""
 
@@ -1849,47 +1952,47 @@ msgid "Create snapshot & apply"
 msgstr ""
 
 #: build/index.js:2
-#: build/index.js:13
+#: build/index.js:14
 msgid "Cancel"
 msgstr ""
 
 #: build/index.js:2
-#: build/index.js:8
+#: build/index.js:9
 msgid "WordPress"
 msgstr ""
 
 #: build/index.js:2
-#: build/index.js:8
+#: build/index.js:9
 msgid "Configuration"
 msgstr ""
 
 #: build/index.js:2
-#: build/index.js:8
+#: build/index.js:9
 msgid "Database"
 msgstr ""
 
 #: build/index.js:2
-#: build/index.js:8
+#: build/index.js:9
 msgid "Plugins"
 msgstr ""
 
 #: build/index.js:2
-#: build/index.js:8
+#: build/index.js:9
 msgid "Maintenance"
 msgstr ""
 
 #: build/index.js:2
-#: build/index.js:8
+#: build/index.js:9
 msgid "Admin"
 msgstr ""
 
 #: build/index.js:2
-#: build/index.js:8
+#: build/index.js:9
 msgid "Assets"
 msgstr ""
 
 #: build/index.js:2
-#: build/index.js:12
+#: build/index.js:13
 msgid "Debloat score"
 msgstr ""
 
@@ -1909,517 +2012,521 @@ msgstr ""
 msgid "Not scored, because nothing was found to judge: %s"
 msgstr ""
 
-#: build/index.js:4
+#. translators: %d: number of stored changes that did not register.
+#: build/index.js:5
+#, js-format
+msgid "%d applied change did not load on this site, so it is not in effect. Run `wp debloater status` to see why."
+msgid_plural "%d applied changes did not load on this site, so they are not in effect. Run `wp debloater status` to see why."
+msgstr[0] ""
+msgstr[1] ""
+
+#: build/index.js:5
 msgid "Low risk"
 msgstr ""
 
-#: build/index.js:4
+#: build/index.js:5
 msgid "Medium risk"
 msgstr ""
 
-#: build/index.js:4
+#: build/index.js:5
 msgid "High risk"
 msgstr ""
 
-#: build/index.js:4
+#: build/index.js:5
 msgid "Info"
 msgstr ""
 
-#: build/index.js:4
-#: build/index.js:8
+#: build/index.js:5
+#: build/index.js:9
 msgid "Low"
 msgstr ""
 
-#: build/index.js:4
-#: build/index.js:8
+#: build/index.js:5
+#: build/index.js:9
 msgid "Medium"
 msgstr ""
 
-#: build/index.js:4
-#: build/index.js:8
+#: build/index.js:5
+#: build/index.js:9
 msgid "High"
 msgstr ""
 
-#: build/index.js:4
-#: build/index.js:8
+#: build/index.js:5
+#: build/index.js:9
 msgid "Recommended"
 msgstr ""
 
-#: build/index.js:4
-#: build/index.js:8
+#: build/index.js:5
+#: build/index.js:9
 msgid "Leave alone"
 msgstr ""
 
-#: build/index.js:4
-#: build/index.js:8
+#: build/index.js:5
+#: build/index.js:9
 msgid "No action recommended"
 msgstr ""
 
-#: build/index.js:4
-#: build/index.js:11
+#: build/index.js:5
+#: build/index.js:12
 msgid "Confidence"
 msgstr ""
 
-#: build/index.js:4
+#: build/index.js:5
 msgid "Reading this site…"
 msgstr ""
 
-#: build/index.js:4
+#: build/index.js:5
 msgid "Nothing has been looked at yet"
 msgstr ""
 
-#: build/index.js:4
+#: build/index.js:5
 msgid "A scan reads this site’s configuration and writes down what it finds. It changes nothing."
 msgstr ""
 
-#: build/index.js:4
+#: build/index.js:5
 msgid "Scanning…"
 msgstr ""
 
-#: build/index.js:4
+#: build/index.js:5
 msgid "Scan this site"
 msgstr ""
 
-#: build/index.js:4
-msgid "The generated file on disk is not the one Debloater wrote. Something else has changed it."
-msgstr ""
-
-#: build/index.js:4
+#: build/index.js:5
 msgid "What the scan found"
 msgstr ""
 
 #. translators: %d: number of findings.
-#: build/index.js:5
+#: build/index.js:6
 #, js-format
 msgid "%d finding, with the facts behind it."
 msgid_plural "%d findings, each with the facts behind it."
 msgstr[0] ""
 msgstr[1] ""
 
-#: build/index.js:5
+#: build/index.js:6
 msgid "Fix safe issues"
 msgstr ""
 
-#: build/index.js:5
+#: build/index.js:6
 msgid "Review findings"
 msgstr ""
 
-#: build/index.js:5
+#: build/index.js:6
 msgid "Scan again"
 msgstr ""
 
-#: build/index.js:5
+#: build/index.js:6
 msgid "Nothing is recommended on this site right now. That is a result, not a failure to find one."
 msgstr ""
 
-#: build/index.js:5
+#: build/index.js:6
 msgid "Profiles"
 msgstr ""
 
-#: build/index.js:5
-msgid "A profile is a named set of changes. Save what this site has, take it to another site, or bring one back — importing shows you a preview and applies nothing on its own."
-msgstr ""
-
-#. translators: %s: profile name.
 #: build/index.js:6
-#, js-format
-msgid "Saved \"%s\"."
+msgid "A profile is a named set of changes. Save what this site has, take it to another site, or bring one back — importing shows you a preview and applies nothing on its own."
 msgstr ""
 
 #. translators: %s: profile name.
 #: build/index.js:7
 #, js-format
+msgid "Saved \"%s\"."
+msgstr ""
+
+#. translators: %s: profile name.
+#: build/index.js:8
+#, js-format
 msgid "Read \"%s\". Nothing has been applied — the preview below is where that is decided."
 msgstr ""
 
 #. translators: %s: comma-separated change ids.
-#: build/index.js:8
+#: build/index.js:9
 #, js-format
 msgid "This site does not have these changes, so they were left out: %s"
 msgstr ""
 
-#: build/index.js:8
+#: build/index.js:9
 msgid "It was written against a different version of the change list, so a change may mean something slightly different here. The preview shows what it would do."
 msgstr ""
 
-#: build/index.js:8
+#: build/index.js:9
 msgid "Preview these changes"
 msgstr ""
 
-#: build/index.js:8
+#: build/index.js:9
 msgid "Save this setup as a profile"
 msgstr ""
 
-#: build/index.js:8
+#: build/index.js:9
 msgid "Records the changes this site has applied, under a name you choose."
 msgstr ""
 
-#: build/index.js:8
+#: build/index.js:9
 msgid "Save profile"
 msgstr ""
 
-#: build/index.js:8
+#: build/index.js:9
 msgid "Import a profile…"
 msgstr ""
 
-#: build/index.js:8
+#: build/index.js:9
 msgid "Reading profiles…"
 msgstr ""
 
-#: build/index.js:8
+#: build/index.js:9
 msgid "Profile"
 msgstr ""
 
-#: build/index.js:8
-#: build/index.js:12
+#: build/index.js:9
+#: build/index.js:13
 msgid "Changes"
 msgstr ""
 
-#: build/index.js:8
+#: build/index.js:9
 msgid "Actions"
 msgstr ""
 
-#: build/index.js:8
+#: build/index.js:9
 msgid "Export"
 msgstr ""
 
-#: build/index.js:8
+#: build/index.js:9
 msgid "Preview"
 msgstr ""
 
-#: build/index.js:8
+#: build/index.js:9
 msgid "Any risk"
 msgstr ""
 
-#: build/index.js:8
+#: build/index.js:9
 msgid "Any decision"
 msgstr ""
 
-#: build/index.js:8
+#: build/index.js:9
 msgid "Any category"
 msgstr ""
 
-#: build/index.js:8
-#: build/index.js:11
+#: build/index.js:9
+#: build/index.js:12
 msgid "Risk"
 msgstr ""
 
-#: build/index.js:8
+#: build/index.js:9
 msgid "Category"
 msgstr ""
 
-#: build/index.js:8
+#: build/index.js:9
 msgid "Decision"
 msgstr ""
 
-#: build/index.js:8
+#: build/index.js:9
 msgid "Reading the findings…"
 msgstr ""
 
-#: build/index.js:8
+#: build/index.js:9
 msgid "No findings match those filters."
 msgstr ""
 
 #. translators: %d: number of findings shown.
-#: build/index.js:9
+#: build/index.js:10
 #, js-format
 msgid "%d finding"
 msgid_plural "%d findings"
 msgstr[0] ""
 msgstr[1] ""
 
-#: build/index.js:9
+#: build/index.js:10
 msgid "What was measured"
 msgstr ""
 
-#: build/index.js:9
+#: build/index.js:10
 msgid "Value"
 msgstr ""
 
-#: build/index.js:9
+#: build/index.js:10
 msgid "Fact"
 msgstr ""
 
-#: build/index.js:9
+#: build/index.js:10
 msgid "Working out what this would change…"
 msgstr ""
 
 #. translators: %s: the reason the change was excluded.
-#: build/index.js:10
+#: build/index.js:11
 #, js-format
 msgid "This change would not be applied on this site: %s"
 msgstr ""
 
-#: build/index.js:10
+#: build/index.js:11
 msgid "What would not change"
 msgstr ""
 
-#: build/index.js:10
+#: build/index.js:11
 msgid "← All findings"
 msgstr ""
 
-#: build/index.js:10
+#: build/index.js:11
 msgid "What we found"
 msgstr ""
 
-#: build/index.js:10
+#: build/index.js:11
 msgid "Why it matters"
 msgstr ""
 
-#: build/index.js:10
+#: build/index.js:11
 msgid "Evidence"
 msgstr ""
 
-#: build/index.js:10
+#: build/index.js:11
 msgid "This finding carries no measurements."
 msgstr ""
 
-#: build/index.js:10
+#: build/index.js:11
 msgid "Potential impact"
 msgstr ""
 
-#: build/index.js:10
+#: build/index.js:11
 msgid "No impact has been estimated for this finding."
 msgstr ""
 
 #. translators: 1: estimated amount, 2: unit, 3: what it affects.
-#: build/index.js:11
+#: build/index.js:12
 #, js-format
 msgid "About %1$s %2$s of %3$s."
 msgstr ""
 
-#: build/index.js:11
+#: build/index.js:12
 msgid "This one cannot be measured before and after, so it is an estimate and stays an estimate."
 msgstr ""
 
-#: build/index.js:11
+#: build/index.js:12
 msgid "Recommendation"
 msgstr ""
 
-#: build/index.js:11
+#: build/index.js:12
 msgid "Nothing is recommended for this finding."
 msgstr ""
 
-#: build/index.js:11
+#: build/index.js:12
 msgid "Confidence falls when something on this site makes the conclusion less certain."
 msgstr ""
 
-#: build/index.js:11
+#: build/index.js:12
 msgid "Dependencies"
 msgstr ""
 
-#: build/index.js:11
+#: build/index.js:12
 msgid "Nothing on this site was detected as depending on this."
 msgstr ""
 
-#: build/index.js:11
+#: build/index.js:12
 msgid "There is no change to apply for this finding."
 msgstr ""
 
-#: build/index.js:11
+#: build/index.js:12
 msgid "Apply this change…"
 msgstr ""
 
-#: build/index.js:11
+#: build/index.js:12
 msgid "You will see exactly what it does, and what the recovery point will contain, before anything happens."
 msgstr ""
 
-#: build/index.js:11
+#: build/index.js:12
 msgid "Undo"
 msgstr ""
 
-#: build/index.js:11
+#: build/index.js:12
 msgid "No undo has been described for this finding."
 msgstr ""
 
-#: build/index.js:11
+#: build/index.js:12
 msgid "Requests a page asks for"
 msgstr ""
 
-#: build/index.js:11
+#: build/index.js:12
 msgid "Scripts"
 msgstr ""
 
-#: build/index.js:11
+#: build/index.js:12
 msgid "Stylesheets"
 msgstr ""
 
-#: build/index.js:11
+#: build/index.js:12
 msgid "Bytes in <head>"
 msgstr ""
 
-#: build/index.js:11
+#: build/index.js:12
 msgid "Other hosts contacted"
 msgstr ""
 
-#: build/index.js:11
+#: build/index.js:12
 msgid "Autoloaded data"
 msgstr ""
 
-#: build/index.js:11
+#: build/index.js:12
 msgid "Post revisions"
 msgstr ""
 
-#: build/index.js:11
+#: build/index.js:12
 msgid "Scheduled events"
 msgstr ""
 
-#: build/index.js:11
+#: build/index.js:12
 msgid "Admin notices"
 msgstr ""
 
-#: build/index.js:11
+#: build/index.js:12
 msgid "Admin polling requests per hour"
 msgstr ""
 
-#: build/index.js:11
+#: build/index.js:12
 msgid "Nothing could be measured before and after, so there are no numbers to report."
 msgstr ""
 
-#: build/index.js:11
+#: build/index.js:12
 msgid "Measured"
 msgstr ""
 
-#: build/index.js:11
+#: build/index.js:12
 msgid "Before"
 msgstr ""
 
-#: build/index.js:11
+#: build/index.js:12
 msgid "After"
 msgstr ""
 
-#: build/index.js:11
 #: build/index.js:12
+#: build/index.js:13
 msgid "Change"
 msgstr ""
 
-#: build/index.js:11
+#: build/index.js:12
 msgid "Not measured"
 msgstr ""
 
-#: build/index.js:11
+#: build/index.js:12
 msgid "The change was undone"
 msgstr ""
 
-#: build/index.js:11
+#: build/index.js:12
 msgid "Rollback complete."
 msgstr ""
 
-#: build/index.js:11
+#: build/index.js:12
 msgid "Previous configuration restored."
 msgstr ""
 
-#: build/index.js:11
 #: build/index.js:12
+#: build/index.js:13
 msgid "Back to the overview"
 msgstr ""
 
 #. translators: %d: number of changes applied.
-#: build/index.js:12
+#: build/index.js:13
 #, js-format
 msgid "%d optimization applied"
 msgid_plural "%d optimizations applied"
 msgstr[0] ""
 msgstr[1] ""
 
-#: build/index.js:12
+#: build/index.js:13
 msgid "Measured before and after"
 msgstr ""
 
-#: build/index.js:12
+#: build/index.js:13
 msgid "These are counts, measured on this site before and after the change. Debloater does not report time, because it cannot measure yours."
 msgstr ""
 
-#: build/index.js:12
+#: build/index.js:13
 msgid "Starting…"
 msgstr ""
 
-#: build/index.js:12
+#: build/index.js:13
 msgid "Reading the history…"
 msgstr ""
 
-#: build/index.js:12
+#: build/index.js:13
 msgid "Nothing has been applied on this site yet."
 msgstr ""
 
-#: build/index.js:12
+#: build/index.js:13
 msgid "Recovery points"
 msgstr ""
 
-#: build/index.js:12
+#: build/index.js:13
 msgid "One is taken before every change. Nothing removes them on a schedule."
 msgstr ""
 
-#: build/index.js:12
+#: build/index.js:13
 msgid "Id"
 msgstr ""
 
-#: build/index.js:12
+#: build/index.js:13
 msgid "Level"
 msgstr ""
 
-#: build/index.js:12
+#: build/index.js:13
 msgid "Rows"
 msgstr ""
 
-#: build/index.js:12
+#: build/index.js:13
 msgid "Taken"
 msgstr ""
 
-#: build/index.js:12
+#: build/index.js:13
 msgid "Restore"
 msgstr ""
 
-#: build/index.js:12
+#: build/index.js:13
 msgid "Restore this recovery point?"
 msgstr ""
 
 #. translators: 1: snapshot id, 2: run id.
-#: build/index.js:13
+#: build/index.js:14
 #, js-format
 msgid "Recovery point %1$d belongs to change #%2$d. The whole change will be undone — restoring half of one would leave the site in a state nothing has a name for."
 msgstr ""
 
-#: build/index.js:13
+#: build/index.js:14
 msgid "The configuration this change replaced will be put back, and any rows it removed will be restored exactly as they were."
 msgstr ""
 
-#: build/index.js:13
+#: build/index.js:14
 msgid "The previous configuration has been restored."
 msgstr ""
 
-#: build/index.js:13
+#: build/index.js:14
 msgid "The restore did not complete."
 msgstr ""
 
-#: build/index.js:13
+#: build/index.js:14
 msgid "Restore it"
 msgstr ""
 
-#: build/index.js:13
+#: build/index.js:14
 msgid "Overview"
 msgstr ""
 
-#: build/index.js:13
+#: build/index.js:14
 msgid "Findings"
 msgstr ""
 
-#: build/index.js:13
+#: build/index.js:14
 msgid "Changes & recovery"
 msgstr ""
 
-#: build/index.js:13
+#: build/index.js:14
 msgid "Debloater"
 msgstr ""
 
-#: build/index.js:13
+#: build/index.js:14
 msgid "What this site is actually doing, and what can safely stop."
 msgstr ""
 
-#: build/index.js:13
+#: build/index.js:14
 msgid "Sections"
 msgstr ""
 
-#: build/index.js:13
+#: build/index.js:14
 msgid "Review the profile"
 msgstr ""

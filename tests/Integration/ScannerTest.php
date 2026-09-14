@@ -435,17 +435,19 @@ final class ScannerTest extends IntegrationTestCase {
 	 * @return void
 	 */
 	public function test_heartbeat_interval_follows_the_filter(): void {
-		$this->assertSame( 15, $this->facts()->value( 'wp.heartbeat_interval' ) );
+		// Core's own default, from `mainInterval: 60` in heartbeat.js. Pinned as
+		// the literal: 15 here once made the Heartbeat finding fire on every site.
+		$this->assertSame( 60, $this->facts()->value( 'wp.heartbeat_interval' ) );
 
 		$filter = static function ( $settings ) {
-			$settings['interval'] = 60;
+			$settings['interval'] = 15;
 
 			return $settings;
 		};
 
 		add_filter( 'heartbeat_settings', $filter );
 
-		$this->assertSame( 60, $this->facts()->value( 'wp.heartbeat_interval' ) );
+		$this->assertSame( 15, $this->facts()->value( 'wp.heartbeat_interval' ) );
 
 		remove_filter( 'heartbeat_settings', $filter );
 	}

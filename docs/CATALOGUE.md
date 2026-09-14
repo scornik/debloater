@@ -1,6 +1,6 @@
 # Catalogue: what Hakeemify Debloater checks and what it can do
 
-Derived at **free 0.4.0 / Pro 0.4.0** from the code, the registry and the tests
+Derived at **free 0.5.0 / Pro 0.4.0** from the code, the registry and the tests
 as they stand — not from `BUILD-SPEC.md`, not from `docs/FEATURES.md`, and not
 from memory. Every row names the class, file or registry path it was read from.
 
@@ -19,6 +19,17 @@ Test columns use four words, and nothing softer:
 
 Where a claim elsewhere in the repositories disagrees with this file, it is
 listed in `docs/CLAIMS.md` with file and line.
+
+First written at 0.4.0 and brought to 0.5.0, which changed what several rules
+read and added verification of effect (`docs/DECISIONS.md` D-0079). The column
+**Effect** in (b) is `TweakEffectTest` — apply the tweak, scan again, the
+finding that recommended it must be gone — and a declared `effect` must hold.
+
+**Admin findings are not produced by any real scan.** `AdminScanner` collects
+only when `is_admin()`. The dashboard scans over REST and WP-CLI scans from a
+terminal, and neither is, so `admin.welcome_panel.visible`,
+`admin.news_widget.present`, `admin.dashboard_widgets.crowded` and
+`admin.notices.from_plugins` exist only in tests that build an admin context.
 
 ---
 
@@ -64,22 +75,22 @@ it can become dont_touch and on what.
 | `woo.cart_fragments.everywhere` | `CartFragmentsRule` | assets | `woo.present`, `woo.fragments_on_other`, `woo.shop_pages`, `woo.pages_sampled`, `woo.mini_cart_pages` | WooCommerce present and fragments loaded on ≥ 1 sampled non-shop page | medium | medium | **yes**: `woo.mini_cart` true | `woo.cart_fragments_conditional` | named: `WooCommerceScanTest` |
 | `assets.cf7.everywhere` | `Cf7AssetsRule` | assets | `assets.cf7_asset_pages`, `assets.cf7_form_pages`, `assets.pages_sampled`, `assets.post_types` | CF7 assets on more sampled pages than have a form | info | — | no | — | named: `AssetScanTest` |
 | `admin.dashboard_widgets.crowded` | `DashboardWidgetsRule` | admin | `admin.dashboard_widgets`(`.count`) | ≥ 5 widgets (`THRESHOLD`) | info | — | no | — (`admin.remove_dashboard_widgets` is never recommended) | named: `AdminRulesTest` |
-| `wp.dashicons.frontend` | `DashiconsFrontendRule` | assets | `wp.dashicons_frontend` | fact true | low | medium | dependency path only — **cannot fire** (above) | `core.disable_dashicons_guests` | named: `RulesTest` |
+| `wp.dashicons.frontend` | `DashiconsFrontendRule` | assets | `assets.styles`, `assets.pages_sampled` | a page fetched as a logged-out visitor loads the `dashicons` stylesheet; not evaluated when the site cannot fetch its own pages. Until 0.5.0 it read `wp.dashicons_frontend`, which was true on every site | low | medium | dependency path only — **cannot fire** (above) | `core.disable_dashicons_guests` | named: `RulesTest::test_dashicons_fires_only_when_sampled_visitor_pages_load_it` |
 | `plugins.duplicate_functionality` | `DuplicateFunctionalityRule` | plugins | `plugins.active`, `plugins.categories` | ≥ 2 active plugins in one `registry/plugin-categories.json` category | info | — | no | — | named: `PluginIntelligenceTest` |
 | `elementor.widgets.audit` | `ElementorAuditRule` | plugins | `elementor.present`, `.widgets_available`, `.widgets_in_use`, `.packs`, `.widgets`, `.documents`, `.templates`, `.dynamic_tags`, `.shortcodes`, `.custom_code` | Elementor present, ≥ 1 widget available, usage arrays readable; confidence 0.8 minus 0.15 per caveat, floor 0.3 | info | — | no | — | named: `ElementorAuditTest` |
-| `wp.embeds.enabled` | `EmbedsRule` (`CoreFeatureRule`) | wordpress | `wp.embeds_enabled` | fact true | low | safe | dependency path only — **cannot fire** | `core.disable_embeds` | named: `RulesTest`, `Integration/AnalyzerTest` |
+| `wp.embeds.enabled` | `EmbedsRule` (`CoreFeatureRule`) | wordpress | `wp.embeds_enabled` | fact true: discovery links attached to `wp_head` at priority 10 (since 0.5.0; any priority before, which never cleared) | low | safe | dependency path only — **cannot fire** | `core.disable_embeds` | named: `RulesTest`, `Integration/AnalyzerTest` |
 | `wp.emojis.loaded` | `EmojiScriptRule` (`CoreFeatureRule`) | wordpress | `wp.emojis_enabled` | fact true | low | safe | no (host-optimizer reasoning only) | `core.disable_emojis` | named: `RulesTest`, `PluginIntelligenceTest` |
 | `db.transients.expired` | `ExpiredTransientsRule` | database | `db.transients.expired`, `db.transients.count` | ≥ 50 (low), ≥ 1000 (medium) | low / medium | low | no | `db.clean_expired_transients` | named: `RulesTest`, `ScannerTest` |
 | `wp.file_editor.enabled` | `FileEditorRule` | configuration | `wp.file_editor_enabled`, `users.admin_count` | fact true | low | — | no (info) | — | named: `RulesTest` |
 | `wp.generator.exposed` | `GeneratorTagRule` (`CoreFeatureRule`) | wordpress | `wp.generator_tag` | fact true | low | safe | no | `core.remove_generator` | named: `RulesTest`, `AnalyzerTest` (both) |
-| `wp.heartbeat.aggressive` | `HeartbeatIntervalRule` | wordpress | `wp.heartbeat_interval`, `plugins.detected`, `users.admin_count`, `users.recent_editors_7d` | interval < 60 s; proposes 60 on a store or with > 1 admin, else 120 | low | low | **yes**: ≥ 2 recent editors on WooCommerce | `core.heartbeat_interval` | named: `RulesTest`, `AnalyzerTest`, `RecommendationEngineTest` |
+| `wp.heartbeat.aggressive` | `HeartbeatIntervalRule` | wordpress | `wp.heartbeat_interval`, `plugins.detected`, `users.admin_count`, `users.recent_editors_7d` | interval < 60 s; proposes 60 on a store or with > 1 admin, else 120. The interval defaults to core's 60 when nothing filters it (15 until 0.5.0, which fired on every site) | low | low | **yes**: ≥ 2 recent editors on WooCommerce | `core.heartbeat_interval` | named: `RulesTest`, `AnalyzerTest`, `RecommendationEngineTest` |
 | `plugins.host_optimizer_detected` | `HostOptimizerRule` | plugins | `plugins.host_optimizers`, `env.host_vendor` | ≥ 1 named optimizer from `registry/host-optimizers.json` | info | — | no | — | named: `PluginIntelligenceTest` |
 | `plugins.inactive_present` | `InactivePluginsRule` | plugins | `plugins.inactive`, `plugins.active` | ≥ 1 inactive plugin | info | — | no | — | named: `RulesTest` |
 | `wp.jquery_migrate.loaded` | `JqueryMigrateRule` | assets | `wp.jquery_migrate` | fact true | low | medium | dependency path only — **cannot fire** | `core.remove_jquery_migrate` | named: `RulesTest`, `RecommendationEngineTest` |
 | `admin.news_widget.present` | `NewsWidgetRule` | admin | `admin.dashboard_widgets` | `dashboard_primary` present | low | safe | no | `admin.remove_wp_news_widget` | named: `AdminRulesTest` |
 | `db.meta.orphaned` | `OrphanMetaRule` | database | `db.orphan_postmeta.count`, `db.orphan_termmeta.count`, `db.orphan_usermeta.count` | sum ≥ 200 | low | medium | no | `db.clean_orphan_meta` | **no test** (vacuous) |
-| `admin.notices.from_plugins` | `PluginNoticesRule` | admin | `admin.notices`(`.count`), `admin.notice_vendors` | ≥ 3 notices attributable to allowlisted vendors (`registry/admin-notices.json`) | low | medium | no | `admin.suppress_promo_notices` | named: `AdminRulesTest` |
-| `db.revisions.unlimited` | `RevisionsUnlimitedRule` | database | `wp.revisions_limit`, `db.revisions.count`, `db.size_bytes` | limit −1 and count ≥ 200 (medium at ≥ 5000) | low / medium | low | no | `core.limit_revisions` | named: `RulesTest::test_revisions_needs_both_the_setting_and_the_evidence` |
+| `admin.notices.from_plugins` | `PluginNoticesRule` | admin | `admin.notices`(`.count`), `admin.notice_vendors` | ≥ 3 notices attributable to allowlisted vendors (`registry/admin-notices.json`) | info (low until 0.5.0) | — | no (info) | — since 0.5.0: its tweak acts on `admin_head`, which no scan reaches, so it could never clear | named: `AdminRulesTest::test_notices_from_allowlisted_plugins_are_reported_not_recommended` |
+| `db.revisions.unlimited` | `RevisionsUnlimitedRule` | database | `wp.revisions_limit` (from `wp_revisions_to_keep()` since 0.5.0; the constant before, which never cleared), `db.revisions.count`, `db.size_bytes` | no limit in effect and count ≥ 200 (medium at ≥ 5000); worded as "no revision limit is set" | low / medium | low | no | `core.limit_revisions` | named: `RulesTest::test_revisions_needs_both_the_setting_and_the_evidence` |
 | `wp.rsd.exposed` | `RsdLinkRule` (`CoreFeatureRule`) | wordpress | `wp.rsd_link` | fact true | info | safe | no | `core.remove_rsd` | named: `RulesTest`, `Integration/AnalyzerTest` |
 | `wp.self_pingbacks.enabled` | `SelfPingbackRule` (`CoreFeatureRule`) | maintenance | `wp.self_pingbacks` | fact true | low | safe | no | `core.disable_self_pingbacks` | generic for firing; named only for not firing (`RulesTest`) |
 | `wp.shortlink.exposed` | `ShortlinkRule` (`CoreFeatureRule`) | wordpress | `wp.shortlink` | fact true | info | safe | no | `core.remove_shortlink` | named: `RulesTest`, `Integration/AnalyzerTest` |
@@ -87,16 +98,17 @@ it can become dont_touch and on what.
 | `db.revisions.stored` | `StoredRevisionsRule` | database | `db.revisions.count`, `db.size_bytes` | ≥ 500 (medium at ≥ 5000) | low / medium | medium | no | `db.clean_revisions` | generic only |
 | `db.trash.pending` | `TrashRule` | database | `db.trash.count` | ≥ 20 | low | medium | no | `db.empty_trash` | **no test** (vacuous) |
 | `admin.welcome_panel.visible` | `WelcomePanelRule` | admin | `admin.welcome_panel` | fact true | low | safe | no | `admin.remove_welcome_panel` | named: `AdminRulesTest` |
-| `woo.analytics.enabled` | `WooAnalyticsRule` | admin | `woo.present`, `woo.admin_analytics`, `woo.version` | WooCommerce present and analytics on | low | medium | no | `woo.disable_admin_analytics` | generic only |
+| `woo.analytics.enabled` | `WooAnalyticsRule` | admin | `woo.present`, `woo.admin_analytics`, `woo.version` | WooCommerce present and analytics on, read as WooCommerce reads it: the setting, `woocommerce_admin_disabled`, and `woocommerce_admin_features` (options only until 0.5.0, which never cleared) | low | medium | no | `woo.disable_admin_analytics` | generic; effect: `TweakEffectTest` |
 | `woo.block_styles.everywhere` | `WooBlockStylesRule` | assets | `woo.present`, `woo.block_styles_on_other`, `woo.shop_pages`, `woo.pages_sampled` | WooCommerce present and block styles on ≥ 1 sampled non-shop page | low | medium | no | `woo.block_styles_conditional` | generic only |
-| `woo.marketplace.suggestions` | `WooMarketplaceRule` | admin | `woo.present`, `woo.marketplace_suggestions` | WooCommerce present and suggestions on | low | safe | no | `woo.suppress_marketplace_suggestions` | generic only |
+| `woo.marketplace.suggestions` | `WooMarketplaceRule` | admin | `woo.present`, `woo.marketplace_suggestions` | WooCommerce present and suggestions on: the setting, then `woocommerce_allow_marketplace_suggestions` (the option only until 0.5.0, which never cleared) | low | safe | no | `woo.suppress_marketplace_suggestions` | generic; effect: `TweakEffectTest` |
 | `wp.xmlrpc.enabled` | `XmlRpcRule` | configuration | `wp.xmlrpc_enabled`, `wp.rsd_link` | fact true | low | — | no (info; the dependency map lists it but refusal skips info) | — | named: `RulesTest`, `Integration/AnalyzerTest` |
 
-**Totals.** 33 rules: 24 recommend a tweak, 9 are info-only. Tests: 22 named;
-6 generic only (`wp.self_pingbacks.enabled`, `db.revisions.stored`,
+**Totals.** 33 rules: 23 recommend a tweak, 10 are info-only. Tests: 23 named;
+5 generic only for firing (`wp.self_pingbacks.enabled`, `db.revisions.stored`,
 `woo.analytics.enabled`, `woo.block_styles.everywhere`,
-`woo.marketplace.suggestions`, and the info branch of `db.autoload.heavy`,
-whose recommend branch has no test); and **4 with no test at all**
+`woo.marketplace.suggestions`), the first and last two of which
+`TweakEffectTest` also exercises end to end; the info branch of
+`db.autoload.heavy`, whose recommend branch has no test; and **4 with no test at all**
 (`db.autodrafts.abandoned`, `db.meta.orphaned`, `db.comments.spam`,
 `db.trash.pending`) — four of the five rules that recommend a destructive
 operation.
@@ -112,26 +124,26 @@ tweaks run through `runtime-handlers/<file>.php`, loaded from the
 list, paraphrased.
 
 **Effect test** means a test asserts the change happened on a real
-WordPress. Several tweaks are applied in tests whose assertions are about
-something else (rollback, plan shape, verification); those are marked
-**applied, effect not asserted**.
+WordPress. Since 0.5.0 that is `TweakEffectTest` for every config tweak it can
+exercise: a real scan recommends the tweak, the tweak is registered, and a fresh
+scan no longer does. Where it cannot, the column says why.
 
 | Id | Cat. | Risk | Kind | Destr. | Handler | Runtime effect | Can break | Rule | Effect test |
 |---|---|---|---|---|---|---|---|---|---|
 | `admin.remove_dashboard_widgets` | admin | safe | config | no | `admin-remove-dashboard-widgets.php` | `remove_meta_box` for the chosen ids on `wp_dashboard_setup` 99 | a widget, and any notice only shown in it | **none recommends it** | `AdminIntelligenceTest` |
 | `admin.remove_welcome_panel` | admin | safe | config | no | `admin-remove-welcome-panel.php` | removes `wp_welcome_panel` | one-click shortcuts on the panel | `admin.welcome_panel.visible` | `AdminIntelligenceTest` |
 | `admin.remove_wp_news_widget` | admin | safe | config | no | `admin-remove-wp-news-widget.php` | `remove_meta_box( 'dashboard_primary' )` on `wp_dashboard_setup` 99 | WordPress news and events on the dashboard | `admin.news_widget.present` | `AdminIntelligenceTest` |
-| `admin.suppress_promo_notices` | admin | medium | config | no | `admin-suppress-promo-notices.php` | on `admin_head`, unhooks notice callbacks whose `plugin_basename` belongs to a chosen vendor | operational notices from those plugins too (pending DB update, expiring licence) | `admin.notices.from_plugins` | `AdminIntelligenceTest` |
-| `core.disable_dashicons_guests` | assets | medium | config | no | `core-disable-dashicons-guests.php` | dequeues and deregisters `dashicons` for logged-out visitors on `wp_enqueue_scripts` 99 | icon fonts in a theme's menu or search, silently | `wp.dashicons.frontend` | **no test** (registry load only: `LoaderTest`) |
-| `core.disable_embeds` | wordpress | safe | config | no | `core-disable-embeds.php` | removes oEmbed discovery links, host JS and the oEmbed route; filters rewrite rules and TinyMCE plugins | other sites' preview cards of your posts | `wp.embeds.enabled` | **no test** (registry load only) |
-| `core.disable_emojis` | wordpress | safe | config | no | `core-disable-emojis.php` | removes emoji detection script, styles and staticize filters | fallback glyphs on browsers without emoji fonts | `wp.emojis.loaded` | applied, effect not asserted (`ApplyRollbackTest`, `RuntimeGenerationTest`) |
+| `admin.suppress_promo_notices` | admin | medium | config | no | `admin-suppress-promo-notices.php` | on `admin_head`, unhooks notice callbacks whose `plugin_basename` belongs to a chosen vendor | operational notices from those plugins too (pending DB update, expiring licence) | **none recommends it** since 0.5.0 | `AdminIntelligenceTest` (handler); effect not observable: acts on `admin_head` |
+| `core.disable_dashicons_guests` | assets | medium | config | no | `core-disable-dashicons-guests.php` | dequeues and deregisters `dashicons` for logged-out visitors on `wp_enqueue_scripts` 99 | icon fonts in a theme's menu or search, silently | `wp.dashicons.frontend` | **no behaviour test**: its finding comes from pages fetched over HTTP, which the test environment cannot fetch |
+| `core.disable_embeds` | wordpress | safe | config | no | `core-disable-embeds.php` | removes oEmbed discovery links, host JS and the oEmbed route; filters rewrite rules and TinyMCE plugins | other sites' preview cards of your posts | `wp.embeds.enabled` | `TweakEffectTest` |
+| `core.disable_emojis` | wordpress | safe | config | no | `core-disable-emojis.php` | removes emoji detection script, styles and staticize filters | fallback glyphs on browsers without emoji fonts | `wp.emojis.loaded` | `TweakEffectTest` |
 | `core.disable_self_pingbacks` | wordpress | safe | config | no | `core-disable-self-pingbacks.php` | strips own-site links on `pre_ping` | internal pingback comments | `wp.self_pingbacks.enabled` | `ScannerTest::test_core_features_track_what_is_actually_registered`, `RuntimeOverheadTest` |
-| `core.heartbeat_interval` | wordpress | low | config | no | `core-heartbeat-interval.php` | filters `heartbeat_settings` interval | slower post-lock notices; less frequent autosave | `wp.heartbeat.aggressive` | applied, effect not asserted (`RuntimeGenerationTest` checks parameters) |
-| `core.limit_revisions` | database | low | config | no | `core-limit-revisions.php` | filters `wp_revisions_to_keep` | older revisions pruned on next save | `db.revisions.unlimited` | **no test** (registry load, `ProfileTest`) |
+| `core.heartbeat_interval` | wordpress | low | config | no | `core-heartbeat-interval.php` | filters `heartbeat_settings` interval | slower post-lock notices; less frequent autosave | `wp.heartbeat.aggressive` | `TweakEffectTest` |
+| `core.limit_revisions` | database | low | config | no | `core-limit-revisions.php` | filters `wp_revisions_to_keep` | older revisions pruned on next save | `db.revisions.unlimited` | `TweakEffectTest` |
 | `core.remove_generator` | wordpress | safe | config | no | `core-remove-generator.php` | removes `wp_generator`; filters `the_generator` | registry lists nothing | `wp.generator.exposed` | `ScannerTest`, `RuntimeOverheadTest` |
-| `core.remove_jquery_migrate` | assets | medium | config | no | `core-remove-jquery-migrate.php` | drops `jquery-migrate` from `jquery`'s dependencies on `wp_default_scripts` | old jQuery code on the front end, silently | `wp.jquery_migrate.loaded` | applied, effect not asserted (rollback and verification tests) |
+| `core.remove_jquery_migrate` | assets | medium | config | no | `core-remove-jquery-migrate.php` | drops `jquery-migrate` from `jquery`'s dependencies on `wp_default_scripts` | old jQuery code on the front end, silently | `wp.jquery_migrate.loaded` | `TweakEffectTest` |
 | `core.remove_rsd` | wordpress | safe | config | no | `core-remove-rsd.php` | removes `rsd_link` | auto-discovery by desktop blogging clients | `wp.rsd.exposed` | `ScannerTest`, `RuntimeOverheadTest` |
-| `core.remove_shortlink` | wordpress | safe | config | no | `core-remove-shortlink.php` | removes `wp_shortlink_wp_head` and `wp_shortlink_header` | shortlink discovery for sharing tools | `wp.shortlink.exposed` | applied, effect not asserted (`ApplyRollbackTest`) |
+| `core.remove_shortlink` | wordpress | safe | config | no | `core-remove-shortlink.php` | removes `wp_shortlink_wp_head` and `wp_shortlink_header` | shortlink discovery for sharing tools | `wp.shortlink.exposed` | `TweakEffectTest` |
 | `db.autoload_off` | database | low | data | no | `AutoloadReview` | sets autoload off on options ≥ 4096 bytes whose names start with an `ALLOWED_PREFIXES` entry; recoverable | registry lists nothing | `db.autoload.heavy` | `DestructiveOperationsTest` |
 | `db.clean_auto_drafts` | database | low | data | **yes** | `AutoDraftsCleanup` | deletes `auto-draft` posts older than 30 days (default) | abandoned drafts, permanently | `db.autodrafts.abandoned` | `DestructiveOperationsTest` |
 | `db.clean_expired_transients` | database | low | data | no | `ExpiredTransientsCleanup` | deletes expired transient/timeout pairs, restorable row for row | registry lists nothing | `db.transients.expired` | `DestructiveOperationsTest`, `SnapshotSpillTest` |
@@ -140,22 +152,32 @@ something else (rollback, plan shape, verification); those are marked
 | `db.delete_spam_comments` | database | low | data | **yes** | `SpamCommentsCleanup` | deletes spam comments older than 30 days (default) | a false positive in the spam queue | `db.comments.spam` | `DestructiveOperationsTest` |
 | `db.empty_trash` | database | medium | data | **yes** | `TrashCleanup` | deletes trashed posts older than 30 days (default) | trashed content, permanently | `db.trash.pending` | `DestructiveOperationsTest`, `DestructiveRefusalTest` |
 | `elementor.disable_google_fonts` | assets | medium | config | no | `elementor-disable-google-fonts.php` | returns false from `elementor/frontend/print_google_fonts`; requires `fact:plugins.detected.elementor=true` | fallback fonts; editor and page disagree | **none recommends it** | `ElementorScanTest` |
-| `woo.block_styles_conditional` | assets | medium | config | no | `woo-block-styles-conditional.php` | dequeues WooCommerce block styles on pages with no Woo block, unless `debloater_woo_page_needs_block_styles` says otherwise; requires Woo detected | styling of a Woo block the page check cannot see | `woo.block_styles.everywhere` | applied, effect not asserted (`WooCommerceScanTest`: checkout probe passes with it applied; unregisters cleanly) |
-| `woo.cart_fragments_conditional` | assets | medium | config | no | `woo-cart-fragments-conditional.php` | dequeues `wc-cart-fragments` away from shop pages, unless `debloater_woo_page_needs_cart`; requires Woo detected | header cart totals stop updating | `woo.cart_fragments.everywhere` | applied, effect not asserted (same) |
-| `woo.disable_admin_analytics` | admin | medium | config | no | `woo-disable-admin-analytics.php` | removes `analytics` from `woocommerce_admin_features`; requires Woo detected | Analytics menu; import gap on re-enable | `woo.analytics.enabled` | applied, effect not asserted (same) |
-| `woo.suppress_marketplace_suggestions` | admin | safe | config | no | `woo-suppress-marketplace-suggestions.php` | returns false from `woocommerce_allow_marketplace_suggestions` **and** true from `woocommerce_helper_suppress_admin_notices`; requires Woo detected | registry says only "extension recommendations". **Understated**: the second filter also hides WooCommerce's Helper notices on the Updates screen, including available extension updates (WooCommerce 11.1.0 `class-wc-helper.php`) | `woo.marketplace.suggestions` | applied, effect not asserted (same) |
+| `woo.block_styles_conditional` | assets | medium | config | no | `woo-block-styles-conditional.php` | dequeues WooCommerce block styles on pages with no Woo block, unless `debloater_woo_page_needs_block_styles` says otherwise; requires Woo detected | styling of a Woo block the page check cannot see | `woo.block_styles.everywhere` | **no behaviour test**: its finding comes from pages fetched over HTTP, which the test environment cannot fetch (`WooCommerceScanTest`: checkout probe passes with it applied; unregisters cleanly) |
+| `woo.cart_fragments_conditional` | assets | medium | config | no | `woo-cart-fragments-conditional.php` | dequeues `wc-cart-fragments` away from shop pages, unless `debloater_woo_page_needs_cart`; requires Woo detected | header cart totals stop updating | `woo.cart_fragments.everywhere` | **no behaviour test**, as above |
+| `woo.disable_admin_analytics` | admin | medium | config | no | `woo-disable-admin-analytics.php` | removes `analytics` from `woocommerce_admin_features`; requires Woo detected | Analytics menu; import gap on re-enable | `woo.analytics.enabled` | `TweakEffectTest` |
+| `woo.suppress_marketplace_suggestions` | admin | safe | config | no | `woo-suppress-marketplace-suggestions.php` | returns false from `woocommerce_allow_marketplace_suggestions`; requires Woo detected. Until 0.5.0 it also answered `woocommerce_helper_suppress_admin_notices`, hiding the extension-updates note on Dashboard → Updates | extension recommendations; partial, since WooCommerce's Show Suggestions setting still governs the Shipping tab link and the newer screens' suggestions | `woo.marketplace.suggestions` | `TweakEffectTest` |
 
 **Totals by risk:** 10 safe, 6 low, 10 medium, **0 high**.
 **By category:** wordpress 7, database 8, admin 6, assets 5.
 **By kind:** 19 config, 7 data. **Destructive:** 5.
-**Effect tests:** 15 asserted, 8 applied without the effect asserted, and
-**3 with no behaviour test at all** (`core.disable_dashicons_guests`,
-`core.disable_embeds`, `core.limit_revisions`). The effect of
-`woo.suppress_marketplace_suggestions` on Helper notices is untested either way.
-`tests/Unit/Recommend/ShippedDestructiveTweaksTest.php` checks the registry's
-flags and wording for data tweaks, not their effect.
+**Effect:** 13 config tweaks clear their own finding in `TweakEffectTest`,
+from a real scan before and after. The other 6 are listed there with the
+reason: 2 recommended by no rule (`admin.remove_dashboard_widgets`,
+`elementor.disable_google_fonts`), 1 no longer recommended
+(`admin.suppress_promo_notices`), and 3 whose findings come from pages fetched
+over HTTP, which the test environment cannot fetch
+(`core.disable_dashicons_guests`, both WooCommerce asset tweaks). Data tweaks
+are checked by `DestructiveOperationsTest`;
+`tests/Unit/Recommend/ShippedDestructiveTweaksTest.php` checks their flags and
+wording.
+**Declared effects:** every config tweak's document has an `effect` —
+13 name a fact and what it must be, 6 say why no request can observe them —
+held true by `TweakEffectTest::test_a_declared_effect_is_observed_once_applied`
+and required by `LoaderTest::test_every_config_tweak_declares_its_effect`.
 **Never recommended by any rule:** `admin.remove_dashboard_widgets`,
-`elementor.disable_google_fonts`. Both are reachable only by selecting them by id.
+`elementor.disable_google_fonts`, and since 0.5.0
+`admin.suppress_promo_notices`. All three are reachable only by selecting them
+by id.
 
 ### Which tweaks a Safe plan can contain
 
@@ -172,7 +194,8 @@ finding has `dependencies_detected > 0` **or** `env.host_vendor` is
 SiteGround and a LiteSpeed server.
 
 - **Recognised host:** at most **13** — the 9 safe tweaks a rule recommends
-  (`admin.remove_welcome_panel`, `admin.remove_wp_news_widget`,
+  (`admin.remove_welcome_panel` and `admin.remove_wp_news_widget`, which no
+  real scan recommends because admin facts are never collected there,
   `core.disable_embeds`, `core.disable_emojis`, `core.disable_self_pingbacks`,
   `core.remove_generator`, `core.remove_rsd`, `core.remove_shortlink`,
   `woo.suppress_marketplace_suggestions`) plus the 4 low non-destructive ones
@@ -190,13 +213,14 @@ first). On an unrecognised host all ten medium tweaks are assessed **high**, so
 Maximum; on a recognised host Maximum and Performance are the same plan unless
 a dependent raises something.
 
-**Three admin tweaks are in Fix Safe Issues.** `admin.remove_welcome_panel`,
-`admin.remove_wp_news_widget` and `woo.suppress_marketplace_suggestions`
-(category admin) are safe, recommended by a rule, and admitted by
-`safePlan()` and both profiles: nothing in `src/Recommend/` or
+**Three admin-category tweaks are admitted to Fix Safe Issues.**
+`admin.remove_welcome_panel`, `admin.remove_wp_news_widget` and
+`woo.suppress_marketplace_suggestions` are safe, recommended by a rule, and
+admitted by `safePlan()` and both profiles: nothing in `src/Recommend/` or
 `src/Registry/Profile.php` looks at a tweak's category. `docs/DECISIONS.md`
-D-0032 says "None of them is in any profile … they are selected individually
-or not at all". No test asserts either way.
+D-0032 says "None of them is in any profile". In practice only the third
+reaches a real plan: the first two are recommended by admin findings, which no
+real scan produces. No test asserts either way.
 
 The statements in this subsection were confirmed by running the analyzer,
 engine and planner over the unit fixtures `Facts::freshInstall()` and
@@ -246,7 +270,13 @@ Also absent rather than unread: **there is no theme version fact** (only
 orphaned comment-meta count**, although `db.clean_orphan_meta` deletes orphaned
 comment meta by default. `admin.notices` and `admin.dashboard_widgets` are
 enumerations with their sources, but `AdminScanner` fills them only when the
-scan runs inside wp-admin; a `wp debloater scan` records them empty.
+scan runs inside wp-admin, and no real scan does: `wp debloater scan` and the
+dashboard's REST scan both record them empty.
+
+`wp.dashicons_frontend` is declared and, since 0.5.0, not collected: it asked
+the scan's own request whether a registered style depended on dashicons, which
+every REST or CLI request has, so it was true on every site. It stays in the
+schema so stored runs still validate.
 
 On a clean install the scanner records 65 facts; the dev site with five
 plugins records 72.
@@ -301,10 +331,14 @@ or UNKNOWN commits as "verified with warnings".
 | `AdminProbe` | wp-admin renders for the acting user, with an auth cookie | `AdminProbeAuthTest` |
 | `LoginProbe` | `wp-login.php` renders; WARN, not FAIL, on failure | `VerificationTest` |
 | `RestProbe` | REST index answers | `VerificationTest` |
+| `RuntimeRegisteredProbe` (`runtime_registered`) | a loopback `GET /status` as the actor shows every stored handler registered; FAIL, rolling back, when one did not. Since 0.5.0 | `RuntimeRegisteredTest` |
+| `EffectsObservedProbe` (`effects_observed`) | the same response's `effects`: WARN "applied but not observed" when a selected tweak's declared effect does not hold. Since 0.5.0 | `RuntimeRegisteredTest`; declarations: `TweakEffectTest` |
 | `WooCartProbe`, `WooCheckoutProbe`, `WooAccountProbe` | the shop page renders; only when WooCommerce is present and the page exists | `WooCommerceScanTest` |
 
-§11's `runtime_loaded` probe does not exist. When loopback is blocked the HTTP
-probes return UNKNOWN, which commits with warnings rather than rolling back.
+§11's `runtime_loaded` probe went with the generated file (`D-0070`);
+`runtime_registered` asks the question that remained (`D-0079`). When loopback
+is blocked the HTTP probes return UNKNOWN, which commits with warnings rather
+than rolling back.
 
 ### Meter metrics — `src/Meter/Meter.php` `METRICS`
 
@@ -340,6 +374,9 @@ What follows from the rule table and is not written anywhere else:
 - The configuration sub-score moves only through two info findings with low
   severity (`wp.file_editor.enabled`, `wp.xmlrpc.enabled`), neither of which
   Debloater offers to change.
+- The admin sub-score moves only through `woo.marketplace.suggestions` and
+  `woo.analytics.enabled` on a real site, because the other admin findings are
+  never produced there.
 - Five recommend rules sit in the unscored assets category, so the score
   cannot reflect applying `core.disable_dashicons_guests`,
   `core.remove_jquery_migrate` or either WooCommerce asset tweak.
@@ -356,10 +393,10 @@ What follows from the rule table and is not written anywhere else:
 | `registry` | 514 | prints the bundled registry's version and counts | **no test** |
 | `rollback [<snapshot-id>] [--yes]` | 575 | restores a recovery point | `CliTest` |
 | `snapshots list\|show\|delete` | 646 | recovery-point management | `CliTest` |
-| `status` | 719 | last scan, score, active runtime | `CliTest`, `StatusRouteTest` |
-| `profile list\|save\|export\|import\|apply` | 832 | saved profiles | `ProfileCliTest` |
-| `export [--file=<dash>]` | 1224 | configuration document to `uploads/debloater/` or stdout | `CliExportPathTest` |
-| `import <file> [--apply --yes]` | 1311 | validates a configuration document; applies only with both flags | `CliTest`, `ProfileImportSafetyTest` |
+| `status` | 719 | selection; handlers stored against registered in this process, with each skip and why; each selected change's effect observed or not; last scan; lock | `CliTest`, `RuntimeRegisteredTest` |
+| `profile list\|save\|export\|import\|apply` | 892 | saved profiles | `ProfileCliTest` |
+| `export [--file=<dash>]` | 1284 | configuration document to `uploads/debloater/` or stdout | `CliExportPathTest` |
+| `import <file> [--apply --yes]` | 1371 | validates a configuration document; applies only with both flags | `CliTest`, `ProfileImportSafetyTest` |
 
 ### REST — `src/Rest/Routes/`, namespace `debloater/v1`
 
@@ -367,6 +404,9 @@ What follows from the rule table and is not written anywhere else:
 `POST /rollback`, `GET /runs/<id>`, `GET /snapshots`, `GET /status`,
 `GET /profiles`, `POST /profiles/save`, `POST /profiles/import`.
 Capability and nonce checks: `SecurityRulesTest`, `WriteRoutesTest`.
+`GET /status` returns `runtime` (stored, registered, skipped, guard) and
+`effects` (each selected change's declared effect, read in that request) since
+0.5.0; `RuntimeRegisteredTest`.
 
 ---
 

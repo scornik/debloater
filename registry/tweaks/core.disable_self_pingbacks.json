@@ -17,6 +17,10 @@
   "conditions": [],
   "measurements": [],
   "probes": ["home", "admin"],
+  "effect": {
+    "fact": "wp.self_pingbacks",
+    "equals": false
+  },
   "since_wp": "2.3",
   "docs_url": null
 }

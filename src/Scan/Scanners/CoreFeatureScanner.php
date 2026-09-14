@@ -17,34 +17,41 @@ use Debloater\Contracts\Context;
  * Each of these is measured by asking whether core's own callback is still
  * attached to the hook that emits it. That is the same question the tweak will
  * change, so the fact and the change are talking about exactly the same thing —
- * and a feature already removed by a theme, another plugin, or a previous WP
- * Debloat run reports as off rather than being recommended a second time.
+ * and a feature already removed by a theme, another plugin, or a previous
+ * Debloater run reports as off rather than being recommended a second time.
+ * `TweakEffectTest` holds that claim to every config tweak: apply it, scan, and
+ * the finding that recommended it must be gone.
  *
- * Two facts cannot be answered this way and are deliberately omitted rather
- * than guessed:
- *
- * - `wp.dashicons_frontend` — core only enqueues dashicons on the front end for
- *   the admin bar, and a theme may enqueue it for guests. Neither is visible
- *   from the request this scanner runs in.
- * - `wp.emojis_enabled` is answerable, because the emoji script is attached to
- *   `wp_head` on every request including this one.
- *
- * Phase 13's asset scan fetches real pages and can answer the first properly.
- * Until then the key is absent, and an analyzer rule that needs it reports that
- * it could not evaluate rather than assuming a default.
+ * `wp.dashicons_frontend` is not collected. Whether visitors download the icon
+ * font is decided while a front-end page is built, and a scan never runs in
+ * one: it runs over REST or WP-CLI, where core has registered a dozen styles
+ * that depend on dashicons whatever any visitor loads. Until 0.5.0 this scanner
+ * reported that as "dashicons loads on the front end" — true on every site
+ * (`D-0079`). `DashiconsFrontendRule` now reads the pages the asset scan fetched
+ * as a logged-out visitor.
  */
 final class CoreFeatureScanner extends AbstractScanner {
 
 	/**
-	 * Fact key to the core callback that produces the feature.
+	 * Fact key to the core callback that produces the feature, and the priority
+	 * whose presence means "on".
+	 *
+	 * A null priority means any priority. Embeds is the one that cannot use it:
+	 * WordPress registers `wp_oembed_add_discovery_links` at 4 *and* at 10, and
+	 * the function returns early on `wp_head` when it is no longer attached at 10
+	 * (`wp-includes/embed.php`, "short-circuit if a plugin has removed the action
+	 * at the original priority"). Removing it at 10 is how core documents turning
+	 * it off, and the attachment at 4 survives that. Asking "at any priority"
+	 * therefore reported embeds as on for ever, on a site where no discovery link
+	 * was being printed.
 	 */
 	private const HEAD_FEATURES = array(
-		'wp.emojis_enabled' => array( 'wp_head', 'print_emoji_detection_script' ),
-		'wp.embeds_enabled' => array( 'wp_head', 'wp_oembed_add_discovery_links' ),
-		'wp.rss_enabled'    => array( 'wp_head', 'feed_links' ),
-		'wp.generator_tag'  => array( 'wp_head', 'wp_generator' ),
-		'wp.rsd_link'       => array( 'wp_head', 'rsd_link' ),
-		'wp.shortlink'      => array( 'wp_head', 'wp_shortlink_wp_head' ),
+		'wp.emojis_enabled' => array( 'wp_head', 'print_emoji_detection_script', null ),
+		'wp.embeds_enabled' => array( 'wp_head', 'wp_oembed_add_discovery_links', 10 ),
+		'wp.rss_enabled'    => array( 'wp_head', 'feed_links', null ),
+		'wp.generator_tag'  => array( 'wp_head', 'wp_generator', null ),
+		'wp.rsd_link'       => array( 'wp_head', 'rsd_link', null ),
+		'wp.shortlink'      => array( 'wp_head', 'wp_shortlink_wp_head', null ),
 	);
 
 	/**
@@ -68,17 +75,13 @@ final class CoreFeatureScanner extends AbstractScanner {
 		$facts = array();
 
 		foreach ( self::HEAD_FEATURES as $key => $hook ) {
-			$facts[ $key ] = false !== has_action( $hook[0], $hook[1] );
+			$facts[ $key ] = null === $hook[2]
+				? false !== has_action( $hook[0], $hook[1] )
+				: has_action( $hook[0], $hook[1], $hook[2] );
 		}
 
 		$facts['wp.self_pingbacks'] = $this->selfPingbacksEnabled();
 		$facts['wp.jquery_migrate'] = $this->jqueryMigrateLoaded();
-
-		$dashicons = $this->dashiconsOnFrontend();
-
-		if ( null !== $dashicons ) {
-			$facts['wp.dashicons_frontend'] = $dashicons;
-		}
 
 		return $facts;
 	}
@@ -115,38 +118,5 @@ final class CoreFeatureScanner extends AbstractScanner {
 		$dependencies = $scripts->registered['jquery']->deps;
 
 		return is_array( $dependencies ) && in_array( 'jquery-migrate', $dependencies, true );
-	}
-
-	/**
-	 * Whether dashicons loads on the front end, or null when it cannot be told
-	 * from this request.
-	 *
-	 * A registered front-end style declaring dashicons as a dependency is a
-	 * definite yes. Anything short of that is genuinely unknown until a page is
-	 * fetched, and reporting a guess as a fact is exactly what this layer exists
-	 * not to do.
-	 *
-	 * @return bool|null
-	 */
-	private function dashiconsOnFrontend(): ?bool {
-		if ( is_admin() ) {
-			// Every admin request enqueues dashicons, so nothing observed here
-			// says anything about the front end.
-			return null;
-		}
-
-		$styles = wp_styles();
-
-		foreach ( $styles->registered as $handle => $style ) {
-			if ( 'dashicons' === $handle ) {
-				continue;
-			}
-
-			if ( is_array( $style->deps ) && in_array( 'dashicons', $style->deps, true ) ) {
-				return true;
-			}
-		}
-
-		return wp_style_is( 'dashicons', 'enqueued' );
 	}
 }

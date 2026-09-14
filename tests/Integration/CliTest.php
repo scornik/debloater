@@ -631,7 +631,7 @@ final class CliTest extends IntegrationTestCase {
 		( new Command( $this->plugin, $empty ) )->status( array(), array() );
 
 		$this->assertSame( Command::EXIT_OK, $empty->code );
-		$this->assertStringContainsString( 'No handlers are loaded', $empty->output() );
+		$this->assertStringContainsString( 'No handlers are stored', $empty->output() );
 
 		$this->selectAndGenerate(
 			array(
@@ -640,12 +640,20 @@ final class CliTest extends IntegrationTestCase {
 			)
 		);
 
+		// WP-CLI boots plugins like any request, so the runtime has loaded by
+		// the time `status` runs.
+		$this->loadRuntime();
+
 		$applied = new RecordingIo();
 
-		( new Command( $this->plugin, $applied ) )->status( array(), array() );
+		try {
+			( new Command( $this->plugin, $applied ) )->status( array(), array() );
+		} finally {
+			$this->unregisterHandlers( array( 'core.remove_generator', 'core.remove_rsd' ) );
+		}
 
 		$this->assertSame( Command::EXIT_OK, $applied->code );
-		$this->assertStringContainsString( '2 handlers are loaded', $applied->output() );
+		$this->assertStringContainsString( '2 of 2 stored handlers registered in this request.', $applied->output() );
 		$this->assertStringNotContainsString( 'runtime file', $applied->output() );
 		$this->assertStringNotContainsString( 'nothing is being changed', $applied->output() );
 	}
@@ -732,7 +740,7 @@ final class CliTest extends IntegrationTestCase {
 
 				if ( 0 === strpos( $url, rest_url( 'debloater/v1/status' ) ) ) {
 					$body = (string) wp_json_encode(
-						array( 'runtime' => array( 'handlers' => 0 ) )
+						self::healthyStatus( $plugin )
 					);
 				} elseif ( 0 === strpos( $url, rest_url() ) ) {
 					$body = (string) wp_json_encode( array( 'name' => 'A site' ) );

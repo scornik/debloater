@@ -259,7 +259,14 @@ final class RulesTest extends TestCase {
 	public function test_heartbeat_proposes_an_interval_suited_to_the_site(): void {
 		$rule = $this->rule( 'wp.heartbeat.aggressive' );
 
-		$quiet = $rule->analyze( Facts::freshInstall( array( 'users.admin_count' => 1 ) ) );
+		$quiet = $rule->analyze(
+			Facts::freshInstall(
+				array(
+					'users.admin_count'     => 1,
+					'wp.heartbeat_interval' => 15,
+				)
+			)
+		);
 
 		$this->assertNotNull( $quiet );
 		$this->assertSame( 120, $quiet->recommendation?->params->int( 'interval' ) );
@@ -269,7 +276,14 @@ final class RulesTest extends TestCase {
 		$this->assertNotNull( $store );
 		$this->assertSame( 60, $store->recommendation?->params->int( 'interval' ) );
 
-		$several_admins = $rule->analyze( Facts::freshInstall( array( 'users.admin_count' => 4 ) ) );
+		$several_admins = $rule->analyze(
+			Facts::freshInstall(
+				array(
+					'users.admin_count'     => 4,
+					'wp.heartbeat_interval' => 15,
+				)
+			)
+		);
 
 		$this->assertNotNull( $several_admins );
 		$this->assertSame( 60, $several_admins->recommendation?->params->int( 'interval' ) );
@@ -417,11 +431,68 @@ final class RulesTest extends TestCase {
 		$this->assertNotNull( $migrate );
 		$this->assertFalse( $migrate->risk->isSafePlanEligible(), 'jQuery Migrate must not be safe-plan eligible' );
 
-		$dashicons = $this->rule( 'wp.dashicons.frontend' )
-			->analyze( Facts::freshInstall( array( 'wp.dashicons_frontend' => true ) ) );
+		$dashicons = $this->rule( 'wp.dashicons.frontend' )->analyze( self::guestPagesLoadingDashicons( 1 ) );
 
 		$this->assertNotNull( $dashicons );
 		$this->assertFalse( $dashicons->risk->isSafePlanEligible(), 'dashicons must not be safe-plan eligible' );
+	}
+
+	/**
+	 * Dashicons: decided by what the sampled visitor pages loaded.
+	 *
+	 * Not by what a scan request has registered, which was true on every site
+	 * because core registers styles depending on dashicons in every request a
+	 * scan runs in (D-0079).
+	 *
+	 * @return void
+	 */
+	public function test_dashicons_fires_only_when_sampled_visitor_pages_load_it(): void {
+		$rule = $this->rule( 'wp.dashicons.frontend' );
+
+		$finding = $rule->analyze( self::guestPagesLoadingDashicons( 2 ) );
+
+		$this->assertNotNull( $finding );
+		$this->assertSame( 'core.disable_dashicons_guests', $finding->recommendation?->tweak_id );
+		$this->assertStringContainsString( '2 of the 2 pages', $finding->summary );
+
+		$this->assertNull( $rule->analyze( Facts::freshInstall() ), 'sampled pages without dashicons' );
+
+		$blocked = Facts::freshInstall();
+		$without = array();
+
+		foreach ( $blocked as $key => $fact ) {
+			if ( 0 !== strpos( (string) $key, 'assets.' ) ) {
+				$without[ $key ] = $fact->value;
+			}
+		}
+
+		$unsampled = FactSet::fromArray( array_merge( $without, array( 'assets.available' => false ) ) );
+
+		$this->assertFalse( $rule->supports( $unsampled ), 'a site that could not fetch its pages is not evaluated' );
+		$this->assertNull( $rule->analyze( $unsampled ) );
+	}
+
+	/**
+	 * A fresh install whose sampled pages load dashicons.
+	 *
+	 * @param int $pages Pages loading it.
+	 * @return FactSet
+	 */
+	private static function guestPagesLoadingDashicons( int $pages ): FactSet {
+		$styles   = Facts::freshInstall()->value( 'assets.styles' );
+		$styles[] = array(
+			'handle' => 'dashicons',
+			'source' => 'wordpress',
+			'pages'  => $pages,
+			'bytes'  => 59016,
+		);
+
+		return Facts::freshInstall(
+			array(
+				'assets.styles'       => $styles,
+				'assets.styles.count' => count( $styles ),
+			)
+		);
 	}
 
 	/**

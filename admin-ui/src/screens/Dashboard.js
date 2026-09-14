@@ -10,6 +10,7 @@ import { get, post } from '../api/client';
 import { useResource } from '../api/useResource';
 import ExtensionPanels from '../components/ExtensionPanels';
 import Score from '../components/Score';
+import RuntimeNotice from '../components/RuntimeNotice';
 import { decisionLabel, riskLabel } from '../components/Badges';
 
 const CountList = ( { counts, label, modifier } ) => {
@@ -128,14 +129,7 @@ export const Dashboard = ( { onNavigate, onFixSafeIssues, onScore } ) => {
 		<div className="debloater-dashboard">
 			<Score score={ score } />
 
-			{ runtime.present && ! runtime.matches_state && (
-				<Notice status="warning" isDismissible={ false }>
-					{ __(
-						'The generated file on disk is not the one Debloater wrote. Something else has changed it.',
-						'hakeemify-debloater'
-					) }
-				</Notice>
-			) }
+			<RuntimeNotice runtime={ runtime } />
 
 			<section
 				className="debloater-panel"

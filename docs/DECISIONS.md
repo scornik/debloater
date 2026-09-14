@@ -4258,3 +4258,131 @@ all three.
   where the old rule fired, no rule has `update_nag` in its id or recommends a
   tweak that does. Probe: restoring `UpdateNagRule` fails it.
 - `LoaderTest`'s pinned tweak list no longer contains it.
+
+---
+
+## D-0079 – a tweak is proved by the scan that recommended it
+
+- **Phase:** 0.5.0
+- **Date:** 2026-09-14
+- **Status:** accepted
+- **Found by:** a real site. Fix Safe Issues applied seven tweaks (run #7,
+  COMMITTED); the next scan recommended three of them again, and Fix Safe
+  Issues re-applied them in run #13.
+- **Amends:** `D-0070` (what `GET /status` reports about the runtime) and
+  `D-0031` (promo-notice suppression is no longer recommended by a scan).
+
+### The finding
+
+The tweaks worked. Registered in a request, all seven changed what WordPress
+did: the generator tag, RSD and shortlink gone from `wp_head`, embeds' discovery
+links and REST route gone, `wp_revisions_to_keep()` at 5, the marketplace
+filter false. Three findings could not see it, because the scanner read raw
+configuration where the tweak changes the effective answer:
+
+| Finding | Read | Why it never cleared |
+|---|---|---|
+| `wp.embeds.enabled` | `wp_oembed_add_discovery_links` on `wp_head` at any priority | WordPress 7.1 hooks it at 4 and 10 and returns early when 10 is gone. The tweak removes 10, which is core's documented off switch; 4 stays |
+| `db.revisions.unlimited` | `WP_POST_REVISIONS` | A filter cannot change a constant. The effective limit is `wp_revisions_to_keep()` |
+| `woo.marketplace.suggestions` | the `woocommerce_show_marketplace_suggestions` option | The tweak answers the filter WooCommerce consults after the option |
+
+### What was built
+
+**1. The scanner reads effective state.** Embeds at priority 10; revisions
+through `wp_revisions_to_keep()` for a post; marketplace suggestions as
+`WC_Marketplace_Suggestions::allow_suggestions()` asks it, less the viewer's
+capability. The fact schema describes each. The revision findings now say
+which they are about: `db.revisions.unlimited` is "no limit is set", and
+`db.revisions.stored` is revisions that exist and fall only as posts are saved.
+
+**2. `TweakEffectTest`.** For every config tweak: a real scan recommends it,
+the tweak is stored with the parameters its finding proposed and registered as
+`plugins_loaded` would, the script, style and dashboard registries are rebuilt
+as a new request would, and a fresh scan must not recommend it. A config tweak
+with neither a scenario nor a stated reason fails the test.
+
+It caught three more, and a fourth problem underneath two of them:
+
+| Tweak | What it found | Done |
+|---|---|---|
+| `woo.disable_admin_analytics` | The scanner read the analytics options; the tweak filters `woocommerce_admin_features` | Read the way WooCommerce 11.1.0's `Features::is_analytics_enabled()` does |
+| `core.disable_dashicons_guests` | `wp.dashicons_frontend` asked the scan's own request whether any registered style depended on dashicons. A REST or CLI request always has a dozen (admin-bar, thickbox, wp-pointer and more), so it was true on every site | Not collected. `DashiconsFrontendRule` reads `assets.styles` from the pages sampled as a logged-out visitor |
+| `admin.suppress_promo_notices` | The handler acts on `admin_head`; a scan never reaches it | The finding is informational and recommends nothing (decided by the owner) |
+| (all admin findings) | Admin facts are collected only when `is_admin()`. The dashboard scans over REST and WP-CLI scans from a terminal, and neither is. No real scan has produced the welcome-panel, news-widget, crowded-dashboard or promo-notice finding | Recorded in `docs/GAP-ANALYSIS.md`. Admin-context scanning is not in this release |
+
+Not exercised, with reasons in the test: `admin.remove_dashboard_widgets` and
+`elementor.disable_google_fonts` (no rule recommends them);
+`core.disable_dashicons_guests`, `woo.block_styles_conditional` and
+`woo.cart_fragments_conditional` (their findings come from pages fetched over
+HTTP, which the test environment cannot fetch); and
+`admin.suppress_promo_notices` (no rule recommends it now).
+
+**3. The load report and `runtime_registered`.** `Apply\Runtime::load()`
+records, in memory, the guard's state and, for each stored handler, whether it
+registered or why not (`invalid_name`, `unreadable`, `no_register_method`,
+`guard`). `GET /status` and `wp debloater status` return stored against
+registered and list skips; the dashboard warns when a stored change did not
+load. The `runtime_registered` probe fetches `/status` over loopback as the
+actor after an apply, because only a later request registers what was just
+stored, and FAILs, rolling back, when a stored handler did not register.
+`runtime_loaded` went with the generated file in `D-0070`, and nothing had
+asserted the subject since. With no signed-in actor to ask as — WP-CLI, cron —
+or no loopback, it reports UNKNOWN and does not roll back, like `admin`: the
+dashboard, which is how Fix Safe Issues is applied, is the path it covers.
+
+`Runtime::registeredClasses()` is now `storedClasses()`, because it never said
+what registered. Two comments that asserted properties the code did not have
+are corrected (P8): `Runtime::write()` said a skipped handler "is also
+recorded", and `StatusRoute` said it reported a runtime file to a
+`runtime_loaded` probe.
+
+**4. Declared effects and `effects_observed`.** Item 2 showed the need went
+beyond three, so every config tweak's registry document declares an `effect`:
+the fact a request shows when it is in effect (`equals`, `equals_param`, `min`,
+`max_param`), or `observable: false` with the reason. Thirteen are observable,
+six are not, and the reasons are in the documents. `GET /status` evaluates them
+in its own request (`Plugin::effectReport()`, over the `wp` and `woo` facts
+that need no page fetch), and the `effects_observed` probe reports WARN
+"applied but not observed" when one does not hold. `LoaderTest` requires a
+declaration of every config tweak; `TweakEffectTest` requires every observable
+one to be false before the tweak and true after it.
+
+### Two more, found on the way and decided by the owner
+
+- **Heartbeat's default.** The scanner assumed 15 seconds when nothing filters
+  `heartbeat_settings`. Core's `heartbeat.js` starts from `mainInterval: 60`,
+  so `wp.heartbeat.aggressive` fired on every site that had never touched
+  Heartbeat. The default is 60.
+- **`woocommerce_helper_suppress_admin_notices`.** The marketplace handler also
+  answered it, which silences the note on Dashboard, Updates, that
+  WooCommerce.com extensions have updates waiting: the class of change `D-0077`
+  removed a tweak for. Removed from the handler; `LoaderTest` fails if a handler
+  names it or `update_nag`.
+
+### What this changed about D-0032
+
+`docs/GAP-ANALYSIS.md` recorded that three admin-category tweaks enter Fix Safe
+Issues against `D-0032`. Two of them never could in practice, because their
+findings are never produced by a real scan. The third, the marketplace tweak,
+comes from a WooCommerce finding and does. `D-0032` stands as written, and
+enforcing it is still a decision nobody has made.
+
+### What is asserted, and each probe
+
+| Broken on purpose | What failed |
+|---|---|
+| embeds read at any priority | `TweakEffectTest`, embeds case |
+| revisions read from the constant | `TweakEffectTest`, limit-revisions case |
+| marketplace read from the option only | `TweakEffectTest`, marketplace case |
+| analytics ignoring `woocommerce_admin_features` | `TweakEffectTest`, analytics case |
+| a skipped handler recorded as registered | four `RuntimeRegisteredTest` cases |
+| the probe ignoring missing handlers | three `RuntimeRegisteredTest` cases |
+| the probe left out of the verifier | `test_an_apply_whose_handlers_did_not_register_rolls_back` |
+| the effects probe passing a not-observed row | `test_the_effects_probe_warns_when_a_change_is_not_observed` |
+| `core.remove_rsd` declared `equals: true` | `test_a_declared_effect_is_observed_once_applied` |
+| Heartbeat default back to 15 | `ScannerTest::test_heartbeat_interval_follows_the_filter` |
+| a config tweak with no `effect` | `LoaderTest::test_every_config_tweak_declares_its_effect` |
+| the Helper notice filter restored | `LoaderTest::test_no_handler_hides_an_update_notice` |
+| promo notices recommending again | `AdminRulesTest::test_notices_from_allowlisted_plugins_are_reported_not_recommended` |
+| dashicons firing without sampled pages loading it | `RulesTest::test_dashicons_fires_only_when_sampled_visitor_pages_load_it` |
+| the dashboard notice counting nothing | two `RuntimeNotice.test.js` cases |

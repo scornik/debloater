@@ -649,7 +649,7 @@ final class AdminIntelligenceTest extends IntegrationTestCase {
 
 				if ( 0 === strpos( $url, rest_url( 'debloater/v1/status' ) ) ) {
 					$body = (string) wp_json_encode(
-						array( 'runtime' => array( 'handlers' => 0 ) )
+						self::healthyStatus( $plugin )
 					);
 				} elseif ( 0 === strpos( $url, rest_url() ) ) {
 					$body = (string) wp_json_encode( array( 'name' => 'A site' ) );

@@ -13,7 +13,6 @@
   "wp.rsd_link": true,
   "wp.shortlink": true,
   "wp.self_pingbacks": true,
-  "wp.dashicons_frontend": true,
   "wp.jquery_migrate": true,
   "wp.revisions_limit": -1,
   "wp.file_editor_enabled": true,

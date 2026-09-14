@@ -4,7 +4,7 @@ Tags: bloat, debloat, performance, cleanup, optimization
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 0.4.0
+Stable tag: 0.5.0
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -41,7 +41,11 @@ captured. Destructive operations do not proceed unless that capture completed.
 
 **Verifies, then rolls back if it has to.** After applying, Debloater requests
 your own pages and your own REST API. If they stopped working, it puts
-everything back and tells you what happened.
+everything back and tells you what happened. When you apply from the
+dashboard, it also asks a fresh request whether the changes actually loaded,
+and puts everything back if they did not. From WP-CLI, or on a site that cannot
+reach itself, that check cannot run, and Debloater says so rather than
+guessing.
 
 **Costs nothing when it is doing nothing.** With no changes selected there are
 no hooks registered and no queries added to a front-end request. That is a
@@ -201,6 +205,35 @@ LiteSpeed Cache and WP Super Cache.
 
 == Changelog ==
 
+= 0.5.0 =
+* Fixed: three findings came back after you applied the change they
+  recommended — embeds, the revision limit and WooCommerce marketplace
+  suggestions. The changes were working; the scan was reading your settings
+  rather than what WordPress actually does, so "Fix Safe Issues" kept offering
+  them again. Every change Debloater recommends is now tested to clear its own
+  finding.
+* Fixed: WooCommerce Analytics was reported as on after you turned it off with
+  Debloater, for the same reason.
+* Fixed: "The admin icon font loads for visitors" appeared on every site. It is
+  now based on the pages Debloater actually fetched as a logged-out visitor,
+  and does not appear when your site cannot fetch its own pages.
+* Fixed: "Heartbeat is polling aggressively" appeared on every site that had
+  never changed Heartbeat. WordPress's default is 60 seconds, not 15.
+* After applying from the dashboard, Debloater checks in a fresh request that
+  the changes actually loaded, and rolls back if they did not. It also checks
+  that each change can be seen working where that is possible, and warns when
+  it is not. From WP-CLI these checks report that they could not run.
+* `wp debloater status` and the dashboard say when an applied change did not
+  load, and why.
+* The WooCommerce marketplace-suggestions change no longer hides the note on
+  Dashboard → Updates that WooCommerce extension updates are waiting. It also
+  says plainly that WooCommerce's own "Show Suggestions" setting still controls
+  some suggestions.
+* Plugin notices are reported but no longer offered as a change to apply from
+  a scan: a scan cannot see whether hiding them worked.
+* The revision findings say which they are about: no limit being set, or old
+  revisions that remain until each post is next saved.
+
 = 0.4.0 =
 * Debloater no longer downloads anything. New rules arrive with plugin
   updates, the same way the rest of the plugin does. The only requests it
@@ -256,6 +289,9 @@ LiteSpeed Cache and WP Super Cache.
 Initial wordpress.org release.
 
 == Upgrade Notice ==
+
+= 0.5.0 =
+Findings that came back after you fixed them are fixed, and Debloater now checks that applied changes actually loaded. The marketplace-suggestions change no longer hides WooCommerce's extension-update note.
 
 = 0.4.0 =
 Debloater no longer downloads anything, and the change that hid WordPress's update notice is removed. If you had it selected, the notice comes back for administrators; nothing else changes.

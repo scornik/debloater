@@ -251,6 +251,46 @@ final class LoaderTest extends TestCase {
 	}
 
 	/**
+	 * Every config tweak declares its effect, and no data tweak does (D-0079).
+	 *
+	 * Either the fact a request shows when it is in effect, or that nothing a
+	 * request reads can show it and why. Silence is not a declaration: a tweak
+	 * with no effect is one whose working nobody would notice being absent.
+	 *
+	 * @return void
+	 */
+	public function test_every_config_tweak_declares_its_effect(): void {
+		$registry = $this->shippedRegistry();
+		$config   = 0;
+
+		foreach ( $registry->all() as $definition ) {
+			if ( TweakKind::DATA === $definition->kind ) {
+				$this->assertNull( $definition->effect, $definition->id . ' is a data tweak and declares an effect' );
+
+				continue;
+			}
+
+			++$config;
+
+			$this->assertNotNull( $definition->effect, $definition->id . ' declares no effect' );
+
+			if ( $definition->effect->observable ) {
+				// `Plugin::effectFacts()` reads the `wp` and `woo` namespaces in the
+				// verification request, and nothing else.
+				$this->assertMatchesRegularExpression(
+					'/^(wp|woo)\./',
+					(string) $definition->effect->fact,
+					$definition->id . ' names a fact the verification request does not collect'
+				);
+			} else {
+				$this->assertGreaterThan( 20, strlen( (string) $definition->effect->reason ), $definition->id . ' says too little about why' );
+			}
+		}
+
+		$this->assertSame( 19, $config );
+	}
+
+	/**
 	 * Every config handler declares the two methods the contract requires
 	 * (BUILD-SPEC §10, Contracts\HandlerInterface).
 	 *
@@ -556,6 +596,31 @@ final class LoaderTest extends TestCase {
 		$this->expectException( RuntimeException::class );
 
 		$this->shippedRegistry()->tweak( 'core.nope' );
+	}
+
+	/**
+	 * No shipped handler hides an update notice, core's or WooCommerce's.
+	 *
+	 * `D-0077` removed a tweak for hiding core's update nag. The marketplace
+	 * tweak kept doing the same to WooCommerce's note that extension updates are
+	 * waiting, through `woocommerce_helper_suppress_admin_notices`, until 0.5.0
+	 * (`D-0079`). Named hooks, because a handler that reached one would have to
+	 * name it.
+	 *
+	 * @return void
+	 */
+	public function test_no_handler_hides_an_update_notice(): void {
+		foreach ( (array) glob( DEBLOATER_TESTS_ROOT . '/runtime-handlers/*.php' ) as $file ) {
+			$source = (string) file_get_contents( (string) $file );
+
+			foreach ( array( 'update_nag', 'woocommerce_helper_suppress_admin_notices' ) as $hook ) {
+				$this->assertStringNotContainsString(
+					"'" . $hook . "'",
+					$source,
+					basename( (string) $file ) . ' names ' . $hook
+				);
+			}
+		}
 	}
 
 	/**

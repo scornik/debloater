@@ -17,6 +17,10 @@
   "conditions": [],
   "measurements": ["frontend.requests", "frontend.scripts.count", "frontend.head_bytes"],
   "probes": ["home", "content_page", "admin"],
+  "effect": {
+    "fact": "wp.emojis_enabled",
+    "equals": false
+  },
   "since_wp": "4.2",
   "docs_url": null
 }

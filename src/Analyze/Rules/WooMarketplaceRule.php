@@ -19,14 +19,18 @@ use Debloater\Contracts\Severity;
  * WooCommerce is showing marketplace suggestions in the admin.
  *
  * The panels offering paid extensions on the products, orders and settings
- * screens. WooCommerce provides documented filters for turning them off, they
- * are marketing, and nothing operational travels through them — which is what
- * makes this the one WooCommerce change here that is genuinely safe.
+ * screens. `woo.marketplace_suggestions` is read the way WooCommerce reads it —
+ * the store setting, then `woocommerce_allow_marketplace_suggestions` — so the
+ * tweak this recommends, which answers through that filter, clears the finding.
  *
- * Notices about the store itself are a different channel and are untouched: a
- * pending database update or a gateway that needs configuring still reaches the
- * person running the shop. That distinction is the whole reason this is `safe`
- * where hiding a plugin's admin notices wholesale (Phase 12) is `medium`.
+ * The finding does not claim more than the tweak does. Checked against
+ * WooCommerce 11.1.0, the effect is partial: the store setting, not the filter,
+ * still decides the extension link on the Shipping settings tab and the
+ * recommendations WooCommerce's newer admin screens read through its REST
+ * options endpoint. Only the store setting switches those off.
+ *
+ * Until 0.5.0 the tweak also silenced WooCommerce's note on Dashboard → Updates
+ * that extension updates are waiting. It no longer does (`D-0079`).
  */
 final class WooMarketplaceRule extends AbstractRule {
 
@@ -81,7 +85,7 @@ final class WooMarketplaceRule extends AbstractRule {
 				'title'    => __( 'WooCommerce is showing extension suggestions in your admin', 'hakeemify-debloater' ),
 				'summary'  => __( 'Marketplace suggestions appear on the products, orders and settings screens.', 'hakeemify-debloater' ),
 				'why'      => __(
-					'These are the panels recommending paid extensions. WooCommerce has its own documented switches for them, which is what this change uses, and nothing operational goes through the same channel — notices about your store itself are untouched, so a pending database update or a gateway that needs configuring still reaches you. That is why this one is safe where hiding a plugin\'s admin notices wholesale is not.',
+					'These are the panels recommending paid extensions. The change uses WooCommerce\'s own filter for them, which removes most of them but not all: WooCommerce\'s own "Show Suggestions" setting, under Settings → Advanced → WooCommerce.com, still decides the extension link on the Shipping settings tab and the recommendations its newer admin screens load, and only that setting turns those off. Notices about your store, and the note that extension updates are waiting, are untouched.',
 					'hakeemify-debloater'
 				),
 				'evidence' => $this->evidence( $facts )

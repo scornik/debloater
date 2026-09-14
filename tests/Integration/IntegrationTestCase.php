@@ -86,6 +86,56 @@ abstract class IntegrationTestCase extends WP_UnitTestCase {
 	}
 
 	/**
+	 * What `GET /status` says on a site whose stored handlers all registered.
+	 *
+	 * For the fakes that answer verification's loopback requests. Built from
+	 * what this test stored, so the `runtime_registered` probe passes because
+	 * the fake describes a fresh request that registered the selection — not
+	 * because the fake leaves out the keys the probe reads. Every selected
+	 * change's effect is reported as observed for the same reason. The cases
+	 * where a handler does not register, or an effect does not show, are
+	 * `RuntimeRegisteredTest`'s.
+	 *
+	 * @param Plugin $plugin The plugin.
+	 * @return array<string,mixed>
+	 */
+	protected static function healthyStatus( Plugin $plugin ): array {
+		$stored = $plugin->runtime()->storedClasses();
+
+		$effects = array();
+
+		foreach ( array_keys( $plugin->state()->selection() ) as $tweak_id ) {
+			if ( ! $plugin->registry()->has( $tweak_id ) ) {
+				continue;
+			}
+
+			$effect = $plugin->registry()->tweak( $tweak_id )->effect;
+
+			if ( null !== $effect ) {
+				$effects[] = array(
+					'tweak'    => $tweak_id,
+					'status'   => $effect->observable ? 'observed' : 'unobservable',
+					'fact'     => $effect->fact,
+					'expected' => '',
+					'actual'   => null,
+					'reason'   => (string) $effect->reason,
+				);
+			}
+		}
+
+		return array(
+			'runtime' => array(
+				'handlers'   => count( $stored ),
+				'guard'      => array() === $stored ? 'nothing_stored' : 'active',
+				'stored'     => $stored,
+				'registered' => $stored,
+				'skipped'    => array(),
+			),
+			'effects' => $effects,
+		);
+	}
+
+	/**
 	 * Register the selection the way `plugins_loaded` would.
 	 *
 	 * @return bool Whether anything registered.

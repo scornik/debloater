@@ -4,6 +4,70 @@ All notable changes to Debloater are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [semantic versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] — 2026-09-14
+
+A real site showed findings coming back after the changes they recommended had
+been applied. The changes were working; the scanner was reading configuration
+instead of what WordPress does. This release makes every recommended change
+prove itself against the scan that recommended it. `docs/DECISIONS.md` D-0079.
+
+### Fixed
+
+- **Findings that could never clear.** `wp.embeds.enabled` reads
+  `wp_oembed_add_discovery_links` at priority 10, where core's own off switch
+  is; `db.revisions.unlimited` reads `wp_revisions_to_keep()` rather than
+  `WP_POST_REVISIONS`; `woo.marketplace.suggestions` reads the setting and then
+  `woocommerce_allow_marketplace_suggestions`, as WooCommerce does;
+  `woo.analytics.enabled` reads `woocommerce_admin_disabled` and
+  `woocommerce_admin_features`, as WooCommerce 11.1.0 does.
+- **`wp.dashicons.frontend` fired on every site.** Its fact asked the scan's
+  own REST or CLI request whether any registered style depended on dashicons,
+  which is always true. The rule now reads `assets.styles` from the pages
+  sampled as a logged-out visitor; `wp.dashicons_frontend` is no longer
+  collected.
+- **`wp.heartbeat.aggressive` fired on every unfiltered site.** The scanner's
+  default interval was 15 seconds; core's is 60.
+
+### Added
+
+- **`TweakEffectTest`.** Every config tweak is applied and must clear the
+  finding that recommended it on a fresh scan, or carry a stated reason it
+  cannot be exercised.
+- **The runtime load report.** `Runtime::load()` records the guard state and,
+  per stored handler, registered or skipped and why. `GET /status` and
+  `wp debloater status` report stored against registered; the dashboard warns
+  when a stored change did not load.
+- **The `runtime_registered` probe.** After an apply, a loopback request to
+  `GET /status`, signed in as the person who applied, must show every stored
+  handler registered, or the run rolls back. With no signed-in person — WP-CLI,
+  cron — or no loopback, it reports UNKNOWN and does not roll back.
+- **Declared effects.** Every config tweak's registry document declares the
+  fact it changes and what it must be, or why no request can observe it. The
+  `effects_observed` probe reports WARN "applied but not observed" when a
+  declared effect does not hold.
+
+### Changed
+
+- **`woo.suppress_marketplace_suggestions` no longer answers
+  `woocommerce_helper_suppress_admin_notices`**, which hid WooCommerce's note
+  that extension updates are waiting. Its finding and `breaks` say the effect
+  is partial: WooCommerce's Show Suggestions setting still governs the Shipping
+  tab link and the suggestions its newer admin screens load.
+- **`admin.notices.from_plugins` is informational.** Its handler acts on
+  `admin_head`, which no scan reaches, so the finding could never clear. The
+  tweak can still be selected by id.
+- **`Runtime::registeredClasses()` is `storedClasses()`.** It never said what
+  registered.
+- The revision findings are worded apart: "no revision limit is set", and old
+  revisions that fall only as posts are saved.
+
+### Known
+
+- No real scan collects admin facts: the dashboard scans over REST and WP-CLI
+  scans from a terminal, and admin facts are collected only when `is_admin()`.
+  The welcome-panel, news-widget and crowded-dashboard findings do not appear
+  on real sites. Recorded in `docs/GAP-ANALYSIS.md`.
+
 ## [0.4.0] — 2026-09-13
 
 wordpress.org review, round two. All four findings are fixed as asked, and

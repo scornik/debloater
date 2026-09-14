@@ -2455,3 +2455,77 @@ it landed; `CHANGELOG.md` and `docs/DECISIONS.md` D-0070–D-0072 are its record
   (`debloater-pro` D-0078, Pro 0.3.0). No plugin fetches a registry.
 - Pushed and tagged: `v0.4.0` here, Pro `v0.3.0`. The registry repository's
   `main` is pushed; its next tag needs the offline signing key.
+
+---
+
+## 0.5.0 – a tweak is proved by the scan that recommended it
+
+**Status:** complete · 2026-09-14 · not uploaded to wordpress.org (the review of
+0.4.0 is in progress, and an upload restarts it)
+
+A real site's rescan recommended three tweaks it had just applied. The tweaks
+worked; the scanner read raw configuration. `docs/DECISIONS.md` D-0079 records
+the diagnosis, what was built, and every fail-probe.
+
+### What changed
+
+| Item | Where |
+|---|---|
+| Embeds, revisions, marketplace suggestions and Analytics read as effective state | `CoreFeatureScanner`, `WordPressScanner`, `WooCommerceScanner` |
+| Every config tweak must clear its own finding on a fresh scan | `tests/Integration/TweakEffectTest.php` |
+| Dashicons decided from pages sampled as a visitor; `wp.dashicons_frontend` no longer collected | `DashiconsFrontendRule`, `CoreFeatureScanner` |
+| Heartbeat's default interval is core's 60, not 15 | `WordPressScanner` |
+| Promo notices informational; the Helper notice filter removed from the marketplace handler | `PluginNoticesRule`, `runtime-handlers/woo-suppress-marketplace-suggestions.php` |
+| Load report; `GET /status` and `wp debloater status` report stored against registered; dashboard warning | `Apply\Runtime`, `StatusRoute`, `Cli\Command`, `admin-ui/src/components/RuntimeNotice.js` |
+| `runtime_registered` (FAIL) and `effects_observed` (WARN) probes | `src/Verify/Probes/` |
+| Every config tweak declares its effect | registry `effect`, `Registry\TweakEffect`, `Verify\EffectCheck`; registry `a696feb` |
+
+### Found and not built
+
+No real scan collects admin facts, so the welcome-panel, news-widget,
+crowded-dashboard and promo-notice findings never appear on a site. Recorded in
+`docs/GAP-ANALYSIS.md`; admin-context scanning was decided against for this
+release.
+
+### The gate, on the release tree
+
+| Step | Result |
+|---|---|
+| PHPCS | 0 errors, 0 warnings |
+| PHPStan level 6 | no errors |
+| Unit | 1152 pass / 0 fail |
+| JS tests / lint | 27 pass / clean |
+| Integration | 383 + 9 fail-probe pass / 0 fail |
+| WP-CLI end to end | the whole loop ran |
+| Registry manifest | matches all 57 files (registry tests: 59 pass) |
+| Packaging | 13 pass / 0 fail, including install and activate |
+| Version discipline | reconciled at 0.5.0 |
+| Plugin Check on the extracted archive | no errors |
+| Fail-probes | 14 of 14 PHP assertions and the JS notice test bit when broken |
+
+`dist/hakeemify-debloater-0.5.0.zip`, sha256
+`56a54abb9f266f0bc9f85e0ab4fe45ebf023da25a9b9d44f6db37d4eac679468`.
+
+### Clean install, WP_DEBUG on
+
+Two throwaway WordPress 7.1 installs in the wp-env CLI container, each with its
+own database and its own PHP server, the plugin copied from the extracted
+archive.
+
+- **WP-CLI loop:** status, scan (64 facts, 10 findings), findings, preview,
+  apply (exit 3), status ("6 of 6 stored handlers registered", "Effects: 6
+  observed"), verify, export, profiles, snapshots, rollback, status. Applied
+  from WP-CLI, `admin`, `runtime_registered` and `effects_observed` report
+  UNKNOWN: there is no signed-in user to ask as.
+- **Applied the way the dashboard does**, over REST as the administrator with
+  a real nonce and cookie: COMMITTED, every probe PASS, including
+  `runtime_registered` ("All 6 stored changes registered in a fresh request")
+  and `effects_observed` ("6 changes observed working"). The front page had no
+  generator meta, no EditURI and no shortlink.
+- **With `core-remove-rsd.php` hidden in the throwaway copy**, the same apply:
+  `runtime_registered` FAIL ("1 of 6 stored changes did not register …:
+  Debloater_Handler_Core_Remove_Rsd"), `effects_observed` WARN ("Applied but not
+  observed: core.remove_rsd (wp.rsd_link is true, expected = false)"), state
+  ROLLED_BACK, nothing stored afterwards.
+- No `debug.log` was created by either install; the PHP server logged nothing
+  but request lines. Uninstall removed the runtime option.

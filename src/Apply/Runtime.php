@@ -60,6 +60,19 @@ use Debloater\Contracts\TweakKind;
  * which still passes. `D-0070` writes it down and amends it rather than
  * reversing it.
  *
+ * ## What registered is reported, not assumed
+ *
+ * A stored handler can fail to register: its file missing after an upgrade
+ * (`D-0077`), the guard file unreadable, `DEBLOATER_DISABLE` defined, a name
+ * that no longer matches the pattern. Each of those used to return quietly, and
+ * nothing anywhere could tell a site with its changes in effect from a site with
+ * none of them, while the run that applied them said COMMITTED. `load()` now
+ * keeps a record of this request's outcome, in memory only: the guard's state,
+ * and for each stored handler whether it registered or why it did not.
+ * `GET /status` and `wp debloater status` return it, and the
+ * `runtime_registered` probe reads it over loopback after an apply (`D-0079`).
+ * Nothing is written, so a front-end request pays nothing for it.
+ *
  * **Nothing user-controlled is executed** (§13 rule 5, invariant 11). The option
  * holds a *file name*, never a path: it is matched against a strict pattern and
  * the directory is supplied here, so a traversal cannot be expressed, let alone
@@ -93,6 +106,34 @@ final class Runtime {
 	 * A handler class name, and nothing else.
 	 */
 	private const CLASS_PATTERN = '/^Debloater_Handler_[A-Za-z0-9_]+$/';
+
+	/**
+	 * Guard states `report()` can give.
+	 *
+	 * `GET /status` sends these and the `runtime_registered` probe reads them,
+	 * so each side's tests pin the literal rather than this constant (P4).
+	 */
+	public const GUARD_NOT_LOADED = 'not_loaded';
+	public const GUARD_NOTHING    = 'nothing_stored';
+	public const GUARD_MISSING    = 'guard_missing';
+	public const GUARD_DISABLED   = 'disabled';
+	public const GUARD_BYPASSED   = 'bypassed';
+	public const GUARD_ACTIVE     = 'active';
+
+	/**
+	 * Why a stored handler did not register.
+	 */
+	public const SKIP_INVALID_NAME = 'invalid_name';
+	public const SKIP_UNREADABLE   = 'unreadable';
+	public const SKIP_NO_REGISTER  = 'no_register_method';
+	public const SKIP_GUARD        = 'guard';
+
+	/**
+	 * What the last `load()` in this request did, or null before it ran.
+	 *
+	 * @var array{guard:string,registered:array<int,string>,skipped:array<int,array{class:string,file:string,reason:string}>}|null
+	 */
+	private ?array $report = null;
 
 	/**
 	 * Site context.
@@ -133,9 +174,13 @@ final class Runtime {
 
 			if ( 1 !== preg_match( self::FILE_PATTERN, $file ) ) {
 				// The registry declared something that is not a handler file
-				// name. Skipping it is the safe half; it is also recorded,
-				// because silently registering less than the plan promised is
-				// how a site ends up not doing what the preview said.
+				// name, and it is not stored. Nothing here records that. It
+				// cannot happen with the registry that ships: `TweakDefinition`
+				// refuses a config handler outside runtime-handlers/, and
+				// `LoaderTest::test_every_config_handler_file_exists` holds every
+				// shipped name to a real file. A selection registering less than
+				// its plan for any other reason is what `report()` and the
+				// `runtime_registered` probe catch.
 				continue;
 			}
 
@@ -168,6 +213,9 @@ final class Runtime {
 	/**
 	 * Require the selected handlers and register them.
 	 *
+	 * Records the outcome for `report()` on every path, including the ones that
+	 * register nothing.
+	 *
 	 * @return int How many handlers registered.
 	 */
 	public function load(): int {
@@ -176,7 +224,13 @@ final class Runtime {
 		if ( array() === $handlers ) {
 			// The common case for a site with nothing selected, and the whole of
 			// what it costs: one array read from an option WordPress had already
-			// loaded.
+			// loaded, and one small array in memory.
+			$this->report = array(
+				'guard'      => self::GUARD_NOTHING,
+				'registered' => array(),
+				'skipped'    => array(),
+			);
+
 			return 0;
 		}
 
@@ -185,24 +239,63 @@ final class Runtime {
 		if ( ! is_readable( $guard ) ) {
 			// No kill switch, no registration. A site that cannot be switched
 			// back off must not be switched on.
-			return 0;
+			return $this->refuseAll( $handlers, self::GUARD_MISSING );
 		}
 
 		require_once $guard;
 
-		if ( \Debloater_Runtime_Guard::disabled() || \Debloater_Runtime_Guard::bypass_allowed() ) {
-			return 0;
+		if ( \Debloater_Runtime_Guard::disabled() ) {
+			return $this->refuseAll( $handlers, self::GUARD_DISABLED );
 		}
 
-		$registered = 0;
+		if ( \Debloater_Runtime_Guard::bypass_allowed() ) {
+			return $this->refuseAll( $handlers, self::GUARD_BYPASSED );
+		}
+
+		$registered = array();
+		$skipped    = array();
 
 		foreach ( $handlers as $handler ) {
-			if ( $this->registerOne( $handler ) ) {
-				++$registered;
+			$reason = $this->registerOne( $handler );
+
+			if ( null === $reason ) {
+				$registered[] = (string) $handler['class'];
+			} else {
+				$skipped[] = $this->skip( $handler, $reason );
 			}
 		}
 
-		return $registered;
+		$this->report = array(
+			'guard'      => self::GUARD_ACTIVE,
+			'registered' => $registered,
+			'skipped'    => $skipped,
+		);
+
+		return count( $registered );
+	}
+
+	/**
+	 * What `load()` did in this request, against what is stored.
+	 *
+	 * `stored` is read now; `registered` and `skipped` are what the last `load()`
+	 * in this request did. Before `load()` has run, the guard says so and
+	 * nothing is claimed as registered.
+	 *
+	 * @return array{guard:string,stored:array<int,string>,registered:array<int,string>,skipped:array<int,array{class:string,file:string,reason:string}>}
+	 */
+	public function report(): array {
+		$report = $this->report ?? array(
+			'guard'      => self::GUARD_NOT_LOADED,
+			'registered' => array(),
+			'skipped'    => array(),
+		);
+
+		return array(
+			'guard'      => $report['guard'],
+			'stored'     => $this->storedClasses(),
+			'registered' => $report['registered'],
+			'skipped'    => $report['skipped'],
+		);
 	}
 
 	/**
@@ -225,14 +318,16 @@ final class Runtime {
 	}
 
 	/**
-	 * The handler class names the current selection registers.
+	 * The handler class names stored for loading.
 	 *
-	 * Read from the option rather than recomputed from the registry, so it says
-	 * what is actually loaded rather than what would be loaded.
+	 * Read from the option rather than recomputed from the registry. This is
+	 * what a request will try to register, not what registered, which is
+	 * `report()`. It was called `registeredClasses()` until 0.5.0, and
+	 * `GET /status` reported its count as though it were the second thing.
 	 *
 	 * @return array<int,string>
 	 */
-	public function registeredClasses(): array {
+	public function storedClasses(): array {
 		$classes = array();
 
 		foreach ( $this->stored() as $handler ) {
@@ -246,9 +341,9 @@ final class Runtime {
 	 * Require one handler and register it.
 	 *
 	 * @param array<string,mixed> $handler Stored handler entry.
-	 * @return bool Whether it registered.
+	 * @return string|null Null when it registered, otherwise why it did not.
 	 */
-	private function registerOne( array $handler ): bool {
+	private function registerOne( array $handler ): ?string {
 		$file  = is_string( $handler['file'] ?? null ) ? $handler['file'] : '';
 		$class = is_string( $handler['class'] ?? null ) ? $handler['class'] : '';
 
@@ -256,26 +351,67 @@ final class Runtime {
 		// database row, and a database row is not a thing to trust with a
 		// `require` merely because this code wrote it last time.
 		if ( 1 !== preg_match( self::FILE_PATTERN, $file ) || 1 !== preg_match( self::CLASS_PATTERN, $class ) ) {
-			return false;
+			return self::SKIP_INVALID_NAME;
 		}
 
 		$path = $this->context->handlersDir() . '/' . $file;
 
 		if ( ! is_readable( $path ) ) {
-			return false;
+			return self::SKIP_UNREADABLE;
 		}
 
 		require_once $path;
 
 		if ( ! class_exists( $class, false ) || ! method_exists( $class, 'register' ) ) {
-			return false;
+			return self::SKIP_NO_REGISTER;
 		}
 
 		$params = is_array( $handler['params'] ?? null ) ? $handler['params'] : array();
 
 		$class::register( $params );
 
-		return true;
+		return null;
+	}
+
+	/**
+	 * Record every stored handler as refused by the guard.
+	 *
+	 * @param array<int,array<string,mixed>> $handlers Stored handlers.
+	 * @param string                         $guard    Guard state.
+	 * @return int Always 0.
+	 */
+	private function refuseAll( array $handlers, string $guard ): int {
+		$skipped = array();
+
+		foreach ( $handlers as $handler ) {
+			$skipped[] = $this->skip( $handler, self::SKIP_GUARD );
+		}
+
+		$this->report = array(
+			'guard'      => $guard,
+			'registered' => array(),
+			'skipped'    => $skipped,
+		);
+
+		return 0;
+	}
+
+	/**
+	 * One skipped entry for the report.
+	 *
+	 * The names are echoed as stored, only to a capability-checked endpoint and
+	 * a terminal; neither executes them.
+	 *
+	 * @param array<string,mixed> $handler Stored handler entry.
+	 * @param string              $reason  Why it did not register.
+	 * @return array{class:string,file:string,reason:string}
+	 */
+	private function skip( array $handler, string $reason ): array {
+		return array(
+			'class'  => is_string( $handler['class'] ?? null ) ? $handler['class'] : '',
+			'file'   => is_string( $handler['file'] ?? null ) ? $handler['file'] : '',
+			'reason' => $reason,
+		);
 	}
 
 	/**

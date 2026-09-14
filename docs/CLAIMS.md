@@ -14,7 +14,26 @@ Four verdicts:
   would want to know.
 - **unverifiable** — nothing in either repository can confirm or refute it.
 
-Line numbers are at the commit this file was added in.
+Line numbers are at the commit this file was added in (0.4.0).
+
+**At 0.5.0.** `readme.txt` gained a sentence and a changelog, so its later line
+numbers moved; the wording of every row below is unchanged unless noted here.
+
+- F9's section now also says that, applied from the dashboard, Debloater "asks a
+  fresh request whether the changes actually loaded, and puts everything back if
+  they did not", and that from WP-CLI or without loopback the check cannot run
+  (`readme.txt:44-48`). **Accurate**: `runtime_registered` FAILs and rolls back
+  when a stored handler did not register (`RuntimeRegisteredTest`, and the
+  clean-install run of the 0.5.0 archive), and reports UNKNOWN, which does not
+  roll back, with no signed-in actor or no loopback.
+- The two comments listed under "Other repository documents" for
+  `Runtime.php` and `StatusRoute.php` are corrected, and so is the marketplace
+  tweak's description of what it hides (D-0079).
+- The 0.5.0 changelog's claims — findings clear after their change, the
+  dashicons and Heartbeat findings no longer fire everywhere, loading is
+  checked — are held by `TweakEffectTest`, `RulesTest`, `ScannerTest` and
+  `RuntimeRegisteredTest`. It also states what is not fixed: admin findings
+  are not produced by real scans.
 
 ---
 
@@ -206,5 +225,5 @@ Not claims to a buyer, but read by whoever extends or maintains the product.
 | `docs/SCORING.md:43-45` | Assets is unscored until the asset scan arrives in Phase 13 | Phase 13 shipped; assets is still unscored |
 | `docs/SCORING.md:53-56` | a category with no possible penalty "is a perfect ten awarded for nothing, and it would have pulled the headline up on every site" | the Plugins sub-score is exactly that: every plugins rule has info severity, so it is always 100 |
 | `tests/Unit/Analyze/AnalyzerTest.php:114` | `test_a_declared_dependency_refuses_a_finding` | asserts `RECOMMEND` — no refusal — and no test anywhere makes the dependency refusal fire |
-| `registry/tweaks/woo.suppress_marketplace_suggestions.json` (`breaks`), `runtime-handlers/woo-suppress-marketplace-suggestions.php` (comment) | hides extension recommendations / marketing notices | also filters `woocommerce_helper_suppress_admin_notices`, which hides WooCommerce Helper notices including available extension updates |
+| `registry/tweaks/woo.suppress_marketplace_suggestions.json` (`breaks`), `runtime-handlers/woo-suppress-marketplace-suggestions.php` (comment) | hides extension recommendations / marketing notices | at 0.4.0 it also filtered `woocommerce_helper_suppress_admin_notices`, hiding the extension-updates note. **Resolved in 0.5.0**: the filter is gone, and the text says the effect is partial |
 | Pro `docs/DECISIONS.md` D-0050 hook table | drift uses `debloater_scan_complete`; reporting uses `debloater_apply_complete` | Pro hooks neither; it reads runs through `Debloater\Plugin` |

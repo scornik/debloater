@@ -12,16 +12,24 @@ defined( 'ABSPATH' ) || exit;
 if ( ! class_exists( 'Debloater_Handler_Woo_Suppress_Marketplace_Suggestions', false ) ) {
 
 	/**
-	 * Answers WooCommerce's own marketplace-suggestions filters.
+	 * Answers WooCommerce's marketplace-suggestions filter.
 	 *
-	 * These are the panels offering paid extensions on the products, orders and
-	 * settings screens. They are marketing, WooCommerce provides documented
-	 * switches for turning them off, and nothing operational travels through
-	 * them — which is what makes this the one WooCommerce change here that is
-	 * safe rather than medium risk.
+	 * `woocommerce_allow_marketplace_suggestions` turns off the panels offering
+	 * paid extensions on the products, orders and settings screens. It does not
+	 * reach everything: in WooCommerce 11.1.0 the Shipping settings tab's
+	 * extension link and the recommendations the newer admin screens read
+	 * through the REST options endpoint consult the `Show Suggestions` setting
+	 * directly, and this handler does not change that setting.
 	 *
-	 * Notices about the store itself are untouched: a pending database update or
-	 * a gateway that needs configuring still reaches the person running the shop.
+	 * Until 0.5.0 it also returned true from
+	 * `woocommerce_helper_suppress_admin_notices`. That filter does not hide
+	 * marketing: it silences `WC_Helper::admin_notices()`, the note on
+	 * Dashboard → Updates saying how many WooCommerce.com extensions have updates
+	 * waiting. Hiding an update notice is what `D-0077` removed a tweak for, so
+	 * this handler no longer touches it (`D-0079`).
+	 *
+	 * Store notices — a pending database update, a gateway that needs
+	 * configuring — do not travel through the suggestions filter.
 	 */
 	final class Debloater_Handler_Woo_Suppress_Marketplace_Suggestions {
 
@@ -35,7 +43,6 @@ if ( ! class_exists( 'Debloater_Handler_Woo_Suppress_Marketplace_Suggestions', f
 			unset( $params );
 
 			add_filter( 'woocommerce_allow_marketplace_suggestions', array( __CLASS__, 'refuse' ), 99 );
-			add_filter( 'woocommerce_helper_suppress_admin_notices', array( __CLASS__, 'accept' ), 99 );
 		}
 
 		/**
@@ -45,7 +52,6 @@ if ( ! class_exists( 'Debloater_Handler_Woo_Suppress_Marketplace_Suggestions', f
 		 */
 		public static function unregister() {
 			remove_filter( 'woocommerce_allow_marketplace_suggestions', array( __CLASS__, 'refuse' ), 99 );
-			remove_filter( 'woocommerce_helper_suppress_admin_notices', array( __CLASS__, 'accept' ), 99 );
 		}
 
 		/**
@@ -58,18 +64,6 @@ if ( ! class_exists( 'Debloater_Handler_Woo_Suppress_Marketplace_Suggestions', f
 			unset( $allow );
 
 			return false;
-		}
-
-		/**
-		 * Yes, do suppress the helper's marketing notices.
-		 *
-		 * @param mixed $suppress Whether WooCommerce intends to suppress them.
-		 * @return bool
-		 */
-		public static function accept( $suppress ) {
-			unset( $suppress );
-
-			return true;
 		}
 	}
 }

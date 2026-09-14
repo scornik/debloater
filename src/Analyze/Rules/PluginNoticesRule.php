@@ -12,24 +12,27 @@ namespace Debloater\Analyze\Rules;
 use Debloater\Contracts\Category;
 use Debloater\Contracts\FactSet;
 use Debloater\Contracts\Finding;
-use Debloater\Contracts\Risk;
 use Debloater\Contracts\Severity;
 
 /**
  * Plugins on the allowlist are printing admin notices.
  *
- * This is the most cautious recommendation Debloater makes, and the wording
- * has to carry that. The change it proposes hides *everything* those plugins
- * say in the notice area, because they print upgrade prompts and "your database
- * needs updating" from the same hook and nothing separates the two. So:
+ * Reported, and not recommended. `admin.suppress_promo_notices` exists and can
+ * be selected by id, but since 0.5.0 no scan offers it (`D-0079`):
  *
- * - It is `medium` risk, which keeps it out of "Fix Safe Issues" entirely.
- * - It proposes only vendors that are both on the allowlist *and* actually
- *   printing notices here, so it never suggests silencing something silent.
- * - The reasoning says what will be missed, not only what will be gained.
+ * - **A scan cannot see whether it worked.** The handler removes the notices on
+ *   `admin_head`, while the admin page is being built. A scan enumerates notice
+ *   callbacks without building that page, so with the change in effect the
+ *   next scan found the same callbacks and offered it again, for ever.
+ *   `TweakEffectTest` is what showed it.
+ * - **No real scan produces these facts anyway.** Admin facts are collected
+ *   only when `is_admin()`, and the dashboard scans over REST and WP-CLI scans
+ *   from a terminal. The finding existed in tests and nowhere else.
  *
- * A rule that said "hide promotional notices" and then hid an expiring licence
- * warning would have lied. This one says what it does.
+ * What the finding still says is true on any scan that does see the admin:
+ * which allowlisted plugins print notices, and that hiding them hides their
+ * operational warnings too. Severity is `info`: a site is not penalised for
+ * something this plugin no longer offers to change.
  */
 final class PluginNoticesRule extends AbstractRule {
 
@@ -112,19 +115,14 @@ final class PluginNoticesRule extends AbstractRule {
 			return null;
 		}
 
-		$selected = array_keys( $sources );
-		$labels   = array_keys( $names );
+		$labels = array_keys( $names );
 
-		sort( $selected, SORT_STRING );
 		sort( $labels, SORT_STRING );
 
-		return $this->recommend(
+		return $this->inform(
 			array(
 				'category' => Category::ADMIN,
-				'severity' => Severity::LOW,
-				'risk'     => Risk::MEDIUM,
-				'tweak_id' => 'admin.suppress_promo_notices',
-				'params'   => array( 'sources' => $selected ),
+				'severity' => Severity::INFO,
 				'title'    => sprintf(
 					/* translators: %d: number of notice callbacks from plugins on the allowlist. */
 					_n(
@@ -141,7 +139,7 @@ final class PluginNoticesRule extends AbstractRule {
 					implode( ', ', $labels )
 				),
 				'why'      => __(
-					'These plugins print into the admin notice area on every screen. Hiding them is offered because the interruption is real — but read this first: it hides everything they say there, not only the marketing. These plugins send upgrade prompts and warnings about pending database updates or expiring licences down the same channel, and nothing reliably tells them apart. Nothing is uninstalled or switched off, and unselecting this brings the notices straight back.',
+					'These plugins print into the admin notice area. Debloater has a change that hides everything they say there, but it does not offer it from a scan: the change acts while the admin page is being built, where a scan cannot see whether it worked. If you choose it by hand, know that it hides not only the marketing: these plugins send upgrade prompts and warnings about pending database updates or expiring licences down the same channel, and nothing reliably tells them apart.',
 					'hakeemify-debloater'
 				),
 				'evidence' => $this->evidence( $facts )

@@ -39,7 +39,12 @@ final class RecommendationEngineTest extends TestCase {
 	 * @return void
 	 */
 	public function test_heartbeat_is_120_seconds_for_a_quiet_blog(): void {
-		$facts = Facts::freshInstall( array( 'users.admin_count' => 1 ) );
+		$facts = Facts::freshInstall(
+			array(
+				'users.admin_count'     => 1,
+				'wp.heartbeat_interval' => 15,
+			)
+		);
 		$tweak = $this->recommendedTweak( $facts, 'core.heartbeat_interval' );
 
 		$this->assertNotNull( $tweak );
@@ -254,7 +259,7 @@ final class RecommendationEngineTest extends TestCase {
 			FactPredicate::parse( 'fact:wp.debug=false' )->isSatisfiedBy( $facts )
 		);
 		$this->assertTrue(
-			FactPredicate::parse( 'fact:wp.heartbeat_interval=15' )->isSatisfiedBy( $facts )
+			FactPredicate::parse( 'fact:wp.heartbeat_interval=60' )->isSatisfiedBy( $facts )
 		);
 	}
 

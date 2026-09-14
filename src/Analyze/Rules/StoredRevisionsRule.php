@@ -23,6 +23,11 @@ use Debloater\Contracts\Severity;
  * the revisions already stored — and the two are separate findings because a
  * user might reasonably want one and not the other.
  *
+ * Setting a limit does not clear this one. WordPress removes a post's older
+ * revisions only when that post is next saved, so the stored count falls
+ * slowly after a limit is in place, and the wording says so rather than letting
+ * a user expect the limit to have cleared it.
+ *
  * The threshold is deliberately high. Revisions are the safety net for anyone
  * who writes, and a site with a few hundred of them does not have a problem
  * worth deleting anything over.
@@ -91,7 +96,7 @@ final class StoredRevisionsRule extends AbstractRule {
 				'title'    => __( 'A lot of old post revisions are stored', 'hakeemify-debloater' ),
 				'summary'  => sprintf(
 					/* translators: %s: number of revisions. */
-					__( '%s revisions are stored across this site.', 'hakeemify-debloater' ),
+					__( '%s old revisions are stored across this site. A revision limit does not remove these: WordPress prunes a post\'s old revisions only when that post is next saved.', 'hakeemify-debloater' ),
 					number_format_i18n( $revisions )
 				),
 				'why'      => __(

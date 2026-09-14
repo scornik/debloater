@@ -10,9 +10,10 @@
   "destructive": false,
   "handler": "runtime-handlers/woo-suppress-marketplace-suggestions.php",
   "params": {},
-  "description": "Answers WooCommerce's own woocommerce_allow_marketplace_suggestions and woocommerce_helper_suppress_admin_notices filters, which turn off the panels offering paid extensions on the products, orders and settings screens. Notices about your store itself — a pending database update, a gateway that needs configuring — are untouched.",
+  "description": "Answers WooCommerce's woocommerce_allow_marketplace_suggestions filter, which turns off most of the panels offering paid extensions on the products, orders and settings screens. WooCommerce's own Show Suggestions setting still decides the rest. Notices are untouched, including a pending database update, a gateway that needs configuring, and the note that extension updates are waiting.",
   "breaks": [
-    "Extension recommendations no longer appear on the products, orders and settings screens"
+    "Extension recommendations no longer appear on the products, orders and settings screens",
+    "Partial: the extension link on the Shipping settings tab and the recommendations WooCommerce's newer admin screens load are still governed by WooCommerce's own Show Suggestions setting, which this does not change"
   ],
   "requires": [
     "fact:plugins.detected.woocommerce=true"
@@ -25,6 +26,10 @@
   "probes": [
     "admin"
   ],
+  "effect": {
+    "fact": "woo.marketplace_suggestions",
+    "equals": false
+  },
   "since_wp": "5.0",
   "docs_url": null
 }

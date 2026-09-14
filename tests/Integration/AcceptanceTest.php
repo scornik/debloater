@@ -64,12 +64,26 @@ final class AcceptanceTest extends IntegrationTestCase {
 	}
 
 	/**
+	 * Heartbeat settings asking for a 15-second interval.
+	 *
+	 * @param array<string,mixed> $settings Settings.
+	 * @return array<string,mixed>
+	 */
+	public static function fast_heartbeat( $settings ): array {
+		$settings             = is_array( $settings ) ? $settings : array();
+		$settings['interval'] = 15;
+
+		return $settings;
+	}
+
+	/**
 	 * Clean up.
 	 *
 	 * @return void
 	 */
 	public function tear_down(): void {
 		remove_all_filters( 'pre_http_request' );
+		remove_filter( 'heartbeat_settings', array( self::class, 'fast_heartbeat' ) );
 
 		( new Lock() )->forceRelease();
 
@@ -267,6 +281,13 @@ final class AcceptanceTest extends IntegrationTestCase {
 			)
 		);
 
+		// And something on the store has asked Heartbeat for 15 seconds, as a
+		// live-chat or stock plugin does. Until 0.5.0 this seed left it out and
+		// the refusal still appeared, because the scanner took 15 seconds to be
+		// core's default — which it is not (D-0079). Without a fast Heartbeat
+		// there is nothing to refuse to slow.
+		add_filter( 'heartbeat_settings', array( self::class, 'fast_heartbeat' ) );
+
 		foreach ( array( 'editor', 'author' ) as $index => $role ) {
 			self::factory()->post->create(
 				array(
@@ -351,7 +372,7 @@ final class AcceptanceTest extends IntegrationTestCase {
 
 				if ( 0 === strpos( $url, rest_url( 'debloater/v1/status' ) ) ) {
 					$body = (string) wp_json_encode(
-						array( 'runtime' => array( 'handlers' => 0 ) )
+						self::healthyStatus( $plugin )
 					);
 				} elseif ( 0 === strpos( $url, rest_url() ) ) {
 					$body = (string) wp_json_encode( array( 'name' => 'A site' ) );

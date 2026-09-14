@@ -17,6 +17,10 @@
   "conditions": [],
   "measurements": ["frontend.requests", "frontend.scripts.count", "frontend.head_bytes"],
   "probes": ["home", "content_page", "rest"],
+  "effect": {
+    "fact": "wp.embeds_enabled",
+    "equals": false
+  },
   "since_wp": "4.4",
   "docs_url": null
 }

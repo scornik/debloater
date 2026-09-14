@@ -176,6 +176,17 @@ final class TweakDefinition {
 	public readonly ?string $docs_url;
 
 	/**
+	 * What a request can observe when this config tweak is in effect.
+	 *
+	 * Null for data tweaks, which run once and are checked by their operation.
+	 * `LoaderTest::test_every_config_tweak_declares_its_effect` requires one of
+	 * every shipped config tweak (`D-0079`).
+	 *
+	 * @var TweakEffect|null
+	 */
+	public readonly ?TweakEffect $effect;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param string                            $id              Tweak id.
@@ -198,6 +209,7 @@ final class TweakDefinition {
 	 * @param array<int,string>                 $probes          Probe names.
 	 * @param string|null                       $since_wp        WordPress version.
 	 * @param string|null                       $docs_url        Documentation URL.
+	 * @param TweakEffect|null                  $effect          Observable effect, for config tweaks.
 	 * @throws ContractViolation When an invariant is violated.
 	 */
 	public function __construct(
@@ -220,7 +232,8 @@ final class TweakDefinition {
 		array $measurements = array(),
 		array $probes = array(),
 		?string $since_wp = null,
-		?string $docs_url = null
+		?string $docs_url = null,
+		?TweakEffect $effect = null
 	) {
 		if ( 1 !== preg_match( Identifier::TWEAK_ID_PATTERN, $id ) ) {
 			throw ContractViolation::range(
@@ -251,6 +264,14 @@ final class TweakDefinition {
 					. 'generated code may only require files from that directory',
 					$handler
 				)
+			);
+		}
+
+		if ( TweakKind::DATA === $kind && null !== $effect ) {
+			throw ContractViolation::range(
+				self::class,
+				'effect',
+				'a data tweak declares no effect: it runs once, and its operation is what checks it'
 			);
 		}
 
@@ -298,6 +319,7 @@ final class TweakDefinition {
 		$this->probes          = array_values( $probes );
 		$this->since_wp        = $since_wp;
 		$this->docs_url        = $docs_url;
+		$this->effect          = $effect;
 	}
 
 	/**
@@ -336,8 +358,21 @@ final class TweakDefinition {
 				'probes',
 				'since_wp',
 				'docs_url',
+				'effect',
 			)
 		);
+
+		$effect = null;
+
+		if ( array_key_exists( 'effect', $data ) ) {
+			if ( ! is_array( $data['effect'] ) ) {
+				throw ContractViolation::type( self::class, 'effect', 'object', $data['effect'] );
+			}
+
+			/** @var array<string,mixed> $declared */
+			$declared = $data['effect'];
+			$effect   = TweakEffect::fromArray( $declared );
+		}
 
 		$params = array();
 
@@ -370,7 +405,8 @@ final class TweakDefinition {
 			Assert::stringList( self::class, $data, 'measurements' ),
 			Assert::stringList( self::class, $data, 'probes' ),
 			Assert::nullableString( self::class, $data, 'since_wp' ),
-			Assert::nullableString( self::class, $data, 'docs_url' )
+			Assert::nullableString( self::class, $data, 'docs_url' ),
+			$effect
 		);
 	}
 
@@ -380,7 +416,7 @@ final class TweakDefinition {
 	 * @return array<string,mixed>
 	 */
 	public function toArray(): array {
-		return array(
+		$data = array(
 			'id'              => $this->id,
 			'schema_version'  => $this->schema_version,
 			'title'           => $this->title,
@@ -402,6 +438,12 @@ final class TweakDefinition {
 			'since_wp'        => $this->since_wp,
 			'docs_url'        => $this->docs_url,
 		);
+
+		if ( null !== $this->effect ) {
+			$data['effect'] = $this->effect->toArray();
+		}
+
+		return $data;
 	}
 
 	/**

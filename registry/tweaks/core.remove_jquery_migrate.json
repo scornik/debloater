@@ -17,6 +17,10 @@
   "conditions": [],
   "measurements": ["frontend.requests", "frontend.scripts.count"],
   "probes": ["home", "content_page"],
+  "effect": {
+    "fact": "wp.jquery_migrate",
+    "equals": false
+  },
   "since_wp": "5.5",
   "docs_url": null
 }
